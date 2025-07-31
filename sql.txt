@@ -1,0 +1,13 @@
+tabela products 
+price tipo de dados para decimal 10.2
+
+tabela flyer_banners
+campo sort eliminado
+
+tabela configurations
+adicionado 2 campos
+text_about_pt   LONGTEXT     NULL
+text_about_en   LONGTEXT     NULL
+
+
+tabela abouts eliminada
