@@ -73,7 +73,7 @@ class AppointmentController extends Controller
         $appointment = Appointment::findOrFail($id);
         $appointment->update($request->all());
         flash('Agendamento atualizado com sucesso!')->success();
-        return redirect()->route('backoffice.appointments.index');
+       return redirect()->route('backoffice.appointments.index', ['page' => $request->input('page')]);
     }
 
     public function delete($id) {

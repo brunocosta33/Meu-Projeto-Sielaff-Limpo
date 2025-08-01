@@ -70,8 +70,11 @@
                     <textarea name="observacoes" class="form-control" rows="3"></textarea>
                 </div>
 
+                <input type="hidden" name="page" value="{{ request('page') }}">
+
+
                 <div class="mt-4">
-                    <a class="btn btn-outline-secondary" href="{{ route('backoffice.appointments.index') }}">
+                 <a class="btn btn-outline-secondary" href="{{ route('backoffice.appointments.index', ['page' => request('page')]) }}">
                         <i class="fa fa-arrow-left"></i> Voltar
                     </a>
                     {!! Form::button('<i class="fa fa-save"></i> Gravar', ['type' => 'submit', 'class' => 'btn btn-outline-secondary']) !!}

@@ -53,11 +53,11 @@ use App\Models\Base;
         <li>
             <a href="#pageSubmenuInstalacoes" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
             <i class="fa fa-box"></i>
-                <span class="hidden-sm-down"> {{__('Serviços Instalação')}}</span>
+                <span class="hidden-sm-down"> {{__('Instalações')}}</span>
             </a>
             <ul class="collapse list-unstyled" id="pageSubmenuInstalacoes" data-parent="#menu-left">
                 <li><a href="{{ route('backoffice.teams.index') }}">{{ __('Empresas') }}</a></li>
-               <li><a href="{{ route('backoffice.installations.index') }}">{{ __('Agendamento das Instações') }}</a></li>
+               <li><a href="{{ route('backoffice.installations.index') }}">{{ __('Agendamento das Instalações') }}</a></li>
             </ul>
         </li>
         @endif
@@ -66,11 +66,12 @@ use App\Models\Base;
         <li>
             <a href="#pageSubmenuTecnicas" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
             <i class="fa fa-box"></i>
-                <span class="hidden-sm-down"> {{__('Serviços Assitencia')}}</span>
+                <span class="hidden-sm-down"> {{__('Assitencia')}}</span>
             </a>
             <ul class="collapse list-unstyled" id="pageSubmenuTecnicas" data-parent="#menu-left">
                 <li><a href="{{ route('backoffice.technical_requests.index') }}">{{ __('Pedidos') }}</a></li>
                <li><a href="{{ route('backoffice.technical_schedules.index') }}">{{ __('Agendamento das Assitencias') }}</a></li>
+                <li><a href="{{ route('backoffice.technicians.index') }}">{{ __('Técnicos') }}</a></li>
             </ul>
         </li>
         @endif
@@ -82,7 +83,9 @@ use App\Models\Base;
                 <span class="hidden-sm-down"> {{__('Armazém')}}</span>
             </a>
             <ul class="collapse list-unstyled" id="pageSubmenuArm" data-parent="#menu-left">
-                <li><a href="{{ route('backoffice.parts.index') }}">{{ __('Peças') }}</a></li>
+                <li><a href="{{ route('backoffice.parts.index') }}">{{ __('Stock Peças Armazém') }}</a></li>
+                <li><a href="{{ route('backoffice.van-stocks.index') }}">{{ __('Stock Carrinhas Técnicos') }}</a></li>
+                <li><a href="{{ route('backoffice.part_reservations.index') }}">{{ __('Reservas') }}</a></li>
                 <li><a href="{{ route('backoffice.machines.index') }}">{{ __('Máquinas') }}</a></li>
             </ul>
         </li>

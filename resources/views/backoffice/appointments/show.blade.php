@@ -58,10 +58,10 @@
                 </table>
 
                 <div class="mt-4">
-                    <a class="btn btn-outline-secondary" href="{{ route('backoffice.appointments.index') }}">
+                    <a class="btn btn-outline-secondary" href="{{ route('backoffice.appointments.index', ['page' => request('page')]) }}">
                         <i class="fa fa-arrow-left"></i> Voltar à Lista
                     </a>
-                    <a class="btn btn-outline-secondary" href="{{ route('backoffice.appointments.edit', $appointment->id) }}">
+                    <a class="btn btn-outline-secondary" href="{{ route('backoffice.appointments.edit', ['id' => $appointment->id, 'page' => request('page')]) }}">
                         <i class="fa fa-edit"></i> Editar
                     </a>
                 </div>

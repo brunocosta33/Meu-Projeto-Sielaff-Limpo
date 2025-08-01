@@ -30,8 +30,38 @@ class InstallationController extends Controller
     public function store(Request $request)
     {
         Installation::create($request->all());
-        flash('Installation created successfully!')->success();
+        flash('Instalação criada com sucesso!')->success();
         return redirect()->route('backoffice.installations.index');
     }
+    public function update(Request $request, Installation $installation)
+    {
+        $installation->update($request->all());
+
+        flash('Instalação atualizada com sucesso!')->success();
+
+        return redirect()->route('backoffice.installations.index', ['page' => $request->get('page')]);
+    }
+
+
+    public function edit(Installation $installation)
+    {
+        $stores = Store::all();
+        $teams = Team::all();
+        return view('backoffice.installations.edit', compact('installation', 'stores', 'teams'));
+    }
+
+
+    public function show(Installation $installation)
+    {
+        return view('backoffice.installations.show', compact('installation'));
+    }
+
+    public function delete(Installation $installation)
+    {
+        $installation->delete();
+        flash('Instalação apagada com sucesso!')->success();
+        return redirect()->route('backoffice.installations.index');
+    }
+
 
 }

@@ -24,7 +24,7 @@
             <div class="card-body">
 
                 <div class="float-right mb-3">
-                    <a href="{{ route('backoffice.appointments.create') }}" class="btn btn-success">
+                  <a href="{{ route('backoffice.appointments.create', ['page' => request('page')]) }}" class="btn btn-success">
                         <i class="fa fa-plus"></i> Novo Agendamento
                     </a>
                 </div>
@@ -116,10 +116,10 @@
                                     </td>
                                     <td class="text-right">
                                         <div class="d-flex justify-content-end gap-2">
-                                            <a href="{{ route('backoffice.appointments.show', $appointment->id) }}" class="ml-2" title="Ver Detalhes">
+                                         <a href="{{ route('backoffice.appointments.show', ['id' => $appointment->id, 'page' => request('page')]) }}" class="ml-2" title="Ver Detalhes">
                                                 <i class="fa fa-eye"></i>
                                             </a>
-                                            <a href="{{ route('backoffice.appointments.edit', $appointment->id) }}" class="ml-2" title="Editar">
+                                         <a href="{{ route('backoffice.appointments.edit', ['id' => $appointment->id, 'page' => request('page')]) }}" class="ml-2" title="Editar">
                                                 <i class="fa fa-edit"></i>
                                             </a>
                                             <a href="{{ route('backoffice.appointments.delete', $appointment->id) }}"

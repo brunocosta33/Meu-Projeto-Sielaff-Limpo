@@ -4,31 +4,46 @@ namespace App\Http\Controllers;
 
 use App\Models\Part;
 use Illuminate\Http\Request;
+use App\Models\Store;
+use App\Models\Technician;
 
 class PartController extends Controller
 {
-    public function index() {
-        $parts = Part::paginate(15); 
+    public function index(Request $request) {
+        $query = Part::with('reservations.store');
+
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+
+        $parts = $query->paginate(20)->appends($request->all());
+
         return view('backoffice.parts.index', compact('parts'));
     }
 
-    public function create() {
-        return view('backoffice.parts.create');
+
+  public function create(Request $request) {
+        $type = $request->get('type', 'peca'); // valor padrão
+        $parts = Part::where('type', $type)->orderBy('nome')->get();
+        $technicians = Technician::orderBy('nome')->get();
+
+        return view('backoffice.parts.create', compact('parts', 'technicians', 'type'));
     }
 
-    public function store(Request $request) {
-        Part::create($request->only(['nome', 'referencia', 'descricao', 'quantidade']));
+   public function store(Request $request) {
+        Part::create($request->only(['nome', 'referencia', 'descricao', 'quantidade', 'store_id', 'reservado', 'type']));
         return redirect()->route('backoffice.parts.index')->with('success', 'Peça criada com sucesso!');
     }
 
     public function edit($id) {
         $part = Part::findOrFail($id);
-        return view('backoffice.parts.edit', compact('part'));
+        $stores = Store::orderBy('nome_loja')->get();
+        return view('backoffice.parts.edit', compact('part', 'stores'));
     }
 
     public function update(Request $request, $id) {
         $part = Part::findOrFail($id);
-        $part->update($request->only(['nome', 'referencia', 'descricao', 'quantidade']));
+        $part->update($request->only(['nome', 'referencia', 'descricao', 'quantidade', 'store_id', 'reservado', 'type']));
         return redirect()->route('backoffice.parts.index')->with('success', 'Peça atualizada com sucesso!');
     }
 

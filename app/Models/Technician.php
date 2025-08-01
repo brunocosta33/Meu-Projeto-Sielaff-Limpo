@@ -1,0 +1,15 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Technician extends Model
+{
+    protected $fillable = ['nome', 'telefone', 'email'];
+
+    public function vanStocks()
+    {
+        return $this->hasMany(VanStock::class);
+    }
+}

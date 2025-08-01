@@ -81,3 +81,7 @@ Este projeto foi desenvolvido em Laravel como parte de um sistema interno para g
 ```bash
 git clone https://github.com/brunocosta33/Meu-Projeto-Sielaff.git
 cd Meu-Projeto-Sielaff
+
+git add .
+git commit -m "Corrigido bug na página de login"
+git push origin main

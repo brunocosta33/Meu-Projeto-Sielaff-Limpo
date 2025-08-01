@@ -44,18 +44,32 @@
                     <input type="time" name="scheduled_time" class="form-control" required>
                 </div>
 
-                <div class="form-group">
+               <div class="form-group">
                     <label>Tipo de Serviço</label>
-                    <input type="text" name="service_type" class="form-control">
+                    <select name="tipo_servico" class="form-control" required>
+                        <option value="">-- Selecione --</option>
+                        <option value="Instalação">Instalação</option>
+                        <option value="Desinstalação">Desinstalação</option>
+                    </select>
+                </div>
+
+                 <div class="form-group">
+                    <label>Estado</label>
+                    <select name="status" class="form-control" required>
+                        <option value="Agendado">Agendado</option>
+                        <option value="Concluído">Concluído</option>
+                        <option value="Cancelado">Cancelado</option>
+                    </select>
                 </div>
 
                 <div class="form-group">
                     <label>Observações</label>
-                    <textarea name="notes" class="form-control"></textarea>
+                    <textarea name="observacoes" class="form-control"></textarea>
                 </div>
 
+                <input type="hidden" name="page" value="{{ request('page') }}">
                 <button type="submit" class="btn btn-primary">Guardar</button>
-                <a href="{{ route('backoffice.installations.index') }}" class="btn btn-secondary">Cancelar</a>
+                <a href="{{ route('backoffice.installations.index', ['page' => request('page')]) }}" class="btn btn-secondary">Cancelar</a>
 
                 {!! Form::close() !!}
             </div>

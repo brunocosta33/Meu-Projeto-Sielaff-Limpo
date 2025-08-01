@@ -15,9 +15,9 @@ class Installation extends Model
         'team_id',
         'scheduled_date',
         'scheduled_time',
-        'service_type',
+        'tipo_servico',
         'status',
-        'notes',
+        'observacoes',
     ];
 
     public function store()

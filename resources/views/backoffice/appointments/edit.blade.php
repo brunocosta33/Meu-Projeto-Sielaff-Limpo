@@ -78,9 +78,11 @@
                 </div>
 
                 <div class="mt-4">
-                    <a class="btn btn-outline-secondary" href="{{ route('backoffice.appointments.index') }}">
-                        <i class="fa fa-arrow-left"></i> Voltar
-                    </a>
+                 <a class="btn btn-outline-secondary" href="{{ route('backoffice.appointments.index', ['page' => request('page')]) }}">
+                    <i class="fa fa-arrow-left"></i> Voltar
+                </a>
+                    <input type="hidden" name="page" value="{{ request('page') }}">
+
                     {!! Form::button('<i class="fa fa-save"></i> Atualizar', ['type' => 'submit', 'class' => 'btn btn-outline-secondary']) !!}
                 </div>
 

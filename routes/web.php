@@ -43,6 +43,9 @@ use App\Http\Controllers\MachineController;
 use App\Http\Controllers\TechnicalRequestController;
 use App\Http\Controllers\TechnicalScheduleController;
 use App\Http\Controllers\InstallationController;
+use App\Http\Controllers\PartReservationController;
+use App\Http\Controllers\VanStockController;
+use App\Http\Controllers\TechnicianController;
 
 
 
@@ -71,6 +74,25 @@ Route::group(['middleware' => ['auth']], function() {
 
 Route::get('/backoffice', [DashboardController::class, 'index'])->name('backoffice.index')->middleware('auth');
 
+//Technicians
+Route::prefix('backoffice/technicians')->name('backoffice.technicians.')->group(function () {
+    Route::get('/', [TechnicianController::class, 'index'])->name('index');
+    Route::get('/create', [TechnicianController::class, 'create'])->name('create');
+    Route::post('/', [TechnicianController::class, 'store'])->name('store');
+    Route::get('/{id}/edit', [TechnicianController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [TechnicianController::class, 'update'])->name('update');
+    Route::delete('/{id}', [TechnicianController::class, 'destroy'])->name('destroy');
+});
+
+//Van Stock
+Route::prefix('backoffice/van-stocks')->name('backoffice.van-stocks.')->group(function () {
+    Route::get('/', [VanStockController::class, 'index'])->name('index');
+    Route::get('/create', [VanStockController::class, 'create'])->name('create');
+    Route::post('/', [VanStockController::class, 'store'])->name('store');
+    Route::get('/{id}/edit', [VanStockController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [VanStockController::class, 'update'])->name('update');
+    Route::delete('/{id}', [VanStockController::class, 'destroy'])->name('destroy');
+});
 
 //task schedules
 Route::prefix('backoffice/task-schedules')->group(function () {
@@ -95,7 +117,11 @@ Route::prefix('backoffice/tasks')->group(function () {
 Route::prefix('backoffice/installations')->group(function () {
     Route::get('/', [InstallationController::class, 'index'])->name('backoffice.installations.index');
     Route::get('/create', [InstallationController::class, 'create'])->name('backoffice.installations.create');
+    Route::get('/{installation}/edit', [InstallationController::class, 'edit'])->name('backoffice.installations.edit');
+    Route::put('/{installation}', [InstallationController::class, 'update'])->name('backoffice.installations.update');
     Route::post('/', [InstallationController::class, 'store'])->name('backoffice.installations.store');
+    Route::get('/{installation}', [InstallationController::class, 'show'])->name('backoffice.installations.show');
+   Route::get('/{installation}/delete', [InstallationController::class, 'delete'])->name('backoffice.installations.delete');
 });
 
 
@@ -117,6 +143,8 @@ Route::prefix('appointments')->group(function () {
     Route::post('/{id}/update', [AppointmentController::class, 'update'])->name('backoffice.appointments.update');
     Route::get('/{id}/delete', [AppointmentController::class, 'delete'])->name('backoffice.appointments.delete');
 });
+
+
 
 //suppliers
 Route::prefix('suppliers')->group(function () {
@@ -153,12 +181,23 @@ Route::prefix('stores')->group(function () {
 Route::prefix('backoffice/parts')->group(function () {
     Route::get('/', [PartController::class, 'index'])->name('backoffice.parts.index');
     Route::get('/create', [PartController::class, 'create'])->name('backoffice.parts.create');
-    Route::post('/store', [PartController::class, 'store'])->name('backoffice.parts.store');
+    Route::post('/', [PartController::class, 'store'])->name('backoffice.parts.store');
     Route::get('/{id}/edit', [PartController::class, 'edit'])->name('backoffice.parts.edit');
-    Route::get('/{id}/show', [PartController::class, 'show'])->name('backoffice.parts.show');
-    Route::post('/{id}/update', [PartController::class, 'update'])->name('backoffice.parts.update');
+    Route::put('/{id}', [PartController::class, 'update'])->name('backoffice.parts.update'); 
     Route::get('/{id}/delete', [PartController::class, 'delete'])->name('backoffice.parts.delete');
+    Route::get('/{id}', [PartController::class, 'show'])->name('backoffice.parts.show');
 });
+
+//Part Reservations
+Route::prefix('backoffice/part-reservations')->group(function () {
+    Route::get('/', [PartReservationController::class, 'index'])->name('backoffice.part_reservations.index');
+    Route::get('/create', [PartReservationController::class, 'create'])->name('backoffice.part_reservations.create');
+    Route::post('/', [PartReservationController::class, 'store'])->name('backoffice.part_reservations.store');
+    Route::get('/{id}/edit', [PartReservationController::class, 'edit'])->name('backoffice.part_reservations.edit');
+    Route::put('/{id}', [PartReservationController::class, 'update'])->name('backoffice.part_reservations.update');
+    Route::delete('/{id}', [PartReservationController::class, 'destroy'])->name('backoffice.part_reservations.destroy');
+});
+
 //Machines
 Route::prefix('backoffice/machines')->group(function () {
     Route::get('/', [MachineController::class, 'index'])->name('backoffice.machines.index');

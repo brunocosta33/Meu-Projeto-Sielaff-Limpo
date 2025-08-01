@@ -45,5 +45,17 @@ class Appointment extends Model
         return $this->belongsTo(Team::class, 'tecnica_team_id');
     }
 
+    public function ficheiros()
+    {
+        return $this->hasMany(AppointmentFile::class);
+    }
+
+    public function files()
+    {
+        return $this->hasMany(AppointmentFile::class);
+    }
+
+
+
 
 }

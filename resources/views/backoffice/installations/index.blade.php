@@ -95,7 +95,7 @@
                                             {{ ucfirst($date->translatedFormat('l')) }} | CW{{ $weekNumber }}
                                         </small>
                                     </td>
-                                    <td>{{ $installation->service_type }}</td>
+                                    <td>{{ $installation->tipo_servico }}</td>
                                     <td>
                                         @php
                                             $badgeClass = match($installation->status) {
@@ -107,7 +107,7 @@
 
                                         <span class="badge {{ $badgeClass }}">{{ $installation->status }}</span>
 
-                                        @if (!empty($installation->notes))
+                                        @if (!empty($installation->observacoes))
                                             <br>
                                             <span class="badge badge-warning mt-1" title="Este registo tem observações.">
                                                 <i class="fa fa-sticky-note"></i> Observações
@@ -116,10 +116,10 @@
                                     </td>
                                     <td class="text-right">
                                         <div class="d-flex justify-content-end gap-2">
-                                            <a href="{{ route('backoffice.installations.show', $installation->id) }}" class="ml-2" title="Ver Detalhes">
+                                          <a href="{{ route('backoffice.installations.show', ['installation' => $installation->id, 'page' => request('page')]) }}" class="ml-2" title="Ver Detalhes">
                                                 <i class="fa fa-eye"></i>
                                             </a>
-                                            <a href="{{ route('backoffice.installations.edit', $installation->id) }}" class="ml-2" title="Editar">
+                                            <a href="{{ route('backoffice.installations.edit', ['installation' => $installation->id, 'page' => request('page')]) }}" class="ml-2" title="Editar">
                                                 <i class="fa fa-edit"></i>
                                             </a>
                                             <a href="{{ route('backoffice.installations.delete', $installation->id) }}"
