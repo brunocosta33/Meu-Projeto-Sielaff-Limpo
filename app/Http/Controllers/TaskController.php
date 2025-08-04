@@ -9,9 +9,32 @@ use App\Models\User;
 
 class TaskController extends Controller
 {
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string|max:255',
+        ]);
+
+        $task = Task::findOrFail($id);
+        $task->update([
+            'title' => $request->title,
+            'description' => $request->description,
+        ]);
+
+        return redirect()->route('backoffice.tasks.index')->with('success', 'Tarefa atualizada com sucesso.');
+    }
+    
+
+    public function edit($id)
+    {
+        $task = Task::findOrFail($id);
+        return view('backoffice.tasks.edit', compact('task'));
+    }
+
     public function create()
     {
-        $task = null; // <- isto resolve o problema
+        $task = null; 
         return view('backoffice.tasks.create', compact('task'));
     }
 
@@ -32,7 +55,14 @@ class TaskController extends Controller
 
     public function index()
     {
-        $tasks = Task::all();
+        $tasks = Task::orderBy('created_at', 'desc')->paginate(15);
         return view('backoffice.tasks.index', compact('tasks'));
     }
-}
+
+    public function destroy($id)
+    {
+        $task = Task::findOrFail($id);
+        $task->delete();
+        return redirect()->route('backoffice.tasks.index')->with('success', 'Tarefa apagada com sucesso.');
+    }
+}   

@@ -2,12 +2,12 @@
 
 @section('content')
 <div class="container">
-    <h3 class="mb-4">Reservas de Peças</h3>
+    <h3 class="mb-4">{{ __('Reservas de Peças') }}</h3>
 
     <form method="GET" class="form-inline mb-3">
         <div class="form-group mr-2">
             <select name="store_id" class="form-control">
-                <option value="">Todas as Lojas</option>
+                <option value="">{{ __('Todas as Lojas') }}</option>
                 @foreach($stores as $store)
                     <option value="{{ $store->id }}" {{ request('store_id') == $store->id ? 'selected' : '' }}>
                         {{ $store->nome_loja }} ({{ $store->codigo_loja }})
@@ -18,21 +18,21 @@
         <div class="form-group mr-2">
             <input type="date" name="data_reserva" class="form-control" value="{{ request('data_reserva') }}">
         </div>
-        <button type="submit" class="btn btn-outline-secondary">Filtrar</button>
-        <a href="{{ route('backoffice.part_reservations.index') }}" class="btn btn-outline-danger ml-2">Limpar</a>
+        <button type="submit" class="btn btn-outline-secondary">{{ __('Filtrar') }}</button>
+        <a href="{{ route('backoffice.part_reservations.index') }}" class="btn btn-outline-danger ml-2">{{ __('Limpar') }}</a>
     </form>
 
-    <a href="{{ route('backoffice.part_reservations.create') }}" class="btn btn-success mb-3">Nova Reserva</a>
+    <a href="{{ route('backoffice.part_reservations.create') }}" class="btn btn-success mb-3">{{ __('Nova Reserva') }}</a>
 
     <table class="table table-bordered">
         <thead>
             <tr>
-                <th>Peça</th>
-                <th>Loja</th>
-                <th>Quantidade</th>
-                <th>Data da Reserva</th>
-                <th>Notas</th>
-                <th>Ações</th>
+                <th>{{ __('Peça') }}</th>
+                <th>{{ __('Loja') }}</th>
+                <th>{{ __('Quantidade') }}</th>
+                <th>{{ __('Data da Reserva') }}</th>
+                <th>{{ __('Notas') }}</th>
+                <th>{{ __('Ações') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -44,17 +44,17 @@
                     <td>{{ \Carbon\Carbon::parse($reservation->reserved_at)->format('d/m/Y') }}</td>
                     <td>{{ $reservation->notes }}</td>
                     <td>
-                        <a href="{{ route('backoffice.part_reservations.edit', $reservation->id) }}" class="btn btn-sm btn-primary">Editar</a>
-                        <form action="{{ route('backoffice.part_reservations.destroy', $reservation->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Tem a certeza que deseja apagar esta reserva?');">
+                        <a href="{{ route('backoffice.part_reservations.edit', $reservation->id) }}" class="btn btn-sm btn-primary">{{ __('Editar') }}</a>
+                        <form action="{{ route('backoffice.part_reservations.destroy', $reservation->id) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ __('Tem a certeza que deseja apagar esta reserva?') }}');">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+                            <button type="submit" class="btn btn-sm btn-danger">{{ __('Eliminar') }}</button>
                         </form>
                     </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="5">Nenhuma reserva encontrada.</td>
+                    <td colspan="6">{{ __('Nenhuma reserva encontrada.') }}</td>
                 </tr>
             @endforelse
         </tbody>

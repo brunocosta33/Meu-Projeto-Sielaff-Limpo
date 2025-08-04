@@ -12,4 +12,6 @@ class Technician extends Model
     {
         return $this->hasMany(VanStock::class);
     }
+
+
 }

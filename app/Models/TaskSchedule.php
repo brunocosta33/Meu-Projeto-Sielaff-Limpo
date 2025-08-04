@@ -5,6 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\Task;
+use App\Models\User;
+
 
 class TaskSchedule extends Model
 {
@@ -15,24 +18,33 @@ class TaskSchedule extends Model
         'prioridade',
         'activa',
         'grupo',
-        'repete',
+        'repetir',
         'estado',
-        'user_id', // responsável principal
+        'user_id',
+        'description', // ← Este campo tem de estar aqui!
     ];
+
 
     public function task(): BelongsTo
     {
         return $this->belongsTo(Task::class);
     }
 
-    public function users(): BelongsToMany
+    public function users()
     {
-        return $this->belongsToMany(User::class, 'task_schedule_user', 'task_schedule_id', 'user_id')
-                    ->withTimestamps();
+        return $this->belongsToMany(User::class)
+            ->withPivot('estado', 'comentarios', 'data_conclusao')
+            ->withTimestamps();
     }
 
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'user_id'); // responsável (pode ser usado em "minhas tarefas")
-    }
+    // App\Models\TaskSchedule.php
+
+    protected $casts = [
+        'data_limite' => 'date',
+        'hora_limite' => 'datetime:H:i', // apenas se quiseres hora como objeto Carbon também
+    ];
+
+
+
+
 }

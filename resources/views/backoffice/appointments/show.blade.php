@@ -1,7 +1,7 @@
 @extends('layouts.backoffice_master')
 
 @section('head-meta')
-    <title>{{ config('app.name') }} - Detalhes do Agendamento</title>
+    <title>{{ config('app.name') }} - {{ __('Detalhes do Agendamento') }}</title>
 @endsection
 
 @section('content')
@@ -11,35 +11,35 @@
     <div class="col">
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title mb-4">Detalhes do Agendamento</h5>
+                <h5 class="card-title mb-4">{{ __('Detalhes do Agendamento') }}</h5>
 
                 <table class="table table-bordered">
                     <tr>
-                        <th>ID</th>
+                        <th>{{ __('ID') }}</th>
                         <td>{{ $appointment->id }}</td>
                     </tr>
                     <tr>
-                        <th>Loja</th>
+                        <th>{{ __('Loja') }}</th>
                         <td>{{ $appointment->store->nome_loja ?? '-' }} ({{ $appointment->store->codigo_loja ?? '-' }})</td>
                     </tr>
                     <tr>
-                        <th>Transportadora</th>
+                        <th>{{ __('Transportadora') }}</th>
                         <td>{{ $appointment->supplier->nome ?? '-' }}</td>
                     </tr>
                     <tr>
-                        <th>Hora Agendada</th>
+                        <th>{{ __('Hora Agendada') }}</th>
                         <td>{{ $appointment->scheduled_time }}</td>
                     </tr>
                     <tr>
-                        <th>Data Agendada</th>
+                        <th>{{ __('Data Agendada') }}</th>
                         <td>{{ \Carbon\Carbon::parse($appointment->scheduled_date)->format('d/m/Y') }}</td>
                     </tr>
                     <tr>
-                        <th>Tipo de Serviço</th>
-                        <td>{{ $appointment->tipo_servico }}</td>
+                        <th>{{ __('Tipo de Serviço') }}</th>
+                        <td>{{ __($appointment->tipo_servico) }}</td>
                     </tr>
                     <tr>
-                        <th>Estado</th>
+                        <th>{{ __('Estado') }}</th>
                         <td>
                             @php
                                 $badgeClass = match($appointment->status) {
@@ -48,21 +48,21 @@
                                     default => 'badge-primary',
                                 };
                             @endphp
-                            <span class="badge {{ $badgeClass }}">{{ $appointment->status }}</span>
+                            <span class="badge {{ $badgeClass }}">{{ __($appointment->status) }}</span>
                         </td>
                     </tr>
                     <tr>
-                        <th>Observações</th>
+                        <th>{{ __('Observações') }}</th>
                         <td>{{ $appointment->observacoes ?? '—' }}</td>
                     </tr>
                 </table>
 
                 <div class="mt-4">
                     <a class="btn btn-outline-secondary" href="{{ route('backoffice.appointments.index', ['page' => request('page')]) }}">
-                        <i class="fa fa-arrow-left"></i> Voltar à Lista
+                        <i class="fa fa-arrow-left"></i> {{ __('Voltar à Lista') }}
                     </a>
                     <a class="btn btn-outline-secondary" href="{{ route('backoffice.appointments.edit', ['id' => $appointment->id, 'page' => request('page')]) }}">
-                        <i class="fa fa-edit"></i> Editar
+                        <i class="fa fa-edit"></i> {{ __('Editar') }}
                     </a>
                 </div>
             </div>

@@ -12,6 +12,7 @@
         .week-3 { background-color: #fff3e0 !important; }
         .week-4 { background-color: #fce4ec !important; }
         .week-5 { background-color: #ede7f6 !important; }
+        .today-row { background-color: #ffebee !important; color: #c62828 !important; font-weight: bold; }
     </style>
 @endpush
 
@@ -77,19 +78,23 @@
                         </thead>
                         <tbody>
                             @forelse($installations as $installation)
-                                <tr>
-                                    @php
-                                        $date = \Carbon\Carbon::parse($installation->scheduled_date);
-                                        $weekNumber = $date->week;
-                                        $colorClass = 'week-' . ($weekNumber % 6);
-                                    @endphp
-
+                                @php
+                                    $date = \Carbon\Carbon::parse($installation->scheduled_date);
+                                    $weekNumber = $date->week;
+                                    $colorClass = 'week-' . ($weekNumber % 6);
+                                    $isToday = $date->isToday();
+                                @endphp
+                                <tr class="{{ $isToday ? 'today-row' : '' }}">
                                     <td class="{{ $colorClass }}">{{ $installation->store->codigo_loja ?? '-' }}</td>
                                     <td class="{{ $colorClass }}">{{ $installation->store->nome_loja ?? '-' }}</td>
                                     <td class="{{ $colorClass }}">{{ $installation->team->nome ?? '-' }}</td>
                                     <td class="{{ $colorClass }}">{{ $installation->scheduled_time }}</td>
                                     <td class="{{ $colorClass }}">
                                         {{ $date->format('d/m/Y') }}
+                                        @if($isToday)
+                                            <br>
+                                            <span class="badge badge-danger">Hoje</span>
+                                        @endif
                                         <br>
                                         <small class="text-muted">
                                             {{ ucfirst($date->translatedFormat('l')) }} | CW{{ $weekNumber }}
@@ -116,7 +121,7 @@
                                     </td>
                                     <td class="text-right">
                                         <div class="d-flex justify-content-end gap-2">
-                                          <a href="{{ route('backoffice.installations.show', ['installation' => $installation->id, 'page' => request('page')]) }}" class="ml-2" title="Ver Detalhes">
+                                            <a href="{{ route('backoffice.installations.show', ['installation' => $installation->id, 'page' => request('page')]) }}" class="ml-2" title="Ver Detalhes">
                                                 <i class="fa fa-eye"></i>
                                             </a>
                                             <a href="{{ route('backoffice.installations.edit', ['installation' => $installation->id, 'page' => request('page')]) }}" class="ml-2" title="Editar">

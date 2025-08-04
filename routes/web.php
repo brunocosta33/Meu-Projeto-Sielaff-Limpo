@@ -103,7 +103,14 @@ Route::prefix('backoffice/task-schedules')->group(function () {
     Route::put('/{id}', [TaskScheduleController::class, 'update'])->name('backoffice.task_schedules.update');
     Route::delete('/{id}', [TaskScheduleController::class, 'destroy'])->name('backoffice.task_schedules.destroy');
     Route::get('/minhas-tarefas', [TaskScheduleController::class, 'minhasTarefas'])->name('backoffice.task_schedules.minhas');
+    Route::get('/tasksSchedules/create/store/getTaskDescription', [TaskScheduleController::class, 'getTaskDescription'])->name('backoffice.tasksSchedules.getDescription');
+    Route::get('/get-description', [TaskScheduleController::class, 'getTaskDescription'])
+    ->name('backoffice.task_schedules.getDescription');
+    Route::get('/{id}', [TaskScheduleController::class, 'show'])->name('backoffice.task_schedules.show');
+    Route::get('/minhas/{id}', [TaskScheduleController::class, 'showMinhas'])->name('backoffice.task_schedules.minhas.show');
+    Route::put('/minhas/{id}', [TaskScheduleController::class, 'updateMinhas'])->name('backoffice.task_schedules.minhas.update');
 });
+
 
 Route::prefix('backoffice/tasks')->group(function () {
     Route::get('/', [TaskController::class, 'index'])->name('backoffice.tasks.index');
@@ -113,6 +120,7 @@ Route::prefix('backoffice/tasks')->group(function () {
     Route::put('/{task}', [TaskController::class, 'update'])->name('backoffice.tasks.update');
     Route::delete('/{task}', [TaskController::class, 'destroy'])->name('backoffice.tasks.destroy');
 });
+
 //Installations
 Route::prefix('backoffice/installations')->group(function () {
     Route::get('/', [InstallationController::class, 'index'])->name('backoffice.installations.index');

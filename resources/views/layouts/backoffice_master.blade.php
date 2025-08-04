@@ -13,6 +13,8 @@
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-pap9wqgnT2qZ3fZL6rBgykJyyX3Jo5B9k8dM1Ylf5RWv6h2jOXCrB8f0lQ8yHGcqmrMcNz2LxKk1+N6SO/u2DQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
 
     <link href="{{ asset('css/boostrap-select.min.css') }}" rel="stylesheet">
     <!-- Styles -->
@@ -24,6 +26,9 @@
 
 
     @yield('head-scripts')
+
+    @stack('scripts')
+
 
 </head>
 

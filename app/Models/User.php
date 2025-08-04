@@ -128,7 +128,11 @@ class User extends Authenticatable implements LaratrustUser
 
     public function taskSchedules()
     {
-        return $this->belongsToMany(TaskSchedule::class, 'task_schedule_user')->withTimestamps();
+        return $this->belongsToMany(TaskSchedule::class)
+            ->withPivot('estado', 'comentarios', 'data_conclusao')
+            ->withTimestamps();
     }
+
+
 
 }
