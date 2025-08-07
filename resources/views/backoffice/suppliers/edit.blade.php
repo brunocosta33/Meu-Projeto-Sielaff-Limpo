@@ -1,7 +1,7 @@
 @extends('layouts.backoffice_master')
 
 @section('head-meta')
-    <title>{{ str_replace('.', ' ', config('app.name')) }} - Editar Fornecedor</title>
+    <title>{{ str_replace('.', ' ', config('app.name')) }} - {{ __('Editar Fornecedor') }}</title>
     <link rel="stylesheet" href="{{ URL::asset('css/style.css') }}">
 @endsection
 
@@ -18,7 +18,7 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-5">
-                        <h5 class="card-title" style="margin-bottom: 30px;">Editar Fornecedor</h5>
+                        <h5 class="card-title" style="margin-bottom: 30px;">{{ __('Editar Fornecedor') }}</h5>
                     </div>
                 </div>
                 <div>
@@ -52,9 +52,9 @@
 
                     <div class="mt-4">
                         <a class="btn btn-outline-secondary" href="{!! URL::previous() !!}">
-                            <span class="fa fa-arrow-left"></span> &nbsp; Voltar
+                            <span class="fa fa-arrow-left"></span> &nbsp; {{ __('Voltar') }}
                         </a>
-                        {!! Form::button('<i class="fa fa-save"></i> Gravar', ['type' => 'submit', 'class' => 'btn btn-outline-secondary']) !!}
+                        {!! Form::button('<i class="fa fa-save"></i> ' . __('Gravar'), ['type' => 'submit', 'class' => 'btn btn-outline-secondary']) !!}
                     </div>
 
                     {!! Form::close() !!}

@@ -6,27 +6,27 @@
         <div class="bg-light text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
             <i class="fas fa-user-check fa-lg"></i>
         </div>
-        <h1 class="mb-0">Minhas Tarefas</h1>
+        <h1 class="mb-0">{{ __('Minhas Tarefas') }}</h1>
     </div>
 
     <div class="bg-white p-3">
         <div class="d-flex justify-content-center mb-4" style="background: #ededed; padding: 32px 0 16px 0;">
             <form method="GET" class="d-flex" style="width: 480px;">
                 <input type="hidden" name="filtro" id="filtroInput" value="{{ request('filtro', 'todas') }}">
-                <button type="submit" class="btn" style="background: {{ request('filtro', 'todas') == 'todas' ? '#232529' : '#ededed' }}; color: {{ request('filtro', 'todas') == 'todas' ? '#fff' : '#232529' }}; border-radius: 32px 0 0 32px; border: 2px solid #232529; width: 50%; font-weight: bold; font-size: 1.3em;" onclick="document.getElementById('filtroInput').value='todas'">TODAS</button>
-                <button type="submit" class="btn" style="background: {{ request('filtro') == 'por_concluir' ? '#232529' : '#ededed' }}; color: {{ request('filtro') == 'por_concluir' ? '#fff' : '#232529' }}; border-radius: 0 32px 32px 0; border: 2px solid #232529; border-left: none; width: 50%; font-weight: bold; font-size: 1.3em;" onclick="document.getElementById('filtroInput').value='por_concluir'">POR CONCLUIR</button>
+                <button type="submit" class="btn" style="background: {{ request('filtro', 'todas') == 'todas' ? '#232529' : '#ededed' }}; color: {{ request('filtro', 'todas') == 'todas' ? '#fff' : '#232529' }}; border-radius: 32px 0 0 32px; border: 2px solid #232529; width: 50%; font-weight: bold; font-size: 1.3em;" onclick="document.getElementById('filtroInput').value='todas'">{{ __('TODAS') }}</button>
+                <button type="submit" class="btn" style="background: {{ request('filtro') == 'por_concluir' ? '#232529' : '#ededed' }}; color: {{ request('filtro') == 'por_concluir' ? '#fff' : '#232529' }}; border-radius: 0 32px 32px 0; border: 2px solid #232529; border-left: none; width: 50%; font-weight: bold; font-size: 1.3em;" onclick="document.getElementById('filtroInput').value='por_concluir'">{{ __('POR CONCLUIR') }}</button>
             </form>
         </div>
         <div class="table-responsive">
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Tarefa</th>
-                        <th>Prioridade</th>
-                        <th style="text-align: center;">Data Limite</th>
-                        <th style="text-align: center;">Hora Limite</th>
-                        <th style="text-align: center;">Estado</th>
-                        <th style="text-align: center;">Ações</th>
+                        <th>{{ __('Tarefa') }}</th>
+                        <th>{{ __('Prioridade') }}</th>
+                        <th style="text-align: center;">{{ __('Data Limite') }}</th>
+                        <th style="text-align: center;">{{ __('Hora Limite') }}</th>
+                        <th style="text-align: center;">{{ __('Estado') }}</th>
+                        <th style="text-align: center;">{{ __('Ações') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -67,13 +67,13 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center">Nenhuma tarefa encontrada.</td>
+                            <td colspan="6" class="text-center">{{ __('Nenhuma tarefa encontrada.') }}</td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
-        <a class="btn btn-secondary mt-3" href="{{ route('backoffice.task_schedules.index') }}">Voltar</a>
+        <a class="btn btn-secondary mt-3" href="{{ route('backoffice.task_schedules.index') }}">{{ __('Voltar') }}</a>
     </div>
 </main>
 @endsection

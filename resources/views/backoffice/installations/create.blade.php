@@ -11,7 +11,7 @@
             <div class="card-body">
                 <h5 class="card-title mb-4">{{ __('Nova Instalação') }}</h5>
 
-                {!! Form::open(['route' => ['backoffice.installations.store']]) !!}
+                {!! Form::open(['route' => ['backoffice.installations.store'], 'files' => true]) !!}
                 {{ csrf_field() }}
 
                 <div class="form-group">
@@ -35,7 +35,7 @@
                 </div>
 
                 <label for="scheduled_date" style="font-size: 0.95em; margin-bottom: 2px;">{{ __('Data') }}</label>
-                <input type="date" id="scheduled_date" name="scheduled_date" class="form-control" style="max-width: 180px; font-size: 0.95em; padding: 2px 8px; margin-bottom: 10px;" required min="{{ date('Y-m-d') }}" onkeydown="return false;">
+                <input type="date" id="scheduled_date" name="scheduled_date" class="form-control" style="max-width: 180px; font-size: 0.95em; padding: 2px 8px; margin-bottom: 10px;" required>
 
                 <label for="scheduled_time" style="font-size: 0.95em; margin-bottom: 2px;">{{ __('Hora') }}</label>
                 <input type="time" id="scheduled_time" name="scheduled_time" class="form-control" style="max-width: 120px; font-size: 0.95em; padding: 2px 8px; margin-bottom: 10px;" required>
@@ -61,6 +61,12 @@
                 <div class="form-group">
                     <label>{{ __('Observações') }}</label>
                     <textarea name="observacoes" class="form-control"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>{{ __('PDFs Relacionados') }}</label>
+                    <input type="file" name="pdfs[]" class="form-control" accept="application/pdf" multiple>
+                    <small class="form-text text-muted">Pode selecionar vários ficheiros PDF.</small>
                 </div>
 
                 <input type="hidden" name="page" value="{{ request('page') }}">

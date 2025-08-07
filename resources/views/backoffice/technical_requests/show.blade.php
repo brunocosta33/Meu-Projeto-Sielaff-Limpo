@@ -1,7 +1,7 @@
 @extends('layouts.backoffice_master')
 
 @section('head-meta')
-    <title>{{ config('app.name') }} - Detalhes do Pedido</title>
+    <title>{{ config('app.name') }} - {{ __('Detalhes do Pedido') }}</title>
 @endsection
 
 @section('content')
@@ -11,24 +11,24 @@
     <div class="col">
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title">Detalhes do Pedido de Assistência Técnica</h5>
+                <h5 class="card-title">{{ __('Detalhes do Pedido de Assistência Técnica') }}</h5>
 
                 <div class="mb-3">
-                    <strong>ID:</strong> {{ $request->id }}
+                    <strong>{{ __('ID') }}:</strong> {{ $request->id }}
                 </div>
                 <div class="mb-3">
-                    <strong>Loja:</strong>
+                    <strong>{{ __('Loja') }}:</strong>
                     {{ $request->store->codigo_loja ?? '-' }} - {{ $request->store->nome_loja ?? '-' }}
                 </div>
                 <div class="mb-3">
-                    <strong>Origem:</strong> {{ $request->origem }}
+                    <strong>{{ __('Origem') }}:</strong> {{ $request->origem }}
                 </div>
                 <div class="mb-3">
-                    <strong>Descrição:</strong><br>
+                    <strong>{{ __('Descrição') }}:</strong><br>
                     {{ $request->descricao_problema }}
                 </div>
                 <div class="mb-3">
-                    <strong>Prioridade:</strong>
+                    <strong>{{ __('Prioridade') }}:</strong>
                     <span class="badge 
                         @switch($request->prioridade)
                             @case('baixa') bg-success @break
@@ -36,12 +36,12 @@
                             @case('alta') bg-danger @break
                             @default bg-secondary
                         @endswitch">
-                        {{ ucfirst($request->prioridade) }}
+                        {{ __(ucfirst($request->prioridade)) }}
                     </span>
                 </div>
 
                 <div class="mb-3">
-                    <strong>Estado:</strong>
+                    <strong>{{ __('Estado') }}:</strong>
                     <span class="badge 
                         @switch($request->estado)
                             @case('agendado') bg-info text-dark @break
@@ -50,21 +50,21 @@
                             @case('pendente') bg-secondary @break
                             @default bg-light
                         @endswitch">
-                        {{ ucfirst($request->estado) }}
+                        {{ __(ucfirst($request->estado)) }}
                     </span>
                 </div>
 
                 <div class="mb-3">
-                    <strong>Data:</strong> {{ \Carbon\Carbon::parse($request->data)->format('d/m/Y') }}
+                    <strong>{{ __('Data') }}:</strong> {{ \Carbon\Carbon::parse($request->data)->format('d/m/Y') }}
                 </div>
                 <div class="mb-3">
-                    <strong>Observações:</strong><br>
+                    <strong>{{ __('Observações') }}:</strong><br>
                     {{ $request->observacoes }}
                 </div>
 
                 <div class="mt-4">
                     <a href="{{ route('backoffice.technical_requests.index') }}" class="btn btn-outline-secondary">
-                        <i class="fa fa-arrow-left"></i> Voltar
+                        <i class="fa fa-arrow-left"></i> {{ __('Voltar') }}
                     </a>
                 </div>
             </div>

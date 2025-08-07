@@ -1,7 +1,7 @@
 @extends('layouts.backoffice_master')
 
 @section('head-meta')
-    <title>{{ config('app.name') }} - Criar Agendamento</title>
+    <title>{{ config('app.name') }} - {{ __('Criar Agendamento') }}</title>
     <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.15.2/css/selectize.default.min.css">
@@ -18,7 +18,7 @@
     <div class="bg-light text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
         <i class="fas fa-tasks fa-lg"></i>
     </div>
-    <h1 class="mb-0">Criar Tarefa</h1>
+    <h1 class="mb-0">{{ __('Criar Tarefa') }}</h1>
 </div>
 
 <form method="POST" action="{{ route('backoffice.task_schedules.store') }}">
@@ -29,28 +29,28 @@
 
             <div class="custom-control custom-switch mb-3">
                 <input type="checkbox" name="activa" class="custom-control-input" id="customSwitches" checked>
-                <label class="custom-control-label" for="customSwitches">Ativa</label>
+                <label class="custom-control-label" for="customSwitches">{{ __('Ativa') }}</label>
             </div>
 
             <div class="custom-control custom-switch mb-3">
                 <input type="checkbox" name="grupo" class="custom-control-input" id="customSwitches2">
-                <label class="custom-control-label" for="customSwitches2">Tarefa Grupo</label>
+                <label class="custom-control-label" for="customSwitches2">{{ __('Tarefa Grupo') }}</label>
             </div>
 
             <div class="form-group my-4">
-                <label for="prioridade" class="mb-2"><strong>Prioridade</strong></label>
+                <label for="prioridade" class="mb-2"><strong>{{ __('Prioridade') }}</strong></label>
                 <select class="form-control form-select" name="prioridade" required>
-                    <option value="">Selecionar</option>
-                    <option value="Baixa">Baixa</option>
-                    <option value="Média">Média</option>
-                    <option value="Alta">Alta</option>
+                    <option value="">{{ __('Selecionar') }}</option>
+                    <option value="Baixa">{{ __('Baixa') }}</option>
+                    <option value="Média">{{ __('Média') }}</option>
+                    <option value="Alta">{{ __('Alta') }}</option>
                 </select>
             </div>
 
             <div class="form-group my-4">
-                <label for="task_id" class="mb-2"><strong>Tarefa</strong></label>
+                <label for="task_id" class="mb-2"><strong>{{ __('Tarefa') }}</strong></label>
                 <select name="task_id" id="task" class="form-control form-select" onchange="getTaskDescription()" required>
-                    <option value="">Selecionar</option>
+                    <option value="">{{ __('Selecionar') }}</option>
                     @foreach($tasks as $task)
                         <option value="{{ $task->id }}">{{ $task->title }}</option>
                     @endforeach
@@ -58,9 +58,9 @@
             </div>
 
             <div class="form-group mb-3" id="description_div" style="display:none;">
-                <label for="description" class="mb-2"><strong>Descrição</strong></label>
-                <textarea name="description" id="description" class="form-control" rows="5" placeholder="Escreva a descrição da tarefa" maxlength="255"></textarea>
-                <small class="text-muted fa-pull-right">máx. 255</small>
+                <label for="description" class="mb-2"><strong>{{ __('Descrição') }}</strong></label>
+                <textarea name="description" id="description" class="form-control" rows="5" placeholder="{{ __('Escreva a descrição da tarefa') }}" maxlength="255"></textarea>
+                <small class="text-muted fa-pull-right">{{ __('máx. 255') }}</small>
             </div>
 
             @include('backoffice.task_schedules.partials.repeat_section')
@@ -68,16 +68,16 @@
 
         <div class="col-12">
             <div class="d-flex flex-wrap align-items-center justify-content-between mt-4 mb-2">
-                <label class="fs-6"><strong>Selecionar Colaboradores</strong></label>
-                <input type="button" class="btn btn-info rounded-pill px-4" onclick="selectsUsers()" value="Todos">
+                <label class="fs-6"><strong>{{ __('Selecionar Colaboradores') }}</strong></label>
+                <input type="button" class="btn btn-info rounded-pill px-4" onclick="selectsUsers()" value="{{ __('Todos') }}">
             </div>
 
             <div class="table-responsive">
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Nome</th>
+                            <th>{{ __('ID') }}</th>
+                            <th>{{ __('Nome') }}</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -95,8 +95,8 @@
         </div>
 
         <div class="d-flex flex-wrap justify-content-between page-main-actions position-sticky px-4 py-3" style="background-color: #fff; bottom: 0; z-index: 10; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);">
-            <a href="{{ route('backoffice.task_schedules.index') }}" class="btn btn-outline-dark rounded-pill px-4">Voltar</a>
-            <button type="submit" class="btn btn-success rounded-pill px-4">Salvar</button>
+            <a href="{{ route('backoffice.task_schedules.index') }}" class="btn btn-outline-dark rounded-pill px-4">{{ __('Voltar') }}</a>
+            <button type="submit" class="btn btn-success rounded-pill px-4">{{ __('SALVAR') }}</button>
         </div>
     </div>
 </form>

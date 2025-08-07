@@ -29,4 +29,9 @@ class Installation extends Model
     {
         return $this->belongsTo(Team::class);
     }
+
+     public function pdfs()
+    {
+        return $this->hasMany(InstallationPdf::class);
+    }
 }

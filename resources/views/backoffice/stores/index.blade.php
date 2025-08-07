@@ -1,7 +1,7 @@
 @extends('layouts.backoffice_master')
 
 @section('head-meta')
-    <title>{{ config('app.name') }} - Lojas</title>
+    <title>{{ config('app.name') }} - {{ __('Lojas') }}</title>
 @endsection
 
 @section('content')
@@ -14,22 +14,22 @@
 
                 <div class="float-right mb-3">
                     <a href="{{ route('backoffice.stores.create') }}" class="btn btn-outline-secondary">
-                        <i class="fa fa-plus"></i> Nova Loja
+                        <i class="fa fa-plus"></i> {{ __('Nova Loja') }}
                     </a>
                 </div>
 
-                <h5 class="card-title">Lista de Lojas</h5>
+                <h5 class="card-title">{{ __('Lista de Lojas') }}</h5>
 
                 <div class="table-responsive">
                     <table class="table table-bordered">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Região</th>
-                                <th>Código Loja</th>
-                                <th>Nome Loja</th>
-                                <th>Código Postal</th>
-                                <th class="text-right">Ações</th>
+                                <th>{{ __('ID') }}</th>
+                                <th>{{ __('Região') }}</th>
+                                <th>{{ __('Código Loja') }}</th>
+                                <th>{{ __('Nome Loja') }}</th>
+                                <th>{{ __('Código Postal') }}</th>
+                                <th class="text-right">{{ __('Ações') }}</th>
                             </tr>
                         </thead>
                         <tbody>

@@ -34,20 +34,20 @@
 <div class="form-group">
     <div class="repeat-toggle-wrapper mx-auto">
         <input type="radio" name="repetir" id="no_repeat" value="0" onclick="showNoRepeat()" checked>
-        <label for="no_repeat">Não Repete</label>
+        <label for="no_repeat">{{ __('Não Repete') }}</label>
 
         <input type="radio" name="repetir" id="repeat" value="1" onclick="showRepeat()">
-        <label for="repeat">Repetir</label>
+        <label for="repeat">{{ __('Repetir') }}</label>
     </div>
 
     <div id="no_repeat_div" class="mt-4">
         <div class="d-flex flex-wrap gap-2 text-center">
             <div class="form-group flex-fill">
-                <label for="data_limite" class="mb-2"><strong>Data Limite</strong></label>
+                <label for="data_limite" class="mb-2"><strong>{{ __('Data Limite') }}</strong></label>
                 <input type="date" name="data_limite" id="data_limite" min="{{ now()->toDateString() }}" class="form-control">
             </div>
             <div class="form-group flex-fill">
-                <label for="hora_limite" class="mb-2"><strong>Hora Limite</strong></label>
+                <label for="hora_limite" class="mb-2"><strong>{{ __('Hora Limite') }}</strong></label>
                 <input type="time" name="hora_limite" id="hora_limite" class="form-control">
             </div>
         </div>
@@ -56,27 +56,27 @@
     <div id="repeat_div" class="mt-4" style="display: none;">
         <div class="d-flex flex-wrap gap-2 text-center">
             <div class="form-group flex-fill">
-                <label for="initial_date" class="mb-2"><strong>Início</strong></label>
+                <label for="initial_date" class="mb-2"><strong>{{ __('Início') }}</strong></label>
                 <input type="date" name="initial_date" id="initial_date" min="{{ now()->toDateString() }}" class="form-control">
             </div>
             <div class="form-group flex-fill">
-                <label for="final_date" class="mb-2"><strong>Fim</strong></label>
+                <label for="final_date" class="mb-2"><strong>{{ __('Fim') }}</strong></label>
                 <input type="date" name="final_date" id="final_date" min="{{ now()->toDateString() }}" class="form-control">
             </div>
             <div class="form-group flex-fill">
-                <label for="time" class="mb-2"><strong>Horário</strong></label>
+                <label for="time" class="mb-2"><strong>{{ __('Horário') }}</strong></label>
                 <input type="time" name="time" id="time" class="form-control">
             </div>
         </div>
 
         <div class="form-group mt-3">
-            <label for="period" class="mb-2"><strong>Repetir a cada</strong></label>
+            <label for="period" class="mb-2"><strong>{{ __('Repetir a cada') }}</strong></label>
             <select name="period" id="period" class="form-select" onchange="showDaysOfWeek('daysOfWeek', this)">
-                <option value="">Selecionar</option>
-                <option value="day">Dia</option>
-                <option value="week">Semana</option>
-                <option value="month">Mês</option>
-                <option value="year">Ano</option>
+                <option value="">{{ __('Selecionar') }}</option>
+                <option value="day">{{ __('Dia') }}</option>
+                <option value="week">{{ __('Semana') }}</option>
+                <option value="month">{{ __('Mês') }}</option>
+                <option value="year">{{ __('Ano') }}</option>
             </select>
         </div>
 
@@ -85,12 +85,12 @@
                 @foreach(['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'] as $i => $day)
                     <div class="form-check">
                         <input type="checkbox" name="days_of_week[]" id="{{ $i }}" value="{{ $i }}" class="form-check-input">
-                        <label for="{{ $i }}" class="form-check-label"><strong>{{ $day }}</strong></label>
+                        <label for="{{ $i }}" class="form-check-label"><strong>{{ __($day) }}</strong></label>
                     </div>
                 @endforeach
             </div>
             <div class="mt-3">
-                <small>*Se deixado em branco, todos os dias serão considerados.</small>
+                <small>{{ __('*Se deixado em branco, todos os dias serão considerados.') }}</small>
             </div>
         </div>
     </div>

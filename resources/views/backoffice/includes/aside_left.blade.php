@@ -84,9 +84,9 @@ use App\Models\Base;
                 <span class="hidden-sm-down"> {{__('Armazém')}}</span>
             </a>
             <ul class="collapse list-unstyled" id="pageSubmenuArm" data-parent="#menu-left">
-                <li><a href="{{ route('backoffice.parts.index') }}">{{ __('Stock Peças Armazém') }}</a></li>
-                <li><a href="{{ route('backoffice.van-stocks.index') }}">{{ __('Stock Carrinhas Técnicos') }}</a></li>
-                <li><a href="{{ route('backoffice.part_reservations.index') }}">{{ __('Reservas') }}</a></li>
+                <li><a href="{{ route('backoffice.items.index') }}">{{ __('Itens (Peças e Ferramentas)') }}</a></li>
+                <li><a href="{{ route('backoffice.stock.movements.index') }}">{{ __('Movimentos de Stock') }}</a></li>
+                <li><a href="{{ route('backoffice.stock_import.form') }}">{{ __('Importar Stock via Excel') }}</a></li>
                 <li><a href="{{ route('backoffice.machines.index') }}">{{ __('Máquinas') }}</a></li>
             </ul>
         </li>

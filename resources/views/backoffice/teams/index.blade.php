@@ -1,7 +1,7 @@
 @extends('layouts.backoffice_master')
 
 @section('head-meta')
-    <title>{{ config('app.name') }} - Equipas</title>
+    <title>{{ config('app.name') }} - {{ __('Equipas') }}</title>
 @endsection
 
 @section('content')
@@ -11,23 +11,23 @@
             <div class="card-body">
                 <div class="float-right mb-3">
                     <a href="{{ route('backoffice.teams.create') }}" class="btn btn-outline-secondary">
-                        <i class="fa fa-plus"></i> Nova Equipa
+                        <i class="fa fa-plus"></i> {{ __('Nova Equipa') }}
                     </a>
                 </div>
 
-                <h5 class="card-title">Lista de Equipas</h5>
+                <h5 class="card-title">{{ __('Lista de Equipas') }}</h5>
 
                 <div class="table-responsive">
                     <table class="table table-bordered">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Nome da Equipa</th>
-                                <th>Contacto</th>
-                                <th>Email</th>
-                                <th>Observações</th>
+                                <th>{{ __('ID') }}</th>
+                                <th>{{ __('Nome da Equipa') }}</th>
+                                <th>{{ __('Contacto') }}</th>
+                                <th>{{ __('Email') }}</th>
+                                <th>{{ __('Observações') }}</th>
 
-                                <th class="text-right">Ações</th>
+                                <th class="text-right">{{ __('Ações') }}</th>
                             </tr>
                         </thead>
                         <tbody>

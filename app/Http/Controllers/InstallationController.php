@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Appointment;
 use App\Models\Store;
 use App\Models\Supplier;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use App\Models\Team;
 use App\Models\Installation;
@@ -29,13 +30,39 @@ class InstallationController extends Controller
 
     public function store(Request $request)
     {
-        Installation::create($request->all());
+        $installation = Installation::create($request->all());
+
+        // Salvar PDFs enviados
+        if ($request->hasFile('pdfs')) {
+            foreach ($request->file('pdfs') as $pdf) {
+                $path = $pdf->store('installations_pdfs', 'public');
+                \App\Models\InstallationPdf::create([
+                    'installation_id' => $installation->id,
+                    'file_path' => $path,
+                    'file_name' => $pdf->getClientOriginalName(),
+                ]);
+            }
+        }
+
         flash('Instalação criada com sucesso!')->success();
         return redirect()->route('backoffice.installations.index');
     }
-    public function update(Request $request, Installation $installation)
+    public function update(Request $request, $id)
     {
+        $installation = Installation::findOrFail($id);
         $installation->update($request->all());
+
+        // Salvar PDFs enviados
+        if ($request->hasFile('pdfs')) {
+            foreach ($request->file('pdfs') as $pdf) {
+                $path = $pdf->store('installations_pdfs', 'public');
+                \App\Models\InstallationPdf::create([
+                    'installation_id' => $installation->id,
+                    'file_path' => $path,
+                    'file_name' => $pdf->getClientOriginalName(),
+                ]);
+            }
+        }
 
         flash('Instalação atualizada com sucesso!')->success();
 
@@ -61,6 +88,15 @@ class InstallationController extends Controller
         $installation->delete();
         flash('Instalação apagada com sucesso!')->success();
         return redirect()->route('backoffice.installations.index');
+    }
+
+        public function deletePdf($id)
+    {
+        $pdf = \App\Models\InstallationPdf::findOrFail($id);
+        Storage::disk('public')->delete($pdf->file_path);
+        $pdf->delete();
+        flash('PDF apagado com sucesso!')->success();
+        return back();
     }
 
 

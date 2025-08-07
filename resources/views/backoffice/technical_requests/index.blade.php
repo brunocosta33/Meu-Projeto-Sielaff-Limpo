@@ -1,7 +1,7 @@
 @extends('layouts.backoffice_master')
 
 @section('head-meta')
-    <title>{{ config('app.name') }} - Pedidos de Assistência Técnica</title>
+    <title>{{ config('app.name') }} - {{ __('Pedidos de Assistência Técnica') }}</title>
 @endsection
 
 @section('content')
@@ -14,23 +14,23 @@
 
                 <div class="float-right mb-3">
                     <a href="{{ route('backoffice.technical_requests.create') }}" class="btn btn-success">
-                        <i class="fa fa-plus"></i> Novo Pedido
+                        <i class="fa fa-plus"></i> {{ __('Novo Pedido') }}
                     </a>
                 </div>
 
-                <h5 class="card-title">Lista de Pedidos de Assistência Técnica</h5>
+                <h5 class="card-title">{{ __('Lista de Pedidos de Assistência Técnica') }}</h5>
 
                 <div class="table-responsive">
                     <table class="table table-bordered">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Loja</th>
-                                <th>Origem</th>
-                                <th>Prioridade</th>
-                                <th>Estado</th>
-                                <th>Data do Pedido</th>
-                                <th class="text-right">Ações</th>
+                                <th>{{ __('ID') }}</th>
+                                <th>{{ __('Loja') }}</th>
+                                <th>{{ __('Origem') }}</th>
+                                <th>{{ __('Prioridade') }}</th>
+                                <th>{{ __('Estado') }}</th>
+                                <th>{{ __('Data do Pedido') }}</th>
+                                <th class="text-right">{{ __('Ações') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -65,20 +65,20 @@
                                     <td>{{ \Carbon\Carbon::parse($request->data_pedido)->format('d/m/Y') }}</td>
                                     <td class="text-right">
                                         <a href="{{ route('backoffice.technical_requests.show', $request->id) }}" class="ml-2">
-                                            <i class="fa fa-eye" title="Ver Detalhes"></i>
+                                            <i class="fa fa-eye" title="{{ __('Ver Detalhes') }}"></i>
                                         </a>
                                         <a href="{{ route('backoffice.technical_requests.edit', $request->id) }}" class="ml-2">
-                                            <i class="fa fa-edit" title="Editar"></i>
+                                            <i class="fa fa-edit" title="{{ __('Editar') }}"></i>
                                         </a>
                                         <a href="{{ route('backoffice.technical_requests.delete', $request->id) }}"
-                                           onclick="return confirm('Tem a certeza que deseja apagar este pedido?')"
+                                            onclick="return confirm('@lang('Tem a certeza que deseja apagar este pedido?')')"
                                            class="ml-2 text-danger">
-                                            <i class="fa fa-trash" title="Apagar"></i>
+                                            <i class="fa fa-trash" title="{{ __('Apagar') }}"></i>
                                         </a>
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="6">Nenhum pedido registado.</td></tr>
+                                <tr><td colspan="6">{{ __('Nenhum pedido registado.') }}</td></tr>
                             @endforelse
                         </tbody>
                     </table>

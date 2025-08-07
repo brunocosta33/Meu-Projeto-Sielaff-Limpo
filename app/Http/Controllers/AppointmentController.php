@@ -6,6 +6,7 @@ use App\Models\Appointment;
 use App\Models\Store;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use App\Models\Team;
 
 class AppointmentController extends Controller
@@ -54,10 +55,21 @@ class AppointmentController extends Controller
         $data['scheduled_date'] = $request->input('scheduled_date');
         $data['scheduled_time'] = $request->input('scheduled_time');
 
-        Appointment::create($data);
+        $appointment = Appointment::create($data);
+
+        // Salvar PDFs enviados
+        if ($request->hasFile('pdfs')) {
+            foreach ($request->file('pdfs') as $pdf) {
+                $path = $pdf->store('appointment_pdfs', 'public');
+                $appointment->files()->create([
+                    'file_path' => $path,
+                    'file_name' => $pdf->getClientOriginalName(),
+                ]);
+            }
+        }
 
         flash('Agendamento criado com sucesso!')->success();
-        return redirect()->route('backoffice.appointments.index');
+        return redirect()->route('backoffice.appointments.index', ['page' => $request->input('page')]);
     }
 
 
@@ -66,16 +78,39 @@ class AppointmentController extends Controller
         $stores = Store::all();
         $suppliers = Supplier::all();
         $teams = Team::all();
-        return view('backoffice.appointments.edit', compact('appointment', 'stores', 'suppliers', 'teams'));
+        $files = $appointment->files;
+        return view('backoffice.appointments.edit', compact('appointment', 'stores', 'suppliers', 'teams', 'files'));
     }
 
     public function update(Request $request, $id) {
         $appointment = Appointment::findOrFail($id);
         $appointment->update($request->all());
+
+        // Handle PDF upload
+        if ($request->hasFile('pdfs')) {
+            foreach ($request->file('pdfs') as $pdf) {
+                $path = $pdf->store('appointment_pdfs', 'public');
+                $appointment->files()->create([
+                    'file_path' => $path,
+                    'file_name' => $pdf->getClientOriginalName(),
+                ]);
+            }
+        }
+
         flash('Agendamento atualizado com sucesso!')->success();
-       return redirect()->route('backoffice.appointments.index', ['page' => $request->input('page')]);
+        return redirect()->route('backoffice.appointments.index', ['page' => $request->input('page')]);
     }
 
+    public function deleteFile($id)
+    {
+        $file = \App\Models\AppointmentFile::findOrFail($id);
+        $appointmentId = $file->appointment_id;
+        // Remove file from storage
+        Storage::disk('public')->delete($file->file_path);
+        $file->delete();
+        flash('PDF removido com sucesso!')->success();
+        return redirect()->route('backoffice.appointments.edit', ['id' => $appointmentId]);
+    }
     public function delete($id) {
         Appointment::findOrFail($id)->delete();
         flash('Agendamento apagado com sucesso!')->success();

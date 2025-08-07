@@ -11,9 +11,9 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ConfigurationsController;
 use App\Http\Controllers\Frontoffice\HomeController;
 use App\Http\Controllers\LanguageController;
-use App\Http\Controllers\Frontoffice\FlyerController;
 use App\Http\Controllers\MailController;
 use App\Http\Controllers\ImagesController;
+
 
 use App\Http\Controllers\StateController;
 use App\Http\Controllers\ContactController;
@@ -22,15 +22,6 @@ use App\Http\Controllers\LeadController;
 use App\Http\Controllers\LeadHistoryController;
 use App\Http\Controllers\ReturnTextController;
 
-use App\Http\Controllers\FlyersController;
-use App\Http\Controllers\ProductsTextController;
-use App\Http\Controllers\BrandController;
-use App\Http\Controllers\CategoryController;
-
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\BannerController;
-use App\Http\Controllers\FlyerBannerController;
-use App\Http\Controllers\NewLinkController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\AppointmentController;
@@ -38,13 +29,11 @@ use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TaskScheduleController;
-use App\Http\Controllers\PartController;
+use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\MachineController;
 use App\Http\Controllers\TechnicalRequestController;
 use App\Http\Controllers\TechnicalScheduleController;
 use App\Http\Controllers\InstallationController;
-use App\Http\Controllers\PartReservationController;
-use App\Http\Controllers\VanStockController;
 use App\Http\Controllers\TechnicianController;
 
 
@@ -55,7 +44,7 @@ Route::get('/clear', function () {
 });
 
 Auth::routes();
-Route::post('/language-switch',[LanguageController::Class,'languageSwitch'])->name('language.switch');
+Route::post('/language-switch',[LanguageController::class,'languageSwitch'])->name('language.switch');
 //Route::get('/', [HomeController::class, 'index'])->name('frontoffice.index');
 Route::get('/', function () {
     return redirect()->route('backoffice.index'); // ou 'login' se preferires ir para a página de login
@@ -84,15 +73,31 @@ Route::prefix('backoffice/technicians')->name('backoffice.technicians.')->group(
     Route::delete('/{id}', [TechnicianController::class, 'destroy'])->name('destroy');
 });
 
-//Van Stock
-Route::prefix('backoffice/van-stocks')->name('backoffice.van-stocks.')->group(function () {
-    Route::get('/', [VanStockController::class, 'index'])->name('index');
-    Route::get('/create', [VanStockController::class, 'create'])->name('create');
-    Route::post('/', [VanStockController::class, 'store'])->name('store');
-    Route::get('/{id}/edit', [VanStockController::class, 'edit'])->name('edit');
-    Route::put('/{id}', [VanStockController::class, 'update'])->name('update');
-    Route::delete('/{id}', [VanStockController::class, 'destroy'])->name('destroy');
+
+// Itens (peças e ferramentas)
+Route::prefix('backoffice/items')->name('backoffice.items.')->group(function () {
+    Route::get('/', [App\Http\Controllers\ItemController::class, 'index'])->name('index');
+    Route::get('/create', [App\Http\Controllers\ItemController::class, 'create'])->name('create');
+    Route::post('/store', [App\Http\Controllers\ItemController::class, 'store'])->name('store');
+    Route::get('/{item}/edit', [App\Http\Controllers\ItemController::class, 'edit'])->name('edit');
+    Route::put('/{item}/update', [App\Http\Controllers\ItemController::class, 'update'])->name('update');
+    Route::delete('/{item}', [App\Http\Controllers\ItemController::class, 'destroy'])->name('destroy');
 });
+
+
+// Importação de Excel para atualizar stock
+Route::prefix('backoffice/stock-import')->name('backoffice.stock_import.')->group(function () {
+    Route::get('/', [App\Http\Controllers\StockImportController::class, 'showForm'])->name('form');
+    Route::post('/importar', [App\Http\Controllers\StockImportController::class, 'import'])->name('import');
+});
+
+Route::prefix('backoffice/stock-movements')->name('backoffice.stock.movements.')->group(function () {
+    Route::get('/', [App\Http\Controllers\StockMovementController::class, 'index'])->name('index');
+    Route::get('/create', [App\Http\Controllers\StockMovementController::class, 'create'])->name('create');
+    Route::post('/store', [App\Http\Controllers\StockMovementController::class, 'store'])->name('store');
+});
+
+
 
 //task schedules
 Route::prefix('backoffice/task-schedules')->group(function () {
@@ -129,7 +134,8 @@ Route::prefix('backoffice/installations')->group(function () {
     Route::put('/{installation}', [InstallationController::class, 'update'])->name('backoffice.installations.update');
     Route::post('/', [InstallationController::class, 'store'])->name('backoffice.installations.store');
     Route::get('/{installation}', [InstallationController::class, 'show'])->name('backoffice.installations.show');
-   Route::get('/{installation}/delete', [InstallationController::class, 'delete'])->name('backoffice.installations.delete');
+    Route::get('/{installation}/delete', [InstallationController::class, 'delete'])->name('backoffice.installations.delete');
+    Route::delete('pdfs/{pdf}', [App\Http\Controllers\InstallationController::class, 'deletePdf'])->name('backoffice.installations.pdfs.delete');
 });
 
 
@@ -150,6 +156,7 @@ Route::prefix('appointments')->group(function () {
     Route::get('/appointments/{id}/show', [AppointmentController::class, 'show'])->name('backoffice.appointments.show');
     Route::post('/{id}/update', [AppointmentController::class, 'update'])->name('backoffice.appointments.update');
     Route::get('/{id}/delete', [AppointmentController::class, 'delete'])->name('backoffice.appointments.delete');
+    Route::delete('files/{file}', [App\Http\Controllers\AppointmentController::class, 'deleteFile'])->name('backoffice.appointments.files.delete');
 });
 
 
@@ -185,26 +192,9 @@ Route::prefix('stores')->group(function () {
     Route::get('/{id}/delete', [StoreController::class, 'delete'])->name('backoffice.stores.delete');
 });
 
-//Parts
-Route::prefix('backoffice/parts')->group(function () {
-    Route::get('/', [PartController::class, 'index'])->name('backoffice.parts.index');
-    Route::get('/create', [PartController::class, 'create'])->name('backoffice.parts.create');
-    Route::post('/', [PartController::class, 'store'])->name('backoffice.parts.store');
-    Route::get('/{id}/edit', [PartController::class, 'edit'])->name('backoffice.parts.edit');
-    Route::put('/{id}', [PartController::class, 'update'])->name('backoffice.parts.update'); 
-    Route::get('/{id}/delete', [PartController::class, 'delete'])->name('backoffice.parts.delete');
-    Route::get('/{id}', [PartController::class, 'show'])->name('backoffice.parts.show');
-});
 
-//Part Reservations
-Route::prefix('backoffice/part-reservations')->group(function () {
-    Route::get('/', [PartReservationController::class, 'index'])->name('backoffice.part_reservations.index');
-    Route::get('/create', [PartReservationController::class, 'create'])->name('backoffice.part_reservations.create');
-    Route::post('/', [PartReservationController::class, 'store'])->name('backoffice.part_reservations.store');
-    Route::get('/{id}/edit', [PartReservationController::class, 'edit'])->name('backoffice.part_reservations.edit');
-    Route::put('/{id}', [PartReservationController::class, 'update'])->name('backoffice.part_reservations.update');
-    Route::delete('/{id}', [PartReservationController::class, 'destroy'])->name('backoffice.part_reservations.destroy');
-});
+
+
 
 //Machines
 Route::prefix('backoffice/machines')->group(function () {

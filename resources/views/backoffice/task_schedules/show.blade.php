@@ -6,7 +6,7 @@
     <div class="bg-light text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
         <i class="fas fa-tasks fa-lg"></i>
     </div>
-    <h1 class="mb-0">Detalhes</h1>
+    <h1 class="mb-0">{{ __('Detalhes') }}</h1>
 </div>
 
     <div class="bg-white p-3">
@@ -16,17 +16,17 @@
                     <table class="table">
                        <thead>
                             <tr style="font-weight: normal;">
-                                <th style="font-weight: normal;">Tarefa</th>
-                                <th style="font-weight: normal;">Prioridade</th>
-                                <th style="font-weight: normal; text-align: center;">Activa</th>
-                                <th style="font-weight: normal; text-align: center;">Grupo</th>
-                                <th style="font-weight: normal; text-align: center;">Data limite</th>
-                                <th style="font-weight: normal; text-align: center;">Hora limite</th>
-                                <th style="font-weight: normal; text-align: center;">Envios</th>
-                                <th style="font-weight: normal; text-align: center;">Visualizadas</th>
-                                <th style="font-weight: normal; text-align: center;">Em Execução</th>
-                                <th style="font-weight: normal; text-align: center;">Concluídas</th>
-                                <th style="font-weight: normal; text-align: center;">%</th>
+                                <th style="font-weight: normal;">{{ __('Tarefa') }}</th>
+                                <th style="font-weight: normal;">{{ __('Prioridade') }}</th>
+                                <th style="font-weight: normal; text-align: center;">{{ __('Activa') }}</th>
+                                <th style="font-weight: normal; text-align: center;">{{ __('Grupo') }}</th>
+                                <th style="font-weight: normal; text-align: center;">{{ __('Data limite') }}</th>
+                                <th style="font-weight: normal; text-align: center;">{{ __('Hora limite') }}</th>
+                                <th style="font-weight: normal; text-align: center;">{{ __('Envios') }}</th>
+                                <th style="font-weight: normal; text-align: center;">{{ __('Visualizadas') }}</th>
+                                <th style="font-weight: normal; text-align: center;">{{ __('Em Execução') }}</th>
+                                <th style="font-weight: normal; text-align: center;">{{ __('Concluídas') }}</th>
+                                <th style="font-weight: normal; text-align: center;">{{ __('%') }}</th>
                                 <th style="font-weight: normal;"></th> <!-- ícone -->
                             </tr>
                         </thead>
@@ -34,8 +34,8 @@
                             <tr>
                                 <td>{{ $schedule->task->title }}</td>
                                 <td>{{ $schedule->prioridade }}</td>
-                                <td style="text-align: center;">{{ $schedule->activa ? 'Sim' : 'Não' }}</td>
-                                <td style="text-align: center;">{{ $schedule->grupo ? 'Sim' : 'Não' }}</td>
+                                <td style="text-align: center;">{{ $schedule->activa ? __('Sim') : __('Não') }}</td>
+                                <td style="text-align: center;">{{ $schedule->grupo ? __('Sim') : __('Não') }}</td>
                                 <td style="text-align: center;">{{ $schedule->data_limite ? \Carbon\Carbon::parse($schedule->data_limite)->format('d/m/Y') : '-' }}</td>
                                 <td style="text-align: center;">{{ $schedule->hora_limite ? \Carbon\Carbon::parse($schedule->hora_limite)->format('H:i') : '-' }}</td>
                                 <td style="text-align: center;">{{ $totalEnvios ?? '-' }}</td>
@@ -58,9 +58,9 @@
                     <table class="table">
                        <thead>
                             <tr>
-                                <th style="font-weight: normal;">Colaborador</th>
-                                <th style="font-weight: normal;">Estado</th>
-                                <th style="font-weight: normal;" width="60%">Histórico Comentários</th>
+                                <th style="font-weight: normal;">{{ __('Colaborador') }}</th>
+                                <th style="font-weight: normal;">{{ __('Estado') }}</th>
+                                <th style="font-weight: normal;" width="60%">{{ __('Histórico Comentários') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -68,11 +68,11 @@
                                 <tr style="background-color: #f6f6f6;">
                                     <td>{{ $user->name }}</td>
                                     <td>
-                                        {{ $user->pivot->estado ?? 'Pendente' }}
+                                        {{ $user->pivot->estado ?? __('Pendente') }}
                                         @if($user->pivot->data_conclusao)
                                             | {{ \Carbon\Carbon::parse($user->pivot->data_conclusao)->format('d/m/Y - H:i') }}
                                             @if($schedule->data_limite && $user->pivot->data_conclusao > $schedule->data_limite.' '.$schedule->hora_limite)
-                                                <span class="text-danger"> | após limite</span>
+                                                <span class="text-danger"> | {{ __('após limite') }}</span>
                                             @endif
                                         @endif
                                     </td>
@@ -85,7 +85,7 @@
             </div>
         </div>
 
-        <a class="btn btn-outline-dark rounded-pill px-4" href="{{ route('backoffice.task_schedules.index') }}">VOLTAR</a>
+        <a class="btn btn-outline-dark rounded-pill px-4" href="{{ route('backoffice.task_schedules.index') }}">{{ __('VOLTAR') }}</a>
     </div>
 </main>
 @endsection

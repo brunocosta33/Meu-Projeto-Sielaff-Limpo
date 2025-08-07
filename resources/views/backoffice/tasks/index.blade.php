@@ -8,11 +8,11 @@
             <div class="d-flex justify-content-center align-items-center bg-light rounded-3 me-3" style="width: 48px; height: 48px;">
                 <i class="fas fa-tasks fa-lg text-dark"></i> {{-- ícone de tarefas --}}
             </div>
-            <h1 class="h4 fw-bold mb-0">Tarefas</h1>
+            <h1 class="h4 fw-bold mb-0">{{ __('Tarefas') }}</h1>
         </div>
         <div class="mt-3 mt-md-0">
             <a href="{{ route('backoffice.tasks.create') }}" class="btn btn-primary rounded-pill px-4">
-                Criar
+                {{ __('Criar') }}
             </a>
         </div>
     </div>
@@ -22,7 +22,7 @@
             <table class="table table-hover align-middle">
                 <thead class="table-light">
                     <tr>
-                        <th>Tarefa</th>
+                        <th>{{ __('Tarefa') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -35,7 +35,7 @@
                                     {{-- Botão Editar --}}
                                     <a href="{{ route('backoffice.tasks.edit', $task->id) }}"
                                     class="btn btn-sm btn-outline-secondary rounded-circle"
-                                    title="Editar">
+                                    title="{{ __('Editar') }}">
                                         <i class="fas fa-pencil-alt"></i>
                                     </a>
 
@@ -43,12 +43,12 @@
                                     <form method="POST"
                                         action="{{ route('backoffice.tasks.destroy', $task->id) }}"
                                         style="display:inline"
-                                        onsubmit="return confirm('Tem a certeza que quer apagar esta tarefa?')">
+                                        onsubmit="return confirm('@lang('Tem a certeza que quer apagar esta tarefa?')')">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit"
                                                 class="btn btn-sm btn-outline-danger rounded-circle"
-                                                title="Apagar">
+                                                title="{{ __('Apagar') }}">
                                             <i class="fas fa-trash-alt"></i>
                                         </button>
                                     </form>
@@ -57,7 +57,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="2" class="text-center text-muted">Sem tarefas disponíveis.</td>
+                            <td colspan="2" class="text-center text-muted">{{ __('Sem tarefas disponíveis.') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

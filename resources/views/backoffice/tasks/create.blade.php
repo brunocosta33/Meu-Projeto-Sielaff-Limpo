@@ -10,7 +10,7 @@
                 <i class="fas fa-tasks fa-lg text-dark"></i> {{-- ícone de lista de tarefas --}}
 
             </div>
-            <h1 class="h4 fw-bold mb-0">Criar tarefa</h1>
+            <h1 class="h4 fw-bold mb-0">{{ __('Criar tarefa') }}</h1>
         </div>
     </div>
 
@@ -21,8 +21,8 @@
             @include('backoffice.tasks.partials.form')
 
             <div class="d-flex justify-content-between mt-4">
-                <a href="{{ route('backoffice.tasks.index') }}" class="btn btn-outline-dark rounded-pill px-4">VOLTAR</a>
-                <button type="submit" class="btn btn-success rounded-pill px-4">SALVAR</button>
+                <a href="{{ route('backoffice.tasks.index') }}" class="btn btn-outline-dark rounded-pill px-4">{{ __('VOLTAR') }}</a>
+                <button type="submit" class="btn btn-success rounded-pill px-4">{{ __('SALVAR') }}</button>
             </div>
         </form>
     </div>

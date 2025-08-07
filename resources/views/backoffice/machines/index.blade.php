@@ -1,7 +1,7 @@
 @extends('layouts.backoffice_master')
 
 @section('head-meta')
-    <title>{{ config('app.name') }} - Máquinas</title>
+    <title>{{ config('app.name') }} - {{ __('Máquinas') }}</title>
 @endsection
 
 @section('content')
@@ -14,21 +14,21 @@
 
                 <div class="float-right mb-3">
                     <a href="{{ route('backoffice.machines.create') }}" class="btn btn-success">
-                        <i class="fa fa-plus"></i> Nova Máquina
+                        <i class="fa fa-plus"></i> {{ __('Nova Máquina') }}
                     </a>
                 </div>
 
-                <h5 class="card-title">Lista de Máquinas</h5>
+                <h5 class="card-title">{{ __('Lista de Máquinas') }}</h5>
 
                 <div class="table-responsive">
                     <table class="table table-bordered">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Modelo</th>
-                                <th>Nº de Série</th>
-                                <th>Data de Recebimento</th>
-                                <th class="text-right">Ações</th>
+                                <th>{{ __('ID') }}</th>
+                                <th>{{ __('Modelo') }}</th>
+                                <th>{{ __('Nº de Série') }}</th>
+                                <th>{{ __('Data de Recebimento') }}</th>
+                                <th class="text-right">{{ __('Ações') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -40,20 +40,20 @@
                                     <td>{{ \Carbon\Carbon::parse($machine->data_recebimento)->format('d/m/Y') }}</td>
                                     <td class="text-right">
                                         <a href="{{ route('backoffice.machines.show', $machine->id) }}" class="ml-2 text-info">
-                                            <i class="fa fa-eye" title="Ver Detalhes"></i>
+                                            <i class="fa fa-eye" title="{{ __('Ver Detalhes') }}"></i>
                                         </a>
                                         <a href="{{ route('backoffice.machines.edit', $machine->id) }}" class="ml-2">
-                                            <i class="fa fa-edit" title="Editar"></i>
+                                            <i class="fa fa-edit" title="{{ __('Editar') }}"></i>
                                         </a>
                                         <a href="{{ route('backoffice.machines.delete', $machine->id) }}"
-                                           onclick="return confirm('Tem a certeza que deseja apagar esta máquina?')"
+                                            onclick="return confirm('@lang('Tem a certeza que deseja apagar esta máquina?')')"
                                            class="ml-2 text-danger">
-                                            <i class="fa fa-trash" title="Apagar"></i>
+                                            <i class="fa fa-trash" title="{{ __('Apagar') }}"></i>
                                         </a>
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="5">Nenhuma máquina registada.</td></tr>
+                                <tr><td colspan="5">{{ __('Nenhuma máquina registada.') }}</td></tr>
                             @endforelse
                         </tbody>
                     </table>

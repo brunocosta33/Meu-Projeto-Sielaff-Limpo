@@ -8,10 +8,10 @@
             <div class="bg-light rounded-3 d-flex justify-content-center align-items-center me-3" style="width: 48px; height: 48px;">
                 <i class="fas fa-calendar-check fa-lg text-dark"></i>
             </div>
-            <h1 class="h4 fw-bold mb-0">Agendamentos de Tarefas</h1>
+            <h1 class="h4 fw-bold mb-0">{{ __('Agendamentos de Tarefas') }}</h1>
         </div>
         <a href="{{ route('backoffice.task_schedules.create') }}" class="btn btn-primary rounded-pill px-4">
-            Criar
+            {{ __('Criar') }}
         </a>
     </div>
 
@@ -22,17 +22,17 @@
                     <span class="input-group-text bg-white border-0 pe-0" style="border-radius: 24px 0 0 24px; height: 36px;">
                         <i class="fas fa-search text-muted"></i>
                     </span>
-                    <input type="text" name="pesquisa" value="{{ request('pesquisa') }}" class="form-control border-0 bg-light" placeholder="Pesquisa por tarefa" style="border-radius: 0 24px 24px 0; font-size: 1em; height: 36px;">
+                    <input type="text" name="pesquisa" value="{{ request('pesquisa') }}" class="form-control border-0 bg-light" placeholder="{{ __('Pesquisa por tarefa') }}" style="border-radius: 0 24px 24px 0; font-size: 1em; height: 36px;">
                 </div>
             </div>
             <div class="mt-3 d-flex gap-2 align-items-center" style="max-width: 400px;">
                 <select name="prioridade" id="prioridade" class="form-select bg-light border-0" style="border-radius: 24px; font-size: 1em; width: 140px; height: 36px; padding: 0 8px;" onchange="this.form.submit()">
-                    <option value="" {{ request('prioridade') == '' ? 'selected' : '' }}>Todas</option>
-                    <option value="Alta" {{ request('prioridade') == 'Alta' ? 'selected' : '' }}>Alta</option>
-                    <option value="Média" {{ request('prioridade') == 'Média' ? 'selected' : '' }}>Média</option>
-                    <option value="Baixa" {{ request('prioridade') == 'Baixa' ? 'selected' : '' }}>Baixa</option>
+                    <option value="" {{ request('prioridade') == '' ? 'selected' : '' }}>{{ __('Todas') }}</option>
+                    <option value="Alta" {{ request('prioridade') == 'Alta' ? 'selected' : '' }}>{{ __('Alta') }}</option>
+                    <option value="Média" {{ request('prioridade') == 'Média' ? 'selected' : '' }}>{{ __('Média') }}</option>
+                    <option value="Baixa" {{ request('prioridade') == 'Baixa' ? 'selected' : '' }}>{{ __('Baixa') }}</option>
                 </select>
-                <a href="{{ route('backoffice.task_schedules.index') }}" class="btn btn-dark rounded-pill px-3 ms-1" style="height: 36px; font-size: 1em;">LIMPAR FILTROS</a>
+                <a href="{{ route('backoffice.task_schedules.index') }}" class="btn btn-dark rounded-pill px-3 ms-1" style="height: 36px; font-size: 1em;">{{ __('LIMPAR FILTROS') }}</a>
             </div>
             
             <!-- Botão LIMPAR FILTROS movido para ao lado do select de prioridades -->
@@ -40,19 +40,19 @@
         </form>
         <div class="mt-4 mb-3 d-flex justify-content-center">
             <div class="btn-group" role="group" aria-label="Filtro Estado">
-                <a href="?prioridade={{ request('prioridade') }}&pesquisa={{ request('pesquisa') }}&estado=" class="btn btn-outline-dark rounded-pill px-4 {{ request('estado') == '' ? 'active' : '' }}">Todas</a>
-                <a href="?prioridade={{ request('prioridade') }}&pesquisa={{ request('pesquisa') }}&estado=Concluir" class="btn btn-outline-dark rounded-pill px-4 {{ request('estado') == 'Concluir' ? 'active' : '' }}">Concluir</a>
+                <a href="?prioridade={{ request('prioridade') }}&pesquisa={{ request('pesquisa') }}&estado=" class="btn btn-outline-dark rounded-pill px-4 {{ request('estado') == '' ? 'active' : '' }}">{{ __('Todas') }}</a>
+                <a href="?prioridade={{ request('prioridade') }}&pesquisa={{ request('pesquisa') }}&estado=Concluir" class="btn btn-outline-dark rounded-pill px-4 {{ request('estado') == 'Concluir' ? 'active' : '' }}">{{ __('Concluir') }}</a>
             </div>
         </div>
         <table class="table table-hover align-middle bg-white">
             <thead class="table-light">
                 <tr>
-                    <th>Tarefa</th>
-                    <th>Data Limite</th>
-                    <th>Hora Limite</th>
-                    <th>Prioridade</th>
-                    <th>Estado</th>
-                    <th class="text-end">Ações</th>
+                    <th>{{ __('Tarefa') }}</th>
+                    <th>{{ __('Data Limite') }}</th>
+                    <th>{{ __('Hora Limite') }}</th>
+                    <th>{{ __('Prioridade') }}</th>
+                    <th>{{ __('Estado') }}</th>
+                    <th class="text-end">{{ __('Ações') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -81,17 +81,17 @@
                     <td class="border-0">{{ $schedule->prioridade }}</td>
                     <td class="border-0">{{ $schedule->estado }}</td>
                     <td class="text-end border-0">
-                        <a href="{{ route('backoffice.task_schedules.show', $schedule->id) }}" class="btn btn-sm btn-outline-secondary rounded-circle" title="Ver">
+                        <a href="{{ route('backoffice.task_schedules.show', $schedule->id) }}" class="btn btn-sm btn-outline-secondary rounded-circle" title="{{ __('Ver') }}">
                             <i class="fas fa-eye"></i>
                         </a>
-                        <a href="{{ route('backoffice.task_schedules.edit', $schedule->id) }}" class="btn btn-sm btn-outline-secondary rounded-circle" title="Editar">
+                        <a href="{{ route('backoffice.task_schedules.edit', $schedule->id) }}" class="btn btn-sm btn-outline-secondary rounded-circle" title="{{ __('Editar') }}">
                             <i class="fas fa-pencil-alt"></i>
                         </a>
                     </td>
                 </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="text-center text-muted">Sem agendamentos.</td>
+                        <td colspan="6" class="text-center text-muted">{{ __('Sem agendamentos.') }}</td>
                     </tr>
                 @endforelse
             </tbody>

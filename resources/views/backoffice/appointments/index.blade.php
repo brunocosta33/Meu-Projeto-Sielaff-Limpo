@@ -83,6 +83,8 @@
                                     $weekNumber = $date->week;
                                     $colorClass = 'week-' . ($weekNumber % 6);
                                     $isToday = $date->isToday();
+                                    $hasPdf = $appointment->files && $appointment->files->count() > 0;
+                                    $firstPdf = $hasPdf ? $appointment->files->first() : null;
                                 @endphp
                                 <tr class="{{ $isToday ? 'today-row' : '' }}">
                                     <td class="{{ $colorClass }}">{{ $appointment->store->codigo_loja ?? '-' }}</td>
@@ -133,6 +135,17 @@
                                                 <i class="fa fa-trash"></i>
                                             </a>
                                         </div>
+                                        @if($hasPdf)
+                                            <div class="mt-2">
+                                                @foreach($appointment->files as $pdf)
+                                                    <a href="{{ asset('storage/' . $pdf->file_path) }}" target="_blank" title="Abrir PDF: {{ $pdf->file_name }}">
+                                                        <span class="badge badge-info mb-1 d-block">
+                                                            <i class="fa fa-file-pdf-o"></i> PDF {{ strtok($pdf->file_name, ' ') }}
+                                                        </span>
+                                                    </a>
+                                                @endforeach
+                                            </div>
+                                        @endif
                                     </td>
                                 </tr>
                             @empty

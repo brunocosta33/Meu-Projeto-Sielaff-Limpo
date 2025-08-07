@@ -26,24 +26,24 @@
 
                 <div class="float-right mb-3">
                     <a href="{{ route('backoffice.installations.create') }}" class="btn btn-success">
-                        <i class="fa fa-plus"></i> Nova Instalação
+                        <i class="fa fa-plus"></i> {{ __('Nova Instalação') }}
                     </a>
                 </div>
 
-                <h5 class="card-title">Lista de Instalações</h5>
+                <h5 class="card-title">{{ __('Lista de Instalações') }}</h5>
 
                 <form method="GET" action="{{ route('backoffice.installations.index') }}" class="mb-4">
                     <div class="form-row">
                         <div class="col">
-                            <input type="text" name="codigo_loja" class="form-control" placeholder="Código da Loja"
+                            <input type="text" name="codigo_loja" class="form-control" placeholder="{{ __('Código da Loja') }}"
                                 value="{{ request('codigo_loja') }}">
                         </div>
                         <div class="col">
-                            <input type="text" name="nome_loja" class="form-control" placeholder="Nome da Loja"
+                            <input type="text" name="nome_loja" class="form-control" placeholder="{{ __('Nome da Loja') }}"
                                 value="{{ request('nome_loja') }}">
                         </div>
                         <div class="col">
-                            <input type="text" name="team" class="form-control" placeholder="Equipa Técnica"
+                            <input type="text" name="team" class="form-control" placeholder="{{ __('Equipa Técnica') }}"
                                 value="{{ request('team') }}">
                         </div>
                         <div class="col">
@@ -51,12 +51,12 @@
                         </div>
                         <div class="col-auto">
                             <button type="submit" class="btn btn-outline-primary">
-                                <i class="fa fa-search"></i> Filtrar
+                                <i class="fa fa-search"></i> {{ __('Filtrar') }}
                             </button>
                         </div>
                         <div class="col-auto">
                             <a href="{{ route('backoffice.installations.index') }}" class="btn btn-outline-secondary">
-                                Limpar
+                                {{ __('Limpar') }}
                             </a>
                         </div>
                     </div>
@@ -66,14 +66,14 @@
                     <table class="table table-bordered">
                         <thead>
                             <tr>
-                                <th>Código Loja</th>
-                                <th>Loja</th>
-                                <th>Equipa Técnica</th>
-                                <th>Hora</th>
-                                <th>Data</th>
-                                <th>Tipo de Serviço</th>
-                                <th>Estado</th>
-                                <th class="text-right">Ações</th>
+                                <th>{{ __('Código Loja') }}</th>
+                                <th>{{ __('Loja') }}</th>
+                                <th>{{ __('Equipa Técnica') }}</th>
+                                <th>{{ __('Hora') }}</th>
+                                <th>{{ __('Data') }}</th>
+                                <th>{{ __('Tipo de Serviço') }}</th>
+                                <th>{{ __('Estado') }}</th>
+                                <th class="text-right">{{ __('Ações') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -82,7 +82,7 @@
                                     $date = \Carbon\Carbon::parse($installation->scheduled_date);
                                     $weekNumber = $date->week;
                                     $colorClass = 'week-' . ($weekNumber % 6);
-                                    $isToday = $date->isToday();
+                                    $isToday = $date->setTimezone('Europe/Lisbon')->toDateString() === \Carbon\Carbon::today('Europe/Lisbon')->toDateString();
                                 @endphp
                                 <tr class="{{ $isToday ? 'today-row' : '' }}">
                                     <td class="{{ $colorClass }}">{{ $installation->store->codigo_loja ?? '-' }}</td>
@@ -93,7 +93,7 @@
                                         {{ $date->format('d/m/Y') }}
                                         @if($isToday)
                                             <br>
-                                            <span class="badge badge-danger">Hoje</span>
+                                            <span class="badge badge-danger">{{ __('Hoje') }}</span>
                                         @endif
                                         <br>
                                         <small class="text-muted">
@@ -114,8 +114,8 @@
 
                                         @if (!empty($installation->observacoes))
                                             <br>
-                                            <span class="badge badge-warning mt-1" title="Este registo tem observações.">
-                                                <i class="fa fa-sticky-note"></i> Observações
+                                            <span class="badge badge-warning mt-1" title="{{ __('Este registo tem observações.') }}">
+                                                <i class="fa fa-sticky-note"></i> {{ __('Observações') }}
                                             </span>
                                         @endif
                                     </td>
@@ -133,10 +133,21 @@
                                                 <i class="fa fa-trash"></i>
                                             </a>
                                         </div>
+                                        @if($installation->pdfs && count($installation->pdfs) > 0)
+                                            <div class="mt-2">
+                                                @foreach($installation->pdfs as $pdf)
+                                            <a href="{{ asset('storage/' . $pdf->file_path) }}" target="_blank" title="{{ __('Abrir PDF:') }} {{ $pdf->file_name }}">
+                                                <span class="badge badge-info mb-1 d-block">
+                                                    <i class="fa fa-file-pdf-o"></i> {{ __('PDF') }} {{ strtok($pdf->file_name, ' ') }}
+                                                </span>
+                                            </a>
+                                                @endforeach
+                                            </div>
+                                        @endif
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="8">Nenhuma instalação registada.</td></tr>
+                                <tr><td colspan="8">{{ __('Nenhuma instalação registada.') }}</td></tr>
                             @endforelse
                         </tbody>
                     </table>

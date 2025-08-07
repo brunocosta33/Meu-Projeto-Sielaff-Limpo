@@ -8,24 +8,24 @@
             <div class="d-flex justify-content-center align-items-center bg-light rounded-3 me-3" style="width: 48px; height: 48px;">
                 <i class="fas fa-user-check fa-lg text-dark"></i> {{-- ícone de tarefas atribuídas --}}
             </div>
-            <h1 class="h4 mb-0">Minhas Tarefas</h1>
+            <h1 class="h4 mb-0">{{ __('Minhas Tarefas') }}</h1>
         </div>
     </div>
 
     <div class="bg-white p-3 shadow-sm rounded">
         @if($taskSchedules->isEmpty())
-            <p class="text-muted text-center">Nenhuma tarefa agendada encontrada.</p>
+            <p class="text-muted text-center">{{ __('Nenhuma tarefa agendada encontrada.') }}</p>
         @else
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th>Tarefa</th>
-                            <th>Descrição</th>
-                            <th>Data Limite</th>
-                            <th>Hora Limite</th>
-                            <th>Prioridade</th>
-                            <th>Estado</th>
+                            <th>{{ __('Tarefa') }}</th>
+                            <th>{{ __('Descrição') }}</th>
+                            <th>{{ __('Data Limite') }}</th>
+                            <th>{{ __('Hora Limite') }}</th>
+                            <th>{{ __('Prioridade') }}</th>
+                            <th>{{ __('Estado') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -40,7 +40,7 @@
                                         @if($schedule->prioridade == 'Alta') bg-danger 
                                         @elseif($schedule->prioridade == 'Média') bg-warning 
                                         @else bg-secondary @endif">
-                                        {{ $schedule->prioridade }}
+                                        {{ __($schedule->prioridade) }}
                                     </span>
                                 </td>
                                 <td>
@@ -48,7 +48,7 @@
                                         @if($schedule->estado == 'Concluída') bg-success 
                                         @elseif($schedule->estado == 'Visualizada') bg-info 
                                         @else bg-light text-dark @endif">
-                                        {{ $schedule->estado }}
+                                        {{ __($schedule->estado) }}
                                     </span>
                                 </td>
                             </tr>
