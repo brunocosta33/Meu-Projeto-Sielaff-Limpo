@@ -21,10 +21,12 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th>{{ __('Tarefa') }}</th>
-                        <th>{{ __('Prioridade') }}</th>
                         <th style="text-align: center;">{{ __('Data Limite') }}</th>
                         <th style="text-align: center;">{{ __('Hora Limite') }}</th>
+                        <th style="text-align: center;">{{ __('Prioridade') }}</th>
+                        <th style="text-align: center;">{{ __('Activa') }}</th>
+                        <th style="text-align: center;">{{ __('Grupo') }}</th>
+                        <th style="text-align: center;">{{ __('Tarefa') }}</th>
                         <th style="text-align: center;">{{ __('Estado') }}</th>
                         <th style="text-align: center;">{{ __('Ações') }}</th>
                     </tr>
@@ -45,10 +47,20 @@
                     @endphp
                     @forelse($tarefas as $schedule)
                         <tr style="background-color: #f2f2f2">
-                            <td>{{ $schedule->task->title }}</td>
-                            <td>{{ $schedule->prioridade }}</td>
-                            <td style="text-align: center;">{{ $schedule->data_limite ? \Carbon\Carbon::parse($schedule->data_limite)->format('d/m/Y') : '-' }}</td>
-                            <td style="text-align: center;">{{ $schedule->hora_limite ? \Carbon\Carbon::parse($schedule->hora_limite)->format('H:i') : '-' }}</td>
+                            <td style="text-align: center;"><span style="color: red;">{{ $schedule->data_limite ? \Carbon\Carbon::parse($schedule->data_limite)->format('d/m/Y') : '-' }}</span></td>
+                            <td style="text-align: center;"><span style="color: red;">{{ $schedule->hora_limite ? \Carbon\Carbon::parse($schedule->hora_limite)->format('H:i') : '-' }}</span></td>
+                            <td style="text-align: center;">
+                                @if(strtolower($schedule->prioridade) === 'baixa')
+                                    <span style="color: green;">{{ $schedule->prioridade }}</span>
+                                @elseif(strtolower($schedule->prioridade) === 'alta')
+                                    <span style="color: red;">{{ $schedule->prioridade }}</span>
+                                @else
+                                    {{ $schedule->prioridade }}
+                                @endif
+                            </td>
+                            <td style="text-align: center;">{{ $schedule->activa ? __('Sim') : __('Não') }}</td>
+                            <td style="text-align: center;">{{ $schedule->grupo ? __('Sim') : __('Não') }}</td>
+                            <td style="text-align: center;">{{ $schedule->task->title }}</td>
                             <td style="text-align: center;">{{ $schedule->pivot->estado ?? 'Pendente' }}</td>
                             <td style="text-align: center;">
                                 @php

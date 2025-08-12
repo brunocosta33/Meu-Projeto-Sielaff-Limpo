@@ -17,9 +17,17 @@ class TaskScheduleController extends Controller
 
     public function create()
     {
-        $tasks = Task::all();
-        $users = User::all();
+        // Buscar IDs de tasks já concluídas em algum agendamento (usando a tabela pivot diretamente)
+        $concluidasTaskIds = \DB::table('task_schedule_user')
+            ->where('estado', 'Concluída')
+            ->pluck('task_schedule_id');
 
+        $tasks = Task::whereNotIn('id', function($query) use ($concluidasTaskIds) {
+            $query->select('task_id')
+                ->from('task_schedules')
+                ->whereIn('id', $concluidasTaskIds);
+        })->get();
+        $users = User::all();
 
         return view('backoffice.task_schedules.create', compact('tasks', 'users'));
     }
@@ -98,9 +106,14 @@ class TaskScheduleController extends Controller
     public function destroy($id)
     {
         $schedule = TaskSchedule::findOrFail($id);
+        $taskId = $schedule->task_id;
+        // Verifica se existem outros agendamentos para esta tarefa (exceto o atual)
+        $agendamentos = TaskSchedule::where('task_id', $taskId)->where('id', '!=', $id)->count();
+        if ($agendamentos > 0) {
+            return redirect()->route('backoffice.task_schedules.index')->with('error', 'Não é possível apagar: esta tarefa já está agendada em outro agendamento.');
+        }
         $schedule->users()->detach();
         $schedule->delete();
-
         return redirect()->route('backoffice.task_schedules.index')->with('success', 'Agendamento removido com sucesso.');
     }
 

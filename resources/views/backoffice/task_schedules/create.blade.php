@@ -18,7 +18,7 @@
     <div class="bg-light text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
         <i class="fas fa-tasks fa-lg"></i>
     </div>
-    <h1 class="mb-0">{{ __('Criar Tarefa') }}</h1>
+    <h1 class="mb-0">{{ __('Criar Agendamento') }}</h1>
 </div>
 
 <form method="POST" action="{{ route('backoffice.task_schedules.store') }}">

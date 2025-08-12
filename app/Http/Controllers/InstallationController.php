@@ -14,9 +14,35 @@ class InstallationController extends Controller
 {   
     public function index()
     {
-        $installations = Installation::with(['store', 'team'])
-            ->orderBy('scheduled_date', 'desc')
-            ->paginate(20);
+        $query = Installation::with(['store', 'team']);
+
+        // Filtro por código da loja
+        if (request('codigo_loja')) {
+            $query->whereHas('store', function($q) {
+                $q->where('codigo_loja', 'like', '%' . request('codigo_loja') . '%');
+            });
+        }
+
+        // Filtro por nome da loja
+        if (request('nome_loja')) {
+            $query->whereHas('store', function($q) {
+                $q->where('nome_loja', 'like', '%' . request('nome_loja') . '%');
+            });
+        }
+
+        // Filtro por equipa técnica
+        if (request('team')) {
+            $query->whereHas('team', function($q) {
+                $q->where('nome', 'like', '%' . request('team') . '%');
+            });
+        }
+
+        // Filtro por data
+        if (request('data')) {
+            $query->whereDate('scheduled_date', request('data'));
+        }
+
+        $installations = $query->orderBy('scheduled_date', 'desc')->paginate(20)->appends(request()->query());
 
         return view('backoffice.installations.index', compact('installations'));
     }

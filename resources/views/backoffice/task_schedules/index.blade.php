@@ -8,7 +8,7 @@
             <div class="bg-light rounded-3 d-flex justify-content-center align-items-center me-3" style="width: 48px; height: 48px;">
                 <i class="fas fa-calendar-check fa-lg text-dark"></i>
             </div>
-            <h1 class="h4 fw-bold mb-0">{{ __('Agendamentos de Tarefas') }}</h1>
+            <h1 class="h4 mb-0">{{ __('Agendamentos de Tarefas') }}</h1>
         </div>
         <a href="{{ route('backoffice.task_schedules.create') }}" class="btn btn-primary rounded-pill px-4">
             {{ __('Criar') }}
@@ -47,12 +47,15 @@
         <table class="table table-hover align-middle bg-white">
             <thead class="table-light">
                 <tr>
-                    <th>{{ __('Tarefa') }}</th>
-                    <th>{{ __('Data Limite') }}</th>
-                    <th>{{ __('Hora Limite') }}</th>
-                    <th>{{ __('Prioridade') }}</th>
-                    <th>{{ __('Estado') }}</th>
-                    <th class="text-end">{{ __('Ações') }}</th>
+                    <th style="font-weight: normal;">{{ __('Data Limite') }}</th>
+                    <th style="font-weight: normal;">{{ __('Hora Limite') }}</th>
+                    <th style="font-weight: normal;">{{ __('Prioridade') }}</th>
+                    <th style="font-weight: normal;">{{ __('Activa') }}</th>
+                    <th style="text-align: center; font-weight: normal;">{{ __('Grupo') }}</th>
+                    <th style="text-align: center; font-weight: normal;">{{ __('Repetição') }}</th>
+                    <th style="font-weight: normal;">{{ __('Tarefa') }}</th>
+                    <th style="font-weight: normal;">{{ __('Estado') }}</th>
+                    <th style="text-align: center; font-weight: normal;">{{ __('Ações') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -75,18 +78,36 @@
                 @endphp
                @forelse($schedulesFiltrados as $schedule)
                 <tr style="background-color: #f6f6f6;">
-                    <td class="border-0">{{ $schedule->task->title }}</td>
-                    <td class="border-0">{{ \Carbon\Carbon::parse($schedule->data_limite)->format('d/m/Y') }}</td>
-                    <td class="border-0">{{ $schedule->hora_limite ? \Carbon\Carbon::parse($schedule->hora_limite)->format('H:i') : '-' }}</td>
-                    <td class="border-0">{{ $schedule->prioridade }}</td>
-                    <td class="border-0">{{ $schedule->estado }}</td>
-                    <td class="text-end border-0">
+                    <td class="border-0" style="text-align: center;"><span style="color: red;">{{ \Carbon\Carbon::parse($schedule->data_limite)->format('d/m/Y') }}</span></td>
+                    <td class="border-0" style="text-align: center;"><span style="color: red;">{{ $schedule->hora_limite ? \Carbon\Carbon::parse($schedule->hora_limite)->format('H:i') : '-' }}</span></td>
+                    <td class="border-0" style="text-align: center;">
+                        @if(strtolower($schedule->prioridade) === 'baixa')
+                            <span style="color: green;">{{ $schedule->prioridade }}</span>
+                        @elseif(strtolower($schedule->prioridade) === 'alta')
+                            <span style="color: red;">{{ $schedule->prioridade }}</span>
+                        @else
+                            {{ $schedule->prioridade }}
+                        @endif
+                    </td>
+                    <td class="border-0" style="text-align: center;">{{ $schedule->activa ? __('Sim') : __('Não') }}</td>
+                    <td class="border-0" style="text-align: center;">{{ $schedule->grupo ? __('Sim') : __('Não') }}</td>
+                    <td class="border-0" style="text-align: center;">{{ $schedule->repetir ? __('Sim') : __('Não') }}</td>
+                    <td class="border-0" style="text-align: center;">{{ $schedule->task->title }}</td>
+                    <td class="border-0" style="text-align: center;">{{ $schedule->estado }}</td>
+                    <td class="border-0" style="text-align: center; white-space: nowrap;">
                         <a href="{{ route('backoffice.task_schedules.show', $schedule->id) }}" class="btn btn-sm btn-outline-secondary rounded-circle" title="{{ __('Ver') }}">
                             <i class="fas fa-eye"></i>
                         </a>
                         <a href="{{ route('backoffice.task_schedules.edit', $schedule->id) }}" class="btn btn-sm btn-outline-secondary rounded-circle" title="{{ __('Editar') }}">
                             <i class="fas fa-pencil-alt"></i>
                         </a>
+                        <form action="{{ route('backoffice.task_schedules.destroy', $schedule->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Tem certeza que deseja apagar este agendamento?')" style="display:inline;">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle" title="{{ __('Apagar') }}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
                     </td>
                 </tr>
                 @empty

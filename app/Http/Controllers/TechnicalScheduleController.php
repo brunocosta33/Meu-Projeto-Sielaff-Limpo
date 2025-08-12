@@ -37,6 +37,15 @@ class TechnicalScheduleController extends Controller
     public function update(Request $request, $id) {
         $schedule = TechnicalSchedule::findOrFail($id);
         $schedule->update($request->all());
+
+        // Se o agendamento foi concluído, marca o pedido como concluído também
+        if ($request->has('estado') && $request->estado === 'Concluído') {
+            if ($schedule->technical_request_id) {
+                \App\Models\TechnicalRequest::where('id', $schedule->technical_request_id)
+                    ->update(['estado' => 'concluído']);
+            }
+        }
+
         return redirect()->route('backoffice.technical_schedules.index')->with('success', 'Agendamento atualizado.');
     }
 
