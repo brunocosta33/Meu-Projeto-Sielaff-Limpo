@@ -21,7 +21,12 @@ class TaskSchedule extends Model
         'repetir',
         'estado',
         'user_id',
-        'description', // ← Este campo tem de estar aqui!
+        'description',
+        'initial_date',
+        'final_date',
+        'time',
+        'period',
+        'days_of_week',
     ];
 
 
@@ -42,6 +47,8 @@ class TaskSchedule extends Model
     protected $casts = [
         'data_limite' => 'date',
         'hora_limite' => 'datetime:H:i', // apenas se quiseres hora como objeto Carbon também
+        'days_of_week' => 'array',
+
     ];
 
 

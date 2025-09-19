@@ -53,15 +53,30 @@ class TaskController extends Controller
         return redirect()->route('backoffice.tasks.index')->with('success', 'Tarefa criada com sucesso.');
     }
 
-    public function index()
-    {
-        $tasks = Task::orderBy('created_at', 'desc')->paginate(15);
-        return view('backoffice.tasks.index', compact('tasks'));
-    }
+public function index()
+{
+    $tasks = Task::where(function ($q) {
+        // Aparece se não tiver nenhum agendamento
+        $q->whereDoesntHave('schedules')
+          // Ou aparece se pelo menos um agendamento ainda não estiver concluído
+          ->orWhereHas('schedules.users', function ($uq) {
+              $uq->whereNull('task_schedule_user.estado')
+                 ->orWhere('task_schedule_user.estado', '!=', 'Concluída');
+          });
+    })
+    ->orderBy('created_at', 'desc')
+    ->paginate(15);
+
+    return view('backoffice.tasks.index', compact('tasks'));
+}
 
     public function destroy($id)
     {
         $task = Task::findOrFail($id);
+        // Verifica se a tarefa está agendada em algum TaskSchedule
+        if ($task->schedules()->count() > 0) {
+            return redirect()->route('backoffice.tasks.index')->with('error', 'Não é possível apagar: esta tarefa já está agendada.');
+        }
         $task->delete();
         return redirect()->route('backoffice.tasks.index')->with('success', 'Tarefa apagada com sucesso.');
     }

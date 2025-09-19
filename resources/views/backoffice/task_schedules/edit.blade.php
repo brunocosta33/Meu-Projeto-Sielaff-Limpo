@@ -27,29 +27,36 @@
     <div class="bg-white p-3">
         <div class="col-md-7 col-lg-6">
 
+            {{-- ATIVA — ÚNICO CAMPO EDITÁVEL --}}
             <div class="custom-control custom-switch mb-3">
-                <input type="checkbox" name="activa" class="custom-control-input" id="customSwitches" {{ $schedule->activa ? 'checked' : '' }}>
+                <input type="hidden" name="activa" value="0">
+                <input type="checkbox" name="activa" value="1" class="custom-control-input" id="customSwitches" {{ $schedule->activa ? 'checked' : '' }}>
                 <label class="custom-control-label" for="customSwitches">{{ __('Ativa') }}</label>
             </div>
 
+            {{-- GRUPO (bloqueado + hidden) --}}
             <div class="custom-control custom-switch mb-3">
-                <input type="checkbox" name="grupo" class="custom-control-input" id="customSwitches2" {{ $schedule->grupo ? 'checked' : '' }}>
+                <input type="checkbox" class="custom-control-input" id="customSwitches2" disabled {{ $schedule->grupo ? 'checked' : '' }}>
                 <label class="custom-control-label" for="customSwitches2">{{ __('Tarefa Grupo') }}</label>
+                <input type="hidden" name="grupo" value="{{ $schedule->grupo ? 1 : 0 }}">
             </div>
 
+            {{-- PRIORIDADE (bloqueado + hidden) --}}
             <div class="form-group my-4">
-                <label for="prioridade" class="mb-2"><strong>{{ __('Prioridade') }}</strong></label>
-                <select class="form-control form-select" name="prioridade" required>
+                <label class="mb-2"><strong>{{ __('Prioridade') }}</strong></label>
+                <select class="form-control form-select" disabled>
                     <option value="">{{ __('Selecionar') }}</option>
                     @foreach(['Baixa', 'Média', 'Alta'] as $value)
                         <option value="{{ $value }}" {{ $schedule->prioridade === $value ? 'selected' : '' }}>{{ __($value) }}</option>
                     @endforeach
                 </select>
+                <input type="hidden" name="prioridade" value="{{ $schedule->prioridade }}">
             </div>
 
+            {{-- TAREFA (bloqueado + hidden) --}}
             <div class="form-group my-4">
-                <label for="task_id" class="mb-2"><strong>{{ __('Tarefa') }}</strong></label>
-                <select name="task_id" id="task" class="form-control form-select" required>
+                <label class="mb-2"><strong>{{ __('Tarefa') }}</strong></label>
+                <select id="task" class="form-control form-select" disabled>
                     <option value="">{{ __('Selecionar') }}</option>
                     @foreach($tasks as $task)
                         <option value="{{ $task->id }}" {{ $schedule->task_id == $task->id ? 'selected' : '' }}>
@@ -57,32 +64,43 @@
                         </option>
                     @endforeach
                 </select>
+                <input type="hidden" name="task_id" value="{{ $schedule->task_id }}">
             </div>
 
+            {{-- DESCRIÇÃO (bloqueado + hidden) --}}
             <div class="form-group mb-3">
-                <label for="description" class="mb-2"><strong>{{ __('Descrição') }}</strong></label>
-                <textarea name="description" id="description" class="form-control" rows="5" maxlength="255">{{ $schedule->description }}</textarea>
+                <label class="mb-2"><strong>{{ __('Descrição') }}</strong></label>
+                <textarea class="form-control" rows="5" maxlength="255" disabled>{{ $schedule->description }}</textarea>
+                <input type="hidden" name="description" value="{{ $schedule->description }}">
                 <small class="text-muted fa-pull-right">{{ __('máx. 255') }}</small>
             </div>
 
+            {{-- DATA/HORA LIMITE (bloqueado + hidden) --}}
             <div class="d-flex flex-wrap gap-2 text-center">
                 <div class="form-group flex-fill">
-                    <label for="data_limite" class="mb-2"><strong>{{ __('Data Limite') }}</strong></label>
-                    <input type="date" name="data_limite" id="data_limite" value="{{ $schedule->data_limite ? \Carbon\Carbon::parse($schedule->data_limite)->format('Y-m-d') : '' }}" class="form-control">
+                    <label class="mb-2"><strong>{{ __('Data Limite') }}</strong></label>
+                    <input type="date" class="form-control" value="{{ $schedule->data_limite ? \Carbon\Carbon::parse($schedule->data_limite)->format('Y-m-d') : '' }}" disabled>
+                    <input type="hidden" name="data_limite" value="{{ $schedule->data_limite ? \Carbon\Carbon::parse($schedule->data_limite)->format('Y-m-d') : '' }}">
                 </div>
                 <div class="form-group flex-fill">
-                    <label for="hora_limite" class="mb-2"><strong>{{ __('Hora Limite') }}</strong></label>
-                    <input type="time" name="hora_limite" id="hora_limite" value="{{ $schedule->hora_limite ? \Carbon\Carbon::parse($schedule->hora_limite)->format('H:i') : '' }}" class="form-control">
+                    <label class="mb-2"><strong>{{ __('Hora Limite') }}</strong></label>
+                    <input type="time" class="form-control" value="{{ $schedule->hora_limite ? \Carbon\Carbon::parse($schedule->hora_limite)->format('H:i') : '' }}" disabled>
+                    <input type="hidden" name="hora_limite" value="{{ $schedule->hora_limite ? \Carbon\Carbon::parse($schedule->hora_limite)->format('H:i') : '' }}">
                 </div>
             </div>
+
+            {{-- REPETIR (se aplicável) --}}
+            <input type="hidden" name="repetir" value="{{ $schedule->repetir ? 1 : 0 }}">
         </div>
 
         <div class="col-12">
             <div class="d-flex flex-wrap align-items-center justify-content-between mt-4 mb-2">
                 <label class="fs-6"><strong>{{ __('Selecionar Colaboradores') }}</strong></label>
-                <input type="button" class="btn btn-info rounded-pill px-4" onclick="selectsUsers()" value="{{ __('Todos') }}">
+                {{-- Botão Todos desativado, pois não é editável neste ecrã --}}
+                <input type="button" class="btn btn-info rounded-pill px-4" value="{{ __('Todos') }}" disabled>
             </div>
 
+            {{-- UTILIZADORES (bloqueado) --}}
             <div class="table-responsive">
                 <table class="table">
                     <thead>
@@ -97,12 +115,19 @@
                             <tr>
                                 <td>{{ $user->id }}</td>
                                 <td>{{ $user->name }}</td>
-                                <td><input type="checkbox" name="user_ids[]" value="{{ $user->id }}" class="form-check-input" {{ $schedule->users->contains($user->id) ? 'checked' : '' }}></td>
+                                <td>
+                                    <input type="checkbox" class="form-check-input" disabled {{ $schedule->users->contains($user->id) ? 'checked' : '' }}>
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
             </div>
+
+            {{-- Enviar os IDs atuais para cumprir a validação no update --}}
+            @foreach($schedule->users->pluck('id') as $uid)
+                <input type="hidden" name="user_ids[]" value="{{ $uid }}">
+            @endforeach
         </div>
 
         <div class="d-flex flex-wrap justify-content-between page-main-actions position-sticky px-4 py-3" style="background-color: #fff; bottom: 0; z-index: 10; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);">
@@ -116,12 +141,5 @@
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.15.2/js/selectize.min.js"></script>
 <script>
-    function selectsUsers() {
-        document.querySelectorAll('input[name="user_ids[]"]').forEach(cb => cb.checked = true);
-    }
-
-    window.addEventListener('load', () => {
-        $('#task').selectize();
-    });
 </script>
 @endpush

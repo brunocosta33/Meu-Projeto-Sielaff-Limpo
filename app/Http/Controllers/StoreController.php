@@ -11,9 +11,10 @@ class StoreController extends Controller
 {
     public function index()
     {
-        $stores = Store::paginate(15);
+        $stores = Store::with('machines')->paginate(15); 
         return view('backoffice.stores.index', compact('stores'));
     }
+
 
     public function create()
     {

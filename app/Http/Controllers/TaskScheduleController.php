@@ -6,30 +6,58 @@ use App\Models\Task;
 use App\Models\TaskSchedule;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class TaskScheduleController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $schedules = TaskSchedule::with('task', 'users')->orderBy('created_at', 'desc')->get();
+        $q = TaskSchedule::with([
+            'task',
+            'users' => fn($uq) => $uq->select('users.id', 'users.name'),
+        ])->orderBy('created_at', 'desc');
+
+        // Filtro por prioridade (opcional)
+        if ($request->filled('prioridade')) {
+            $q->where('prioridade', $request->prioridade);
+        }
+
+        // Filtro "Por concluir" = NÃO totalmente concluído
+        // (1) não tem utilizadores atribuídos OU
+        // (2) tem pelo menos um utilizador com pivot.estado != 'Concluída' (ou NULL)
+        if ($request->estado === 'por_concluir') {
+            $q->where(function ($w) {
+                $w->whereDoesntHave('users')
+                ->orWhereHas('users', function ($sub) {
+                    $sub->where(function ($s) {
+                        $s->whereNull('task_schedule_user.estado')
+                            ->orWhere('task_schedule_user.estado', '!=', 'Concluída');
+                    });
+                });
+            });
+        }
+
+        // Pesquisa pelo título da tarefa (opcional)
+        if ($request->filled('pesquisa')) {
+            $q->whereHas('task', function ($t) use ($request) {
+                $t->where('title', 'like', '%' . $request->pesquisa . '%');
+            });
+        }
+
+        $schedules = $q->get();
+
         return view('backoffice.task_schedules.index', compact('schedules'));
     }
 
     public function create()
     {
-        // Buscar IDs de tasks já concluídas em algum agendamento (usando a tabela pivot diretamente)
-        $concluidasTaskIds = \DB::table('task_schedule_user')
-            ->where('estado', 'Concluída')
-            ->pluck('task_schedule_id');
+    // Buscar IDs de tasks já agendadas (em qualquer agendamento)
+    $agendadasTaskIds = DB::table('task_schedules')->pluck('task_id');
 
-        $tasks = Task::whereNotIn('id', function($query) use ($concluidasTaskIds) {
-            $query->select('task_id')
-                ->from('task_schedules')
-                ->whereIn('id', $concluidasTaskIds);
-        })->get();
-        $users = User::all();
+    $tasks = Task::whereNotIn('id', $agendadasTaskIds)->get();
+    $users = User::all();
 
-        return view('backoffice.task_schedules.create', compact('tasks', 'users'));
+    return view('backoffice.task_schedules.create', compact('tasks', 'users'));
     }
 
   public function store(Request $request)
@@ -41,18 +69,18 @@ class TaskScheduleController extends Controller
         $horaLimite = $isRepetir ? null : $request->hora_limite;
 
         try {
-            $schedule = TaskSchedule::create([
-                'task_id'     => $request->task_id,
-                'prioridade'  => $request->prioridade,
-                'data_limite' => $dataLimite,
-                'hora_limite' => $horaLimite,
-                'activa'      => $request->has('activa'),
-                'grupo'       => $request->has('grupo'),
-                'repetir'     => $isRepetir,
-                'estado'      => 'Pendente',
-                'user_id'     => $request->user_ids[0],
-                'description' => $request->description,
-            ]);
+                $schedule = TaskSchedule::create([
+                    'task_id'     => $request->task_id,
+                    'prioridade'  => $request->prioridade,
+                    'data_limite' => $dataLimite,
+                    'hora_limite' => $horaLimite,
+                    'activa'      => $request->has('activa') ? 1 : 0,
+                    'grupo'       => $request->has('grupo') ? 1 : 0,
+                    'repetir'     => $isRepetir,
+                    'estado'      => 'Pendente',
+                    'user_id'     => $request->user_ids[0],
+                    'description' => $request->description,
+                ]);
 
             $schedule->users()->sync($request->user_ids);
 
@@ -83,7 +111,7 @@ class TaskScheduleController extends Controller
             'prioridade' => $request->prioridade,
             'data_limite' => $request->data_limite,
             'hora_limite' => $request->hora_limite,
-            'activa' => $request->has('activa'),
+            'activa' => $request->input('activa', 0),
             'grupo' => $request->has('grupo'),
             'repetir' => $request->repetir ?? false,
         ]);
@@ -109,11 +137,15 @@ class TaskScheduleController extends Controller
         $taskId = $schedule->task_id;
         // Verifica se existem outros agendamentos para esta tarefa (exceto o atual)
         $agendamentos = TaskSchedule::where('task_id', $taskId)->where('id', '!=', $id)->count();
-        if ($agendamentos > 0) {
-            return redirect()->route('backoffice.task_schedules.index')->with('error', 'Não é possível apagar: esta tarefa já está agendada em outro agendamento.');
-        }
         $schedule->users()->detach();
         $schedule->delete();
+        // Se não há mais agendamentos para esta tarefa, apaga a tarefa também
+        if ($agendamentos == 0) {
+            $task = \App\Models\Task::find($taskId);
+            if ($task) {
+                $task->delete();
+            }
+        }
         return redirect()->route('backoffice.task_schedules.index')->with('success', 'Agendamento removido com sucesso.');
     }
 

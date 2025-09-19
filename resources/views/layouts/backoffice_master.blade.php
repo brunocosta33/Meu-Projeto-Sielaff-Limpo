@@ -23,8 +23,6 @@
     <link href="{{ asset('css/summernote.css') }}" rel="stylesheet">
     @stack('styles')
 
-
-
     @yield('head-scripts')
 
     @stack('scripts')
@@ -44,6 +42,17 @@
                 @include('backoffice.includes.navbar')
                 <div class="mt-2"></div>
                 @include('flash::message')
+                @if(session('success'))
+                    <div class="alert alert-success" role="alert">
+                        {{ session('success') }}
+                    </div>
+                @endif
+
+                @if(session('error'))
+                    <div class="alert alert-danger" role="alert">
+                        {{ session('error') }}
+                    </div>
+                @endif
                 @yield('content')
             </main>
         </div>

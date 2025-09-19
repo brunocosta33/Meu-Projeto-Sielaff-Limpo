@@ -1,51 +1,56 @@
 @extends('layouts.backoffice_master')
 
+@section('head-meta')
+    <title>{{ config('app.name') }} - {{ __('Peças (Items)') }}</title>
+@endsection
+
 @section('content')
-<div class="container">
-    <h1 class="mb-4">Itens (Peças e Ferramentas)</h1>
+<div class="row">@include('flash::message')</div>
 
-    @if (session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
+<div class="card">
+    <div class="card-body">
+        <div class="float-right mb-3">
+            <a href="{{ route('backoffice.items.create') }}" class="btn btn-success">
+                <i class="fa fa-plus"></i> {{ __('Nova Peça') }}
+            </a>
+        </div>
 
-    <a href="{{ route('backoffice.items.create') }}" class="btn btn-primary mb-3">Novo Item</a>
+        <h5 class="card-title">{{ __('Lista de Peças') }}</h5>
 
-    <div class="table-responsive">
         <table class="table table-bordered table-striped">
             <thead>
                 <tr>
-                    <th>Nome</th>
-                    <th>Referência</th>
-                    <th>Tipo</th>
-                    <th>Unidade</th>
-                    <th>Stock Atual</th>
-                    <th>Ações</th>
+                    <th>{{ __('ID') }}</th>
+                    <th>{{ __('Nome') }}</th>
+                    <th>{{ __('Referência') }}</th>
+                    <th>{{ __('Descrição') }}</th>
+                    <th>{{ __('Ações') }}</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($items as $item)
-                    <tr>
-                        <td>{{ $item->nome }}</td>
-                        <td>{{ $item->referencia }}</td>
-                        <td>{{ $item->tipo }}</td>
-                        <td>{{ $item->unidade_medida }}</td>
-                        <td>{{ $item->quantidade_atual }}</td>
-                        <td>
-                            <a href="{{ route('backoffice.items.edit', ['item' => $item->id]) }}" class="btn btn-sm btn-warning">Editar</a>
-                            <form action="{{ route('backoffice.items.destroy', ['item' => $item->id]) }}" method="POST" class="d-inline" onsubmit="return confirm('Eliminar este item?')">
-                                @csrf
-                                @method('DELETE')
-                                <button class="btn btn-sm btn-danger">Eliminar</button>
-                            </form>
-                        </td>
-                    </tr>
+                <tr>
+                    <td>{{ $item->id }}</td>
+                    <td>{{ $item->nome }}</td>
+                    <td>{{ $item->referencia }}</td>
+                    <td>{{ Str::limit($item->descricao, 40) }}</td>
+                    <td>
+                        <a href="{{ route('backoffice.items.edit',$item->id) }}" class="btn btn-primary btn-sm"><i class="fa fa-edit"></i></a>
+                        <form action="{{ route('backoffice.items.destroy',$item->id) }}" method="POST" style="display:inline;">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Tem a certeza?')">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
                 @empty
-                    <tr><td colspan="6">Sem itens registados.</td></tr>
+                <tr>
+                    <td colspan="5">{{ __('Sem peças registadas.') }}</td>
+                </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
-
-    {{ $items->links() }}
 </div>
 @endsection

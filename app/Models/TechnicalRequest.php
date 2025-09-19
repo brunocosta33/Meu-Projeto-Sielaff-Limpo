@@ -11,11 +11,25 @@ class TechnicalRequest extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'store_id', 'origem', 'descricao_problema', 'prioridade', 'estado', 'observacoes', 'data_pedido'
+        'store_id',
+        'machine_id',
+        'origem',
+        'tipo_servico',
+        'descricao_problema',
+        'prioridade',
+        'estado',
+        'observacoes',
+        'data_pedido',
+        'data_resolucao',
+        'data_agendamento', 
     ];
+
     public function store()
     {
         return $this->belongsTo(Store::class);
     }
-
+    public function machines()
+    {
+        return $this->hasMany(TechnicalRequestMachine::class, 'technical_request_id');
+    }
 }

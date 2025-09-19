@@ -4,6 +4,15 @@ Project Description: using jquery and bootstrap by this you can create multiple 
 on boostrap modal,also able to delete file.
 Author: Abhishek Mishra
 */
+/* Minhas Tarefas */
+.icon-48{width:48px;height:48px}
+.task-filters{background:#ededed;padding:32px 0 16px}
+.task-toggle{max-width:480px;width:100%}
+.task-toggle .btn{width:50%;border-width:2px}
+.task-toggle .btn-left{border-top-right-radius:0;border-bottom-right-radius:0}
+.task-toggle .btn-right{border-top-left-radius:0;border-bottom-left-radius:0;border-left:none}
+.task-toggle .btn.active{background:#232529;color:#fff;border-color:#232529}
+.task-toggle .btn:not(.active){background:#ededed;color:#232529;border-color:#232529}
 
 .fa-eye {
     color: #00C3AF;

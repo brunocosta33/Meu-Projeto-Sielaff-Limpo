@@ -8,7 +8,7 @@ use App\Models\Base;
         <div id="sidebar-brand-mage" class="text-center">
             <a class="left-logo" href="#">
                 @if(!empty(Base::logo()->url))
-                    <img style="max-height: 150px;" src="{{ url(Base::logo()->url . Base::logo()->file) }}" />
+                <img style="max-height: 150px;" src="{{ url(Base::logo()->url . Base::logo()->file) }}" />
                 @endif
             </a>
         </div>
@@ -23,7 +23,14 @@ use App\Models\Base;
             </a>
         </li>
 
-        @if(Auth::user()->hasAnyPermissionsOrRole(['view_configurations','view_loginactivity','view_users','view_roles','view_permissions']))
+        @if(Auth::user()->hasRole('user'))
+        <li>
+            <a href="{{ route('backoffice.task_schedules.minhas') }}">
+                <i class="fas fa-tasks"></i>
+                <span class="hidden-sm-down"> {{__('Minhas Tarefas')}}</span>
+            </a>
+        </li>
+        @else
         <li>
             <a href="#pageSubmenuTarefas" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                 <i class="fas fa-tasks"></i>
@@ -44,8 +51,8 @@ use App\Models\Base;
                 <span class="hidden-sm-down"> {{__('Logistíca')}}</span>
             </a>
             <ul class="collapse list-unstyled" id="pageSubmenuProd" data-parent="#menu-left">
-                <li><a href="{{ route('backoffice.suppliers.index') }}">{{ __('Transportadoras') }}</a></li>
-                <li><a href="{{ route('backoffice.appointments.index') }}">{{ __('Agendamento') }}</a></li>
+                <li><a href="{{ route('backoffice.suppliers.index') }}">{{ __('Criar Transportadoras') }}</a></li>
+                <li><a href="{{ route('backoffice.appointments.index') }}">{{ __('Agendamento de Transporte') }}</a></li>
             </ul>
         </li>
         @endif
@@ -70,104 +77,120 @@ use App\Models\Base;
                 <span class="hidden-sm-down"> {{__('Assistência')}}</span>
             </a>
             <ul class="collapse list-unstyled" id="pageSubmenuTecnicas" data-parent="#menu-left">
-                <li><a href="{{ route('backoffice.technical_requests.index') }}">{{ __('Pedidos') }}</a></li>
-               {{-- <li><a href="{{ route('backoffice.technical_schedules.index') }}">{{ __('Agendamento das Assistências') }}</a></li> --}}
-                <li><a href="{{ route('backoffice.technicians.index') }}">{{ __('Técnicos') }}</a></li>
-            </ul>
+                <li><a href="{{ route('backoffice.technical_requests.index') }}">{{ __('HotLine') }}</a></li>
+                {{-- <li><a href="{{ route('backoffice.technical_schedules.index') }}">{{ __('Agendamento das Assistências') }}</a>--}}
+                {{-- Nova opção: Dar baixa em clientes --}}
+                <li><a href="{{ route('backoffice.stock.baixa.form') }}">{{ __('Assistência nos clientes') }}</a></li>
         </li>
-        @endif
+        <li><a href="{{ route('backoffice.technicians.index') }}">{{ __('Criar Técnicos') }}</a></li>
+    </ul>
+    </li>
+    @endif
 
-        @if(Auth::user()->hasAnyPermissionsOrRole(['view_configurations','view_loginactivity','view_users','view_roles','view_permissions']))
-        <li>
-            <a href="#pageSubmenuArm" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                <i class="fas fa-warehouse"></i>
-                <span class="hidden-sm-down"> {{__('Armazém')}}</span>
-            </a>
-            <ul class="collapse list-unstyled" id="pageSubmenuArm" data-parent="#menu-left">
-                <li><a href="{{ route('backoffice.items.index') }}">{{ __('Itens (Peças e Ferramentas)') }}</a></li>
-                <li><a href="{{ route('backoffice.stock.movements.index') }}">{{ __('Movimentos de Stock') }}</a></li>
-                <li><a href="{{ route('backoffice.stock_import.form') }}">{{ __('Importar Stock via Excel') }}</a></li>
-                <li><a href="{{ route('backoffice.machines.index') }}">{{ __('Máquinas') }}</a></li>
-            </ul>
-        </li>
-        @endif
+    @if(Auth::user()->hasAnyPermissionsOrRole(['view_configurations','view_loginactivity','view_users','view_roles','view_permissions']))
+    <li>
+        <a href="#pageSubmenuStock" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+            <i class="fas fa-boxes"></i>
+            <span class="hidden-sm-down"> {{ __('Gestão de Stock') }}</span>
+        </a>
+        <ul class="collapse list-unstyled" id="pageSubmenuStock" data-parent="#menu-left">
+            <li><a href="{{ route('backoffice.items.index') }}">{{ __('Criar Peças (Items)') }}</a></li>
+            <li><a href="{{ route('backoffice.locations.index') }}">{{ __('Localizações') }}</a></li>
+            <li><a href="{{ route('backoffice.stock.movements.index') }}">{{ __('Movimentos de Stock') }}</a></li>
+            <li><a href="{{ route('backoffice.stock.armazem') }}">{{ __('Stock Armazém') }}</a></li>
 
-        @if(Auth::user()->hasAnyPermissionsOrRole(['view_configurations','view_loginactivity','view_users','view_roles','view_permissions']))
-        <li>
-            <a href="#pageSubmenuFlyer" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                <i class="fas fa-store"></i>
-                <span class="hidden-sm-down"> {{__('Lojas')}}</span>
-            </a>
-            <ul class="collapse list-unstyled" id="pageSubmenuFlyer" data-parent="#menu-left">
-                <li><a href="{{ route('backoffice.stores.index') }}">{{ __('Lojas') }}</a></li>
-                <li><a href="{{ route('backoffice.teams.index') }}">{{ __('Equipas') }}</a></li>
-            </ul>
-        </li>
-        @endif
+            {{-- Importação --}}
+            <li><a href="{{ route('backoffice.import.items.form') }}">{{ __('Importar Peças (Excel)') }}</a></li>
 
 
-        @if(Auth::user()->hasAnyPermissionsOrRole(['view_configurations','view_loginactivity','view_users','view_roles','view_permissions']))
-       
 
-        <li>
-            <a href="#pageSubmenuUsers" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                <i class="fas fa-cogs"></i>
-                <span class="hidden-sm-down"> {{__('Administration')}}</span>
-            </a>
-            <ul class="collapse list-unstyled" id="pageSubmenuUsers" data-parent="#menu-left">
-                @if(Auth::user()->hasPermissionsOrRole(['view_configurations']))
-                    <li><a href="{{ route('backoffice.configurations.index') }}">{{ __('Settings') }}</a></li>
-                @endif
-                @if(Auth::user()->hasPermissionsOrRole(['view_loginactivity']))
-                    <li><a href="{{ route('backoffice.loginactivity.index') }}">{{ __('Users Activities') }}</a></li>
-                @endif
-                @if(Auth::user()->hasPermissionsOrRole(['view_users']))
-                    <li><a href="{{ route('backoffice.users.index') }}">{{ __('Users') }}</a></li>
-                @endif
-                @if(Auth::user()->hasPermissionsOrRole(['view_roles']))
-                    <li><a href="{{ route('backoffice.roles.index') }}">{{ __('Roles') }}</a></li>
-                @endif
-                @if(Auth::user()->hasPermissionsOrRole(['view_permissions']))
-                    <li><a href="{{ route('backoffice.permissions.index') }}">{{ __('Permissions') }}</a></li>
-                @endif
-            </ul>
-        </li>
-        @endif
+            {{-- Carrinhas dinâmicas --}}
+            @foreach($menuCarrinhas ?? \App\Models\Location::where('tipo','carrinha')->get() as $c)
+            <li><a href="{{ route('backoffice.stock.carrinha', $c->id) }}">{{ __('Stock ') . $c->nome }}</a></li>
+            @endforeach
+        </ul>
+    </li>
 
-        <hr>
 
-        <li>
-            <a href="#pageSubmenuProfile" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                <i class="fas fa-user"></i>
-                <span class="hidden-sm-down">{{ Auth::user()->name }}</span>
-            </a>
-            <ul class="collapse list-unstyled" id="pageSubmenuProfile" data-parent="#menu-left">
-                <li><a href="{{ route('backoffice.profile.index') }}">{{__('Profile')}}</a></li>
-                <li>
-                    <a href="#" class="collapsed" data-parent="#sidebar" style="cursor: default">
-                        <span class="hidden-sm-down">{{ __('Last access') }}:</span><br>
-                        <span class="hidden-sm-down">{{ Auth::user()->last_login }}</span>
-                    </a>
-                </li>
-            </ul>
-        </li>
 
-        <li>
-            <a href="{{ url('/logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="collapsed" data-parent="#sidebar">
-                <i class="fas fa-sign-out-alt"></i>
-                <span class="hidden-sm-down">{{ __('Logout') }}</span>
-            </a>
-        </li>
+    @endif
 
-        <hr>
+    @if(Auth::user()->hasAnyPermissionsOrRole(['view_configurations','view_loginactivity','view_users','view_roles','view_permissions']))
+    <li>
+        <a href="#pageSubmenuFlyer" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+            <i class="fas fa-store"></i>
+            <span class="hidden-sm-down"> {{__('Lojas')}}</span>
+        </a>
+        <ul class="collapse list-unstyled" id="pageSubmenuFlyer" data-parent="#menu-left">
+            <li><a href="{{ route('backoffice.stores.index') }}">{{ __('Lojas') }}</a></li>
+            <li><a href="{{ route('backoffice.machines.index') }}">{{ __('Lista de Máquinas das Lojas') }}</a></li>
+        </ul>
+    </li>
+    @endif
 
-        <li>
-            <div class="col col-lg-auto d-flex justify-content-center">
-                <div class="dropdown">
-                    @include('includes.language-switch')
-                </div>
+
+    @if(Auth::user()->hasAnyPermissionsOrRole(['view_configurations','view_loginactivity','view_users','view_roles','view_permissions']))
+
+
+    <li>
+        <a href="#pageSubmenuUsers" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+            <i class="fas fa-cogs"></i>
+            <span class="hidden-sm-down"> {{__('Administration')}}</span>
+        </a>
+        <ul class="collapse list-unstyled" id="pageSubmenuUsers" data-parent="#menu-left">
+            @if(Auth::user()->hasPermissionsOrRole(['view_configurations']))
+            <li><a href="{{ route('backoffice.configurations.index') }}">{{ __('Settings') }}</a></li>
+            @endif
+            @if(Auth::user()->hasPermissionsOrRole(['view_loginactivity']))
+            <li><a href="{{ route('backoffice.loginactivity.index') }}">{{ __('Users Activities') }}</a></li>
+            @endif
+            @if(Auth::user()->hasPermissionsOrRole(['view_users']))
+            <li><a href="{{ route('backoffice.users.index') }}">{{ __('Users') }}</a></li>
+            @endif
+            @if(Auth::user()->hasPermissionsOrRole(['view_roles']))
+            <li><a href="{{ route('backoffice.roles.index') }}">{{ __('Roles') }}</a></li>
+            @endif
+            @if(Auth::user()->hasPermissionsOrRole(['view_permissions']))
+            <li><a href="{{ route('backoffice.permissions.index') }}">{{ __('Permissions') }}</a></li>
+            @endif
+        </ul>
+    </li>
+    @endif
+
+    <hr>
+
+    <li>
+        <a href="#pageSubmenuProfile" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+            <i class="fas fa-user"></i>
+            <span class="hidden-sm-down">{{ Auth::user()->name }}</span>
+        </a>
+        <ul class="collapse list-unstyled" id="pageSubmenuProfile" data-parent="#menu-left">
+            <li><a href="{{ route('backoffice.profile.index') }}">{{__('Profile')}}</a></li>
+            <li>
+                <a href="#" class="collapsed" data-parent="#sidebar" style="cursor: default">
+                    <span class="hidden-sm-down">{{ __('Last access') }}:</span><br>
+                    <span class="hidden-sm-down">{{ Auth::user()->last_login }}</span>
+                </a>
+            </li>
+        </ul>
+    </li>
+
+    <li>
+        <a href="{{ url('/logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="collapsed" data-parent="#sidebar">
+            <i class="fas fa-sign-out-alt"></i>
+            <span class="hidden-sm-down">{{ __('Logout') }}</span>
+        </a>
+    </li>
+
+    <hr>
+
+    <li>
+        <div class="col col-lg-auto d-flex justify-content-center">
+            <div class="dropdown">
+                @include('includes.language-switch')
             </div>
-        </li>
+        </div>
+    </li>
     </ul>
 
     <div class="sidebar-footer"></div>

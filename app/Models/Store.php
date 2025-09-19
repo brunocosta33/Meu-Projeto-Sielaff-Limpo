@@ -26,4 +26,9 @@ class Store extends Model
         'updated_at',
         'deleted_at',
     ];
+
+    public function machines()
+    {
+        return $this->hasMany(Machine::class, 'store_id');
+    }
 }

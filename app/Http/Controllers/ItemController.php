@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Item;
+use Illuminate\Http\Request;
 
 class ItemController extends Controller
 {
     public function index()
     {
-        $items = Item::orderBy('nome')->paginate(20);
+        $items = Item::orderBy('id','desc')->paginate(20);
         return view('backoffice.items.index', compact('items'));
     }
 
@@ -23,41 +22,42 @@ class ItemController extends Controller
     {
         $request->validate([
             'nome' => 'required|string|max:255',
-            'referencia' => 'required|string|max:100|unique:items',
-            'tipo' => 'nullable|string|max:50',
-            'quantidade_atual' => 'nullable|integer|min:0',
-            'unidade_medida' => 'nullable|string|max:20',
+            'referencia' => 'nullable|string|max:100|unique:items,referencia',
         ]);
 
-        Item::create($request->all());
+        Item::create($request->only(['nome','referencia','descricao']));
 
-        return redirect()->route('backoffice.items.index')->with('success', 'Item criado com sucesso.');
+        return redirect()->route('backoffice.items.index')
+                         ->with('success','Peça criada com sucesso.');
     }
 
-    public function edit(Item $item)
+    public function edit($id)
     {
+        $item = Item::findOrFail($id);
         return view('backoffice.items.edit', compact('item'));
     }
 
-    public function update(Request $request, Item $item)
+    public function update(Request $request, $id)
     {
+        $item = Item::findOrFail($id);
+
         $request->validate([
             'nome' => 'required|string|max:255',
-            'referencia' => 'required|string|max:100|unique:items,referencia,' . $item->id,
-            'tipo' => 'nullable|string|max:50',
-            'quantidade_atual' => 'nullable|integer|min:0',
-            'unidade_medida' => 'nullable|string|max:20',
+            'referencia' => 'nullable|string|max:100|unique:items,referencia,'.$item->id,
         ]);
 
-        $item->update($request->all());
+        $item->update($request->only(['nome','referencia','descricao']));
 
-        return redirect()->route('backoffice.items.index')->with('success', 'Item atualizado com sucesso.');
+        return redirect()->route('backoffice.items.index')
+                         ->with('success','Peça atualizada com sucesso.');
     }
 
-    public function destroy(Item $item)
+    public function destroy($id)
     {
+        $item = Item::findOrFail($id);
         $item->delete();
-        return redirect()->route('backoffice.items.index')->with('success', 'Item eliminado com sucesso.');
+
+        return redirect()->route('backoffice.items.index')
+                         ->with('success','Peça removida com sucesso.');
     }
 }
-

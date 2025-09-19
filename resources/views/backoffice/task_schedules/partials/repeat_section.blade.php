@@ -32,6 +32,7 @@
 </style>
 
 <div class="form-group">
+    {{-- Toggle entre não repetir e repetir --}}
     <div class="repeat-toggle-wrapper mx-auto">
         <input type="radio" name="repetir" id="no_repeat" value="0" onclick="showNoRepeat()" checked>
         <label for="no_repeat">{{ __('Não Repete') }}</label>
@@ -40,6 +41,7 @@
         <label for="repeat">{{ __('Repetir') }}</label>
     </div>
 
+    {{-- Opção: Não repete --}}
     <div id="no_repeat_div" class="mt-4">
         <div class="d-flex flex-wrap gap-2 text-center">
             <div class="form-group flex-fill">
@@ -53,6 +55,7 @@
         </div>
     </div>
 
+    {{-- Opção: Repetir --}}
     <div id="repeat_div" class="mt-4" style="display: none;">
         <div class="d-flex flex-wrap gap-2 text-center">
             <div class="form-group flex-fill">
@@ -80,17 +83,10 @@
             </select>
         </div>
 
+        {{-- Mostrado só quando escolher "semana" --}}
         <div class="form-group mt-3" id="daysOfWeek" style="display: none;">
-            <div class="d-flex flex-wrap gap-3">
-                @foreach(['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'] as $i => $day)
-                    <div class="form-check">
-                        <input type="checkbox" name="days_of_week[]" id="{{ $i }}" value="{{ $i }}" class="form-check-input">
-                        <label for="{{ $i }}" class="form-check-label"><strong>{{ __($day) }}</strong></label>
-                    </div>
-                @endforeach
-            </div>
-            <div class="mt-3">
-                <small>{{ __('*Se deixado em branco, todos os dias serão considerados.') }}</small>
+            <div class="alert alert-info p-2 mb-0" style="font-size:0.95em;">
+                {{ __('A tarefa será repetida semanalmente no mesmo dia da semana da data de início.') }}
             </div>
         </div>
     </div>

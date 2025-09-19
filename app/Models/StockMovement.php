@@ -11,15 +11,31 @@ class StockMovement extends Model
 
     protected $fillable = [
         'item_id',
-        'tipo',
         'quantidade',
-        'motivo',
-        'origem',
+        'origem_id',
+        'destino_id',
+        'tipo_movimento',
+        'observacoes',
         'user_id',
     ];
 
     public function item()
     {
         return $this->belongsTo(Item::class);
+    }
+
+    public function origem()
+    {
+        return $this->belongsTo(Location::class, 'origem_id');
+    }
+
+    public function destino()
+    {
+        return $this->belongsTo(Location::class, 'destino_id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }

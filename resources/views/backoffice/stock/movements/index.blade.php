@@ -1,47 +1,54 @@
 @extends('layouts.backoffice_master')
 
+@section('head-meta')
+    <title>{{ config('app.name') }} - {{ __('Movimentos de Stock') }}</title>
+@endsection
+
 @section('content')
-<div class="container">
-    <h1 class="mb-4">Histórico de Movimentos de Stock</h1>
+<div class="row">@include('flash::message')</div>
 
-    @if (session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
+<div class="card">
+    <div class="card-body">
+        <div class="float-right mb-3">
+            <a href="{{ route('backoffice.stock.movements.create') }}" class="btn btn-success">
+                <i class="fa fa-plus"></i> {{ __('Novo Movimento') }}
+            </a>
+        </div>
 
-   <a href="{{ route('backoffice.stock.movements.create') }}" class="btn btn-primary mb-3">Novo Movimento</a>
+        <h5 class="card-title">{{ __('Lista de Movimentos de Stock') }}</h5>
 
-
-    <div class="table-responsive">
         <table class="table table-bordered table-striped">
             <thead>
                 <tr>
-                    <th>Data</th>
-                    <th>Item</th>
-                    <th>Referência</th>
-                    <th>Tipo</th>
-                    <th>Quantidade</th>
-                    <th>Motivo</th>
-                    <th>Origem</th>
+                    <th>{{ __('Data') }}</th>
+                    <th>{{ __('Peça') }}</th>
+                    <th>{{ __('Quantidade') }}</th>
+                    <th>{{ __('Origem') }}</th>
+                    <th>{{ __('Destino') }}</th>
+                    <th>{{ __('Tipo') }}</th>
+                    <th>{{ __('Utilizador') }}</th>
                 </tr>
             </thead>
             <tbody>
-                @forelse($movimentos as $mov)
-                    <tr>
-                        <td>{{ $mov->created_at->format('d/m/Y H:i') }}</td>
-                        <td>{{ $mov->item->nome }}</td>
-                        <td>{{ $mov->item->referencia }}</td>
-                        <td><strong class="{{ $mov->tipo == 'entrada' ? 'text-success' : 'text-danger' }}">{{ ucfirst($mov->tipo) }}</strong></td>
-                        <td>{{ $mov->quantidade }}</td>
-                        <td>{{ $mov->motivo }}</td>
-                        <td>{{ $mov->origem }}</td>
-                    </tr>
+                @forelse($movements as $m)
+                <tr>
+                    <td>{{ $m->created_at->format('d/m/Y H:i') }}</td>
+                    <td>{{ $m->item->nome }} ({{ $m->item->referencia }})</td>
+                    <td>{{ $m->quantidade }}</td>
+                    <td>{{ $m->origem->nome }}</td>
+                    <td>{{ $m->destino->nome }}</td>
+                    <td><span class="badge badge-info">{{ ucfirst($m->tipo_movimento) }}</span></td>
+                    <td>{{ $m->user->name }}</td>
+                </tr>
                 @empty
-                    <tr><td colspan="7">Sem movimentos registados.</td></tr>
+                <tr>
+                    <td colspan="7">{{ __('Sem movimentos registados.') }}</td>
+                </tr>
                 @endforelse
             </tbody>
         </table>
-    </div>
 
-    {{ $movimentos->links() }}
+        {{ $movements->links() }}
+    </div>
 </div>
 @endsection

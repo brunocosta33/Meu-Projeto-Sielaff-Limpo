@@ -1,7 +1,7 @@
 @extends('layouts.backoffice_master')
 
 @section('head-meta')
-    <title>{{ config('app.name') }} - {{ __('Detalhes do Pedido') }}</title>
+<title>{{ config('app.name') }} - {{ __('Detalhes do Pedido') }}</title>
 @endsection
 
 @section('content')
@@ -24,6 +24,17 @@
                     <strong>{{ __('Origem') }}:</strong> {{ $request->origem }}
                 </div>
                 <div class="mb-3">
+                    @php
+                    $tipos = [
+                    'software' => 'Software',
+                    'reparacao' => 'Assistencia/Reparação',
+                    'manutencao' => 'Manutenção',
+                    'pre_visita' => 'Pré-Visita',
+                    ];
+                    @endphp
+                    <td> <strong>{{ __('Tipo de Serviço') }}:</strong> {{ $tipos[$request->tipo_servico] ?? ucfirst($request->tipo_servico) }}</td>
+                </div>
+                <div class="mb-3">
                     <strong>{{ __('Descrição') }}:</strong><br>
                     {{ $request->descricao_problema }}
                 </div>
@@ -31,9 +42,9 @@
                     <strong>{{ __('Prioridade') }}:</strong>
                     <span class="badge 
                         @switch($request->prioridade)
-                            @case('baixa') bg-success @break
+                            @case('baixa') bg-info @break
                             @case('media') bg-warning text-dark @break
-                            @case('alta') bg-danger @break
+                            @case('alta') bg-danger text-white @break
                             @default bg-secondary
                         @endswitch">
                         {{ __(ucfirst($request->prioridade)) }}
@@ -45,18 +56,37 @@
                     <span class="badge 
                         @switch($request->estado)
                             @case('agendado') bg-info text-dark @break
-                            @case('concluído') bg-success @break
+                            @case('concluido') bg-success @break
                             @case('cancelado') bg-danger @break
-                            @case('pendente') bg-secondary @break
+                            @case('pendente') bg-warning @break
+                            @case('aguarda_peca') bg-danger text-white @break
                             @default bg-light
                         @endswitch">
                         {{ __(ucfirst($request->estado)) }}
                     </span>
                 </div>
+                <div class="mb-3">
+                    <strong>{{ __('Data do Pedido') }}:</strong>
+                    {{ $request->data_pedido ? \Carbon\Carbon::parse($request->data_pedido)->format('d/m/Y') : '—' }}
+                </div>
+
+                @if($request->data_agendamento)
+                <div class="mb-3">
+                    <strong>{{ __('Data de Agendamento') }}:</strong>
+                    <span class="badge bg-warning text-dark">
+                        {{ \Carbon\Carbon::parse($request->data_agendamento)->format('d/m/Y H:i') }}
+                    </span>
+                </div>
+                @endif
+
+
 
                 <div class="mb-3">
-                    <strong>{{ __('Data') }}:</strong> {{ \Carbon\Carbon::parse($request->data)->format('d/m/Y') }}
+                    <strong>{{ __('Data da Resolução') }}:</strong>
+                    {{ $request->data_resolucao ? \Carbon\Carbon::parse($request->data_resolucao)->format('d/m/Y') : '—' }}
                 </div>
+
+
                 <div class="mb-3">
                     <strong>{{ __('Observações') }}:</strong><br>
                     {{ $request->observacoes }}

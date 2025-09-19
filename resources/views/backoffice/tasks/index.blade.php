@@ -17,39 +17,50 @@
         </div>
     </div>
 
-    <div class="bg-white p-3 shadow-sm rounded">
+    @if(session('error'))
+        <div class="alert alert-danger" id="alert" role="alert">
+            {{ session('error') }}
+        </div>
+    @endif
+    <div class="bg-white p-4 shadow rounded-4 border-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle">
+            <table class="table align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th>{{ __('Tarefa') }}</th>
+                        <th class="text-primary fs-5" style="letter-spacing: 1px;">{{ __('Tarefa') }}</th>
+                        <th class="text-end"></th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($tasks as $task)
-                        <tr style="background-color: #e5e5e5;"> {{-- Fundo cinzento claro --}}
-                            <td>{{ $task->title }}</td>
+                        <tr class="align-middle" style="background: linear-gradient(90deg, #f8fafc 60%, #e5e5e5 100%); box-shadow: 0 2px 8px rgba(0,0,0,0.04); border-radius: 12px;">
+                            <td>
+                                <span class="badge bg-gradient text-dark px-4 py-2 fs-6 shadow-sm" style="background: linear-gradient(90deg, #e0eafc 0%, #cfdef3 100%); border-radius: 16px; font-weight: 600; letter-spacing: 0.5px;">
+                                    <i class="fas fa-tasks me-2 text-primary"></i>{{ $task->title }}
+                                    @if($task->schedules && $task->schedules->count() > 0)
+                                        <span class="badge ms-4 px-3 py-2" style="background: #ff9800; color: #fff; font-weight: bold; font-size: 1em; letter-spacing: 0.5px; vertical-align: middle; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                                            <i class="fas fa-calendar-check me-1"></i> Agendada
+                                        </span>
+                                    @endif
+                                </span>
+                            </td>
                             <td class="text-end">
-                                <div class="d-flex justify-content-end gap-4">
-
-                                    {{-- Botão Editar --}}
+                                <div class="d-flex justify-content-end gap-3">
                                     <a href="{{ route('backoffice.tasks.edit', $task->id) }}"
-                                    class="btn btn-sm btn-outline-secondary rounded-circle"
-                                    title="{{ __('Editar') }}">
-                                        <i class="fas fa-pencil-alt"></i>
+                                       class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm"
+                                       title="{{ __('Editar') }}">
+                                        <i class="fas fa-pencil-alt"></i> Editar
                                     </a>
-
-                                    {{-- Botão Apagar --}}
                                     <form method="POST"
-                                        action="{{ route('backoffice.tasks.destroy', $task->id) }}"
-                                        style="display:inline"
-                                        onsubmit="return confirm('@lang('Tem a certeza que quer apagar esta tarefa?')')">
+                                          action="{{ route('backoffice.tasks.destroy', $task->id) }}"
+                                          style="display:inline"
+                                          onsubmit="return confirm('Tem a certeza que quer apagar esta tarefa?');">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit"
-                                                class="btn btn-sm btn-outline-danger rounded-circle"
+                                                class="btn btn-outline-danger btn-sm rounded-pill px-3 shadow-sm"
                                                 title="{{ __('Apagar') }}">
-                                            <i class="fas fa-trash-alt"></i>
+                                            <i class="fas fa-trash-alt"></i> Apagar
                                         </button>
                                     </form>
                                 </div>
@@ -57,13 +68,13 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="2" class="text-center text-muted">{{ __('Sem tarefas disponíveis.') }}</td>
+                            <td colspan="2" class="text-center text-muted py-4 fs-5">{{ __('Sem tarefas disponíveis.') }}</td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
-
+    </div>
         @if(method_exists($tasks, 'links') && $tasks->hasPages())
         <div class="d-flex justify-content-end mt-3">
             {{ $tasks->links('vendor.pagination.bootstrap-5') }}

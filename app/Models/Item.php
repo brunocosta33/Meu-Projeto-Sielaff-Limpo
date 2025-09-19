@@ -12,12 +12,15 @@ class Item extends Model
     protected $fillable = [
         'nome',
         'referencia',
-        'quantidade_atual',
-        'tipo',
-        'unidade_medida',
+        'quantidade_total',
     ];
 
-    public function movimentos()
+    public function stockBalances()
+    {
+        return $this->hasMany(StockBalance::class);
+    }
+
+    public function movements()
     {
         return $this->hasMany(StockMovement::class);
     }

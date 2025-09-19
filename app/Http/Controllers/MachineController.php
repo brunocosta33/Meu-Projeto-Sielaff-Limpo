@@ -3,45 +3,99 @@
 namespace App\Http\Controllers;
 
 use App\Models\Machine;
+use App\Models\Store;
 use Illuminate\Http\Request;
 
 class MachineController extends Controller
 {
-    public function index() {
-        
-        $machines = Machine::paginate(15); 
+    public function index(Request $request)
+    {
+        $query = Machine::with('store')
+            ->join('stores', 'machines.store_id', '=', 'stores.id')
+            ->orderBy('stores.codigo_loja', 'asc')
+            ->select('machines.*');
+
+        // Filtro por código da loja
+        if ($request->filled('codigo_loja')) {
+            $query->whereHas('store', function ($q) use ($request) {
+                $q->where('codigo_loja', 'like', '%' . $request->codigo_loja . '%');
+            });
+        }
+
+        // Filtro por nome da loja
+        if ($request->filled('nome_loja')) {
+            $query->whereHas('store', function ($q) use ($request) {
+                $q->where('nome_loja', 'like', '%' . $request->nome_loja . '%');
+            });
+        }
+
+        // Filtro por número de série
+        if ($request->filled('serial_number')) {
+            $query->where('serial_number', 'like', '%' . $request->serial_number . '%');
+        }
+
+        // 👉 Agora traz todos os resultados
+        $machines = $query->get();
+
         return view('backoffice.machines.index', compact('machines'));
     }
 
-    public function create() {
-        return view('backoffice.machines.create');
+
+    public function create()
+    {
+        $stores = Store::orderBy('codigo_loja', 'asc')->get();
+        return view('backoffice.machines.create', compact('stores'));
     }
 
-    public function store(Request $request) {
-        Machine::create($request->only(['modelo', 'numero_serie', 'data_recebimento', 'observacoes']));
-        return redirect()->route('backoffice.machines.index')->with('success', 'Máquina registada com sucesso!');
-    }
+    public function store(Request $request)
+    {
+        $request->validate([
+            'store_id'      => 'required|exists:stores,id',
+            'serial_number' => 'required|unique:machines,serial_number',
+            'ip_address'    => 'nullable|ip|unique:machines,ip_address', // 🔹 agora o IP também tem de ser único
+            'descricao'     => 'nullable|string',
+        ]);
 
-    public function edit($id) {
+        Machine::create($request->all());
+
+        return redirect()->route('backoffice.machines.index')
+            ->with('success', 'Máquina criada com sucesso.');
+    }
+    public function edit($id)
+    {
         $machine = Machine::findOrFail($id);
-        return view('backoffice.machines.edit', compact('machine'));
+        $stores = Store::orderBy('codigo_loja', 'asc')->get();
+        return view('backoffice.machines.edit', compact('machine', 'stores'));
     }
-
-    public function update(Request $request, $id) {
+    public function update(Request $request, $id)
+    {
         $machine = Machine::findOrFail($id);
-        $machine->update($request->only(['modelo', 'numero_serie', 'data_recebimento', 'observacoes']));
-        return redirect()->route('backoffice.machines.index')->with('success', 'Máquina atualizada com sucesso!');
+
+        $request->validate([
+            'store_id'      => 'required|exists:stores,id',
+            'serial_number' => 'required|unique:machines,serial_number,' . $machine->id,
+            'ip_address'    => 'nullable|ip|unique:machines,ip_address,' . $machine->id, // 🔹 ignora a própria máquina
+            'descricao'     => 'nullable|string',
+        ]);
+
+        $machine->update($request->all());
+
+        return redirect()->route('backoffice.machines.index')
+            ->with('success', 'Máquina atualizada com sucesso.');
     }
 
-    public function delete($id) {
+    public function destroy($id)
+    {
         $machine = Machine::findOrFail($id);
         $machine->delete();
-        return redirect()->route('backoffice.machines.index')->with('success', 'Máquina apagada com sucesso!');
+
+        return redirect()->route('backoffice.machines.index')
+            ->with('success', 'Máquina eliminada com sucesso.');
     }
 
-    public function show($id) {
-        $machine = Machine::findOrFail($id);
-        return view('backoffice.machines.show', compact('machine'));
+    public function getByStore($storeId)
+    {
+        $machines = Machine::where('store_id', $storeId)->get();
+        return response()->json($machines);
     }
-
 }
