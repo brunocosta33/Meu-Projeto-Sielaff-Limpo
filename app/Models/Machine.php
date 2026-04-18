@@ -17,9 +17,4 @@ class Machine extends Model
     {
         return $this->belongsTo(Store::class);
     }
-
-    public function stockMovements()
-    {
-        return $this->hasMany(StockMovement::class);
-    }
 }

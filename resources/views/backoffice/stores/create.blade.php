@@ -8,49 +8,15 @@
 <div class="row">@include('flash::message')</div>
 
 <div class="row">
-    <div class="col">
-        <div class="card">
-            <div class="card-body">
-
-                <h5 class="card-title mb-4">{{ __('Nova Loja') }}</h5>
-
-                {!! Form::open(['route' => 'backoffice.stores.store']) !!}
-                {{ csrf_field() }}
-
-                <div class="form-group">
-                    <label>{{ __('Região') }}</label>
-                    <input type="text" name="regiao" class="form-control" required>
-                </div>
-
-                <div class="form-group">
-                    <label>{{ __('Código da Loja') }}</label>
-                    <input type="text" name="codigo_loja" class="form-control" required>
-                </div>
-
-                <div class="form-group">
-                    <label>{{ __('Nome da Loja') }}</label>
-                    <input type="text" name="nome_loja" class="form-control" required>
-                </div>
-
-                <div class="form-group">
-                    <label>{{ __('Morada') }}</label>
-                    <textarea name="morada" class="form-control" rows="3"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>{{ __('Código Postal') }}</label>
-                    <input type="text" name="codigo_postal" class="form-control">
-                </div>
-
-                <a class="btn btn-outline-secondary" href="{{ URL::previous() }}">
-                    <i class="fa fa-arrow-left"></i> {{ __('Voltar') }}
-                </a>
-
-                {!! Form::button('<i class="fa fa-save"></i> ' . __('Gravar'), ['type' => 'submit', 'class' => 'btn btn-outline-secondary']) !!}
-                {!! Form::close() !!}
-
-            </div>
-        </div>
+    <div class="col-xl-10">
+        {!! Form::open(['route' => 'backoffice.stores.store']) !!}
+        {{ csrf_field() }}
+        @include('backoffice.stores.partials.form')
+        {!! Form::close() !!}
     </div>
 </div>
+@endsection
+
+@section('foot-scripts')
+@include('backoffice.stores.partials.form_scripts')
 @endsection

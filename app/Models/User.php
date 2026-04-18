@@ -133,6 +133,21 @@ class User extends Authenticatable implements LaratrustUser
             ->withTimestamps();
     }
 
+    public function technicianItemStocks()
+    {
+        return $this->hasMany(TechnicianItemStock::class, 'technician_id');
+    }
+
+    public function stockMovements()
+    {
+        return $this->hasMany(StockMovement::class, 'technician_id');
+    }
+
+    public function createdStockMovements()
+    {
+        return $this->hasMany(StockMovement::class, 'created_by');
+    }
+
 
 
 }

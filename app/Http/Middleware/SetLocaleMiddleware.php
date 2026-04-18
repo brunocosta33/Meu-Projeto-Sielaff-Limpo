@@ -15,17 +15,26 @@ class SetLocaleMiddleware
      */
     public function handle($request, Closure $next)
     {
-        
+        $supportedLocales = ['pt', 'en', 'de', 'fr'];
+
         if ($request->has('locale')) {
-            if (in_array(strtolower($request->locale), ['pt', 'fr', 'en'])) {
-                session()->put('locale', $request->locale);
-            } else {
-                session()->put('locale', 'pt');
-            }
+            $locale = strtolower((string) $request->locale);
+            $locale = in_array($locale, $supportedLocales, true) ? $locale : 'pt';
+
+            session()->put('locale', $locale);
+            session()->put('language', $locale);
         }
-        if(session()->has('locale')) {
-            app()->setLocale(session('locale'));
+
+        $locale = session('locale', session('language', config('app.locale')));
+
+        if (! in_array($locale, $supportedLocales, true)) {
+            $locale = config('app.fallback_locale', 'pt');
         }
+
+        session()->put('locale', $locale);
+        session()->put('language', $locale);
+        app()->setLocale($locale);
+
         return $next($request);
     }
 }

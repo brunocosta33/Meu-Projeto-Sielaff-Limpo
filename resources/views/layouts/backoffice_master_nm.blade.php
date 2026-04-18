@@ -15,29 +15,32 @@
     <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet" type="text/css">
 
     <!-- Styles -->
-    
     <link href="{{ asset('css/boostrap-select.min.css') }}" rel="stylesheet">
-    <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
 
+    {{-- Livewire Styles --}}
+    @livewireStyles
 
     @yield('head-scripts')
-
 </head>
 
 <body>
     <div id="app">
         <div class="wrapper">
-        <main id="content">
-            @yield('content')
-        </main>
+            <main id="content">
+                @yield('content')
+            </main>
         </div>
-        {{-- Scripts --}}
-       
-        @yield('foot-script')
-</body>
-</div>
 
+        {{-- Scripts --}}
+        <script src="{{ asset('js/app.js') }}"></script>
+
+        {{-- Livewire Scripts --}}
+        @livewireScripts
+
+        @yield('foot-script')
+    </div>
+</body>
 </html>
 <!--
 Developed by d2y - develop2you.com

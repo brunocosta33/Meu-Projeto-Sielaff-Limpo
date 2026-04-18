@@ -31,15 +31,13 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TaskScheduleController;
 use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\MachineController;
+use App\Http\Controllers\StockController;
 use App\Http\Controllers\TechnicalRequestController;
 use App\Http\Controllers\TechnicalScheduleController;
 use App\Http\Controllers\InstallationController;
 use App\Http\Controllers\TechnicianController;
-use App\Http\Controllers\ItemController;
-use App\Http\Controllers\LocationController;
-use App\Http\Controllers\StockMovementController;
-use App\Http\Controllers\StockController;
-use App\Http\Controllers\ImportController;
+
+
 
 
 
@@ -75,13 +73,6 @@ Route::group(['middleware' => ['auth']], function () {
 
 
 
-    Route::get('backoffice/import/items', [ImportController::class, 'showForm'])->name('backoffice.import.items.form');
-    Route::post('backoffice/import/items', [ImportController::class, 'import'])->name('backoffice.import.items.store');
-
-
-    Route::get('/api/stock/item/{id}', [App\Http\Controllers\StockController::class, 'getItemStock'])
-        ->name('api.stock.item');
-
     // API para buscar máquinas de uma loja
     Route::get('/api/machines/by-store/{storeId}', [MachineController::class, 'getByStore'])
         ->name('api.machines.byStore');
@@ -94,56 +85,6 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/{id}/edit', [MachineController::class, 'edit'])->name('edit');   // Editar máquina
         Route::put('/{id}', [MachineController::class, 'update'])->name('update');    // Atualizar máquina
         Route::delete('/{id}', [MachineController::class, 'destroy'])->name('destroy'); // Apagar máquina
-    });
-
-
-    // Items (Peças)
-    Route::prefix('backoffice/items')->name('backoffice.items.')->group(function () {
-        Route::get('/', [ItemController::class, 'index'])->name('index');
-        Route::get('/create', [ItemController::class, 'create'])->name('create');
-        Route::post('/', [ItemController::class, 'store'])->name('store');
-        Route::get('/{id}/edit', [ItemController::class, 'edit'])->name('edit');
-        Route::put('/{id}', [ItemController::class, 'update'])->name('update');
-        Route::delete('/{id}', [ItemController::class, 'destroy'])->name('destroy');
-    });
-
-    // Locations (Armazém, Carrinhas, Clientes, Alemanha)
-    Route::prefix('backoffice/locations')->name('backoffice.locations.')->group(function () {
-        Route::get('/', [LocationController::class, 'index'])->name('index');
-        Route::get('/create', [LocationController::class, 'create'])->name('create');
-        Route::post('/', [LocationController::class, 'store'])->name('store');
-        Route::get('/{id}/edit', [LocationController::class, 'edit'])->name('edit');
-        Route::put('/{id}', [LocationController::class, 'update'])->name('update');
-        Route::delete('/{id}', [LocationController::class, 'destroy'])->name('destroy');
-    });
-
-    // Movimentos de Stock
-    Route::prefix('backoffice/stock/movements')->name('backoffice.stock.movements.')->group(function () {
-        Route::get('/', [StockMovementController::class, 'index'])->name('index');
-        Route::get('/create', [StockMovementController::class, 'create'])->name('create');
-        Route::post('/', [StockMovementController::class, 'store'])->name('store');
-    });
-
-
-
-    // Visualização de Stock
-    Route::prefix('backoffice/stock')->name('backoffice.stock.')->group(function () {
-        Route::get('/armazem', [StockController::class, 'indexArmazem'])->name('armazem');
-        Route::get('/carrinha/{id}', [StockController::class, 'indexCarrinha'])->name('carrinha');
-        Route::get('/cliente/{id}', [StockController::class, 'indexCliente'])->name('cliente');
-
-        // 🔹 Nova funcionalidade: Dar baixa em clientes
-        Route::get('/baixa', [StockController::class, 'baixaClienteForm'])->name('baixa.form');
-        Route::post('/baixa', [StockController::class, 'baixaClienteStore'])->name('baixa.store');
-    });
-    //Technicians
-    Route::prefix('backoffice/technicians')->name('backoffice.technicians.')->group(function () {
-        Route::get('/', [TechnicianController::class, 'index'])->name('index');
-        Route::get('/create', [TechnicianController::class, 'create'])->name('create');
-        Route::post('/', [TechnicianController::class, 'store'])->name('store');
-        Route::get('/{id}/edit', [TechnicianController::class, 'edit'])->name('edit');
-        Route::put('/{id}', [TechnicianController::class, 'update'])->name('update');
-        Route::delete('/{id}', [TechnicianController::class, 'destroy'])->name('destroy');
     });
 
     //task schedules
@@ -161,7 +102,9 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/{id}', [TaskScheduleController::class, 'show'])->name('backoffice.task_schedules.show');
         Route::get('/minhas/{id}', [TaskScheduleController::class, 'showMinhas'])->name('backoffice.task_schedules.minhas.show');
         Route::put('/minhas/{id}', [TaskScheduleController::class, 'updateMinhas'])->name('backoffice.task_schedules.minhas.update');
+        Route::put('/minhas/{id}/concluir-todas', [TaskScheduleController::class, 'concluirTodasOcorrencias'])->name('backoffice.task_schedules.minhas.concluir_todas');
     });
+
 
 
     Route::prefix('backoffice/tasks')->group(function () {
@@ -172,6 +115,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::put('/{task}', [TaskController::class, 'update'])->name('backoffice.tasks.update');
         Route::delete('/{task}', [TaskController::class, 'destroy'])->name('backoffice.tasks.destroy');
     });
+
 
     //Installations
     Route::prefix('backoffice/installations')->group(function () {
@@ -239,10 +183,32 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/{id}/delete', [StoreController::class, 'delete'])->name('backoffice.stores.delete');
     });
 
+    Route::prefix('backoffice/stock')->name('backoffice.stock.')->group(function () {
+        Route::redirect('/', '/backoffice/stock/items')->name('index');
+        Route::get('/items', [StockController::class, 'index'])->name('items.index');
+        Route::get('/items/create', [StockController::class, 'create'])->name('items.create');
+        Route::post('/items', [StockController::class, 'store'])->name('items.store');
+        Route::get('/items/{item}/edit', [StockController::class, 'edit'])->name('items.edit');
+        Route::put('/items/{item}', [StockController::class, 'update'])->name('items.update');
+
+        Route::get('/movements', [StockController::class, 'movements'])->name('movements.index');
+        Route::get('/technicians', [StockController::class, 'technicians'])->name('technicians.index');
+        Route::get('/export/items', [StockController::class, 'exportItems'])->name('export.items');
+        Route::get('/export/movements', [StockController::class, 'exportMovements'])->name('export.movements');
+        Route::get('/export/technicians', [StockController::class, 'exportTechnicians'])->name('export.technicians');
+
+        Route::post('/warehouse-in', [StockController::class, 'warehouseIn'])->name('warehouse_in');
+        Route::post('/transfer', [StockController::class, 'transfer'])->name('transfer');
+        Route::post('/return', [StockController::class, 'returnFromTechnician'])->name('return');
+        Route::post('/consume', [StockController::class, 'consume'])->name('consume');
+        Route::post('/adjust', [StockController::class, 'adjust'])->name('adjust');
+    });
+
 
     // Technical Requests
     Route::prefix('backoffice/technical-requests')->group(function () {
         Route::get('/', [TechnicalRequestController::class, 'index'])->name('backoffice.technical_requests.index');
+        Route::get('/technicians', [TechnicalRequestController::class, 'technicians'])->name('backoffice.technical_requests.technicians');
         Route::get('/create', [TechnicalRequestController::class, 'create'])->name('backoffice.technical_requests.create');
         Route::post('/store', [TechnicalRequestController::class, 'store'])->name('backoffice.technical_requests.store');
         Route::get('/{id}/show', [TechnicalRequestController::class, 'show'])->name('backoffice.technical_requests.show');
@@ -252,20 +218,9 @@ Route::group(['middleware' => ['auth']], function () {
 
         // 🔹 Nova rota de exportação para Excel
         Route::get('/export', [TechnicalRequestController::class, 'export'])->name('backoffice.technical_requests.export');
+        Route::get('/export/technician/{id}', [TechnicalRequestController::class, 'exportByTechnician'])->name('backoffice.technical_requests.export_by_technician');
     });
 
-
-
-    //Technical Schedules
-    Route::prefix('backoffice/technical-schedules')->group(function () {
-        Route::get('/', [TechnicalScheduleController::class, 'index'])->name('backoffice.technical_schedules.index');
-        Route::get('/create', [TechnicalScheduleController::class, 'create'])->name('backoffice.technical_schedules.create');
-        Route::post('/store', [TechnicalScheduleController::class, 'store'])->name('backoffice.technical_schedules.store');
-        Route::get('/{id}/show', [TechnicalScheduleController::class, 'show'])->name('backoffice.technical_schedules.show');
-        Route::get('/{id}/edit', [TechnicalScheduleController::class, 'edit'])->name('backoffice.technical_schedules.edit');
-        Route::post('/{id}/update', [TechnicalScheduleController::class, 'update'])->name('backoffice.technical_schedules.update');
-        Route::get('/{id}/delete', [TechnicalScheduleController::class, 'delete'])->name('backoffice.technical_schedules.delete');
-    });
 
     //States
     Route::prefix('state')->group(function () {

@@ -15,10 +15,16 @@ class Store extends Model
 
     protected $fillable = [
         'regiao',
+        'insignia',
         'codigo_loja',
         'nome_loja',
         'morada',
+        'cidade',
         'codigo_postal',
+        'contacto_loja',
+        'telefone',
+        'email',
+        'observacoes',
     ];
 
     protected $dates = [

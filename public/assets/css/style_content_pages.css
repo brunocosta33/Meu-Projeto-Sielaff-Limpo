@@ -1,0 +1,16 @@
+/* Badges de detalhes de agendamento */
+.detalhe-badge {
+    border-radius: 8px;
+    padding: 0.4em 0.9em;
+    font-size: 1em;
+    font-weight: 600;
+}
+.detalhe-badge.prioridade-baixa { background: #e6f4ea; color: #256029; }
+.detalhe-badge.prioridade-media { background: #fffde7; color: #a67c00; }
+.detalhe-badge.prioridade-alta { background: #fdeaea; color: #a4262c; }
+.detalhe-badge.sim { background: #e3f2fd; color: #1976d2; }
+.detalhe-badge.nao { background: #fbe9e7; color: #d84315; }
+.detalhe-badge.estado { background: #e6f4ea; color: #256029; }
+.detalhe-badge.estado-pendente { background: #fffbe6; color: #a67c00; }
+.detalhe-badge.estado-concluida { background: #e6f4ea; color: #256029; }
+.detalhe-badge.estado-atrasada { background: #fdeaea; color: #a4262c; }

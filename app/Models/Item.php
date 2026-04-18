@@ -2,25 +2,32 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Item extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'nome',
-        'referencia',
-        'quantidade_total',
+        'reference',
+        'name',
+        'description',
+        'warehouse_stock',
+        'minimum_stock',
+        'is_active',
     ];
 
-    public function stockBalances()
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
+
+    public function technicianStocks()
     {
-        return $this->hasMany(StockBalance::class);
+        return $this->hasMany(TechnicianItemStock::class);
     }
 
-    public function movements()
+    public function stockMovements()
     {
         return $this->hasMany(StockMovement::class);
     }

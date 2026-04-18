@@ -16,7 +16,12 @@ class LanguageMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $language = session('language');
+        $supportedLocales = ['pt', 'en', 'de', 'fr'];
+        $language = session('language', session('locale', config('app.locale')));
+
+        if (! in_array($language, $supportedLocales, true)) {
+            $language = config('app.fallback_locale', 'pt');
+        }
 
         app()->setLocale($language);
 

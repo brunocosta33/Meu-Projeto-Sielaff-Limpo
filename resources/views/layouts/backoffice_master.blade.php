@@ -21,6 +21,9 @@
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     <link href="{{ asset('css/style.css') }}" rel="stylesheet">
     <link href="{{ asset('css/summernote.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/css/style_content_pages.css') }}" rel="stylesheet">
+
+    @livewireStyles
     @stack('styles')
 
     @yield('head-scripts')
@@ -99,6 +102,8 @@
         });
     </script>
 
+
+    @livewireScripts
     @yield('foot-scripts')
 </body>
 

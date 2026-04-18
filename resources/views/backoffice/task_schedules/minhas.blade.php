@@ -57,10 +57,10 @@
                     @forelse($tarefas as $schedule)
                         <tr class="align-middle" style="background: linear-gradient(90deg, #f8fafc 60%, #e5e5e5 100%); box-shadow: 0 2px 8px rgba(0,0,0,0.04); border-radius: 12px;">
                             <td class="text-center">
-                                <span class="badge bg-gradient text-danger px-3 py-2" style="background: linear-gradient(90deg, #ffe0e0 0%, #fff 100%); border-radius: 12px;">{{ $schedule->data_limite ? \Carbon\Carbon::parse($schedule->data_limite)->format('d/m/Y') : '-' }}</span>
+                                <span class="badge bg-gradient text-danger px-3 py-2" style="background: linear-gradient(90deg, #ffe0e0 0%, #fff 100%); border-radius: 12px;">{{ $schedule->display_date ? \Carbon\Carbon::parse($schedule->display_date)->format('d/m/Y') : '-' }}</span>
                             </td>
                             <td class="text-center">
-                                <span class="badge bg-gradient text-danger px-3 py-2" style="background: linear-gradient(90deg, #ffe0e0 0%, #fff 100%); border-radius: 12px;">{{ $schedule->hora_limite ? \Carbon\Carbon::parse($schedule->hora_limite)->format('H:i') : '-' }}</span>
+                                <span class="badge bg-gradient text-danger px-3 py-2" style="background: linear-gradient(90deg, #ffe0e0 0%, #fff 100%); border-radius: 12px;">{{ $schedule->display_time ? \Carbon\Carbon::parse($schedule->display_time)->format('H:i') : '-' }}</span>
                             </td>
                             <td class="text-center">
                                 @if(strtolower($schedule->prioridade) === 'baixa')
@@ -82,13 +82,20 @@
                                 @php
                                     $isConcluida = strtolower(iconv('UTF-8','ASCII//TRANSLIT', $schedule->pivot->estado ?? ''))
                                                  === strtolower(iconv('UTF-8','ASCII//TRANSLIT', 'Concluída'));
-                                @endphp
-                                @php
-                                    $estadoBg = $isConcluida ? '#e6f4ea' : '#fffbe6';
-                                    $estadoColor = $isConcluida ? '#256029' : '#a67c00';
+                                    $isOverdue = false;
+                                    if (!$isConcluida && $schedule->display_date) {
+                                        $dataLimite = \Carbon\Carbon::parse($schedule->display_date)->endOfDay();
+                                        $isOverdue = $dataLimite->lt(now());
+                                    }
+                                    $estadoBg = $isConcluida ? '#e6f4ea' : ($isOverdue ? '#fdeaea' : '#fffbe6');
+                                    $estadoColor = $isConcluida ? '#256029' : ($isOverdue ? '#a4262c' : '#a67c00');
                                 @endphp
                                 <span class="badge px-3 py-2" {!! 'style="background: '.$estadoBg.'; color: '.$estadoColor.'; font-weight: 500;"' !!}>
-                                    {{ $schedule->pivot->estado ?? 'Pendente' }}
+                                    @if($isOverdue && !$isConcluida)
+                                        {{ __('Atrasada') }}
+                                    @else
+                                        {{ $schedule->pivot->estado ?? 'Pendente' }}
+                                    @endif
                                 </span>
                             </td>
                             <td class="text-end">
@@ -102,6 +109,7 @@
                                        class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm" title="{{ __('Editar') }}">
                                         <i class="fas fa-edit"></i> Editar
                                     </a>
+                                    {{-- Botão "Concluir todas" removido conforme solicitado --}}
                                 @endif
                             </td>
                         </tr>

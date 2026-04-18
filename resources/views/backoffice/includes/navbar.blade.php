@@ -7,7 +7,7 @@ use App\Models\Base;
     <div class="container-fluid">
 
         @if (!Auth::user()->roles->contains(3))
-        <button type="button" id="sidebarCollapse" class="navbar-btn">
+        <button type="button" id="sidebarCollapse" class="navbar-btn" aria-label="{{ __('Toggle navigation') }}">
             <span></span>
             <span></span>
             <span></span>

@@ -9,6 +9,9 @@
     <h1 class="mb-0">{{ __('Detalhes') }}</h1>
 </div>
 
+@push('styles')
+@endpush
+
     <div class="bg-white p-3">
         <div class="row">
             <div class="col-12">
@@ -16,51 +19,45 @@
                     <table class="table">
                        <thead>
                             <tr style="font-weight: normal;">
-                                <th style="font-weight: normal;">{{ __('Tarefa') }}</th>
-                                <th style="font-weight: normal;">{{ __('Prioridade') }}</th>
-                                <th style="font-weight: normal; text-align: center;">{{ __('Activa') }}</th>
-                                <th style="font-weight: normal; text-align: center;">{{ __('Grupo') }}</th>
-                                <th style="font-weight: normal; text-align: center;">{{ __('Data limite') }}</th>
-                                <th style="font-weight: normal; text-align: center;">{{ __('Hora limite') }}</th>
-                                <th style="font-weight: normal; text-align: center;">{{ __('Envios') }}</th>
-                                <th style="font-weight: normal; text-align: center;">{{ __('Visualizadas') }}</th>
-                                <th style="font-weight: normal; text-align: center;">{{ __('Em Execução') }}</th>
-                                <th style="font-weight: normal; text-align: center;">{{ __('Concluídas') }}</th>
-                                <th style="font-weight: normal; text-align: center;">{{ __('%') }}</th>
-                                <th style="font-weight: normal;"></th> <!-- ícone -->
+                                <th>{{ __('Tarefa') }}</th>
+                                <th>{{ __('Prioridade') }}</th>
+                                <th style="text-align: center;">{{ __('Activa') }}</th>
+                                <th style="text-align: center;">{{ __('Grupo') }}</th>
+                                <th style="text-align: center;">{{ __('Data limite') }}</th>
+                                <th style="text-align: center;">{{ __('Hora limite') }}</th>
+                                <th style="text-align: center;">{{ __('Estado') }}</th>
                             </tr>
                         </thead>
                         <tbody style="background-color: #f5f5f5;">
                             <tr>
                                 <td>{{ $schedule->task->title }}</td>
-                                <td>{{ $schedule->prioridade }}</td>
-                                <td style="text-align: center;">{{ $schedule->activa ? __('Sim') : __('Não') }}</td>
-                                <td style="text-align: center;">{{ $schedule->grupo ? __('Sim') : __('Não') }}</td>
-                                <td style="text-align: center;">{{ $schedule->data_limite ? \Carbon\Carbon::parse($schedule->data_limite)->format('d/m/Y') : '-' }}</td>
-                                <td style="text-align: center;">{{ $schedule->hora_limite ? \Carbon\Carbon::parse($schedule->hora_limite)->format('H:i') : '-' }}</td>
-                                <td style="text-align: center;">{{ $totalEnvios ?? '-' }}</td>
-                                <td style="text-align: center;">{{ $totalVisualizadas ?? '-' }}</td>
-                                <td style="text-align: center;">{{ $totalEmExecucao ?? '-' }}</td>
-                                <td style="text-align: center;">{{ $totalConcluidas ?? '-' }}</td>
-                                <td style="text-align: center;">{{ $percentagemConcluida ?? '0.00' }}%</td>
+                                <td>
+                                    <span class="detalhe-badge prioridade-{{ strtolower($schedule->prioridade) }}">{{ $schedule->prioridade }}</span>
+                                </td>
                                 <td style="text-align: center;">
-                                    <span style="width: 18px; height: 18px; background: {{ $corEstado ?? '#ffa500' }}; border-radius: 50%; display: inline-block;"></span>
+                                    <span class="detalhe-badge {{ $schedule->activa ? 'sim' : 'nao' }}">{{ $schedule->activa ? __('Sim') : __('Não') }}</span>
+                                </td>
+                                <td style="text-align: center;">
+                                    <span class="detalhe-badge {{ $schedule->grupo ? 'sim' : 'nao' }}">{{ $schedule->grupo ? __('Sim') : __('Não') }}</span>
+                                </td>
+                                <td style="text-align: center;">{{ $schedule->display_date ? \Carbon\Carbon::parse($schedule->display_date)->format('d/m/Y') : '-' }}</td>
+                                <td style="text-align: center;">{{ $schedule->display_time ? \Carbon\Carbon::parse($schedule->display_time)->format('H:i') : '-' }}</td>
+                                <td style="text-align: center;">
+                                    <span class="detalhe-badge estado-{{ strtolower($schedule->estado ?? 'pendente') }}">{{ $schedule->estado ?? 'Pendente' }}</span>
                                 </td>
                             </tr>
                         </tbody>
-
                     </table>
                 </div>
             </div>
-
             <div class="col-12 mt-4">
                 <div class="table-responsive">
                     <table class="table">
                        <thead>
                             <tr>
-                                <th style="font-weight: normal;">{{ __('Colaborador') }}</th>
-                                <th style="font-weight: normal;">{{ __('Estado') }}</th>
-                                <th style="font-weight: normal;" width="60%">{{ __('Histórico Comentários') }}</th>
+                                <th>{{ __('Colaborador') }}</th>
+                                <th>{{ __('Estado') }}</th>
+                                <th width="60%">{{ __('Histórico Comentários') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -68,10 +65,12 @@
                                 <tr style="background-color: #f6f6f6;">
                                     <td>{{ $user->name }}</td>
                                     <td>
-                                        {{ $user->pivot->estado ?? __('Pendente') }}
+                                        <span class="detalhe-badge estado-{{ strtolower($user->pivot->estado ?? 'pendente') }}">
+                                            {{ $user->pivot->estado ?? __('Pendente') }}
+                                        </span>
                                         @if($user->pivot->data_conclusao)
-                                            | {{ \Carbon\Carbon::parse($user->pivot->data_conclusao)->format('d/m/Y - H:i') }}
-                                            @if($schedule->data_limite && $user->pivot->data_conclusao > $schedule->data_limite.' '.$schedule->hora_limite)
+                                            <br><small class="text-muted">{{ \Carbon\Carbon::parse($user->pivot->data_conclusao)->format('d/m/Y - H:i') }}</small>
+                                            @if($schedule->display_date && $user->pivot->data_conclusao > ($schedule->display_date.' '.($schedule->display_time ?? '23:59')))
                                                 <span class="text-danger"> | {{ __('após limite') }}</span>
                                             @endif
                                         @endif

@@ -2,16 +2,7 @@
 
 @section('head-meta')
     <title>{{ config('app.name') }} - {{ __('Editar Agendamento') }}</title>
-    <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.15.2/css/selectize.default.min.css">
 @endsection
-
-@push('styles')
-    <link rel="stylesheet" href="https://interno.farmaciagaiajardim.com/assets/css/style.css">
-    <link rel="stylesheet" href="https://interno.farmaciagaiajardim.com/assets/css/style_header_footer.css">
-    <link rel="stylesheet" href="https://interno.farmaciagaiajardim.com/assets/css/style_content_pages.css">
-@endpush
 
 @section('content')
 <div class="bg-white d-flex align-items-center gap-4 mb-4 page-main-title">
@@ -21,24 +12,93 @@
     <h1 class="mb-0">{{ __('Editar Tarefa') }}</h1>
 </div>
 
-<form method="POST" action="{{ route('backoffice.task_schedules.update', $schedule->id) }}">
+@if ($errors->any())
+    <div class="alert alert-danger">
+        <strong>{{ __('Corrija os campos assinalados antes de guardar as alterações.') }}</strong>
+        <ul class="mb-0 mt-2">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
+<style>
+    .repeat-toggle-wrapper {
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 2rem;
+        padding: 0.5rem;
+        display: flex;
+        justify-content: center;
+        max-width: 420px;
+        margin-bottom: 1rem;
+    }
+
+    .repeat-toggle-wrapper label {
+        flex: 1;
+        text-align: center;
+        padding: 0.5rem 1rem;
+        margin: 0;
+        border-radius: 2rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.2s, color 0.2s;
+    }
+
+    .repeat-toggle-wrapper input[type="radio"] {
+        display: none;
+    }
+
+    .repeat-toggle-wrapper input[type="radio"]:checked + label {
+        background-color: #0d6efd;
+        color: #fff;
+    }
+</style>
+
+<form method="POST" action="{{ route('backoffice.task_schedules.update', $schedule->id) }}" id="edit-schedule-form">
     @csrf
     @method('PUT')
     <div class="bg-white p-3">
         <div class="col-md-7 col-lg-6">
+            @if($schedule->repetir)
+            <div class="alert alert-info mb-3">
+                <strong>Esta tarefa é recorrente.</strong><br>
+                <label class="mt-2">
+                    <input type="radio" name="edit_mode" value="apenas_esta" checked> Editar apenas esta ocorrência
+                </label>
+                <label class="ms-3">
+                    <input type="radio" name="edit_mode" value="todas_futuras"> Editar esta e todas as futuras
+                </label>
+            </div>
+            @endif
 
             {{-- ATIVA — ÚNICO CAMPO EDITÁVEL --}}
             <div class="custom-control custom-switch mb-3">
                 <input type="hidden" name="activa" value="0">
-                <input type="checkbox" name="activa" value="1" class="custom-control-input" id="customSwitches" {{ $schedule->activa ? 'checked' : '' }}>
+                <input type="checkbox" name="activa" value="1" class="custom-control-input" id="customSwitches" {{ old('activa', $schedule->activa) ? 'checked' : '' }}>
                 <label class="custom-control-label" for="customSwitches">{{ __('Ativa') }}</label>
             </div>
 
-            {{-- GRUPO (bloqueado + hidden) --}}
             <div class="custom-control custom-switch mb-3">
-                <input type="checkbox" class="custom-control-input" id="customSwitches2" disabled {{ $schedule->grupo ? 'checked' : '' }}>
+                <input type="hidden" name="grupo" value="0">
+                <input type="checkbox" name="grupo" value="1" class="custom-control-input" id="customSwitches2" {{ old('grupo', $schedule->grupo) ? 'checked' : '' }}>
                 <label class="custom-control-label" for="customSwitches2">{{ __('Tarefa Grupo') }}</label>
-                <input type="hidden" name="grupo" value="{{ $schedule->grupo ? 1 : 0 }}">
+            </div>
+
+            @php
+                $repetirAtual = (string) old('repetir', $schedule->repetir ? '1' : '0');
+            @endphp
+
+            <div class="form-group my-4">
+                <label class="mb-2 d-block"><strong>{{ __('Tipo de Agendamento') }}</strong></label>
+                <div class="repeat-toggle-wrapper">
+                    <input type="radio" name="repetir" id="no_repeat" value="0" {{ $repetirAtual === '0' ? 'checked' : '' }} onclick="showNoRepeat()">
+                    <label for="no_repeat">{{ __('Não Repete') }}</label>
+
+                    <input type="radio" name="repetir" id="repeat" value="1" {{ $repetirAtual === '1' ? 'checked' : '' }} onclick="showRepeat()">
+                    <label for="repeat">{{ __('Repetir') }}</label>
+                </div>
             </div>
 
             {{-- PRIORIDADE (bloqueado + hidden) --}}
@@ -58,11 +118,7 @@
                 <label class="mb-2"><strong>{{ __('Tarefa') }}</strong></label>
                 <select id="task" class="form-control form-select" disabled>
                     <option value="">{{ __('Selecionar') }}</option>
-                    @foreach($tasks as $task)
-                        <option value="{{ $task->id }}" {{ $schedule->task_id == $task->id ? 'selected' : '' }}>
-                            {{ $task->title }}
-                        </option>
-                    @endforeach
+                    <option value="{{ $schedule->task_id }}" selected>{{ $schedule->task->title ?? '-' }}</option>
                 </select>
                 <input type="hidden" name="task_id" value="{{ $schedule->task_id }}">
             </div>
@@ -75,37 +131,61 @@
                 <small class="text-muted fa-pull-right">{{ __('máx. 255') }}</small>
             </div>
 
-            {{-- DATA/HORA LIMITE (bloqueado + hidden) --}}
-            <div class="d-flex flex-wrap gap-2 text-center">
-                <div class="form-group flex-fill">
-                    <label class="mb-2"><strong>{{ __('Data Limite') }}</strong></label>
-                    <input type="date" class="form-control" value="{{ $schedule->data_limite ? \Carbon\Carbon::parse($schedule->data_limite)->format('Y-m-d') : '' }}" disabled>
-                    <input type="hidden" name="data_limite" value="{{ $schedule->data_limite ? \Carbon\Carbon::parse($schedule->data_limite)->format('Y-m-d') : '' }}">
+            <div id="repeat_div" style="{{ $repetirAtual === '1' ? '' : 'display: none;' }}">
+                <div class="d-flex flex-wrap gap-2 text-center">
+                    <div class="form-group flex-fill">
+                        <label class="mb-2"><strong>{{ __('Data de Início') }}</strong></label>
+                        <input type="date" name="initial_date" class="form-control" value="{{ old('initial_date', $schedule->initial_date ? \Carbon\Carbon::parse($schedule->initial_date)->format('Y-m-d') : '') }}">
+                    </div>
+                    <div class="form-group flex-fill">
+                        <label class="mb-2"><strong>{{ __('Data de Fim') }}</strong></label>
+                        <input type="date" name="final_date" class="form-control" value="{{ old('final_date', $schedule->final_date ? \Carbon\Carbon::parse($schedule->final_date)->format('Y-m-d') : '') }}">
+                    </div>
+                    <div class="form-group flex-fill">
+                        <label class="mb-2"><strong>{{ __('Hora') }}</strong></label>
+                        <input type="time" name="time" class="form-control" value="{{ old('time', $schedule->time ? \Carbon\Carbon::parse($schedule->time)->format('H:i') : '') }}">
+                    </div>
                 </div>
-                <div class="form-group flex-fill">
-                    <label class="mb-2"><strong>{{ __('Hora Limite') }}</strong></label>
-                    <input type="time" class="form-control" value="{{ $schedule->hora_limite ? \Carbon\Carbon::parse($schedule->hora_limite)->format('H:i') : '' }}" disabled>
-                    <input type="hidden" name="hora_limite" value="{{ $schedule->hora_limite ? \Carbon\Carbon::parse($schedule->hora_limite)->format('H:i') : '' }}">
+                <div class="form-group mt-3">
+                    <label class="mb-2"><strong>{{ __('Repetir a cada') }}</strong></label>
+                    <select name="period" class="form-control form-select">
+                        <option value="">{{ __('Selecionar') }}</option>
+                        <option value="day" {{ old('period', $schedule->period) === 'day' ? 'selected' : '' }}>{{ __('Dia') }}</option>
+                        <option value="week" {{ old('period', $schedule->period) === 'week' ? 'selected' : '' }}>{{ __('Semana') }}</option>
+                        <option value="month" {{ old('period', $schedule->period) === 'month' ? 'selected' : '' }}>{{ __('Mês') }}</option>
+                        <option value="year" {{ old('period', $schedule->period) === 'year' ? 'selected' : '' }}>{{ __('Ano') }}</option>
+                    </select>
                 </div>
             </div>
 
-            {{-- REPETIR (se aplicável) --}}
-            <input type="hidden" name="repetir" value="{{ $schedule->repetir ? 1 : 0 }}">
+            <div id="no_repeat_div" style="{{ $repetirAtual === '0' ? '' : 'display: none;' }}">
+                <div class="d-flex flex-wrap gap-2 text-center">
+                    <div class="form-group flex-fill">
+                        <label class="mb-2"><strong>{{ __('Data Limite') }}</strong></label>
+                        <input type="date" name="data_limite" class="form-control" value="{{ old('data_limite', $schedule->data_limite ? \Carbon\Carbon::parse($schedule->data_limite)->format('Y-m-d') : '') }}">
+                    </div>
+                    <div class="form-group flex-fill">
+                        <label class="mb-2"><strong>{{ __('Hora Limite') }}</strong></label>
+                        <input type="time" name="hora_limite" class="form-control" value="{{ old('hora_limite', $schedule->hora_limite ? \Carbon\Carbon::parse($schedule->hora_limite)->format('H:i') : '') }}">
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="col-12">
             <div class="d-flex flex-wrap align-items-center justify-content-between mt-4 mb-2">
                 <label class="fs-6"><strong>{{ __('Selecionar Colaboradores') }}</strong></label>
-                {{-- Botão Todos desativado, pois não é editável neste ecrã --}}
-                <input type="button" class="btn btn-info rounded-pill px-4" value="{{ __('Todos') }}" disabled>
+                <input type="button" class="btn btn-info rounded-pill px-4" value="{{ __('Todos') }}" onclick="selectAllUsers()">
             </div>
 
-            {{-- UTILIZADORES (bloqueado) --}}
+            <div id="users-validation-message" class="alert alert-danger py-2 px-3 mb-3" style="display: none;">
+                {{ __('Selecione pelo menos um colaborador.') }}
+            </div>
+
             <div class="table-responsive">
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>{{ __('ID') }}</th>
                             <th>{{ __('Nome') }}</th>
                             <th></th>
                         </tr>
@@ -113,21 +193,15 @@
                     <tbody>
                         @foreach($users as $user)
                             <tr>
-                                <td>{{ $user->id }}</td>
                                 <td>{{ $user->name }}</td>
                                 <td>
-                                    <input type="checkbox" class="form-check-input" disabled {{ $schedule->users->contains($user->id) ? 'checked' : '' }}>
+                                    <input type="checkbox" name="user_ids[]" value="{{ $user->id }}" class="form-check-input" {{ collect(old('user_ids', $schedule->users->pluck('id')->all()))->contains($user->id) ? 'checked' : '' }}>
                                 </td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
             </div>
-
-            {{-- Enviar os IDs atuais para cumprir a validação no update --}}
-            @foreach($schedule->users->pluck('id') as $uid)
-                <input type="hidden" name="user_ids[]" value="{{ $uid }}">
-            @endforeach
         </div>
 
         <div class="d-flex flex-wrap justify-content-between page-main-actions position-sticky px-4 py-3" style="background-color: #fff; bottom: 0; z-index: 10; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);">
@@ -139,7 +213,59 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.15.2/js/selectize.min.js"></script>
 <script>
+    function showNoRepeat() {
+        document.getElementById('no_repeat_div').style.display = '';
+        document.getElementById('repeat_div').style.display = 'none';
+    }
+
+    function showRepeat() {
+        document.getElementById('no_repeat_div').style.display = 'none';
+        document.getElementById('repeat_div').style.display = '';
+    }
+
+    function selectAllUsers() {
+        document.querySelectorAll('input[name="user_ids[]"]').forEach(function (checkbox) {
+            checkbox.checked = true;
+        });
+
+        const validationMessage = document.getElementById('users-validation-message');
+        if (validationMessage) {
+            validationMessage.style.display = 'none';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('edit-schedule-form');
+        const validationMessage = document.getElementById('users-validation-message');
+        const userCheckboxes = document.querySelectorAll('input[name="user_ids[]"]');
+        const noRepeat = document.getElementById('no_repeat');
+        const repeat = document.getElementById('repeat');
+
+        if (noRepeat && noRepeat.checked) {
+            showNoRepeat();
+        } else if (repeat && repeat.checked) {
+            showRepeat();
+        }
+
+        userCheckboxes.forEach(function (checkbox) {
+            checkbox.addEventListener('change', function () {
+                if ([...userCheckboxes].some(cb => cb.checked) && validationMessage) {
+                    validationMessage.style.display = 'none';
+                }
+            });
+        });
+
+        if (form) {
+            form.addEventListener('submit', function (event) {
+                if (![...userCheckboxes].some(cb => cb.checked)) {
+                    event.preventDefault();
+                    if (validationMessage) {
+                        validationMessage.style.display = 'block';
+                    }
+                }
+            });
+        }
+    });
 </script>
 @endpush

@@ -5,7 +5,7 @@ use App\Models\Base;
 ?>
 
 @section('head-meta')
-	<title>{{ str_replace('.', ' ', config('app.name')) }} - Login</title>
+	<title>{{ str_replace('.', ' ', config('app.name')) }} - {{ __('Login') }}</title>
 	
 	<style>
 		.inner-addon { 

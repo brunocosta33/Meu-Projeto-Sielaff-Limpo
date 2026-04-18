@@ -47,9 +47,21 @@ class TaskSchedule extends Model
     protected $casts = [
         'data_limite' => 'date',
         'hora_limite' => 'datetime:H:i', // apenas se quiseres hora como objeto Carbon também
+        'initial_date' => 'date',
+        'final_date' => 'date',
         'days_of_week' => 'array',
 
     ];
+
+    public function getDisplayDateAttribute()
+    {
+        return $this->data_limite ?: $this->final_date ?: $this->initial_date;
+    }
+
+    public function getDisplayTimeAttribute()
+    {
+        return $this->hora_limite ?: $this->time;
+    }
 
 
 

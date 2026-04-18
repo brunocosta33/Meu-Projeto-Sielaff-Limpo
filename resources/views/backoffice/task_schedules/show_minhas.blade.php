@@ -9,7 +9,7 @@
 @push('styles')
     <link rel="stylesheet" href="https://interno.farmaciagaiajardim.com/assets/css/style.css">
     <link rel="stylesheet" href="https://interno.farmaciagaiajardim.com/assets/css/style_header_footer.css">
-    <link rel="stylesheet" href="https://interno.farmaciagaiajardim.com/assets/css/style_content_pages.css">
+    <link rel="stylesheet" href="{{ asset('assets/css/style_content_pages.css') }}">
 @endpush
 
 @section('content')
@@ -41,29 +41,27 @@
                 <textarea class="form-control bg-light rounded-4" rows="3" style="resize: none;" disabled>{{ $schedule->description }}</textarea>
             </div>
             <div class="d-flex flex-wrap gap-2 text-center mb-3">
-                <div class="col-3 form-group flex-fill">
-                    <label class="mb-2"><strong>{{ __('Data Limite') }}</strong></label>
-                    <input type="text" class="form-control rounded-pill bg-light text-center" value="{{ $schedule->data_limite ? \Carbon\Carbon::parse($schedule->data_limite)->format('d/m/Y') : '-' }}" disabled>
-                </div>
-                <div class="col-3 form-group flex-fill">
-                    <label class="mb-2"><strong>{{ __('Hora Limite') }}</strong></label>
-                    <input type="text" class="form-control rounded-pill bg-light text-center" value="{{ $schedule->hora_limite ? \Carbon\Carbon::parse($schedule->hora_limite)->format('H:i') : '-' }}" disabled>
-                </div>
+                    <div class="col-3 form-group flex-fill">
+                        <label class="mb-2"><strong>{{ __('Data Limite') }}</strong></label>
+                        <input type="text" class="form-control rounded-pill bg-light text-center" value="{{ $schedule->display_date ? \Carbon\Carbon::parse($schedule->display_date)->format('d/m/Y') : '-' }}" disabled>
+                    </div>
+                    <div class="col-3 form-group flex-fill">
+                        <label class="mb-2"><strong>{{ __('Hora Limite') }}</strong></label>
+                        <input type="text" class="form-control rounded-pill bg-light text-center" value="{{ $schedule->display_time ? \Carbon\Carbon::parse($schedule->display_time)->format('H:i') : '-' }}" disabled>
+                    </div>
                 <div class="col-3 form-group flex-fill">
                     <label class="mb-2"><strong>{{ __('Prioridade') }}</strong></label>
-                    <input type="text" class="form-control rounded-pill bg-light text-center" value="{{ $schedule->prioridade }}" disabled>
+                    <span class="detalhe-badge prioridade-{{ strtolower($schedule->prioridade) }}">{{ $schedule->prioridade }}</span>
                 </div>
                 <div class="col-3 form-group flex-fill">
                     <label class="mb-2"><strong>{{ __('Tarefa Grupo') }}</strong></label>
-                    <input type="text" class="form-control rounded-pill bg-light text-center" value="{{ $schedule->grupo ?? 'Não' }}" disabled>
+                    <span class="detalhe-badge {{ $schedule->grupo ? 'sim' : 'nao' }}">{{ $schedule->grupo ? __('Sim') : __('Não') }}</span>
                 </div>
             </div>
             <div class="d-flex flex-wrap gap-2 text-center mb-3">
                 <div class="col-4 form-group flex-fill">
                     <label class="mb-2"><strong>{{ __('Estado da Tarefa') }}</strong></label>
-                    <select class="form-control form-select rounded-pill bg-light disabled" disabled>
-                        <option>{{ $pivot->estado ?? '-' }}</option>
-                    </select>
+                    <span class="detalhe-badge estado-{{ strtolower($pivot->estado ?? 'pendente') }}">{{ $pivot->estado ?? '-' }}</span>
                 </div>
                 <div class="col-4 form-group flex-fill">
                     <label class="mb-2"><strong>{{ __('Data Conclusão') }}</strong></label>
@@ -80,6 +78,7 @@
             </div>
             <div class="d-flex flex-wrap justify-content-between page-main-actions">
                 <a class="btn btn-outline-dark rounded-pill px-4" href="{{ route('backoffice.task_schedules.minhas') }}">{{ __('VOLTAR') }}</a>
+                {{-- Botão "Concluir todas as ocorrências futuras" removido conforme solicitado --}}
             </div>
         </div>
     </div>
@@ -104,11 +103,11 @@
                 <div class="d-flex flex-wrap gap-2 text-center">
                     <div class="form-group flex-fill">
                         <label class="mb-2"><strong>{{ __('Data Limite') }}</strong></label>
-                        <input type="date" class="form-control" value="{{ \Carbon\Carbon::parse($schedule->data_limite)->format('Y-m-d') }}" readonly>
+                        <input type="date" class="form-control" value="{{ $schedule->display_date ? \Carbon\Carbon::parse($schedule->display_date)->format('Y-m-d') : '' }}" readonly>
                     </div>
                     <div class="form-group flex-fill">
                         <label class="mb-2"><strong>{{ __('Hora Limite') }}</strong></label>
-                        <input type="time" class="form-control" value="{{ \Carbon\Carbon::parse($schedule->hora_limite)->format('H:i') }}" readonly>
+                        <input type="time" class="form-control" value="{{ $schedule->display_time ? \Carbon\Carbon::parse($schedule->display_time)->format('H:i') : '' }}" readonly>
                     </div>
                 </div>
                 <div class="form-group my-4">
@@ -134,10 +133,13 @@
                 </div>
                 <div class="d-flex justify-content-between page-main-actions position-sticky px-4 py-3" style="background-color: #fff; bottom: 0; z-index: 10; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);">
                     <a href="{{ route('backoffice.task_schedules.minhas') }}" class="btn btn-outline-dark rounded-pill px-4">{{ __('Voltar') }}</a>
+                    {{-- Modal de escolha removido. Apenas atualização simples do estado. --}}
                     <button type="submit" class="btn btn-success rounded-pill px-4">{{ __('Atualizar') }}</button>
                 </div>
             </div>
         </div>
     </form>
 @endif
+
+{{-- Histórico de ocorrências removido conforme solicitado --}}
 @endsection

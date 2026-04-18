@@ -102,12 +102,15 @@ class LoginController extends Controller
 
         Session::put('locale', $user->lang);
 
-        // dd(auth()->user()->role_id);
-                if ( $user->roles->first() ) {// do your magic here
-                    return redirect()->route('backoffice.index');
-                }
-        
-            return redirect('/backoffice');
+        if ($user->hasRole('user')) {
+            return redirect()->route('backoffice.technical_requests.index');
+        }
+
+        if ($user->roles->first()) {
+            return redirect()->route('backoffice.index');
+        }
+
+        return redirect('/backoffice');
             
 
             

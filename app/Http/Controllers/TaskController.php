@@ -9,8 +9,27 @@ use App\Models\User;
 
 class TaskController extends Controller
 {
+    public function myTasks()
+    {
+        return redirect()->route('backoffice.task_schedules.minhas');
+    }
+
+    public function show(Task $task)
+    {
+        return redirect()->route('backoffice.task_schedules.minhas')
+            ->with('info', 'A página antiga de "Minhas Tarefas" foi unificada na lista de agendamentos.');
+    }
+
+    public function updateStatus(Request $request, Task $task)
+    {
+        return redirect()->route('backoffice.task_schedules.minhas')
+            ->with('info', 'Atualize o estado da tarefa através da página "Minhas Tarefas".');
+    }
+
     public function update(Request $request, $id)
     {
+        abort_if($this->isTechnician(), 403);
+
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:255',
@@ -28,18 +47,24 @@ class TaskController extends Controller
 
     public function edit($id)
     {
+        abort_if($this->isTechnician(), 403);
+
         $task = Task::findOrFail($id);
         return view('backoffice.tasks.edit', compact('task'));
     }
 
     public function create()
     {
+        abort_if($this->isTechnician(), 403);
+
         $task = null; 
         return view('backoffice.tasks.create', compact('task'));
     }
 
     public function store(Request $request)
     {
+        abort_if($this->isTechnician(), 403);
+
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:255',
@@ -55,6 +80,8 @@ class TaskController extends Controller
 
 public function index()
 {
+    abort_if($this->isTechnician(), 403);
+
     $tasks = Task::where(function ($q) {
         // Aparece se não tiver nenhum agendamento
         $q->whereDoesntHave('schedules')
@@ -72,6 +99,8 @@ public function index()
 
     public function destroy($id)
     {
+        abort_if($this->isTechnician(), 403);
+
         $task = Task::findOrFail($id);
         // Verifica se a tarefa está agendada em algum TaskSchedule
         if ($task->schedules()->count() > 0) {
@@ -79,5 +108,12 @@ public function index()
         }
         $task->delete();
         return redirect()->route('backoffice.tasks.index')->with('success', 'Tarefa apagada com sucesso.');
+    }
+
+    private function isTechnician(): bool
+    {
+        $user = auth()->user();
+
+        return $user && $user->hasRole('user');
     }
 }   

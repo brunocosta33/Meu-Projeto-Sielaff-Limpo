@@ -20550,3 +20550,9 @@ ul.timeline > li:before {
 .text-comment {
   color: rgb(189, 221, 234);
 }
+/* === THEME: LAVANDA / ROXO SUAVE === */
+.table.table-sm.align-middle.mb-0 > tbody > tr:nth-child(odd)  > *{ background-color: #f5f3ff !important; }
+.table.table-sm.align-middle.mb-0 > tbody > tr:nth-child(even) > *{ background-color: #ede9fe !important; }
+.table.table-sm.align-middle.mb-0.table-hover > tbody > tr:hover > *,
+.table.table-sm.align-middle.mb-0 > tbody > tr:hover > *{ background-color: #ddd6fe !important; }
+.table.table-sm.align-middle.mb-0 > tbody > tr > *:first-child{ box-shadow: inset 4px 0 0 #7c3aed !important; }

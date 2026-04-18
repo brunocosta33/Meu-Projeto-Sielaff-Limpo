@@ -8,12 +8,22 @@ use Illuminate\Http\Request;
 
 class LanguageController extends Controller
 {
-    public function languageSwitch(Request $request){
+    public function languageSwitch(Request $request)
+    {
+        $supportedLocales = ['pt', 'en', 'de'];
+        $language = strtolower((string) $request->input('language', config('app.locale')));
 
-        $language= $request->input('language');
+        if (! in_array($language, $supportedLocales, true)) {
+            $language = config('app.fallback_locale', 'pt');
+        }
 
-        session(['language'=>$language]);
+        session([
+            'language' => $language,
+            'locale' => $language,
+        ]);
 
-        return redirect()->back()->with(['language_switched'=>$language]);
+        app()->setLocale($language);
+
+        return redirect()->back()->with(['language_switched' => $language]);
     }
 }

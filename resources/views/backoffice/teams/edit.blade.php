@@ -31,7 +31,7 @@
 
                  <div class="form-group">
                     <label>{{ __('Observações') }}</label>
-                    <textarea name="membros" class="form-control" rows="3">{{ $team->observacoes }}</textarea>
+                    <textarea name="observacoes" class="form-control" rows="3">{{ $team->observacoes }}</textarea>
                 </div>
 
 
