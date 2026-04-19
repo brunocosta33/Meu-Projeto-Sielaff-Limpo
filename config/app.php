@@ -15,7 +15,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'sielaffproject'),
+    'name' => env('APP_NAME', 'SielaffProject'),
 
     /*
     |--------------------------------------------------------------------------
