@@ -77,7 +77,7 @@ use App\Models\Base;
 					<div class="input-group">
 						<div class="inner-addon left-addon">
 							<i class="fas fa-user" aria-hidden="true"></i>
-							<input id="email" style="background: transparent; border: none;" type="email" style="background-color: none;" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus>
+							<input id="email" style="background: transparent; border: none;" type="text" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="username" autocapitalize="none" autofocus>
 							@error('email')
 								<span class="invalid-feedback" role="alert">
 									<strong>{{ $message }}</strong>
