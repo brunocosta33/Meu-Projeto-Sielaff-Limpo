@@ -11,6 +11,9 @@
     <div class="col-xl-10">
         {!! Form::model($technicalRequest, ['route' => ['backoffice.technical_requests.update', $technicalRequest->id], 'method' => 'PUT']) !!}
         {{ csrf_field() }}
+        @if(request('return_url'))
+            <input type="hidden" name="return_url" value="{{ request('return_url') }}">
+        @endif
         @include('backoffice.technical_requests.partials.form')
         {!! Form::close() !!}
     </div>

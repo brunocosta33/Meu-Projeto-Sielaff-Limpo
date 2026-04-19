@@ -29,6 +29,9 @@
         <div class="wrapper">
             <main id="content">
                 @yield('content')
+                <footer class="text-center text-muted small py-3">
+                    Desenvolvido por Bruno Costa &middot; &copy; 2026 Todos os direitos reservados.
+                </footer>
             </main>
         </div>
 

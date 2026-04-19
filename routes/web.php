@@ -66,7 +66,7 @@ Route::get('/', function () {
 
 
 
-Route::group(['middleware' => ['auth']], function () {
+Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function () {
 
 
     Route::get('/backoffice', [DashboardController::class, 'index'])->name('backoffice.index')->middleware('auth');
@@ -208,12 +208,17 @@ Route::group(['middleware' => ['auth']], function () {
     // Technical Requests
     Route::prefix('backoffice/technical-requests')->group(function () {
         Route::get('/', [TechnicalRequestController::class, 'index'])->name('backoffice.technical_requests.index');
+        Route::get('/open/all', [TechnicalRequestController::class, 'openAllRequests'])->name('backoffice.technical_requests.open_all');
         Route::get('/technicians', [TechnicalRequestController::class, 'technicians'])->name('backoffice.technical_requests.technicians');
+        Route::get('/technicians/open/all', [TechnicalRequestController::class, 'openAllTechnicians'])->name('backoffice.technical_requests.open_all_technicians');
+        Route::get('/technicians/{id}/open', [TechnicalRequestController::class, 'openByTechnician'])->name('backoffice.technical_requests.open_by_technician');
+        Route::get('/my-open', [TechnicalRequestController::class, 'myOpenRequests'])->name('backoffice.technical_requests.my_open');
         Route::get('/create', [TechnicalRequestController::class, 'create'])->name('backoffice.technical_requests.create');
         Route::post('/store', [TechnicalRequestController::class, 'store'])->name('backoffice.technical_requests.store');
         Route::get('/{id}/show', [TechnicalRequestController::class, 'show'])->name('backoffice.technical_requests.show');
         Route::get('/{id}/edit', [TechnicalRequestController::class, 'edit'])->name('backoffice.technical_requests.edit');
         Route::put('/{id}', [TechnicalRequestController::class, 'update'])->name('backoffice.technical_requests.update');
+        Route::patch('/{id}/assign-technician', [TechnicalRequestController::class, 'assignTechnician'])->name('backoffice.technical_requests.assign_technician');
         Route::get('/{id}/delete', [TechnicalRequestController::class, 'delete'])->name('backoffice.technical_requests.delete');
 
         // 🔹 Nova rota de exportação para Excel

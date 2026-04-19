@@ -12,6 +12,7 @@
             })->values()->all(),
         ];
     });
+    $openRequestsByStoreMap = $openRequestsByStore ?? collect();
 @endphp
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -31,9 +32,24 @@ document.addEventListener('DOMContentLoaded', function () {
     var storeSummaryContacto = document.getElementById('store_summary_contacto');
     var storeSummaryTelefone = document.getElementById('store_summary_telefone');
     var storeSummaryEmail = document.getElementById('store_summary_email');
+    var openRequestsWarning = document.getElementById('open_requests_warning');
     var initialState = estadoSelect ? estadoSelect.value : '';
     var emptyMachineLabel = @json(__('-- Sem máquina associada --'));
     var storesMachines = @json($storeMachinesMap);
+    var openRequestsByStore = @json($openRequestsByStoreMap);
+    var storeSelectionTouched = false;
+
+    function selectedStoreId() {
+        if (!storeSelect) {
+            return '';
+        }
+
+        if (window.jQuery && $(storeSelect).hasClass('selectpicker')) {
+            return String($(storeSelect).selectpicker('val') || storeSelect.value || '');
+        }
+
+        return String(storeSelect.value || '');
+    }
 
     if (window.jQuery && $('.selectpicker').length) {
         $('.selectpicker').selectpicker();
@@ -71,6 +87,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (dataResolucaoInput && !isResolved && clearHiddenValues && currentState !== initialState) {
             dataResolucaoInput.value = '';
         }
+
     }
 
     function syncResolutionMinDate() {
@@ -113,7 +130,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        var storeId = storeSelect.value;
+        var storeId = selectedStoreId();
         var selectedMachineId = machineSelect.dataset.selectedMachine || machineSelect.value || '';
         var machines = storesMachines[storeId] || [];
         var hasSelectedMachine = false;
@@ -141,6 +158,17 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function renderOpenRequestsWarning() {
+        if (!storeSelect || !openRequestsWarning) {
+            return;
+        }
+
+        var storeId = selectedStoreId();
+        var requests = openRequestsByStore[storeId] || [];
+
+        openRequestsWarning.style.display = storeSelectionTouched && storeId && requests.length ? 'block' : 'none';
+    }
+
     if (estadoSelect) {
         estadoSelect.addEventListener('change', function () {
             syncFields(true);
@@ -153,12 +181,34 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    if (storeSelect) {
-        storeSelect.addEventListener('change', function () {
+    function handleStoreChange(markAsTouched) {
+        if (!storeSelect) {
+            return;
+        }
+
+        if (machineSelect) {
             machineSelect.dataset.selectedMachine = '';
-            syncStoreSummary();
-            syncMachineOptions();
-        });
+        }
+
+        syncStoreSummary();
+        syncMachineOptions();
+        if (markAsTouched) {
+            storeSelectionTouched = true;
+        }
+        renderOpenRequestsWarning();
+        setTimeout(renderOpenRequestsWarning, 0);
+    }
+
+    if (storeSelect) {
+        if (window.jQuery && $(storeSelect).hasClass('selectpicker')) {
+            $(storeSelect).on('changed.bs.select', function (event, clickedIndex) {
+                handleStoreChange(clickedIndex !== null && typeof clickedIndex !== 'undefined');
+            });
+        } else {
+            storeSelect.addEventListener('change', function () {
+                handleStoreChange(true);
+            });
+        }
     }
 
     if (machineSelect) {
@@ -170,5 +220,8 @@ document.addEventListener('DOMContentLoaded', function () {
     syncFields(false);
     syncResolutionMinDate();
     syncStoreSummary();
+    if (openRequestsWarning) {
+        openRequestsWarning.style.display = 'none';
+    }
 });
 </script>

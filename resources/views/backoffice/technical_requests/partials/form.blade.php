@@ -1,7 +1,7 @@
 @php
     $isEdit = isset($technicalRequest);
     $canManageAll = $canManageAll ?? true;
-    $backRoute = route('backoffice.technical_requests.index', request()->only(['page', 'q', 'codigo_loja', 'serial_number', 'estado', 'prioridade', 'assigned_technician_id']));
+    $backRoute = request('return_url') ?: route('backoffice.technical_requests.index', request()->only(['page', 'q', 'codigo_loja', 'serial_number', 'estado', 'prioridade', 'assigned_technician_id']));
     $selectedStatus = old('estado', $technicalRequest->estado ?? 'pendente');
     $selectedStore = old('store_id', $technicalRequest->store_id ?? null);
     $selectedMachine = old('machine_id', $technicalRequest->machine_id ?? null);
@@ -34,6 +34,13 @@
     </div>
 @endif
 
+@if($isEdit && $canManageAll && ($technicalRequest->estado ?? null) === 'concluido')
+    <div class="alert alert-warning border">
+        <strong>{{ __('Este pedido está concluído.') }}</strong>
+        {{ __('Altere apenas para corrigir dados do pedido.') }}
+    </div>
+@endif
+
 <div class="card border-0 shadow-sm">
     <div class="card-body">
         <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-4">
@@ -55,7 +62,7 @@
             <i class="fas fa-lightbulb text-warning mt-1 mr-2"></i>
             <div>
                 <strong>{{ __('Dica rápida') }}:</strong>
-                {{ $canManageAll ? __('Use "Agendado" para desbloquear a data de visita e "Concluído" para registar a data de resolução.') : __('Pode atualizar apenas o estado do pedido para "Aguarda Peça" ou "Concluído".') }}
+                {{ $canManageAll ? __('Use "Agendado" para desbloquear a data de visita e "Concluído" para registar a data de resolução.') : __('Pode atualizar o estado do pedido conforme o progresso da assistência.') }}
             </div>
         </div>
 
@@ -84,6 +91,9 @@
                                 @endforeach
                             </select>
                             <small class="text-muted">{{ __('Pode pesquisar por código, nome ou insígnia da loja.') }}</small>
+                            <small id="open_requests_warning" class="text-danger font-weight-bold mt-1" style="display: none;">
+                                {{ __('Já existe um pedido aberto para esta loja.') }}
+                            </small>
                         </div>
 
                         <div class="form-group mb-3">
@@ -108,7 +118,23 @@
                     @else
                         <div class="mb-3">
                             <label class="font-weight-bold d-block">{{ __('Loja') }}</label>
-                            <div class="text-muted">{{ $technicalRequest->store->codigo_loja ?? '-' }} - {{ $technicalRequest->store->nome_loja ?? '-' }}</div>
+                            <div class="text-muted">
+                                {{ $technicalRequest->store->codigo_loja ?? '-' }} - {{ $technicalRequest->store->nome_loja ?? '-' }}
+                                @if($technicalRequest->store->insignia ?? null)
+                                    ({{ ucfirst($technicalRequest->store->insignia) }})
+                                @endif
+                            </div>
+                            @if(($technicalRequest->store->morada ?? null) || ($technicalRequest->store->cidade ?? null) || ($technicalRequest->store->codigo_postal ?? null))
+                                <div class="text-muted small">
+                                    {{ implode(', ', array_filter([
+                                        $technicalRequest->store->morada ?? null,
+                                        trim(implode(' ', array_filter([
+                                            $technicalRequest->store->codigo_postal ?? null,
+                                            $technicalRequest->store->cidade ?? null,
+                                        ]))),
+                                    ])) }}
+                                </div>
+                            @endif
                         </div>
 
                         <div class="mb-3">
@@ -231,7 +257,7 @@
                             <div class="form-group mb-3">
                                 <label for="estado">{{ __('Estado') }}</label>
                                 <select name="estado" id="estado" class="form-control @error('estado') is-invalid @enderror" required>
-                                    @foreach(($canManageAll ? $statuses : ['aguarda_peca' => 'Aguarda Peça', 'concluido' => 'Concluído']) as $value => $label)
+                                    @foreach($statuses as $value => $label)
                                         <option value="{{ $value }}" {{ $selectedStatus === $value ? 'selected' : '' }}>
                                             {{ __($label) }}
                                         </option>
@@ -273,11 +299,18 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="font-weight-bold d-block">{{ __('Data de Agendamento') }}</label>
-                                    <div class="text-muted">{{ isset($technicalRequest) && $technicalRequest->data_agendamento ? \Carbon\Carbon::parse($technicalRequest->data_agendamento)->format('d/m/Y H:i') : '—' }}</div>
+                                <div class="form-group mb-3" id="data_agendamento_group">
+                                    <label for="data_agendamento">{{ __('Data de Agendamento') }}</label>
+                                    <input type="datetime-local" name="data_agendamento" id="data_agendamento" value="{{ old('data_agendamento', isset($technicalRequest) && $technicalRequest->data_agendamento ? \Carbon\Carbon::parse($technicalRequest->data_agendamento)->format('Y-m-d\TH:i') : '') }}" class="form-control @error('data_agendamento') is-invalid @enderror">
+                                    <small class="text-muted">{{ __('Obrigatória quando o pedido fica agendado.') }}</small>
                                 </div>
                             </div>
+                        </div>
+
+                        <div class="form-group mb-0" id="data_resolucao_group">
+                            <label for="data_resolucao">{{ __('Data da Resolução') }}</label>
+                            <input type="datetime-local" name="data_resolucao" id="data_resolucao" min="{{ isset($technicalRequest) && $technicalRequest->data_pedido ? \Carbon\Carbon::parse($technicalRequest->data_pedido)->format('Y-m-d') : now()->format('Y-m-d') }}T00:00" value="{{ old('data_resolucao', isset($technicalRequest) && $technicalRequest->data_resolucao ? \Carbon\Carbon::parse($technicalRequest->data_resolucao)->format('Y-m-d\TH:i') : '') }}" class="form-control @error('data_resolucao') is-invalid @enderror">
+                            <small class="text-muted">{{ __('Preencha quando o pedido estiver concluído, com data e hora.') }}</small>
                         </div>
                     @endif
                 </div>
@@ -305,7 +338,8 @@
 
                         <div class="mb-0">
                             <label class="font-weight-bold d-block">{{ __('Observações internas') }}</label>
-                            <div class="text-muted">{{ $technicalRequest->observacoes ?: '—' }}</div>
+                            <textarea name="observacoes" id="observacoes" class="form-control @error('observacoes') is-invalid @enderror" rows="4" placeholder="{{ __('Atualize aqui notas internas, peças, contacto feito ou informação útil para a assistência.') }}">{{ old('observacoes', $technicalRequest->observacoes ?? '') }}</textarea>
+                            <small class="text-muted">{{ __('Pode acrescentar ou atualizar notas internas do pedido.') }}</small>
                         </div>
                     @endif
                 </div>

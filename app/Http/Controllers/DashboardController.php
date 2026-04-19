@@ -18,6 +18,12 @@ class DashboardController extends Controller
 
     public function index()
     {  
+        $user = auth()->user();
+
+        if ($user && $user->hasRole('user')) {
+            return redirect()->route('backoffice.technical_requests.index');
+        }
+
         if (!app()->getLocale()) {
             app()->setLocale('pt');        
         }

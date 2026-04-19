@@ -24,7 +24,7 @@ class TechnicalRequestsExport implements FromCollection, WithHeadings, WithStyle
 
     public function collection()
     {
-        $query = TechnicalRequest::with(['store', 'assignedTechnician']);
+        $query = TechnicalRequest::with(['store', 'machine', 'assignedTechnician']);
 
         if ($this->technician) {
             $query->where('assigned_technician_id', $this->technician->id);
@@ -60,8 +60,14 @@ class TechnicalRequestsExport implements FromCollection, WithHeadings, WithStyle
             });
         }
 
-        if (!empty($this->filters['estado'])) {
-            $query->whereIn('estado', (array) $this->filters['estado']);
+        $selectedStatuses = array_values(array_filter((array) ($this->filters['estado'] ?? [])));
+
+        if (!empty($selectedStatuses)) {
+            $query->whereIn('estado', $selectedStatuses);
+        }
+
+        if (!empty($this->filters['open_only'])) {
+            $query->where('estado', '!=', 'concluido');
         }
 
         if (!empty($this->filters['prioridade'])) {
@@ -110,10 +116,14 @@ class TechnicalRequestsExport implements FromCollection, WithHeadings, WithStyle
         return $query
             ->get()
             ->map(function ($req) {
+                $storeLabel = $req->store
+                    ? trim(($req->store->codigo_loja ?: '-') . ' - ' . ($req->store->nome_loja ?: '-'))
+                    : 'Sem loja associada';
+
                 return [
-                    'ID'               => $req->id,
-                    'Loja'             => $req->store->codigo_loja . ' - ' . $req->store->nome_loja,
-                    'Resolvido por'    => $req->assignedPersonLabel(),
+                    'Insígnia'         => $req->store?->insignia ? ucfirst($req->store->insignia) : '',
+                    'Loja'             => $storeLabel,
+                    'Responsável atribuído' => $req->assignedPersonLabel(),
                     'Estado'           => ucfirst($req->estado),
                     'Origem'           => $req->origem,
                     'Tipo de Serviço'  => $req->tipo_servico,
@@ -131,9 +141,9 @@ class TechnicalRequestsExport implements FromCollection, WithHeadings, WithStyle
     public function headings(): array
     {
         return [
-            'ID',
+            'Insígnia',
             'Loja',
-            'Resolvido por',
+            'Responsável atribuído',
             'Estado',
             'Origem',
             'Tipo de Serviço',

@@ -224,6 +224,42 @@
         margin: 0.9rem 0 1.25rem;
     }
 
+    .hotline-open-callout {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 1.25rem;
+        padding: 1.15rem;
+        border-radius: 22px;
+        border: 1px solid #cfe0ff;
+        background:
+            radial-gradient(circle at top right, rgba(11, 94, 215, 0.12), transparent 28%),
+            linear-gradient(135deg, #eef4ff 0%, #f8fbff 100%);
+        box-shadow: 0 14px 30px rgba(19, 34, 56, 0.08);
+    }
+
+    .hotline-open-callout-title {
+        color: var(--hotline-ink);
+        font-weight: 800;
+        margin-bottom: 0.2rem;
+    }
+
+    .hotline-open-callout-copy {
+        color: var(--hotline-muted);
+        margin-bottom: 0;
+        line-height: 1.5;
+    }
+
+    .hotline-open-callout .btn {
+        border-radius: 16px;
+        padding: 0.9rem 1.2rem;
+        font-weight: 800;
+        box-shadow: 0 12px 26px rgba(11, 94, 215, 0.16);
+        white-space: nowrap;
+    }
+
     .hotline-filter-chip {
         display: inline-flex;
         align-items: center;
@@ -293,6 +329,45 @@
         color: var(--hotline-muted);
         font-size: 0.85rem;
         margin-top: 0.2rem;
+    }
+
+    .hotline-brand-badge {
+        display: inline-flex;
+        align-items: center;
+        margin-left: 0.45rem;
+        padding: 0.28rem 0.62rem;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        vertical-align: middle;
+    }
+
+    .hotline-brand-badge.brand-lidl {
+        background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+        color: #ffeb3b;
+        box-shadow: 0 8px 18px rgba(37, 99, 235, 0.22);
+    }
+
+    .hotline-brand-badge.brand-sonae {
+        background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+        color: #fff7d6;
+        box-shadow: 0 8px 18px rgba(245, 158, 11, 0.2);
+    }
+
+    .hotline-address {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 0.45rem;
+        padding: 0.55rem 0.8rem;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #eef4ff 0%, #f6faff 100%);
+        border: 1px solid #d8e5fb;
+        color: #26415f;
+        font-size: 0.84rem;
+        font-weight: 600;
     }
 
     .hotline-meta {
@@ -518,6 +593,15 @@
         .hotline-actions .btn {
             flex: 1 1 auto;
             width: auto;
+        }
+
+        .hotline-open-callout {
+            align-items: stretch;
+        }
+
+        .hotline-open-callout .btn {
+            width: 100%;
+            justify-content: center;
         }
     }
 
@@ -828,6 +912,28 @@
 
         <div class="card hotline-panel border-0">
             <div class="card-body">
+                @if($canManageAll)
+                    <div class="hotline-open-callout">
+                        <div>
+                            <h5 class="hotline-open-callout-title">{{ __('Todos os pedidos em aberto') }}</h5>
+                            <p class="hotline-open-callout-copy">{{ __('Abra uma tabela resumida, agrupada por técnico, para perceber rapidamente tudo o que ainda está por concluir.') }}</p>
+                        </div>
+                        <a href="{{ route('backoffice.technical_requests.open_all', request()->only(['mes', 'data_inicio', 'data_fim'])) }}" class="btn btn-primary">
+                            <i class="fa fa-table"></i> {{ __('Ver todos em aberto') }}
+                        </a>
+                    </div>
+                @else
+                    <div class="hotline-open-callout">
+                        <div>
+                            <h5 class="hotline-open-callout-title">{{ __('Meus pedidos em aberto') }}</h5>
+                            <p class="hotline-open-callout-copy">{{ __('Abra uma vista resumida e adaptada ao telemóvel com todos os seus pedidos ainda por concluir.') }}</p>
+                        </div>
+                        <a href="{{ route('backoffice.technical_requests.my_open', request()->only(['mes', 'data_inicio', 'data_fim'])) }}" class="btn btn-primary">
+                            <i class="fa fa-table"></i> {{ __('Ver pedidos em aberto') }}
+                        </a>
+                    </div>
+                @endif
+
                 <div class="hotline-panel-header">
                     <div>
                         <h5 class="hotline-panel-title">{{ __('Pedidos de Assistência Técnica') }}</h5>
@@ -951,10 +1057,38 @@
                     <div class="hotline-grid">
                         @foreach($requests as $request)
                             <article class="hotline-ticket" data-state="{{ $request->estado }}">
+                                @php
+                                    $wasEdited = $request->updated_at && $request->created_at && $request->updated_at->ne($request->created_at);
+                                @endphp
                                 <div>
                                     <div class="hotline-ticket-header">
-                                        <div class="hotline-store-title">{{ $request->store->codigo_loja ?? '-' }} - {{ $request->store->nome_loja ?? '-' }}</div>
+                                        <div class="hotline-store-title">
+                                            {{ $request->store->codigo_loja ?? '-' }} - {{ $request->store->nome_loja ?? '-' }}
+                                            @if($request->store->insignia ?? null)
+                                                <span class="hotline-brand-badge brand-{{ $request->store->insignia }}">
+                                                    {{ ucfirst($request->store->insignia) }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                        @if(($request->store->morada ?? null) || ($request->store->cidade ?? null) || ($request->store->codigo_postal ?? null))
+                                            <div class="hotline-address">
+                                                <i class="fa fa-map-marker-alt"></i>
+                                                {{ implode(', ', array_filter([
+                                                    $request->store->morada ?? null,
+                                                    trim(implode(' ', array_filter([
+                                                        $request->store->codigo_postal ?? null,
+                                                        $request->store->cidade ?? null,
+                                                    ]))),
+                                                ])) }}
+                                            </div>
+                                        @endif
                                         <div class="hotline-store-subtitle">{{ __('Criado por') }}: {{ $request->creator->name ?? $request->creator->email ?? '—' }} - {{ $request->created_at ? \Carbon\Carbon::parse($request->created_at)->format('H:i') : '—' }}</div>
+                                        @if($wasEdited)
+                                            <div class="hotline-store-subtitle">{{ __('Última edição por') }}: {{ $request->editor->name ?? $request->editor->email ?? '—' }} - {{ $request->updated_at ? \Carbon\Carbon::parse($request->updated_at)->format('H:i') : '—' }}</div>
+                                        @endif
+                                        @if($request->estado === 'concluido')
+                                            <div class="hotline-store-subtitle">{{ __('Concluído por') }}: {{ $request->editor->name ?? $request->editor->email ?? '—' }}</div>
+                                        @endif
                                     </div>
                                     <div class="hotline-meta-stack">
                                         <span class="hotline-meta hotline-meta-strong">
@@ -1037,12 +1171,14 @@
                                 </div>
 
                                 <div class="hotline-actions">
-                                    <a href="{{ route('backoffice.technical_requests.show', $request->id) }}" class="btn btn-sm btn-outline-primary">
+                                    <a href="{{ route('backoffice.technical_requests.show', ['id' => $request->id, 'return_url' => url()->full()]) }}" class="btn btn-sm btn-outline-primary">
                                         <i class="fa fa-eye"></i> {{ __('Ver') }}
                                     </a>
-                                    <a href="{{ route('backoffice.technical_requests.edit', array_merge(['id' => $request->id], request()->only(['page', 'q', 'codigo_loja', 'serial_number', 'estado', 'prioridade', 'zona', 'assigned_technician_id']))) }}" class="btn btn-sm btn-outline-secondary">
-                                        <i class="fa fa-edit"></i> {{ __('Editar') }}
-                                    </a>
+                                    @if($canManageAll || $request->estado !== 'concluido')
+                                        <a href="{{ route('backoffice.technical_requests.edit', ['id' => $request->id, 'return_url' => url()->full()]) }}" class="btn btn-sm btn-outline-secondary">
+                                            <i class="fa fa-edit"></i> {{ __('Editar') }}
+                                        </a>
+                                    @endif
                                     @if($canManageAll)
                                         <a href="{{ route('backoffice.technical_requests.delete', array_merge(['id' => $request->id], request()->only(['page', 'q', 'codigo_loja', 'serial_number', 'estado', 'prioridade', 'zona', 'assigned_technician_id']))) }}"
                                            onclick="return confirm('@lang('Tem a certeza que deseja apagar este pedido?')')"

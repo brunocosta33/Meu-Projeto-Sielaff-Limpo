@@ -6,6 +6,45 @@
 
 @section('head-scripts')
 <style>
+    .technical-request-brand-badge {
+        display: inline-flex;
+        align-items: center;
+        margin-left: 0.45rem;
+        padding: 0.28rem 0.62rem;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        vertical-align: middle;
+    }
+
+    .technical-request-brand-badge.brand-lidl {
+        background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+        color: #ffeb3b;
+        box-shadow: 0 8px 18px rgba(37, 99, 235, 0.22);
+    }
+
+    .technical-request-brand-badge.brand-sonae {
+        background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+        color: #fff7d6;
+        box-shadow: 0 8px 18px rgba(245, 158, 11, 0.2);
+    }
+
+    .technical-request-address {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 0.35rem;
+        padding: 0.55rem 0.8rem;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #eef4ff 0%, #f6faff 100%);
+        border: 1px solid #d8e5fb;
+        color: #26415f;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
     .technical-request-schedule-highlight {
         display: inline-flex;
         align-items: center;
@@ -45,6 +84,11 @@
 @section('content')
 <div class="row">@include('flash::message')</div>
 
+@php
+    $returnUrl = request('return_url');
+    $backRoute = $returnUrl ?: route('backoffice.technical_requests.index');
+@endphp
+
 <div class="row">
     <div class="col-xl-10">
         <div class="card shadow-sm border-0">
@@ -55,10 +99,12 @@
                         <p class="text-muted mb-0">{{ __('Resumo completo do pedido para consulta rápida.') }}</p>
                     </div>
                     <div class="mt-3 mt-lg-0">
-                        <a href="{{ route('backoffice.technical_requests.edit', ['id' => $request->id]) }}" class="btn btn-outline-primary mr-2">
-                            <i class="fa fa-edit"></i> {{ __('Editar') }}
-                        </a>
-                        <a href="{{ route('backoffice.technical_requests.index') }}" class="btn btn-outline-secondary">
+                        @if($canManageAll || $request->estado !== 'concluido')
+                            <a href="{{ route('backoffice.technical_requests.edit', ['id' => $request->id, 'return_url' => $backRoute]) }}" class="btn btn-outline-primary mr-2">
+                                <i class="fa fa-edit"></i> {{ __('Editar') }}
+                            </a>
+                        @endif
+                        <a href="{{ $backRoute }}" class="btn btn-outline-secondary">
                             <i class="fa fa-arrow-left"></i> {{ __('Voltar') }}
                         </a>
                     </div>
@@ -78,7 +124,33 @@
                     <div class="col-md-6 mb-3">
                         <div class="border rounded p-3 h-100">
                             <div class="mb-2"><strong>{{ __('ID') }}:</strong> #{{ $request->id }}</div>
-                            <div class="mb-2"><strong>{{ __('Loja') }}:</strong> {{ $request->store->codigo_loja ?? '-' }} - {{ $request->store->nome_loja ?? '-' }}</div>
+                            <div class="mb-2">
+                                <strong>{{ __('Loja') }}:</strong>
+                                {{ $request->store->codigo_loja ?? '-' }} - {{ $request->store->nome_loja ?? '-' }}
+                                @if($request->store->insignia ?? null)
+                                    <span class="technical-request-brand-badge brand-{{ $request->store->insignia }}">
+                                        {{ ucfirst($request->store->insignia) }}
+                                    </span>
+                                @endif
+                            </div>
+                            <div class="mb-2">
+                                <strong>{{ __('Morada') }}:</strong>
+                                @php($storeAddress = implode(', ', array_filter([
+                                    $request->store->morada ?? null,
+                                    trim(implode(' ', array_filter([
+                                        $request->store->codigo_postal ?? null,
+                                        $request->store->cidade ?? null,
+                                    ]))),
+                                ])))
+                                @if($storeAddress)
+                                    <div class="technical-request-address">
+                                        <i class="fa fa-map-marker-alt"></i>
+                                        {{ $storeAddress }}
+                                    </div>
+                                @else
+                                    —
+                                @endif
+                            </div>
                             <div class="mb-2"><strong>{{ __('Número de Série') }}:</strong> {{ $request->machine->serial_number ?? '—' }}</div>
                             <div class="mb-2"><strong>{{ __('Origem') }}:</strong> {{ $request->origem ?: '—' }}</div>
                             <div class="mb-2"><strong>{{ $request->assignedPersonTypeLabel() }} {{ __('atribuído') }}:</strong> {{ $request->assignedPersonLabel() }}</div>
@@ -87,6 +159,9 @@
                             @if($hasEdition)
                                 <div class="mb-2"><strong>{{ __('Última edição por') }}:</strong> {{ $request->editor->name ?? $request->editor->email ?? '—' }}</div>
                                 <div><strong>{{ __('Editado em') }}:</strong> {{ $request->updated_at ? \Carbon\Carbon::parse($request->updated_at)->format('d/m/Y H:i') : '—' }}</div>
+                            @endif
+                            @if($request->estado === 'concluido')
+                                <div class="mt-2"><strong>{{ __('Concluído por') }}:</strong> {{ $request->editor->name ?? $request->editor->email ?? '—' }}</div>
                             @endif
                             <div class="mt-2"><strong>{{ __('Tipo de Serviço') }}:</strong> {{ $tipos[$request->tipo_servico] ?? ucfirst($request->tipo_servico) }}</div>
                         </div>

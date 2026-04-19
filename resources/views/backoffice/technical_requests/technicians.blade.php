@@ -188,9 +188,47 @@
     }
 
     .tech-card-actions .btn {
-        width: 100%;
         border-radius: 12px;
         font-weight: 600;
+    }
+
+    .tech-card-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+        gap: 10px;
+    }
+
+    .tech-list-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 1.2rem;
+        padding: 1rem;
+        border: 1px solid #dbe5f0;
+        border-radius: 18px;
+        background: linear-gradient(135deg, #f8fbff 0%, #eef6ff 100%);
+    }
+
+    .tech-list-toolbar-title {
+        color: var(--tech-ink);
+        font-weight: 800;
+        margin-bottom: 0.15rem;
+    }
+
+    .tech-list-toolbar-copy {
+        color: var(--tech-muted);
+        margin-bottom: 0;
+        font-size: 0.9rem;
+    }
+
+    .tech-global-open-btn {
+        border-radius: 14px;
+        font-weight: 800;
+        padding: 0.78rem 1rem;
+        box-shadow: 0 10px 22px rgba(11, 94, 215, 0.12);
+        white-space: nowrap;
     }
 </style>
 @endsection
@@ -262,14 +300,6 @@
                 </div>
             </div>
             <div class="col-md-6 col-xl-2 mb-3">
-                <div class="card tech-summary-card summary-unassigned h-100">
-                    <div class="card-body">
-                        <small class="text-muted text-uppercase d-block mb-2">{{ __('Por atribuir') }}</small>
-                        <h3 class="mb-0">{{ $summary['unassigned_requests'] }}</h3>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-xl-2 mb-3">
                 <div class="card tech-summary-card summary-pending h-100">
                     <div class="card-body">
                         <small class="text-muted text-uppercase d-block mb-2">{{ __('Pendentes') }}</small>
@@ -304,35 +334,18 @@
         </div>
 
         <div class="tech-panel">
-            @if($technicianStats->isNotEmpty() || $unassignedStats['total'] > 0)
+            @if($technicianStats->isNotEmpty())
+                <div class="tech-list-toolbar">
+                    <div>
+                        <h5 class="tech-list-toolbar-title">{{ __('Pedidos em aberto') }}</h5>
+                        <p class="tech-list-toolbar-copy">{{ __('Consulte todos os pedidos em aberto agrupados por técnico, ou entre em cada responsável abaixo.') }}</p>
+                    </div>
+                    <a href="{{ route('backoffice.technical_requests.open_all_technicians', request()->only(['mes', 'data_inicio', 'data_fim'])) }}" class="btn btn-primary tech-global-open-btn">
+                        <i class="fa fa-table"></i> {{ __('Ver todos em aberto') }}
+                    </a>
+                </div>
+
                 <div class="tech-grid">
-                    @if($unassignedStats['total'] > 0)
-                        <article class="tech-card">
-                            <div class="tech-card-top">
-                                <div>
-                                    <div class="tech-name">{{ __('Por atribuir') }}</div>
-                                    <div class="tech-email">{{ __('Pedidos ainda sem técnico associado') }}</div>
-                                </div>
-                                <div class="tech-total-badge">{{ $unassignedStats['total'] }} {{ __('pedidos') }}</div>
-                            </div>
-
-                                <div class="tech-state-list">
-                                @foreach($statuses as $statusKey => $statusLabel)
-                                    <div class="tech-state-row state-{{ $statusKey }}">
-                                        <span class="tech-state-label">{{ __($statusLabel) }}</span>
-                                        <strong>{{ $unassignedStats['states'][$statusKey] ?? 0 }}</strong>
-                                    </div>
-                                @endforeach
-                            </div>
-
-                            <div class="tech-card-actions">
-                                <a href="{{ route('backoffice.technical_requests.index', array_merge(['assigned_technician_id' => 'unassigned'], request()->only(['mes', 'data_inicio', 'data_fim']))) }}" class="btn btn-outline-secondary">
-                                    <i class="fa fa-eye"></i> {{ __('Ver pedidos por atribuir') }}
-                                </a>
-                            </div>
-                        </article>
-                    @endif
-
                     @foreach($technicianStats as $item)
                         <article class="tech-card">
                             <div class="tech-card-top">
@@ -353,6 +366,10 @@
                             </div>
 
                             <div class="tech-card-actions">
+                                <a href="{{ route('backoffice.technical_requests.open_by_technician', array_merge(['id' => $item['technician']->id], request()->only(['mes', 'data_inicio', 'data_fim']))) }}" class="btn btn-outline-secondary">
+                                    <i class="fa fa-table"></i>
+                                    {{ __('Ver em aberto') }} ({{ $item['active_total'] }})
+                                </a>
                                 <a href="{{ route('backoffice.technical_requests.export_by_technician', array_merge(['id' => $item['technician']->id], request()->only(['mes', 'data_inicio', 'data_fim']))) }}" class="btn btn-outline-primary">
                                     <i class="fa fa-file-excel"></i>
                                     {{ $item['technician']->hasRole('user') ? __('Exportar Excel deste técnico') : __('Exportar Excel desta pessoa') }}

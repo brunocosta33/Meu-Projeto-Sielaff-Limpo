@@ -16,7 +16,9 @@ use App\Models\Base;
 
     <ul class="list-unstyled components" id="menu-left">
 
-        @if(Auth::user()->hasRole('user'))
+        @php($isTechnician = Auth::user()->hasRole('user'))
+
+        @if($isTechnician)
         <li>
             <a href="{{ route('backoffice.technical_requests.index') }}" class="collapsed" data-parent="#sidebar">
                 <i class="fas fa-headset"></i>
@@ -67,7 +69,7 @@ use App\Models\Base;
         </li>
         @endif
 
-        @if(Auth::user()->hasAnyPermissionsOrRole(['view_configurations','view_loginactivity','view_users','view_roles','view_permissions']))
+        @if(!$isTechnician && Auth::user()->hasAnyPermissionsOrRole(['view_configurations','view_loginactivity','view_users','view_roles','view_permissions']))
         <li>
             <a href="#pageSubmenuProd" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                 <i class="fas fa-truck"></i>
@@ -80,7 +82,7 @@ use App\Models\Base;
         </li>
         @endif
 
-        @if(Auth::user()->hasAnyPermissionsOrRole(['view_configurations','view_loginactivity','view_users','view_roles','view_permissions']))
+        @if(!$isTechnician && Auth::user()->hasAnyPermissionsOrRole(['view_configurations','view_loginactivity','view_users','view_roles','view_permissions']))
         <li>
             <a href="#pageSubmenuInstalacoes" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                 <i class="fas fa-tools"></i>
@@ -93,7 +95,7 @@ use App\Models\Base;
         </li>
         @endif
 
-        @if(Auth::user()->hasAnyPermissionsOrRole(['view_configurations','view_loginactivity','view_users','view_roles','view_permissions']))
+        @if(!$isTechnician && Auth::user()->hasAnyPermissionsOrRole(['view_configurations','view_loginactivity','view_users','view_roles','view_permissions']))
         <li>
             <a href="#pageSubmenuTecnicas" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                 <i class="fas fa-wrench"></i>
@@ -107,7 +109,7 @@ use App\Models\Base;
     </ul>
     </li>
     @endif
-    @if(Auth::user()->hasAnyPermissionsOrRole(['view_configurations','view_loginactivity','view_users','view_roles','view_permissions']))
+    @if(!$isTechnician && Auth::user()->hasAnyPermissionsOrRole(['view_configurations','view_loginactivity','view_users','view_roles','view_permissions']))
     <li>
         <a href="{{ route('backoffice.stores.index') }}" class="collapsed" data-parent="#sidebar">
             <i class="fas fa-store"></i>
@@ -116,7 +118,7 @@ use App\Models\Base;
     </li>
     @endif
 
-    @if(Auth::user()->hasAnyPermissionsOrRole(['view_configurations','view_loginactivity','view_users','view_roles','view_permissions']))
+    @if(!$isTechnician && Auth::user()->hasAnyPermissionsOrRole(['view_configurations','view_loginactivity','view_users','view_roles','view_permissions']))
     <li>
         <a href="#pageSubmenuStock" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
             <i class="fas fa-boxes"></i>
@@ -130,7 +132,7 @@ use App\Models\Base;
     </li>
     @endif
 
-    @if(Auth::user()->hasAnyPermissionsOrRole(['view_configurations','view_loginactivity','view_users','view_roles','view_permissions']))
+    @if(!$isTechnician && Auth::user()->hasAnyPermissionsOrRole(['view_configurations','view_loginactivity','view_users','view_roles','view_permissions']))
     <li>
         <a href="#pageSubmenuUsers" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
             <i class="fas fa-cogs"></i>

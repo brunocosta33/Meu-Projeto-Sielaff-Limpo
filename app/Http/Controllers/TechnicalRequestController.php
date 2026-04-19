@@ -154,6 +154,7 @@ class TechnicalRequestController extends Controller
             'zones' => self::ZONES,
             'technicians' => $this->getAssignableTechnicians(),
             'canManageAll' => true,
+            'openRequestsByStore' => $this->openRequestsByStore(),
         ]);
     }
 
@@ -162,6 +163,7 @@ class TechnicalRequestController extends Controller
         abort_unless($this->isAdmin(), 403);
 
         $data = $this->validateTechnicalRequest($request);
+
         $data = $this->normalizeTechnicalRequestData($data);
         $data['created_by'] = auth()->id();
         $data['updated_by'] = auth()->id();
@@ -197,6 +199,7 @@ class TechnicalRequestController extends Controller
     {
         $technicalRequest = TechnicalRequest::with(['machine', 'creator', 'editor', 'assignedTechnician'])->findOrFail($id);
         $this->authorizeRequestAccess($technicalRequest);
+        abort_unless($this->canEditTechnicalRequest($technicalRequest), 403);
 
         $stores = Store::with(['machines' => function ($query) {
             $query->orderBy('serial_number');
@@ -211,6 +214,7 @@ class TechnicalRequestController extends Controller
             'zones' => self::ZONES,
             'technicians' => $this->getAssignableTechnicians(),
             'canManageAll' => $this->isAdmin(),
+            'openRequestsByStore' => $this->openRequestsByStore($technicalRequest->id),
         ]);
     }
 
@@ -218,6 +222,7 @@ class TechnicalRequestController extends Controller
     {
         $req = TechnicalRequest::findOrFail($id);
         $this->authorizeRequestAccess($req);
+        abort_unless($this->canEditTechnicalRequest($req), 403);
 
         if ($this->isAdmin()) {
             $data = $this->validateTechnicalRequest($request);
@@ -236,23 +241,29 @@ class TechnicalRequestController extends Controller
             }
         } else {
             $data = $request->validate([
-                'estado' => 'required|in:aguarda_peca,concluido',
+                'estado' => 'required|in:' . implode(',', array_keys(self::STATUSES)),
+                'data_agendamento' => 'nullable|required_if:estado,agendado|date',
+                'data_resolucao' => 'nullable|required_if:estado,concluido|date',
+                'observacoes' => 'nullable|string',
             ]);
 
             $data['updated_by'] = auth()->id();
-            $data['data_agendamento'] = null;
+            $data['observacoes'] = $data['observacoes'] ?? null;
+            $data['data_agendamento'] = $data['estado'] === 'agendado'
+                ? ($data['data_agendamento'] ?? $req->data_agendamento)
+                : null;
             $data['data_resolucao'] = $data['estado'] === 'concluido'
-                ? Carbon::now()->toDateTimeString()
+                ? ($data['data_resolucao'] ?? Carbon::now()->toDateTimeString())
                 : null;
         }
 
         $req->update($data);
 
-        // 🔎 Guardar filtros e página atuais para manter no redirect
-        $queryParams = $request->except(['_token', '_method']);
+        $returnUrl = $this->technicalRequestReturnUrl($request);
 
-        return redirect()
-            ->route('backoffice.technical_requests.index', $queryParams)
+        return ($returnUrl
+                ? redirect()->to($returnUrl)
+                : redirect()->route('backoffice.technical_requests.index'))
             ->with('success', 'Pedido atualizado com sucesso!');
     }
 
@@ -286,6 +297,7 @@ class TechnicalRequestController extends Controller
                 'zona',
                 'tipo_servico',
                 'assigned_technician_id',
+                'open_only',
                 'mes',
                 'data_inicio',
                 'data_fim',
@@ -314,6 +326,7 @@ class TechnicalRequestController extends Controller
                 return [
                     'technician' => $technician,
                     'total' => $technicianRequests->count(),
+                    'active_total' => $technicianRequests->where('estado', '!=', 'concluido')->count(),
                     'states' => $stateCounts,
                 ];
             })
@@ -347,6 +360,122 @@ class TechnicalRequestController extends Controller
             'statuses' => self::STATUSES,
             'summary' => $summary,
         ]);
+    }
+
+    public function openByTechnician(Request $request, $id)
+    {
+        abort_unless($this->isAdmin(), 403);
+
+        $technician = User::query()
+            ->whereNull('deleted_at')
+            ->findOrFail($id);
+
+        $query = TechnicalRequest::with(['store', 'machine', 'assignedTechnician'])
+            ->where('assigned_technician_id', $technician->id)
+            ->where('estado', '!=', 'concluido')
+            ->orderByRaw("FIELD(estado, 'pendente', 'agendado', 'aguarda_peca', 'cancelado', 'concluido')")
+            ->orderBy('data_pedido', 'desc');
+
+        $this->applyDateFilters($query, $request);
+
+        return view('backoffice.technical_requests.open_by_technician', [
+            'technician' => $technician,
+            'requests' => $query->get(),
+            'statuses' => self::STATUSES,
+            'canExport' => true,
+            'backRoute' => route('backoffice.technical_requests.technicians', $request->only(['mes', 'data_inicio', 'data_fim'])),
+        ]);
+    }
+
+    public function myOpenRequests(Request $request)
+    {
+        $technician = auth()->user();
+
+        $query = TechnicalRequest::with(['store', 'machine', 'assignedTechnician'])
+            ->where('assigned_technician_id', $technician->id)
+            ->where('estado', '!=', 'concluido')
+            ->orderByRaw("FIELD(estado, 'pendente', 'agendado', 'aguarda_peca', 'cancelado', 'concluido')")
+            ->orderBy('data_pedido', 'desc');
+
+        $this->applyDateFilters($query, $request);
+
+        return view('backoffice.technical_requests.open_by_technician', [
+            'technician' => $technician,
+            'requests' => $query->get(),
+            'statuses' => self::STATUSES,
+            'canExport' => false,
+            'backRoute' => route('backoffice.technical_requests.index', $request->only(['mes', 'data_inicio', 'data_fim'])),
+        ]);
+    }
+
+    public function openAllTechnicians(Request $request)
+    {
+        return $this->openAllRequestsView($request, false);
+    }
+
+    public function openAllRequests(Request $request)
+    {
+        return $this->openAllRequestsView($request, true);
+    }
+
+    private function openAllRequestsView(Request $request, bool $includeUnassigned)
+    {
+        abort_unless($this->isAdmin(), 403);
+
+        $query = TechnicalRequest::with(['store', 'machine', 'assignedTechnician'])
+            ->where('estado', '!=', 'concluido')
+            ->orderByRaw("FIELD(estado, 'pendente', 'agendado', 'aguarda_peca', 'cancelado', 'concluido')")
+            ->orderBy('data_pedido', 'desc');
+
+        if (!$includeUnassigned) {
+            $query->whereNotNull('assigned_technician_id');
+        }
+
+        $this->applyDateFilters($query, $request);
+        $requests = $query->get();
+        $requestsByTechnician = $requests
+            ->groupBy('assigned_technician_id')
+            ->sortBy(function ($technicianRequests) {
+                $technician = $technicianRequests->first()->assignedTechnician;
+
+                return mb_strtolower($technician->name ?? $technician->email ?? '');
+            });
+
+        return view('backoffice.technical_requests.open_all_technicians', [
+            'requests' => $requests,
+            'requestsByTechnician' => $requestsByTechnician,
+            'openSummary' => [
+                'technicians' => $requests->whereNotNull('assigned_technician_id')->pluck('assigned_technician_id')->unique()->count(),
+                'unassigned' => $requests->whereNull('assigned_technician_id')->count(),
+                'pending' => $requests->where('estado', 'pendente')->count(),
+                'scheduled' => $requests->where('estado', 'agendado')->count(),
+                'awaiting_part' => $requests->where('estado', 'aguarda_peca')->count(),
+                'cancelled' => $requests->where('estado', 'cancelado')->count(),
+            ],
+            'statuses' => self::STATUSES,
+            'includeUnassigned' => $includeUnassigned,
+            'technicians' => $includeUnassigned ? $this->getAssignableTechnicians() : collect(),
+            'backRoute' => $includeUnassigned
+                ? route('backoffice.technical_requests.index', $request->only(['mes', 'data_inicio', 'data_fim']))
+                : route('backoffice.technical_requests.technicians', $request->only(['mes', 'data_inicio', 'data_fim'])),
+        ]);
+    }
+
+    public function assignTechnician(Request $request, $id)
+    {
+        abort_unless($this->isAdmin(), 403);
+
+        $data = $request->validate([
+            'assigned_technician_id' => 'required|exists:users,id',
+        ]);
+
+        $technicalRequest = TechnicalRequest::findOrFail($id);
+        $technicalRequest->update([
+            'assigned_technician_id' => $data['assigned_technician_id'],
+            'updated_by' => auth()->id(),
+        ]);
+
+        return back()->with('success', 'Técnico do pedido atualizado com sucesso!');
     }
 
     public function exportByTechnician($id)
@@ -450,6 +579,31 @@ class TechnicalRequestController extends Controller
         return $data;
     }
 
+    private function openRequestsByStore(?int $excludeRequestId = null)
+    {
+        return TechnicalRequest::with(['assignedTechnician'])
+            ->when($excludeRequestId, function ($query) use ($excludeRequestId) {
+                $query->where('id', '!=', $excludeRequestId);
+            })
+            ->whereNotIn('estado', ['concluido', 'cancelado'])
+            ->orderBy('data_pedido', 'desc')
+            ->get()
+            ->groupBy('store_id')
+            ->map(function ($requests) {
+                return $requests->map(function (TechnicalRequest $request) {
+                    return [
+                        'id' => $request->id,
+                        'estado' => self::STATUSES[$request->estado] ?? ucfirst(str_replace('_', ' ', $request->estado)),
+                        'prioridade' => ucfirst($request->prioridade ?? ''),
+                        'tecnico' => $request->assignedPersonLabel(),
+                        'data_pedido' => $request->data_pedido ? Carbon::parse($request->data_pedido)->format('d/m/Y') : '-',
+                        'descricao' => str($request->descricao_problema ?: 'Sem descrição.')->limit(90)->value(),
+                        'url' => route('backoffice.technical_requests.show', $request->id),
+                    ];
+                })->values();
+            });
+    }
+
     private function getAssignableTechnicians()
     {
         return User::query()
@@ -498,5 +652,31 @@ class TechnicalRequestController extends Controller
         }
 
         abort_unless((int) $technicalRequest->assigned_technician_id === (int) auth()->id(), 403);
+    }
+
+    private function canEditTechnicalRequest(TechnicalRequest $technicalRequest): bool
+    {
+        return $this->isAdmin() || $technicalRequest->estado !== 'concluido';
+    }
+
+    private function technicalRequestReturnUrl(Request $request): ?string
+    {
+        $returnUrl = $request->input('return_url');
+
+        if (!$returnUrl) {
+            return null;
+        }
+
+        if (str_starts_with($returnUrl, '/backoffice/')) {
+            return $returnUrl;
+        }
+
+        $urlParts = parse_url($returnUrl);
+        $appParts = parse_url(url('/'));
+
+        return ($urlParts['host'] ?? null) === ($appParts['host'] ?? null)
+            && str_starts_with($urlParts['path'] ?? '', '/backoffice/')
+            ? $returnUrl
+            : null;
     }
 }
