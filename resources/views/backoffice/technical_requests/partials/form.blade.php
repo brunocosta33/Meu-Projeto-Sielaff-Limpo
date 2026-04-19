@@ -287,7 +287,7 @@
 
                         <div class="form-group mb-0" id="data_resolucao_group">
                             <label for="data_resolucao">{{ __('Data da Resolução') }}</label>
-                            <input type="datetime-local" name="data_resolucao" id="data_resolucao" min="{{ old('data_pedido', isset($technicalRequest) && $technicalRequest->data_pedido ? \Carbon\Carbon::parse($technicalRequest->data_pedido)->format('Y-m-d') : now()->format('Y-m-d')) }}T00:00" value="{{ old('data_resolucao', isset($technicalRequest) && $technicalRequest->data_resolucao ? \Carbon\Carbon::parse($technicalRequest->data_resolucao)->format('Y-m-d\TH:i') : '') }}" class="form-control @error('data_resolucao') is-invalid @enderror">
+                            <input type="datetime-local" name="data_resolucao" id="data_resolucao" min="{{ old('data_pedido', isset($technicalRequest) && $technicalRequest->data_pedido ? \Carbon\Carbon::parse($technicalRequest->data_pedido)->format('Y-m-d') : now()->format('Y-m-d')) }}T00:00" data-min-date="{{ old('data_pedido', isset($technicalRequest) && $technicalRequest->data_pedido ? \Carbon\Carbon::parse($technicalRequest->data_pedido)->format('Y-m-d') : now()->format('Y-m-d')) }}" value="{{ old('data_resolucao', isset($technicalRequest) && $technicalRequest->data_resolucao ? \Carbon\Carbon::parse($technicalRequest->data_resolucao)->format('Y-m-d\TH:i') : '') }}" class="form-control @error('data_resolucao') is-invalid @enderror">
                             <small class="text-muted">{{ __('Preencha quando o pedido estiver concluído, com data e hora.') }}</small>
                         </div>
                     @else
@@ -309,7 +309,7 @@
 
                         <div class="form-group mb-0" id="data_resolucao_group">
                             <label for="data_resolucao">{{ __('Data da Resolução') }}</label>
-                            <input type="datetime-local" name="data_resolucao" id="data_resolucao" min="{{ isset($technicalRequest) && $technicalRequest->data_pedido ? \Carbon\Carbon::parse($technicalRequest->data_pedido)->format('Y-m-d') : now()->format('Y-m-d') }}T00:00" value="{{ old('data_resolucao', isset($technicalRequest) && $technicalRequest->data_resolucao ? \Carbon\Carbon::parse($technicalRequest->data_resolucao)->format('Y-m-d\TH:i') : '') }}" class="form-control @error('data_resolucao') is-invalid @enderror">
+                            <input type="datetime-local" name="data_resolucao" id="data_resolucao" min="{{ isset($technicalRequest) && $technicalRequest->data_pedido ? \Carbon\Carbon::parse($technicalRequest->data_pedido)->format('Y-m-d') : now()->format('Y-m-d') }}T00:00" data-min-date="{{ isset($technicalRequest) && $technicalRequest->data_pedido ? \Carbon\Carbon::parse($technicalRequest->data_pedido)->format('Y-m-d') : now()->format('Y-m-d') }}" value="{{ old('data_resolucao', isset($technicalRequest) && $technicalRequest->data_resolucao ? \Carbon\Carbon::parse($technicalRequest->data_resolucao)->format('Y-m-d\TH:i') : '') }}" class="form-control @error('data_resolucao') is-invalid @enderror">
                             <small class="text-muted">{{ __('Preencha quando o pedido estiver concluído, com data e hora.') }}</small>
                         </div>
                     @endif

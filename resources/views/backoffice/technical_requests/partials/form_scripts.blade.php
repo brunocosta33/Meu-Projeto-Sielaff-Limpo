@@ -91,11 +91,19 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function syncResolutionMinDate() {
-        if (!dataPedidoInput || !dataResolucaoInput || !dataPedidoInput.value) {
+        if (!dataResolucaoInput) {
             return;
         }
 
-        dataResolucaoInput.min = dataPedidoInput.value + 'T00:00';
+        var minDate = dataPedidoInput && dataPedidoInput.value
+            ? dataPedidoInput.value
+            : dataResolucaoInput.dataset.minDate;
+
+        if (!minDate) {
+            return;
+        }
+
+        dataResolucaoInput.min = minDate + 'T00:00';
 
         if (dataResolucaoInput.value && dataResolucaoInput.value < dataResolucaoInput.min) {
             dataResolucaoInput.value = dataResolucaoInput.min;
