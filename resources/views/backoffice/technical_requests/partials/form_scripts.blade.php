@@ -88,6 +88,10 @@ document.addEventListener('DOMContentLoaded', function () {
             dataResolucaoInput.value = '';
         }
 
+        if (dataResolucaoInput && isResolved) {
+            syncResolutionMinDate();
+        }
+
     }
 
     function syncResolutionMinDate() {
@@ -104,6 +108,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         dataResolucaoInput.min = minDate + 'T00:00';
+
+        if (!dataResolucaoInput.disabled && !dataResolucaoInput.value) {
+            dataResolucaoInput.value = dataResolucaoInput.min;
+            return;
+        }
 
         if (dataResolucaoInput.value && dataResolucaoInput.value < dataResolucaoInput.min) {
             dataResolucaoInput.value = dataResolucaoInput.min;
@@ -185,6 +194,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (dataPedidoInput) {
         dataPedidoInput.addEventListener('change', function () {
+            syncResolutionMinDate();
+        });
+    }
+
+    if (dataResolucaoInput) {
+        dataResolucaoInput.addEventListener('change', function () {
+            syncResolutionMinDate();
+        });
+
+        dataResolucaoInput.addEventListener('blur', function () {
             syncResolutionMinDate();
         });
     }
