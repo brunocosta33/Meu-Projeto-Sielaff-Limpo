@@ -116,7 +116,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (dataResolucaoInput.value && dataResolucaoInput.value < dataResolucaoInput.min) {
             dataResolucaoInput.value = dataResolucaoInput.min;
+            dataResolucaoInput.setCustomValidity('');
+            return;
         }
+
+        dataResolucaoInput.setCustomValidity('');
     }
 
     function syncStoreSummary() {
@@ -200,6 +204,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (dataResolucaoInput) {
         dataResolucaoInput.addEventListener('change', function () {
+            syncResolutionMinDate();
+        });
+
+        dataResolucaoInput.addEventListener('input', function () {
+            syncResolutionMinDate();
+        });
+
+        dataResolucaoInput.addEventListener('focus', function () {
+            syncResolutionMinDate();
+        });
+
+        dataResolucaoInput.addEventListener('click', function () {
             syncResolutionMinDate();
         });
 
