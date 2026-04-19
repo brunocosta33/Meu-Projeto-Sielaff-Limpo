@@ -225,6 +225,38 @@
         color: var(--open-muted);
     }
 
+    .open-mobile-summary {
+        display: none;
+    }
+
+    .open-mobile-stat {
+        background: #fff;
+        border: 1px solid var(--open-border);
+        border-radius: 12px;
+        padding: 0.65rem 0.7rem;
+        box-shadow: 0 10px 20px rgba(19, 34, 56, 0.06);
+        min-height: 72px;
+    }
+
+    .open-mobile-stat-label {
+        color: var(--open-muted);
+        display: block;
+        font-size: 0.66rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        line-height: 1.15;
+        text-transform: uppercase;
+    }
+
+    .open-mobile-stat-value {
+        color: var(--open-ink);
+        display: block;
+        font-size: 1.25rem;
+        font-weight: 900;
+        line-height: 1.15;
+        margin-top: 0.35rem;
+    }
+
     @media (max-width: 767.98px) {
         .open-tech-hero,
         .open-tech-panel {
@@ -240,66 +272,43 @@
             font-size: 0.82rem;
         }
 
-        .open-tech-table,
-        .open-tech-table tbody,
-        .open-tech-table tr,
-        .open-tech-table td {
-            display: block;
-            width: 100%;
+        .open-mobile-summary {
+            display: grid;
+            gap: 0.55rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .open-tech-panel {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .open-tech-table {
-            border: 0;
-            font-size: 0.86rem;
+            font-size: 0.7rem;
+            min-width: 760px;
+            table-layout: auto;
         }
 
-        .open-tech-table thead {
-            display: none;
+        .open-tech-table td,
+        .open-tech-table th {
+            padding: 0.48rem 0.55rem;
         }
 
-        .open-tech-table tbody tr {
-            border: 1px solid #dbe5f0;
-            border-radius: 16px;
-            margin-bottom: 0.75rem;
-            overflow: hidden;
-            background: #fff;
-            box-shadow: 0 10px 22px rgba(19, 34, 56, 0.06);
+        .open-tech-table .open-col-brand {
+            width: 8%;
         }
 
-        .open-tech-table td {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.75rem;
-            padding: 0.55rem 0.75rem;
-            border: 0;
-            border-bottom: 1px solid #edf2f8;
-            white-space: normal;
-            overflow: visible;
+        .open-tech-table .open-col-serial {
+            width: 9%;
         }
 
-        .open-tech-table td:last-child {
-            border-bottom: 0;
+        .open-tech-table .open-col-status,
+        .open-tech-table .open-col-priority {
+            width: 12%;
         }
 
-        .open-tech-table td::before {
-            content: attr(data-label);
-            flex: 0 0 34%;
-            color: #6c7a89;
-            font-size: 0.68rem;
-            font-weight: 800;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-        }
-
-        .open-tech-table td.open-tech-main {
-            display: block;
-            padding: 0.75rem;
-            background: linear-gradient(135deg, #f8fbff 0%, #eef4fb 100%);
-        }
-
-        .open-tech-table td.open-tech-main::before {
-            display: none;
+        .open-tech-table .open-col-action {
+            width: 9%;
         }
 
         .open-brand-badge,
@@ -312,22 +321,21 @@
         .open-tech-store,
         .open-tech-address,
         .open-tech-muted {
-            font-size: 0.8rem;
+            font-size: 0.72rem;
         }
 
-        .open-tech-address,
-        .open-tech-muted {
-            white-space: normal;
+        .open-tech-address {
+            display: none;
         }
 
         .open-tech-table .btn {
-            padding: 0.28rem 0.55rem;
-            font-size: 0.76rem;
+            padding: 0.22rem 0.45rem;
+            font-size: 0.68rem;
         }
 
         .open-tech-table td.open-tech-description {
-            max-width: none;
-            white-space: normal;
+            max-width: 150px;
+            white-space: nowrap;
         }
     }
 </style>
@@ -335,6 +343,15 @@
 
 @section('content')
 <div class="row">@include('flash::message')</div>
+
+@php
+    $mobileStats = [
+        ['label' => __('Total'), 'value' => $requests->count()],
+        ['label' => $statuses['pendente'] ?? __('Pendente'), 'value' => $requests->where('estado', 'pendente')->count()],
+        ['label' => $statuses['agendado'] ?? __('Agendado'), 'value' => $requests->where('estado', 'agendado')->count()],
+        ['label' => $statuses['aguarda_peca'] ?? __('Aguarda Peça'), 'value' => $requests->where('estado', 'aguarda_peca')->count()],
+    ];
+@endphp
 
 <div class="row open-tech-page">
     <div class="col">
@@ -358,6 +375,15 @@
                     </a>
                 </div>
             </div>
+        </div>
+
+        <div class="open-mobile-summary mb-3">
+            @foreach($mobileStats as $stat)
+                <div class="open-mobile-stat">
+                    <span class="open-mobile-stat-label">{{ $stat['label'] }}</span>
+                    <span class="open-mobile-stat-value">{{ $stat['value'] }}</span>
+                </div>
+            @endforeach
         </div>
 
         <div class="open-tech-panel">
