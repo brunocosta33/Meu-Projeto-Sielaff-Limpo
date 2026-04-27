@@ -584,8 +584,8 @@
                                                     <form method="POST" action="{{ route('backoffice.technical_requests.assign_technician', $technicalRequest->id) }}" class="open-assign-form">
                                                         @csrf
                                                         @method('PATCH')
-                                                        <select name="assigned_technician_id" class="form-control" required>
-                                                            <option value="">{{ __('Técnico') }}</option>
+                                                        <select name="assigned_technician_id" class="form-control">
+                                                            <option value="">{{ __('-- Por atribuir --') }}</option>
                                                             @foreach($technicians as $assignableTechnician)
                                                                 <option value="{{ $assignableTechnician->id }}" {{ (int) $technicalRequest->assigned_technician_id === (int) $assignableTechnician->id ? 'selected' : '' }}>
                                                                     {{ $assignableTechnician->name ?: $assignableTechnician->email }}

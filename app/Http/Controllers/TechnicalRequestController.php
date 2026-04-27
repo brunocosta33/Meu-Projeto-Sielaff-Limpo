@@ -466,12 +466,12 @@ class TechnicalRequestController extends Controller
         abort_unless($this->isAdmin(), 403);
 
         $data = $request->validate([
-            'assigned_technician_id' => 'required|exists:users,id',
+            'assigned_technician_id' => 'nullable|exists:users,id',
         ]);
 
         $technicalRequest = TechnicalRequest::findOrFail($id);
         $technicalRequest->update([
-            'assigned_technician_id' => $data['assigned_technician_id'],
+            'assigned_technician_id' => $data['assigned_technician_id'] ?? null,
             'updated_by' => auth()->id(),
         ]);
 
