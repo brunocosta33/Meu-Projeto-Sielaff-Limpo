@@ -14,7 +14,7 @@ class InstallationController extends Controller
 {   
     public function index()
     {
-        $query = Installation::with(['store', 'team']);
+        $query = Installation::with(['store', 'team', 'pdfs']);
 
         // Filtro por código da loja
         if (request('codigo_loja')) {
@@ -42,9 +42,28 @@ class InstallationController extends Controller
             $query->whereDate('scheduled_date', request('data'));
         }
 
+        $summaryQuery = clone $query;
+        $summaryInstallations = $summaryQuery->get();
+
         $installations = $query->orderBy('scheduled_date', 'desc')->paginate(20)->appends(request()->query());
 
-        return view('backoffice.installations.index', compact('installations'));
+        $summary = [
+            'total' => $summaryInstallations->count(),
+            'today' => $summaryInstallations->filter(function ($installation) {
+                return $installation->scheduled_date
+                    && \Carbon\Carbon::parse($installation->scheduled_date)->isToday();
+            })->count(),
+            'next_7_days' => $summaryInstallations->filter(function ($installation) {
+                return $installation->scheduled_date
+                    && \Carbon\Carbon::parse($installation->scheduled_date)
+                        ->betweenIncluded(now()->startOfDay(), now()->addDays(7)->endOfDay());
+            })->count(),
+            'scheduled' => $summaryInstallations->where('status', 'Agendado')->count(),
+            'completed' => $summaryInstallations->where('status', 'Concluído')->count(),
+            'cancelled' => $summaryInstallations->where('status', 'Cancelado')->count(),
+        ];
+
+        return view('backoffice.installations.index', compact('installations', 'summary'));
     }
 
     public function create()
