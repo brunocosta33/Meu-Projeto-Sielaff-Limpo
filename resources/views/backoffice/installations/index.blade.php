@@ -110,6 +110,40 @@
             border-top: 1px solid #edf2f7;
         }
 
+        .installations-table {
+            border-collapse: separate;
+            border-spacing: 0 8px;
+        }
+
+        .installations-table tbody tr:not(.installation-week-heading) td:first-child {
+            border-left-width: 5px;
+            border-left-style: solid;
+            border-top-left-radius: 8px;
+            border-bottom-left-radius: 8px;
+        }
+
+        .installations-table tbody tr:not(.installation-week-heading) td:last-child {
+            border-right-width: 3px;
+            border-right-style: solid;
+            border-top-right-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+
+        .installations-table tbody tr:not(.installation-week-heading) td {
+            border-top-width: 3px;
+            border-top-style: solid;
+            border-bottom-width: 3px;
+            border-bottom-style: solid;
+        }
+
+        .installations-table tbody tr:not(.installation-week-heading) {
+            filter: drop-shadow(0 6px 12px rgba(23, 32, 51, 0.05));
+        }
+
+        .installations-table tbody tr:not(.installation-week-heading):hover td {
+            background: #fbfdff;
+        }
+
         .installation-week-heading td {
             border-top: 0;
             background: #fff;
@@ -155,12 +189,12 @@
             font-weight: 800;
         }
 
-        .installation-week-band.installation-week-0 { background: #f8fafc; }
-        .installation-week-band.installation-week-1 { background: #eef6ff; }
-        .installation-week-band.installation-week-2 { background: #f1f8ee; }
-        .installation-week-band.installation-week-3 { background: #fff8e8; }
-        .installation-week-band.installation-week-4 { background: #fff0f6; }
-        .installation-week-band.installation-week-5 { background: #f3f0ff; }
+        .installation-week-band.installation-week-0 { border-left: 5px solid #94a3b8; }
+        .installation-week-band.installation-week-1 { border-left: 5px solid #60a5fa; }
+        .installation-week-band.installation-week-2 { border-left: 5px solid #86efac; }
+        .installation-week-band.installation-week-3 { border-left: 5px solid #fbbf24; }
+        .installation-week-band.installation-week-4 { border-left: 5px solid #f9a8d4; }
+        .installation-week-band.installation-week-5 { border-left: 5px solid #a78bfa; }
 
         .installation-store-code {
             display: inline-flex;
@@ -186,36 +220,43 @@
             background: #fff7f7;
         }
 
-        .installation-week-0 td.installation-week-cell {
-            background: #f8fafc;
+        .installations-table tbody tr.installation-week-0 td {
+            background: #fbfcfe;
+            border-color: #94a3b8;
         }
 
-        .installation-week-1 td.installation-week-cell {
-            background: #eef6ff;
+        .installations-table tbody tr.installation-week-1 td {
+            background: #f6fbff;
+            border-color: #60a5fa;
         }
 
-        .installation-week-2 td.installation-week-cell {
-            background: #f1f8ee;
+        .installations-table tbody tr.installation-week-2 td {
+            background: #f8fdf9;
+            border-color: #86efac;
         }
 
-        .installation-week-3 td.installation-week-cell {
-            background: #fff8e8;
+        .installations-table tbody tr.installation-week-3 td {
+            background: #fffdf5;
+            border-color: #fbbf24;
         }
 
-        .installation-week-4 td.installation-week-cell {
-            background: #fff0f6;
+        .installations-table tbody tr.installation-week-4 td {
+            background: #fff8fb;
+            border-color: #f9a8d4;
         }
 
-        .installation-week-5 td.installation-week-cell {
-            background: #f3f0ff;
+        .installations-table tbody tr.installation-week-5 td {
+            background: #fbf9ff;
+            border-color: #a78bfa;
         }
 
         .installations-table tbody tr.installation-today-row {
-            box-shadow: inset 4px 0 0 var(--installations-red);
+            box-shadow: none;
         }
 
-        .installations-table tbody tr.installation-today-row td.installation-week-cell {
-            background: #fff1f1;
+        .installations-table tbody tr.installation-today-row td {
+            border-color: var(--installations-red);
+            background: #fffafa;
         }
 
         .installation-status {

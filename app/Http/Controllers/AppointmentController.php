@@ -13,7 +13,7 @@ class AppointmentController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Appointment::with(['store', 'supplier']);
+        $query = Appointment::with(['store', 'supplier', 'files']);
 
         if ($request->filled('codigo_loja')) {
             $query->whereHas('store', function ($q) use ($request) {
@@ -37,9 +37,28 @@ class AppointmentController extends Controller
             $query->whereDate('scheduled_date', $request->data);
         }
 
-        $appointments = $query->orderBy('scheduled_date', 'desc')->paginate(20);
+        $summaryQuery = clone $query;
+        $summaryAppointments = $summaryQuery->get();
 
-        return view('backoffice.appointments.index', compact('appointments'));
+        $appointments = $query->orderBy('scheduled_date', 'desc')->paginate(20)->appends($request->query());
+
+        $summary = [
+            'total' => $summaryAppointments->count(),
+            'today' => $summaryAppointments->filter(function ($appointment) {
+                return $appointment->scheduled_date
+                    && \Carbon\Carbon::parse($appointment->scheduled_date)->isToday();
+            })->count(),
+            'next_7_days' => $summaryAppointments->filter(function ($appointment) {
+                return $appointment->scheduled_date
+                    && \Carbon\Carbon::parse($appointment->scheduled_date)
+                        ->betweenIncluded(now()->startOfDay(), now()->addDays(7)->endOfDay());
+            })->count(),
+            'scheduled' => $summaryAppointments->where('status', 'Agendado')->count(),
+            'completed' => $summaryAppointments->where('status', 'Concluído')->count(),
+            'cancelled' => $summaryAppointments->where('status', 'Cancelado')->count(),
+        ];
+
+        return view('backoffice.appointments.index', compact('appointments', 'summary'));
     }
 
 
