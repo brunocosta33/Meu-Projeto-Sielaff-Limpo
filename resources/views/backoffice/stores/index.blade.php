@@ -415,7 +415,7 @@
                 <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-4">
                     <div>
                         <h5 class="stores-panel-title">{{ __('Lista de Lojas') }}</h5>
-                        <p class="stores-panel-copy">{{ __('Filtre por nome, código, cidade ou insígnia e consulte as máquinas diretamente na mesma vista.') }}</p>
+                        <p class="stores-panel-copy">{{ __('Filtre por nome, código, cidade, número de série ou insígnia e consulte as máquinas diretamente na mesma vista.') }}</p>
                     </div>
                 </div>
 
@@ -424,7 +424,7 @@
                         <div class="row align-items-end">
                             <div class="col-md-8 mb-3">
                                 <label>{{ __('Pesquisa rápida') }}</label>
-                                <input type="text" name="q" class="form-control" value="{{ request('q') }}" placeholder="{{ __('Código, nome, cidade, morada ou região') }}">
+                                <input type="text" name="q" class="form-control" value="{{ request('q') }}" placeholder="{{ __('Código, nome, cidade, morada, região ou nº de série') }}">
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label>{{ __('Insígnia') }}</label>

@@ -28,7 +28,10 @@ class StoreController extends Controller
                     ->orWhere('nome_loja', 'like', '%' . $term . '%')
                     ->orWhere('morada', 'like', '%' . $term . '%')
                     ->orWhere('cidade', 'like', '%' . $term . '%')
-                    ->orWhere('regiao', 'like', '%' . $term . '%');
+                    ->orWhere('regiao', 'like', '%' . $term . '%')
+                    ->orWhereHas('machines', function ($machineQuery) use ($term) {
+                        $machineQuery->where('serial_number', 'like', '%' . $term . '%');
+                    });
             });
         }
 
