@@ -164,19 +164,25 @@ class StoreController extends Controller
             })
             ->values();
 
-        $machines->each(function ($machine, $index) use ($store) {
+        $keptMachineIds = $machines->pluck('id')->filter()->map(function ($id) {
+            return (int) $id;
+        })->all();
+
+        $this->validateSubmittedMachineDuplicates($machines);
+
+        $machines->each(function ($machine, $index) use ($store, $keptMachineIds) {
             $machineId = $machine['id'];
 
             validator($machine, [
                 'serial_number' => [
                     'required',
                     'max:255',
-                    Rule::unique('machines', 'serial_number')->ignore($machineId),
+                    $this->uniqueActiveStoreMachine('serial_number', $machineId, $store, $keptMachineIds),
                 ],
                 'ip_address' => [
                     'nullable',
                     'ip',
-                    Rule::unique('machines', 'ip_address')->ignore($machineId),
+                    $this->uniqueActiveStoreMachine('ip_address', $machineId, $store, $keptMachineIds),
                 ],
                 'descricao' => 'nullable|string',
             ], [], [
@@ -191,9 +197,73 @@ class StoreController extends Controller
         ];
     }
 
+    private function uniqueActiveStoreMachine(string $column, ?int $ignoreId = null, ?Store $store = null, array $keptMachineIds = [])
+    {
+        return Rule::unique('machines', $column)
+            ->ignore($ignoreId)
+            ->where(function ($query) use ($store, $keptMachineIds) {
+                $query->whereIn('store_id', function ($storeQuery) {
+                    $storeQuery->select('id')
+                        ->from('stores')
+                        ->whereNull('deleted_at');
+                });
+
+                if ($store) {
+                    $query->where(function ($activeMachinesQuery) use ($store, $keptMachineIds) {
+                        $activeMachinesQuery->where('store_id', '<>', $store->id);
+
+                        if (!empty($keptMachineIds)) {
+                            $activeMachinesQuery->orWhereIn('id', $keptMachineIds);
+                        }
+                    });
+                }
+            });
+    }
+
+    private function validateSubmittedMachineDuplicates($machines): void
+    {
+        $seenSerialNumbers = [];
+        $seenIpAddresses = [];
+        $errors = [];
+
+        foreach ($machines as $index => $machine) {
+            $serialNumber = mb_strtolower($machine['serial_number']);
+            $ipAddress = $machine['ip_address'];
+
+            if ($serialNumber !== '') {
+                if (isset($seenSerialNumbers[$serialNumber])) {
+                    $errors['machines.' . $index . '.serial_number'] = 'O número de série da máquina ' . ($index + 1) . ' está repetido no formulário.';
+                }
+
+                $seenSerialNumbers[$serialNumber] = true;
+            }
+
+            if ($ipAddress) {
+                if (isset($seenIpAddresses[$ipAddress])) {
+                    $errors['machines.' . $index . '.ip_address'] = 'O IP da máquina ' . ($index + 1) . ' está repetido no formulário.';
+                }
+
+                $seenIpAddresses[$ipAddress] = true;
+            }
+        }
+
+        if (!empty($errors)) {
+            throw \Illuminate\Validation\ValidationException::withMessages($errors);
+        }
+    }
+
     private function syncMachines(Store $store, array $machines): void
     {
         $existingIds = $store->machines()->pluck('id')->all();
+        $submittedIds = collect($machines)->pluck('id')->filter()->map(function ($id) {
+            return (int) $id;
+        })->all();
+
+        $idsToDelete = array_diff($existingIds, $submittedIds);
+        if (!empty($idsToDelete)) {
+            Machine::whereIn('id', $idsToDelete)->delete();
+        }
+
         $keptIds = [];
 
         foreach ($machines as $machineData) {
@@ -217,11 +287,6 @@ class StoreController extends Controller
 
             $newMachine = $store->machines()->create($payload);
             $keptIds[] = $newMachine->id;
-        }
-
-        $idsToDelete = array_diff($existingIds, $keptIds);
-        if (!empty($idsToDelete)) {
-            Machine::whereIn('id', $idsToDelete)->delete();
         }
     }
 }

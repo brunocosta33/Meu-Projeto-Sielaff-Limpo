@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Machine;
 use App\Models\Store;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class MachineController extends Controller
 {
@@ -12,6 +13,7 @@ class MachineController extends Controller
     {
         $query = Machine::with('store')
             ->join('stores', 'machines.store_id', '=', 'stores.id')
+            ->whereNull('stores.deleted_at')
             ->orderBy('stores.codigo_loja', 'asc')
             ->select('machines.*');
 
@@ -51,8 +53,8 @@ class MachineController extends Controller
     {
         $request->validate([
             'store_id'      => 'required|exists:stores,id',
-            'serial_number' => 'required|unique:machines,serial_number',
-            'ip_address'    => 'nullable|ip|unique:machines,ip_address', // 🔹 agora o IP também tem de ser único
+            'serial_number' => ['required', $this->uniqueActiveStoreMachine('serial_number')],
+            'ip_address'    => ['nullable', 'ip', $this->uniqueActiveStoreMachine('ip_address')],
             'descricao'     => 'nullable|string',
         ]);
 
@@ -73,8 +75,8 @@ class MachineController extends Controller
 
         $request->validate([
             'store_id'      => 'required|exists:stores,id',
-            'serial_number' => 'required|unique:machines,serial_number,' . $machine->id,
-            'ip_address'    => 'nullable|ip|unique:machines,ip_address,' . $machine->id, // 🔹 ignora a própria máquina
+            'serial_number' => ['required', $this->uniqueActiveStoreMachine('serial_number', $machine->id)],
+            'ip_address'    => ['nullable', 'ip', $this->uniqueActiveStoreMachine('ip_address', $machine->id)],
             'descricao'     => 'nullable|string',
         ]);
 
@@ -95,7 +97,22 @@ class MachineController extends Controller
 
     public function getByStore($storeId)
     {
-        $machines = Machine::where('store_id', $storeId)->get();
+        $machines = Machine::where('store_id', $storeId)
+            ->whereHas('store')
+            ->get();
         return response()->json($machines);
+    }
+
+    private function uniqueActiveStoreMachine(string $column, ?int $ignoreId = null)
+    {
+        return Rule::unique('machines', $column)
+            ->ignore($ignoreId)
+            ->where(function ($query) {
+                $query->whereIn('store_id', function ($storeQuery) {
+                    $storeQuery->select('id')
+                        ->from('stores')
+                        ->whereNull('deleted_at');
+                });
+            });
     }
 }
