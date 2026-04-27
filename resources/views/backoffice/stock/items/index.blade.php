@@ -48,25 +48,31 @@
                 </div>
 
                 <div class="row mt-4">
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-6 col-xl mb-3">
                         <div class="border rounded p-3 h-100 bg-light">
                             <div class="text-muted small text-uppercase">{{ __('Peças') }}</div>
                             <div class="h3 mb-0" data-summary-field="items">{{ $summary['items'] }}</div>
                         </div>
                     </div>
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-6 col-xl mb-3">
                         <div class="border rounded p-3 h-100 bg-light">
                             <div class="text-muted small text-uppercase">{{ __('Stock em armazém') }}</div>
                             <div class="h3 mb-0" data-summary-field="warehouse_stock">{{ $summary['warehouse_stock'] }}</div>
                         </div>
                     </div>
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-6 col-xl mb-3">
                         <div class="border rounded p-3 h-100 bg-light">
                             <div class="text-muted small text-uppercase">{{ __('Stock em técnicos') }}</div>
                             <div class="h3 mb-0" data-summary-field="technician_stock">{{ $summary['technician_stock'] }}</div>
                         </div>
                     </div>
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-6 col-xl mb-3">
+                        <div class="border rounded p-3 h-100 bg-light">
+                            <div class="text-muted small text-uppercase">{{ __('Stock total') }}</div>
+                            <div class="h3 mb-0" data-summary-field="total_stock">{{ $summary['total_stock'] }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-xl mb-3">
                         <div class="border rounded p-3 h-100 {{ $summary['low_stock'] > 0 ? 'bg-warning' : 'bg-light' }}" data-summary-card="low_stock">
                             <div class="text-muted small text-uppercase">{{ __('Abaixo do mínimo') }}</div>
                             <div class="h3 mb-0" data-summary-field="low_stock">{{ $summary['low_stock'] }}</div>
@@ -118,6 +124,7 @@
                                 <th>{{ __('Armazém') }}</th>
                                 <th>{{ __('Mínimo') }}</th>
                                 <th>{{ __('Técnicos') }}</th>
+                                <th>{{ __('Total') }}</th>
                                 <th>{{ __('Estado') }}</th>
                                 @if($canManageWarehouse)
                                     <th class="text-right">{{ __('Ações') }}</th>
@@ -128,6 +135,7 @@
                             @forelse($items as $item)
                                 @php
                                     $technicianStockTotal = (int) ($item->technician_stock_total ?? 0);
+                                    $totalStock = (int) $item->warehouse_stock + $technicianStockTotal;
                                     $isLow = $item->warehouse_stock <= $item->minimum_stock;
                                 @endphp
                                 <tr data-item-row="{{ $item->id }}">
@@ -144,6 +152,9 @@
                                     <td data-item-field="minimum_stock">{{ $item->minimum_stock }}</td>
                                     <td data-item-field="technician_stock_total">{{ $technicianStockTotal }}</td>
                                     <td>
+                                        <strong data-item-field="total_stock">{{ $totalStock }}</strong>
+                                    </td>
+                                    <td>
                                         <span class="badge {{ $item->is_active ? 'badge-success' : 'badge-secondary' }}" data-item-field="is_active">
                                             {{ $item->is_active ? __('Ativa') : __('Inativa') }}
                                         </span>
@@ -158,7 +169,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="{{ $canManageWarehouse ? 7 : 6 }}" class="text-center text-muted py-4">
+                                    <td colspan="{{ $canManageWarehouse ? 8 : 7 }}" class="text-center text-muted py-4">
                                         {{ __('Ainda não existem peças registadas.') }}
                                     </td>
                                 </tr>
@@ -319,6 +330,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const technicianStock = row.querySelector('[data-item-field="technician_stock_total"]');
         if (technicianStock) {
             technicianStock.textContent = item.technician_stock_total;
+        }
+
+        const totalStock = row.querySelector('[data-item-field="total_stock"]');
+        if (totalStock) {
+            totalStock.textContent = item.total_stock;
         }
 
         const activeBadge = row.querySelector('[data-item-field="is_active"]');

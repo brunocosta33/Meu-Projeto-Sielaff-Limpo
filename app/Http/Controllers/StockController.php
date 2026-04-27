@@ -54,6 +54,7 @@ class StockController extends Controller
                 'items' => $items->count(),
                 'warehouse_stock' => $items->sum('warehouse_stock'),
                 'technician_stock' => $items->sum(fn ($item) => (int) ($item->technician_stock_total ?? 0)),
+                'total_stock' => $items->sum(fn ($item) => (int) $item->warehouse_stock + (int) ($item->technician_stock_total ?? 0)),
                 'low_stock' => $items->filter(fn ($item) => $item->warehouse_stock <= $item->minimum_stock)->count(),
             ],
             'canManageWarehouse' => $this->canManageWarehouse(),
@@ -469,6 +470,7 @@ class StockController extends Controller
             'warehouse_stock' => $item->warehouse_stock,
             'minimum_stock' => $item->minimum_stock,
             'technician_stock_total' => (int) ($item->technician_stock_total ?? 0),
+            'total_stock' => (int) $item->warehouse_stock + (int) ($item->technician_stock_total ?? 0),
             'is_active' => (bool) $item->is_active,
             'is_low_stock' => $item->warehouse_stock <= $item->minimum_stock,
         ];
@@ -484,6 +486,7 @@ class StockController extends Controller
             'items' => $items->count(),
             'warehouse_stock' => $items->sum('warehouse_stock'),
             'technician_stock' => $items->sum(fn ($item) => (int) ($item->technician_stock_total ?? 0)),
+            'total_stock' => $items->sum(fn ($item) => (int) $item->warehouse_stock + (int) ($item->technician_stock_total ?? 0)),
             'low_stock' => $items->filter(fn ($item) => $item->warehouse_stock <= $item->minimum_stock)->count(),
         ];
     }

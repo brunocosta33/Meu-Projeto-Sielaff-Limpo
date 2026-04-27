@@ -40,19 +40,22 @@ class StockItemsExport implements FromCollection, WithHeadings, WithStyles
         }
 
         return $query->get()->map(function (Item $item) {
+            $technicianStockTotal = (int) ($item->technician_stock_total ?? 0);
+
             return [
                 __('Referência') => $item->reference,
                 __('Nome') => $item->name,
                 __('Stock Armazém') => $item->warehouse_stock,
                 __('Stock Mínimo') => $item->minimum_stock,
-                __('Stock Técnicos') => (int) ($item->technician_stock_total ?? 0),
+                __('Stock Técnicos') => $technicianStockTotal,
+                __('Stock Total') => (int) $item->warehouse_stock + $technicianStockTotal,
             ];
         });
     }
 
     public function headings(): array
     {
-        return [__('Referência'), __('Nome'), __('Stock Armazém'), __('Stock Mínimo'), __('Stock Técnicos')];
+        return [__('Referência'), __('Nome'), __('Stock Armazém'), __('Stock Mínimo'), __('Stock Técnicos'), __('Stock Total')];
     }
 
     public function styles(Worksheet $sheet)
@@ -62,7 +65,7 @@ class StockItemsExport implements FromCollection, WithHeadings, WithStyles
             'fill' => ['fillType' => 'solid', 'color' => ['rgb' => '0F5BCF']],
         ]);
 
-        foreach (range('A', 'E') as $col) {
+        foreach (range('A', 'F') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
