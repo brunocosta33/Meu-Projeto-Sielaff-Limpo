@@ -255,18 +255,161 @@
     }
 
     @media (max-width: 767.98px) {
+        .technical-request-show-card {
+            border-radius: 8px;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08) !important;
+        }
+
         .technical-request-show-header,
         .technical-request-show-body {
-            padding: 1rem;
+            padding: 0.65rem;
         }
 
         .technical-request-show-title {
             align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .technical-request-show-icon {
+            width: 34px;
+            height: 34px;
+            flex-basis: 34px;
+            border-radius: 7px;
+            font-size: 0.85rem;
+        }
+
+        .technical-request-show-header h5 {
+            font-size: 0.92rem;
+            line-height: 1.2;
+            margin-bottom: 0.15rem !important;
+        }
+
+        .technical-request-show-header .text-muted {
+            font-size: 0.68rem;
+            line-height: 1.25;
+        }
+
+        .technical-request-show-header .mt-3 {
+            display: flex;
+            gap: 5px;
+            width: 100%;
+            margin-top: 0.55rem !important;
+        }
+
+        .technical-request-show-header .btn {
+            flex: 1 1 0;
+            min-width: 0;
+            padding: 0.32rem 0.42rem;
+            border-radius: 7px;
+            font-size: 0.66rem;
+            line-height: 1.1;
+            white-space: normal;
+        }
+
+        .technical-request-show-body > .row {
+            margin-right: -4px;
+            margin-left: -4px;
+        }
+
+        .technical-request-show-body > .row > [class*="col-"] {
+            padding-right: 4px;
+            padding-left: 4px;
+            margin-bottom: 0.45rem !important;
+        }
+
+        .technical-request-info-card {
+            border-left-width: 4px;
+            border-radius: 8px;
+            box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06);
+        }
+
+        .technical-request-info-header {
+            gap: 0.35rem;
+            padding: 0.45rem 0.55rem;
+            font-size: 0.62rem;
+            line-height: 1.1;
+            letter-spacing: 0.02em;
+        }
+
+        .technical-request-info-header i {
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            font-size: 0.68rem;
+        }
+
+        .technical-request-info-body {
+            padding: 0.45rem 0.55rem;
         }
 
         .technical-request-field {
-            grid-template-columns: 1fr;
-            gap: 0.2rem;
+            grid-template-columns: minmax(82px, 34%) minmax(0, 1fr);
+            gap: 0.35rem;
+            padding: 0.28rem 0;
+            align-items: start;
+        }
+
+        .technical-request-field-label {
+            font-size: 0.62rem;
+            line-height: 1.15;
+        }
+
+        .technical-request-field-value {
+            font-size: 0.68rem;
+            line-height: 1.25;
+            overflow-wrap: anywhere;
+        }
+
+        .technical-request-brand-badge {
+            margin-left: 0.2rem;
+            padding: 0.14rem 0.32rem;
+            border-radius: 6px;
+            font-size: 0.52rem;
+            letter-spacing: 0;
+            line-height: 1.05;
+        }
+
+        .technical-request-address {
+            display: flex;
+            align-items: flex-start;
+            gap: 4px;
+            width: 100%;
+            margin-top: 0.2rem;
+            padding: 0.32rem 0.42rem;
+            border-radius: 7px;
+            font-size: 0.62rem;
+            line-height: 1.18;
+            overflow-wrap: anywhere;
+        }
+
+        .technical-request-schedule-highlight,
+        .technical-request-resolution-highlight {
+            display: flex;
+            align-items: flex-start;
+            gap: 5px;
+            max-width: 100%;
+            padding: 0.36rem 0.45rem;
+            border-radius: 7px;
+            font-size: 0.62rem;
+            line-height: 1.18;
+            box-shadow: none;
+            overflow-wrap: anywhere;
+        }
+
+        .technical-request-text-block {
+            min-height: 54px;
+            padding: 0.5rem;
+            border-radius: 7px;
+            font-size: 0.7rem;
+            line-height: 1.35;
+            overflow-wrap: anywhere;
+        }
+
+        .technical-request-field-value .badge {
+            padding: 0.18rem 0.34rem;
+            border-radius: 6px;
+            font-size: 0.58rem;
+            line-height: 1.1;
         }
     }
 </style>

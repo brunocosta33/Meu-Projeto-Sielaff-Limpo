@@ -270,29 +270,176 @@
     }
 
     @media (max-width: 767.98px) {
-        .technical-request-header,
+        .technical-request-card {
+            border-radius: 8px;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08) !important;
+        }
+
+        .technical-request-header {
+            padding: 0.65rem;
+        }
+
         .technical-request-body {
-            padding: 1rem;
+            padding: 0.55rem;
         }
 
         .technical-request-title-wrap {
             align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .technical-request-title-icon {
+            width: 34px;
+            height: 34px;
+            flex-basis: 34px;
+            border-radius: 7px;
+            font-size: 0.85rem;
+        }
+
+        .technical-request-card .card-title {
+            font-size: 0.92rem;
+            line-height: 1.2;
+            margin-bottom: 0.15rem !important;
+        }
+
+        .technical-request-header .text-muted {
+            font-size: 0.68rem;
+            line-height: 1.25;
+        }
+
+        .technical-request-header .mt-3 {
+            width: 100%;
+            margin-top: 0.55rem !important;
+        }
+
+        .technical-request-header .btn {
+            width: 100%;
+            padding: 0.32rem 0.42rem;
+            border-radius: 7px;
+            font-size: 0.66rem;
+            line-height: 1.1;
+            white-space: normal;
+        }
+
+        .technical-request-note {
+            margin-bottom: 0.55rem;
+            padding: 0.45rem !important;
+            border-left-width: 4px !important;
+            border-radius: 7px;
+            font-size: 0.66rem;
+            line-height: 1.25;
+            box-shadow: none;
+        }
+
+        .technical-request-body > .row {
+            margin-right: -4px;
+            margin-left: -4px;
+        }
+
+        .technical-request-body > .row > [class*="col-"] {
+            padding-right: 4px;
+            padding-left: 4px;
+        }
+
+        .technical-request-section {
+            border-left-width: 4px !important;
+            border-radius: 8px !important;
+            box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06);
         }
 
         .technical-request-section:hover {
             transform: none;
         }
 
+        .technical-request-section h6 {
+            gap: 0.35rem;
+            margin: -1rem -1rem 0.55rem -1rem;
+            padding: 0.45rem 0.55rem;
+            font-size: 0.62rem;
+            line-height: 1.1;
+        }
+
+        .technical-request-section h6 i {
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            font-size: 0.68rem;
+        }
+
+        .technical-request-section .p-3,
+        .technical-request-section {
+            padding: 0.65rem !important;
+        }
+
+        .technical-request-card label {
+            font-size: 0.66rem;
+            line-height: 1.15;
+            margin-bottom: 0.18rem;
+        }
+
+        .technical-request-card .form-group,
+        .technical-request-card .mb-3 {
+            margin-bottom: 0.48rem !important;
+        }
+
+        .technical-request-section .form-control,
+        .technical-request-section .bootstrap-select > .dropdown-toggle {
+            min-height: 32px;
+            height: 32px;
+            padding: 0.28rem 0.45rem;
+            border-radius: 7px;
+            font-size: 0.72rem;
+            line-height: 1.15;
+        }
+
+        .technical-request-section textarea.form-control {
+            height: auto;
+            min-height: 68px;
+            line-height: 1.3;
+        }
+
+        .technical-request-section .bootstrap-select,
+        .technical-request-section .bootstrap-select > .dropdown-toggle {
+            width: 100% !important;
+        }
+
+        .technical-request-section .bootstrap-select .filter-option-inner,
+        .technical-request-section .bootstrap-select .filter-option-inner-inner {
+            font-size: 0.72rem;
+            line-height: 1.15;
+        }
+
+        .technical-request-section small.text-muted,
+        .technical-request-card .text-muted,
+        .technical-request-card .small {
+            font-size: 0.62rem;
+            line-height: 1.2;
+            overflow-wrap: anywhere;
+        }
+
+        #store_summary {
+            padding: 0.45rem !important;
+            margin-bottom: 0.48rem !important;
+            border-radius: 7px !important;
+        }
+
         .technical-request-actions {
             align-items: stretch;
-            flex-direction: column;
-            margin-right: -1rem;
-            margin-left: -1rem;
-            margin-bottom: -1rem;
+            flex-direction: row;
+            gap: 5px;
+            margin: 0.55rem -0.55rem -0.55rem -0.55rem;
+            padding: 0.5rem 0.55rem;
         }
 
         .technical-request-actions .btn {
-            width: 100%;
+            flex: 1 1 0;
+            width: auto;
+            min-width: 0;
+            padding: 0.36rem 0.42rem;
+            border-radius: 7px;
+            font-size: 0.68rem;
+            line-height: 1.1;
+            white-space: normal;
         }
     }
 </style>
