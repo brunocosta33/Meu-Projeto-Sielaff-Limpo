@@ -64,9 +64,9 @@
                 </div>
 
                 <div class="form-group">
-                    <label>{{ __('PDFs Relacionados') }}</label>
-                    <input type="file" name="pdfs[]" class="form-control" accept="application/pdf" multiple>
-                    <small class="form-text text-muted">Pode selecionar vários ficheiros PDF.</small>
+                    <label>{{ __('Ficheiros relacionados') }}</label>
+                    <input type="file" name="pdfs[]" class="form-control" accept="application/pdf,image/*" multiple>
+                    <small class="form-text text-muted">{{ __('Pode selecionar vários PDFs ou imagens.') }}</small>
                 </div>
 
                 <input type="hidden" name="page" value="{{ request('page') }}">

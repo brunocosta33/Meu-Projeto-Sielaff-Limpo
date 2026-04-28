@@ -1168,9 +1168,37 @@
             padding: 0.45rem !important;
         }
 
-        .hotline-panel-header,
-        .hotline-open-callout {
+        .hotline-panel-header {
             display: none !important;
+        }
+
+        .hotline-open-callout {
+            display: flex !important;
+            gap: 6px !important;
+            margin-bottom: 0.45rem !important;
+            padding: 0.45rem !important;
+            border-radius: 8px !important;
+            box-shadow: none !important;
+        }
+
+        .hotline-open-callout-title {
+            font-size: 0.72rem !important;
+            line-height: 1.15 !important;
+            margin-bottom: 0.1rem !important;
+        }
+
+        .hotline-open-callout-copy {
+            font-size: 0.58rem !important;
+            line-height: 1.2 !important;
+            margin-bottom: 0 !important;
+        }
+
+        .hotline-open-callout .btn {
+            min-height: 28px !important;
+            padding: 0.24rem 0.45rem !important;
+            border-radius: 7px !important;
+            font-size: 0.66rem !important;
+            line-height: 1.1 !important;
         }
 
         .hotline-filter-box {

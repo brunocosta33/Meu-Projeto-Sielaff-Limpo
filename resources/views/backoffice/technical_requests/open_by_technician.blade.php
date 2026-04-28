@@ -278,50 +278,92 @@
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
-        .open-tech-panel {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
+        .open-tech-table {
+            display: table;
+            width: 100%;
+            min-width: 0;
+            table-layout: fixed;
+            border: 1px solid #dbe5f0;
+            font-size: 0.52rem;
         }
 
-        .open-tech-table {
-            font-size: 0.7rem;
-            min-width: 760px;
-            table-layout: auto;
+        .open-tech-table thead {
+            display: table-header-group;
+        }
+
+        .open-tech-table tbody {
+            display: table-row-group;
+        }
+
+        .open-tech-table tr {
+            display: table-row;
         }
 
         .open-tech-table td,
         .open-tech-table th {
-            padding: 0.48rem 0.55rem;
+            display: table-cell;
+            padding: 0.18rem 0.16rem;
+            vertical-align: middle;
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+            overflow-wrap: anywhere;
+            word-break: normal;
+            line-height: 1.12;
         }
 
-        .open-tech-table .open-col-brand {
-            width: 8%;
+        .open-tech-table thead th {
+            font-size: 0.45rem;
+            letter-spacing: 0;
+        }
+
+        .open-tech-table .open-col-brand,
+        .open-tech-table td.open-col-brand {
+            display: none;
         }
 
         .open-tech-table .open-col-serial {
-            width: 9%;
+            width: 13%;
         }
 
         .open-tech-table .open-col-status,
         .open-tech-table .open-col-priority {
-            width: 12%;
+            width: 14%;
+        }
+
+        .open-tech-table .open-col-date {
+            width: 11%;
         }
 
         .open-tech-table .open-col-action {
             width: 9%;
         }
 
+        .open-tech-table .open-col-description,
+        .open-tech-table td.open-tech-description {
+            display: none;
+        }
+
         .open-brand-badge,
         .open-status-badge,
         .open-priority-badge {
-            padding: 0.26rem 0.55rem;
-            font-size: 0.66rem;
+            padding: 0.12rem 0.22rem;
+            border-radius: 5px;
+            font-size: 0.44rem;
+            letter-spacing: 0;
+            white-space: normal;
+            line-height: 1.05;
+            max-width: 100%;
+            overflow-wrap: anywhere;
         }
 
         .open-tech-store,
         .open-tech-address,
         .open-tech-muted {
-            font-size: 0.72rem;
+            font-size: 0.52rem;
+            line-height: 1.12;
+            white-space: normal;
+            overflow-wrap: anywhere;
         }
 
         .open-tech-address {
@@ -329,14 +371,12 @@
         }
 
         .open-tech-table .btn {
-            padding: 0.22rem 0.45rem;
-            font-size: 0.68rem;
+            padding: 0.12rem 0.22rem;
+            border-radius: 5px;
+            font-size: 0.48rem;
+            line-height: 1.05;
         }
 
-        .open-tech-table td.open-tech-description {
-            max-width: 150px;
-            white-space: nowrap;
-        }
     }
 </style>
 @endsection
@@ -397,7 +437,7 @@
                             <th class="open-col-status">{{ __('Estado') }}</th>
                             <th class="open-col-priority">{{ __('Prioridade') }}</th>
                             <th class="open-col-date">{{ __('Pedido') }}</th>
-                            <th>{{ __('Descrição') }}</th>
+                            <th class="open-col-description">{{ __('Descrição') }}</th>
                             <th class="open-col-action">{{ __('Abrir') }}</th>
                         </tr>
                     </thead>

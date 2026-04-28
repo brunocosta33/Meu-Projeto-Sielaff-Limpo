@@ -559,8 +559,8 @@
                                             @if($installation->pdfs && count($installation->pdfs) > 0)
                                                 <div class="installation-pdf-list">
                                                     @foreach($installation->pdfs as $pdf)
-                                                        <a href="{{ asset('storage/' . $pdf->file_path) }}" target="_blank" class="badge badge-info" title="{{ __('Abrir PDF:') }} {{ $pdf->file_name }}">
-                                                            <i class="fa fa-file-pdf mr-1"></i>{{ __('PDF') }} {{ strtok($pdf->file_name, ' ') }}
+                                                        <a href="{{ asset('storage/' . $pdf->file_path) }}" target="_blank" class="badge {{ $pdf->isImage() ? 'badge-success' : 'badge-info' }}" title="{{ __('Abrir ficheiro:') }} {{ $pdf->file_name }}">
+                                                            <i class="fa {{ $pdf->isImage() ? 'fa-image' : 'fa-file-pdf' }} mr-1"></i>{{ $pdf->isImage() ? __('IMG') : __('PDF') }} {{ strtok($pdf->file_name, ' ') }}
                                                         </a>
                                                     @endforeach
                                                 </div>

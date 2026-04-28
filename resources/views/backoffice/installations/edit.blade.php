@@ -76,9 +76,9 @@
                 </div>
 
                 <div class="form-group mt-3">
-                    <label>{{ __('Adicionar PDFs Relacionados') }}</label>
-                    <input type="file" name="pdfs[]" class="form-control" accept="application/pdf" multiple>
-                    <small class="form-text text-muted">{{ __('Pode selecionar vários ficheiros PDF') }}</small>
+                    <label>{{ __('Adicionar ficheiros relacionados') }}</label>
+                    <input type="file" name="pdfs[]" class="form-control" accept="application/pdf,image/*" multiple>
+                    <small class="form-text text-muted">{{ __('Pode selecionar vários PDFs ou imagens.') }}</small>
                 </div>
 
                 <input type="hidden" name="page" value="{{ request('page') }}">
@@ -88,15 +88,19 @@
                 {!! Form::close() !!}
                 {{-- FIM FORM DE EDIÇÃO --}}
 
-                {{-- PDFS ASSOCIADOS --}}
+                {{-- FICHEIROS ASSOCIADOS --}}
                 <div class="form-group mt-4">
-                    <label class="mb-2">{{ __('PDFs já associados') }}</label>
+                    <label class="mb-2">{{ __('Ficheiros já associados') }}</label>
                     @if($installation->pdfs->count())
                         <ul class="list-group">
                             @foreach($installation->pdfs as $pdf)
                                 <li class="list-group-item d-flex justify-content-between align-items-center" style="background: #f8f9fa; border-radius: 8px; margin-bottom: 6px;">
                                     <div class="d-flex align-items-center gap-2">
-                                        <i class="fas fa-file-pdf text-danger fa-lg me-2"></i>
+                                        @if($pdf->isImage())
+                                            <img src="{{ asset('storage/' . $pdf->file_path) }}" alt="{{ $pdf->file_name }}" style="width: 42px; height: 42px; object-fit: cover; border-radius: 6px; margin-right: 8px;">
+                                        @else
+                                            <i class="fas fa-file-pdf text-danger fa-lg me-2"></i>
+                                        @endif
                                         <span class="fw-semibold">{{ $pdf->file_name }}</span>
                                     </div>
                                     <div class="d-flex gap-2">
@@ -111,7 +115,7 @@
                             @endforeach
                         </ul>
                     @else
-                        <p class="text-muted">{{ __('Nenhum PDF associado.') }}</p>
+                        <p class="text-muted">{{ __('Nenhum ficheiro associado.') }}</p>
                     @endif
                 </div>
             </div>

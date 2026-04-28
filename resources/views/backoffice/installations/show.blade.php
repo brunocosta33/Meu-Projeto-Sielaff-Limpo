@@ -22,13 +22,17 @@
                 </ul>
 
                 <div class="mb-4">
-                    <h5 class="mb-2">{{ __('PDFs Relacionados') }}</h5>
+                    <h5 class="mb-2">{{ __('Ficheiros Relacionados') }}</h5>
                     @if($installation->pdfs->count())
                         <ul class="list-group">
                             @foreach($installation->pdfs as $pdf)
                                 <li class="list-group-item d-flex justify-content-between align-items-center" style="background: #f8f9fa; border-radius: 8px; margin-bottom: 6px;">
                                     <div class="d-flex align-items-center gap-2">
-                                        <i class="fas fa-file-pdf text-danger fa-lg me-2"></i>
+                                        @if($pdf->isImage())
+                                            <img src="{{ asset('storage/' . $pdf->file_path) }}" alt="{{ $pdf->file_name }}" style="width: 42px; height: 42px; object-fit: cover; border-radius: 6px; margin-right: 8px;">
+                                        @else
+                                            <i class="fas fa-file-pdf text-danger fa-lg me-2"></i>
+                                        @endif
                                         <span class="fw-semibold">{{ $pdf->file_name }}</span>
                                     </div>
                                     <div class="d-flex gap-2">
@@ -43,7 +47,7 @@
                             @endforeach
                         </ul>
                     @else
-                        <p class="text-muted">{{ __('Nenhum PDF relacionado.') }}</p>
+                        <p class="text-muted">{{ __('Nenhum ficheiro relacionado.') }}</p>
                     @endif
                 </div>
 

@@ -338,79 +338,95 @@
             font-size: 0.72rem;
         }
 
-        .open-tech-table,
-        .open-tech-table tbody,
-        .open-tech-table tr,
-        .open-tech-table td {
-            display: block;
-            width: 100%;
-        }
-
         .open-tech-table {
-            border: 0;
-            font-size: 0.86rem;
+            display: table;
+            width: 100%;
+            min-width: 0;
+            table-layout: fixed;
+            border: 1px solid #dbe5f0;
+            font-size: 0.5rem;
         }
 
         .open-tech-table thead {
+            display: table-header-group;
+        }
+
+        .open-tech-table tbody {
+            display: table-row-group;
+        }
+
+        .open-tech-table tr {
+            display: table-row;
+        }
+
+        .open-tech-table td,
+        .open-tech-table th {
+            display: table-cell;
+            padding: 0.16rem 0.13rem;
+            vertical-align: middle;
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+            overflow-wrap: anywhere;
+            word-break: normal;
+            line-height: 1.1;
+        }
+
+        .open-tech-table thead th {
+            font-size: 0.43rem;
+            letter-spacing: 0;
+        }
+
+        .open-tech-table .open-col-brand,
+        .open-tech-table td.open-col-brand {
             display: none;
         }
 
-        .open-tech-table tbody tr {
-            border: 1px solid #dbe5f0;
-            border-radius: 16px;
-            margin-bottom: 0.75rem;
-            overflow: hidden;
-            background: #fff;
-            box-shadow: 0 10px 22px rgba(19, 34, 56, 0.06);
+        .open-tech-table .open-col-serial {
+            width: 12%;
         }
 
-        .open-tech-table td {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.75rem;
-            padding: 0.55rem 0.75rem;
-            border: 0;
-            border-bottom: 1px solid #edf2f8;
-            white-space: normal;
-            overflow: visible;
+        .open-tech-table .open-col-status,
+        .open-tech-table .open-col-priority {
+            width: 13%;
         }
 
-        .open-tech-table td:last-child {
-            border-bottom: 0;
+        .open-tech-table .open-col-date {
+            width: 10%;
         }
 
-        .open-tech-table td::before {
-            content: attr(data-label);
-            flex: 0 0 34%;
-            color: #6c7a89;
-            font-size: 0.68rem;
-            font-weight: 800;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
+        .open-tech-table .open-col-action {
+            width: 8%;
         }
 
-        .open-tech-table td.open-tech-main {
-            display: block;
-            padding: 0.75rem;
-            background: linear-gradient(135deg, #f8fbff 0%, #eef4fb 100%);
+        .open-tech-table .open-col-assign {
+            width: 20%;
         }
 
-        .open-tech-table td.open-tech-main::before {
+        .open-tech-table .open-col-description,
+        .open-tech-table td.open-tech-description {
             display: none;
         }
 
         .open-brand-badge,
         .open-status-badge,
         .open-priority-badge {
-            padding: 0.26rem 0.55rem;
-            font-size: 0.66rem;
+            padding: 0.1rem 0.2rem;
+            border-radius: 5px;
+            font-size: 0.42rem;
+            letter-spacing: 0;
+            white-space: normal;
+            line-height: 1.05;
+            max-width: 100%;
+            overflow-wrap: anywhere;
         }
 
         .open-tech-store,
         .open-tech-address,
         .open-tech-muted {
-            font-size: 0.8rem;
+            font-size: 0.5rem;
+            line-height: 1.1;
+            overflow-wrap: anywhere;
         }
 
         .open-tech-address,
@@ -419,27 +435,27 @@
         }
 
         .open-assign-form {
-            flex-direction: row;
-            gap: 6px;
+            flex-direction: column;
+            gap: 2px;
             width: 100%;
         }
 
         .open-assign-form .form-control {
-            min-height: 34px;
-            padding: 0.25rem 0.45rem;
-            font-size: 0.78rem;
+            min-height: 22px;
+            height: 22px;
+            padding: 0.08rem 0.18rem;
+            border-radius: 5px;
+            font-size: 0.46rem;
         }
 
         .open-assign-form .btn,
         .open-tech-table .btn {
-            padding: 0.28rem 0.55rem;
-            font-size: 0.76rem;
+            padding: 0.1rem 0.2rem;
+            border-radius: 5px;
+            font-size: 0.46rem;
+            line-height: 1.05;
         }
 
-        .open-tech-table td.open-tech-description {
-            max-width: none;
-            white-space: normal;
-        }
     }
 
 </style>
@@ -528,9 +544,9 @@
                                         <th class="open-col-priority">{{ __('Prioridade') }}</th>
                                         <th class="open-col-date">{{ __('Pedido') }}</th>
                                         @if($includeUnassigned ?? false)
-                                            <th>{{ __('Atribuir') }}</th>
+                                            <th class="open-col-assign">{{ __('Atribuir') }}</th>
                                         @endif
-                                        <th>{{ __('Descrição') }}</th>
+                                        <th class="open-col-description">{{ __('Descrição') }}</th>
                                         <th class="open-col-action">{{ __('Abrir') }}</th>
                                     </tr>
                                 </thead>
@@ -580,7 +596,7 @@
                                             </td>
                                             <td class="open-col-date" data-label="{{ __('Pedido') }}">{{ optional($technicalRequest->data_pedido)->format('d/m/Y') ?: '-' }}</td>
                                             @if($includeUnassigned ?? false)
-                                                <td data-label="{{ __('Atribuir') }}">
+                                                <td class="open-col-assign" data-label="{{ __('Atribuir') }}">
                                                     <form method="POST" action="{{ route('backoffice.technical_requests.assign_technician', $technicalRequest->id) }}" class="open-assign-form">
                                                         @csrf
                                                         @method('PATCH')

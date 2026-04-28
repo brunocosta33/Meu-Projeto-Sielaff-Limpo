@@ -75,39 +75,23 @@ class InstallationController extends Controller
 
     public function store(Request $request)
     {
+        $this->validateFiles($request);
+
         $installation = Installation::create($request->all());
 
-        // Salvar PDFs enviados
-        if ($request->hasFile('pdfs')) {
-            foreach ($request->file('pdfs') as $pdf) {
-                $path = $pdf->store('installations_pdfs', 'public');
-                \App\Models\InstallationPdf::create([
-                    'installation_id' => $installation->id,
-                    'file_path' => $path,
-                    'file_name' => $pdf->getClientOriginalName(),
-                ]);
-            }
-        }
+        $this->storeFiles($request, $installation);
 
         flash('Instalação criada com sucesso!')->success();
         return redirect()->route('backoffice.installations.index');
     }
     public function update(Request $request, $id)
     {
+        $this->validateFiles($request);
+
         $installation = Installation::findOrFail($id);
         $installation->update($request->all());
 
-        // Salvar PDFs enviados
-        if ($request->hasFile('pdfs')) {
-            foreach ($request->file('pdfs') as $pdf) {
-                $path = $pdf->store('installations_pdfs', 'public');
-                \App\Models\InstallationPdf::create([
-                    'installation_id' => $installation->id,
-                    'file_path' => $path,
-                    'file_name' => $pdf->getClientOriginalName(),
-                ]);
-            }
-        }
+        $this->storeFiles($request, $installation);
 
         flash('Instalação atualizada com sucesso!')->success();
 
@@ -140,9 +124,36 @@ class InstallationController extends Controller
         $pdf = \App\Models\InstallationPdf::findOrFail($id);
         Storage::disk('public')->delete($pdf->file_path);
         $pdf->delete();
-        flash('PDF apagado com sucesso!')->success();
+        flash('Ficheiro apagado com sucesso!')->success();
         return back();
     }
 
+    private function storeFiles(Request $request, Installation $installation): void
+    {
+        if (!$request->hasFile('pdfs')) {
+            return;
+        }
+
+        foreach ($request->file('pdfs') as $file) {
+            $path = $file->store('installations_files', 'public');
+
+            \App\Models\InstallationPdf::create([
+                'installation_id' => $installation->id,
+                'file_path' => $path,
+                'file_name' => $file->getClientOriginalName(),
+            ]);
+        }
+    }
+
+    private function validateFiles(Request $request): void
+    {
+        if (!$request->hasFile('pdfs')) {
+            return;
+        }
+
+        $request->validate([
+            'pdfs.*' => 'file|mimes:pdf,jpg,jpeg,png,gif,webp|max:10240',
+        ]);
+    }
 
 }
