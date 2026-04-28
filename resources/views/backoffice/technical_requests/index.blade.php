@@ -20,6 +20,8 @@
         --hotline-dark-surface: #eef3f9;
         --hotline-shadow: 0 18px 40px rgba(19, 34, 56, 0.08);
         position: relative;
+        max-width: 100%;
+        overflow-x: hidden;
     }
 
     .hotline-page::before {
@@ -98,6 +100,7 @@
     .hotline-stat {
         display: block;
         color: inherit;
+        min-width: 0;
         border: 1px solid var(--hotline-border);
         border-radius: 22px;
         box-shadow: 0 14px 32px rgba(19, 34, 56, 0.06);
@@ -130,6 +133,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: 10px;
         margin-bottom: 0.7rem;
     }
 
@@ -149,6 +153,7 @@
         display: flex;
         align-items: flex-end;
         justify-content: space-between;
+        flex-wrap: wrap;
         gap: 10px;
     }
 
@@ -620,194 +625,725 @@
         }
     }
 
-    @media (max-width: 575.98px) {
-        .hotline-page::before {
-            inset: -12px 0 auto;
-            height: 180px;
-        }
-
-        .hotline-hero {
-            border-radius: 18px;
-            padding: 18px 16px;
-        }
-
-        .hotline-hero-kicker {
-            font-size: 0.7rem;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.75rem;
-        }
-
-        .hotline-hero-title {
-            font-size: 1.35rem;
-        }
-
-        .hotline-hero-copy {
-            font-size: 0.9rem;
-            line-height: 1.5;
-        }
-
-        .hotline-hero-actions {
-            width: 100%;
-        }
-
-        .hotline-hero-actions .btn {
-            width: 100%;
-            margin-right: 0 !important;
-            padding: 0.72rem 0.95rem;
-        }
-
-        .hotline-stats-row {
-            margin-bottom: 0.5rem !important;
-        }
-
-        .hotline-stat {
-            border-radius: 16px;
-        }
-
-        .hotline-stat .card-body {
-            padding: 0.95rem 1rem;
-        }
-
-        .hotline-stat-value h3 {
-            font-size: 1.55rem;
-        }
-
-        .hotline-panel {
-            border-radius: 18px;
-        }
-
+    @media (max-width: 767.98px) {
         .hotline-panel .card-body {
-            padding: 1rem;
-        }
-
-        .hotline-panel-header {
-            margin-bottom: 1rem;
-        }
-
-        .hotline-panel-title {
-            font-size: 1rem;
-        }
-
-        .hotline-panel-copy {
-            font-size: 0.88rem;
-            line-height: 1.45;
+            padding: 0.75rem;
         }
 
         .hotline-filter-box {
-            border-radius: 16px;
-            padding: 0.95rem;
+            padding: 0.7rem;
+            border-radius: 12px;
+        }
+
+        .hotline-filter-box .row {
+            margin-right: 0;
+            margin-left: 0;
+        }
+
+        .hotline-filter-box [class*="col-"] {
+            padding-right: 0;
+            padding-left: 0;
+            margin-bottom: 0.5rem !important;
+        }
+
+        .hotline-filter-box label {
+            font-size: 0.68rem;
+            margin-bottom: 0.22rem;
+        }
+
+        .hotline-filter-box .form-control,
+        .hotline-filter-box .bootstrap-select > .dropdown-toggle {
+            min-height: 34px;
+            height: 34px;
+            padding: 0.35rem 0.55rem;
+            border-radius: 9px;
+            font-size: 0.78rem;
+        }
+
+        .hotline-filter-box .bootstrap-select .filter-option-inner-inner {
+            font-size: 0.78rem;
+            line-height: 1.25;
+        }
+
+        .hotline-filter-actions {
+            gap: 6px;
         }
 
         .hotline-filter-actions .btn {
             width: 100%;
-        }
-
-        .hotline-active-filters {
-            gap: 6px;
-        }
-
-        .hotline-filter-chip {
+            padding: 0.48rem 0.65rem;
+            border-radius: 9px;
             font-size: 0.76rem;
-            padding: 0.38rem 0.65rem;
         }
 
         .hotline-grid {
-            gap: 12px;
+            gap: 8px;
         }
 
         .hotline-ticket {
-            border-radius: 18px;
-            padding: 1rem 0.95rem 0.95rem 1rem;
-            gap: 12px;
-            box-shadow: 0 10px 24px rgba(19, 34, 56, 0.08);
+            grid-template-columns: minmax(0, 1fr);
+            gap: 7px;
+            padding: 0.68rem 0.62rem 0.62rem 0.75rem;
+            border-radius: 12px;
+            box-shadow: 0 7px 16px rgba(19, 34, 56, 0.07);
         }
 
         .hotline-ticket::before {
-            width: 5px;
-        }
-
-        .hotline-ticket-header {
-            margin-bottom: 0.55rem;
+            width: 4px;
         }
 
         .hotline-store-title {
-            font-size: 0.95rem;
-            line-height: 1.35;
+            font-size: 0.82rem;
+            line-height: 1.25;
         }
 
         .hotline-store-subtitle {
-            font-size: 0.77rem;
-            line-height: 1.4;
+            font-size: 0.68rem;
+            line-height: 1.28;
+        }
+
+        .hotline-address {
+            width: 100%;
+            padding: 0.38rem 0.5rem;
+            border-radius: 9px;
+            font-size: 0.68rem;
         }
 
         .hotline-meta {
-            font-size: 0.74rem;
-            padding: 0.34rem 0.62rem;
-            gap: 0.35rem;
-            margin: 0.3rem 0.25rem 0 0;
+            font-size: 0.66rem;
+            padding: 0.24rem 0.42rem;
+            margin: 0.2rem 0.16rem 0 0;
+        }
+
+        .hotline-meta-stack {
+            margin-bottom: 0.35rem;
         }
 
         .hotline-snippet {
-            font-size: 0.88rem;
-            line-height: 1.45;
+            font-size: 0.76rem;
+            line-height: 1.32;
         }
 
         .hotline-ticket-section,
         .hotline-actions {
-            border-radius: 14px;
-            padding: 0.8rem;
+            padding: 0.5rem;
+            border-radius: 9px;
         }
 
         .hotline-section-label {
-            font-size: 0.68rem;
-            margin-bottom: 0.28rem;
+            font-size: 0.58rem;
+            margin-bottom: 0.18rem;
         }
 
         .hotline-date-box {
-            padding: 0.65rem 0.72rem;
-        }
-
-        .hotline-date-box strong {
-            font-size: 0.68rem;
+            padding: 0.45rem 0.5rem;
+            border-radius: 8px;
+            font-size: 0.7rem;
         }
 
         .hotline-status-badge,
         .hotline-note-highlight,
         .hotline-schedule-highlight,
         .hotline-resolution-highlight {
-            font-size: 0.76rem;
+            font-size: 0.66rem;
+            white-space: normal;
+            overflow-wrap: anywhere;
         }
 
         .hotline-note-highlight,
         .hotline-schedule-highlight,
         .hotline-resolution-highlight {
-            padding: 0.65rem 0.72rem;
-            border-radius: 12px;
+            margin-top: 0.4rem;
+            padding: 0.45rem 0.5rem;
+            border-radius: 8px;
         }
 
         .hotline-actions {
-            gap: 6px;
+            flex-direction: row;
+            gap: 5px;
         }
 
         .hotline-actions .btn {
-            width: 100%;
-            flex: 1 1 100%;
+            flex: 1 1 0;
+            width: auto;
             min-width: 0;
-            padding: 0.68rem 0.8rem;
+            padding: 0.42rem 0.42rem;
+            border-radius: 8px;
+            font-size: 0.68rem;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        html,
+        body {
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
+        #content {
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
+
+        .hotline-page {
+            width: 100%;
+            max-width: 100vw;
+            margin-right: 0;
+            margin-left: 0;
+            overflow-x: hidden;
+        }
+
+        .hotline-page > .col {
+            min-width: 0;
+            padding-right: 0;
+            padding-left: 0;
+        }
+
+        .hotline-page::before {
+            inset: -12px 0 auto;
+            height: 120px;
+        }
+
+        .hotline-hero {
+            width: 100%;
+            max-width: 100%;
+            border-radius: 14px;
+            padding: 12px;
+            margin-bottom: 0.75rem !important;
+        }
+
+        .hotline-hero-kicker {
+            font-size: 0.62rem;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+            padding: 0.32rem 0.55rem;
+        }
+
+        .hotline-hero-title {
+            font-size: 1.12rem;
+            margin-bottom: 0.25rem !important;
+        }
+
+        .hotline-hero-copy {
+            max-width: 100%;
+            font-size: 0.78rem;
+            line-height: 1.35;
+            overflow-wrap: anywhere;
+        }
+
+        .hotline-hero-actions {
+            width: 100%;
+            min-width: 0;
+        }
+
+        .hotline-hero-actions .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            min-width: 0;
+            margin-right: 0 !important;
+            padding: 0.52rem 0.7rem;
+            font-size: 0.78rem;
+            border-radius: 10px;
+            white-space: normal;
+        }
+
+        .hotline-stats-row {
+            margin-right: 0;
+            margin-left: 0;
+            margin-bottom: 0.4rem !important;
+        }
+
+        .hotline-stats-row > [class*="col-"] {
+            flex: 0 0 50%;
+            max-width: 50%;
+            padding-right: 4px;
+            padding-left: 4px;
+            margin-bottom: 8px !important;
+        }
+
+        .hotline-stat {
+            border-radius: 12px;
+            width: 100%;
+            box-shadow: 0 8px 18px rgba(19, 34, 56, 0.06);
+        }
+
+        .hotline-stat .card-body {
+            padding: 0.62rem 0.68rem;
+        }
+
+        .hotline-stat-top {
+            gap: 6px;
+            margin-bottom: 0.35rem;
+        }
+
+        .hotline-stat-top small {
+            font-size: 0.62rem;
+            line-height: 1.15;
+        }
+
+        .hotline-stat-icon {
+            width: 30px;
+            height: 30px;
+            flex: 0 0 30px;
+            border-radius: 9px;
+            font-size: 0.78rem;
+        }
+
+        .hotline-stat-value h3 {
+            font-size: 1.15rem;
+        }
+
+        .hotline-stat-value .badge {
+            max-width: 100%;
+            font-size: 0.64rem;
+            padding: 0.22rem 0.36rem;
+            white-space: normal;
+        }
+
+        .hotline-panel {
+            border-radius: 14px;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .hotline-panel .card-body {
+            padding: 0.7rem;
+        }
+
+        .hotline-panel-header {
+            margin-bottom: 0.6rem;
+        }
+
+        .hotline-panel-title {
+            font-size: 0.92rem;
+        }
+
+        .hotline-panel-copy {
+            font-size: 0.76rem;
+            line-height: 1.35;
+            overflow-wrap: anywhere;
+        }
+
+        .hotline-open-callout,
+        .hotline-open-callout > div {
+            width: 100%;
+            min-width: 0;
+        }
+
+        .hotline-open-callout-title,
+        .hotline-open-callout-copy {
+            overflow-wrap: anywhere;
+        }
+
+        .hotline-open-callout {
+            gap: 8px;
+            margin-bottom: 0.75rem;
+            padding: 0.7rem;
+            border-radius: 12px;
+        }
+
+        .hotline-open-callout-title {
+            font-size: 0.9rem;
+        }
+
+        .hotline-open-callout-copy {
+            font-size: 0.76rem;
+            line-height: 1.35;
+        }
+
+        .hotline-open-callout .btn {
+            min-width: 0;
+            padding: 0.52rem 0.7rem;
+            border-radius: 10px;
+            font-size: 0.78rem;
+            white-space: normal;
+        }
+
+        .hotline-filter-box {
+            border-radius: 12px;
+            padding: 0.7rem;
+        }
+
+        .hotline-filter-box .row {
+            margin-right: 0;
+            margin-left: 0;
+        }
+
+        .hotline-filter-box [class*="col-"] {
+            min-width: 0;
+            padding-right: 0;
+            padding-left: 0;
+            margin-bottom: 0.55rem !important;
+        }
+
+        .hotline-filter-box label {
+            font-size: 0.68rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .hotline-filter-box .form-control,
+        .hotline-filter-box .bootstrap-select,
+        .hotline-filter-box .bootstrap-select > .dropdown-toggle {
+            width: 100% !important;
+            max-width: 100%;
+            min-height: 36px;
+            border-radius: 10px;
             font-size: 0.82rem;
         }
 
+        .hotline-filter-actions .btn {
+            width: 100%;
+            padding: 0.52rem 0.7rem;
+            border-radius: 10px;
+            font-size: 0.8rem;
+        }
+
+        .hotline-active-filters {
+            gap: 5px;
+            margin: 0.55rem 0 0.75rem;
+        }
+
+        .hotline-filter-chip {
+            max-width: 100%;
+            font-size: 0.68rem;
+            padding: 0.28rem 0.48rem;
+            overflow-wrap: anywhere;
+        }
+
+        .hotline-grid {
+            gap: 8px;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .hotline-ticket {
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            grid-template-columns: minmax(0, 1fr);
+            border-radius: 12px;
+            padding: 0.7rem 0.65rem 0.65rem 0.78rem;
+            gap: 8px;
+            box-shadow: 0 7px 16px rgba(19, 34, 56, 0.07);
+        }
+
+        .hotline-ticket::before {
+            width: 4px;
+        }
+
+        .hotline-ticket-header {
+            margin-bottom: 0.35rem;
+        }
+
+        .hotline-store-title {
+            font-size: 0.82rem;
+            line-height: 1.25;
+            overflow-wrap: anywhere;
+        }
+
+        .hotline-store-subtitle {
+            font-size: 0.68rem;
+            line-height: 1.3;
+            overflow-wrap: anywhere;
+        }
+
+        .hotline-address {
+            display: flex;
+            width: 100%;
+            max-width: 100%;
+            align-items: flex-start;
+            gap: 5px;
+            margin-top: 0.3rem;
+            padding: 0.4rem 0.52rem;
+            border-radius: 10px;
+            font-size: 0.68rem;
+            white-space: normal;
+            overflow-wrap: anywhere;
+        }
+
+        .hotline-brand-badge {
+            max-width: 100%;
+            margin-left: 0.25rem;
+            padding: 0.18rem 0.42rem;
+            font-size: 0.58rem;
+            white-space: normal;
+        }
+
+        .hotline-meta {
+            max-width: 100%;
+            font-size: 0.66rem;
+            padding: 0.25rem 0.44rem;
+            gap: 0.28rem;
+            margin: 0.22rem 0.18rem 0 0;
+            white-space: normal;
+            overflow-wrap: anywhere;
+        }
+
+        .hotline-meta-stack {
+            margin-bottom: 0.4rem;
+        }
+
+        .hotline-snippet {
+            font-size: 0.76rem;
+            line-height: 1.35;
+            overflow-wrap: anywhere;
+        }
+
+        .hotline-ticket-section,
+        .hotline-actions {
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            border-radius: 10px;
+            padding: 0.55rem;
+        }
+
+        .hotline-section-label {
+            font-size: 0.58rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .hotline-date-box {
+            padding: 0.48rem 0.52rem;
+            border-radius: 9px;
+            font-size: 0.72rem;
+        }
+
+        .hotline-date-box strong {
+            font-size: 0.58rem;
+        }
+
+        .hotline-status-badge,
+        .hotline-note-highlight,
+        .hotline-schedule-highlight,
+        .hotline-resolution-highlight {
+            display: flex;
+            align-items: flex-start;
+            max-width: 100%;
+            font-size: 0.66rem;
+            white-space: normal;
+            overflow-wrap: anywhere;
+        }
+
+        .hotline-note-highlight,
+        .hotline-schedule-highlight,
+        .hotline-resolution-highlight {
+            margin-top: 0.45rem;
+            padding: 0.48rem 0.52rem;
+            border-radius: 9px;
+        }
+
+        .hotline-actions {
+            gap: 5px;
+            flex-direction: row;
+        }
+
+        .hotline-actions .btn {
+            width: auto;
+            flex: 1 1 0;
+            min-width: 0;
+            padding: 0.46rem 0.45rem;
+            font-size: 0.7rem;
+            border-radius: 9px;
+        }
+
         .hotline-empty {
-            border-radius: 18px;
-            padding: 2rem 1rem;
+            border-radius: 12px;
+            padding: 1.25rem 0.8rem;
         }
 
         .hotline-empty-icon {
-            width: 58px;
-            height: 58px;
-            border-radius: 18px;
-            font-size: 1.25rem;
-            margin-bottom: 0.8rem;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            font-size: 1rem;
+            margin-bottom: 0.55rem;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        .hotline-panel .card-body {
+            padding: 0.45rem !important;
+        }
+
+        .hotline-panel-header,
+        .hotline-open-callout {
+            display: none !important;
+        }
+
+        .hotline-filter-box {
+            padding: 0.45rem !important;
+            border-radius: 8px !important;
+            box-shadow: none !important;
+        }
+
+        .hotline-filter-box [class*="col-"] {
+            margin-bottom: 0.32rem !important;
+        }
+
+        .hotline-filter-box label {
+            font-size: 0.56rem !important;
+            line-height: 1.1 !important;
+            margin-bottom: 0.12rem !important;
+        }
+
+        .hotline-filter-box .form-control,
+        .hotline-filter-box .bootstrap-select > .dropdown-toggle {
+            min-height: 28px !important;
+            height: 28px !important;
+            padding: 0.18rem 0.42rem !important;
+            border-radius: 7px !important;
+            font-size: 0.68rem !important;
+            line-height: 1.1 !important;
+        }
+
+        .hotline-filter-box .bootstrap-select .dropdown-toggle .filter-option {
+            height: 24px !important;
+            line-height: 24px !important;
+        }
+
+        .hotline-filter-box .bootstrap-select .filter-option-inner,
+        .hotline-filter-box .bootstrap-select .filter-option-inner-inner {
+            line-height: 24px !important;
+            font-size: 0.68rem !important;
+        }
+
+        .hotline-filter-actions {
+            gap: 4px !important;
+            margin-top: 0.15rem !important;
+        }
+
+        .hotline-filter-actions .btn {
+            min-height: 28px !important;
+            padding: 0.24rem 0.45rem !important;
+            border-radius: 7px !important;
+            font-size: 0.66rem !important;
+            line-height: 1.1 !important;
+        }
+
+        .hotline-grid {
+            gap: 5px !important;
+        }
+
+        .hotline-ticket {
+            gap: 4px !important;
+            padding: 0.45rem 0.42rem 0.42rem 0.58rem !important;
+            border-radius: 8px !important;
+            box-shadow: 0 4px 10px rgba(19, 34, 56, 0.06) !important;
+        }
+
+        .hotline-ticket::before {
+            width: 3px !important;
+        }
+
+        .hotline-ticket-header {
+            margin-bottom: 0.2rem !important;
+        }
+
+        .hotline-store-title {
+            font-size: 0.7rem !important;
+            line-height: 1.15 !important;
+        }
+
+        .hotline-store-subtitle {
+            font-size: 0.58rem !important;
+            line-height: 1.15 !important;
+            margin-top: 0.1rem !important;
+        }
+
+        .hotline-address {
+            gap: 3px !important;
+            margin-top: 0.18rem !important;
+            padding: 0.24rem 0.34rem !important;
+            border-radius: 6px !important;
+            font-size: 0.58rem !important;
+            line-height: 1.15 !important;
+        }
+
+        .hotline-brand-badge {
+            padding: 0.12rem 0.28rem !important;
+            border-radius: 6px !important;
+            font-size: 0.5rem !important;
+            letter-spacing: 0 !important;
+        }
+
+        .hotline-meta-stack {
+            margin-bottom: 0.18rem !important;
+        }
+
+        .hotline-meta {
+            gap: 0.18rem !important;
+            margin: 0.12rem 0.1rem 0 0 !important;
+            padding: 0.16rem 0.3rem !important;
+            border-radius: 6px !important;
+            font-size: 0.56rem !important;
+            line-height: 1.15 !important;
+        }
+
+        .hotline-snippet {
+            font-size: 0.64rem !important;
+            line-height: 1.22 !important;
+        }
+
+        .hotline-ticket-section,
+        .hotline-actions {
+            padding: 0.34rem !important;
+            border-radius: 7px !important;
+        }
+
+        .hotline-section-label {
+            font-size: 0.48rem !important;
+            line-height: 1.1 !important;
+            margin-bottom: 0.12rem !important;
+            letter-spacing: 0.03em !important;
+        }
+
+        .hotline-status-badge,
+        .hotline-ticket .badge {
+            padding: 0.22rem 0.34rem !important;
+            border-radius: 6px !important;
+            font-size: 0.56rem !important;
+            line-height: 1.1 !important;
+        }
+
+        .hotline-note-highlight,
+        .hotline-schedule-highlight,
+        .hotline-resolution-highlight,
+        .hotline-date-box {
+            margin-top: 0.22rem !important;
+            padding: 0.28rem 0.34rem !important;
+            border-radius: 6px !important;
+            font-size: 0.58rem !important;
+            line-height: 1.15 !important;
+            box-shadow: none !important;
+        }
+
+        .hotline-date-box strong {
+            font-size: 0.48rem !important;
+            line-height: 1.1 !important;
+            margin-bottom: 0.1rem !important;
+        }
+
+        .hotline-actions {
+            gap: 3px !important;
+        }
+
+        .hotline-actions .btn {
+            min-height: 26px !important;
+            padding: 0.22rem 0.28rem !important;
+            border-radius: 6px !important;
+            font-size: 0.58rem !important;
+            line-height: 1.1 !important;
+        }
+
+        .hotline-filter-box--technician .hotline-mobile-secondary-filter {
+            display: none !important;
+        }
+
+        .hotline-filter-box--technician .hotline-mobile-primary-filter {
+            margin-bottom: 0.25rem !important;
         }
     }
 </style>
@@ -963,25 +1499,25 @@
                 </div>
 
                 <form method="GET" class="mb-4">
-                    <div class="hotline-filter-box">
+                    <div class="hotline-filter-box {{ !$canManageAll ? 'hotline-filter-box--technician' : '' }}">
                         <div class="row align-items-end">
-                            <div class="col-md-6 col-xl-3 mb-3">
+                            <div class="col-md-6 col-xl-3 mb-3 hotline-mobile-primary-filter">
                                 <label for="q">{{ __('Pesquisa rápida') }}</label>
                                 <input type="text" name="q" id="q" value="{{ request('q') }}" class="form-control" placeholder="{{ __('Loja, origem, descrição...') }}">
                             </div>
-                            <div class="col-md-6 col-xl-2 mb-3">
+                            <div class="col-md-6 col-xl-2 mb-3 hotline-mobile-secondary-filter">
                                 <label for="codigo_loja">{{ __('Código Loja') }}</label>
                                 <input type="text" name="codigo_loja" id="codigo_loja" value="{{ request('codigo_loja') }}" class="form-control" placeholder="{{ __('Ex: 123') }}">
                             </div>
-                            <div class="col-md-6 col-xl-2 mb-3">
+                            <div class="col-md-6 col-xl-2 mb-3 hotline-mobile-primary-filter">
                                 <label for="serial_number">{{ __('Nº Série') }}</label>
                                 <input type="text" name="serial_number" id="serial_number" value="{{ request('serial_number') }}" class="form-control" placeholder="{{ __('Ex: SN12345') }}">
                             </div>
-                            <div class="col-md-6 col-xl-2 mb-3">
+                            <div class="col-md-6 col-xl-2 mb-3 hotline-mobile-secondary-filter">
                                 <label for="data_inicio">{{ __('Data início') }}</label>
                                 <input type="date" name="data_inicio" id="data_inicio" value="{{ request('data_inicio') }}" class="form-control">
                             </div>
-                            <div class="col-md-6 col-xl-2 mb-3">
+                            <div class="col-md-6 col-xl-2 mb-3 hotline-mobile-secondary-filter">
                                 <label for="prioridade">{{ __('Prioridade') }}</label>
                                 <select name="prioridade" id="prioridade" class="form-control">
                                     <option value="">{{ __('Todas') }}</option>
@@ -992,7 +1528,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-6 col-xl-2 mb-3">
+                            <div class="col-md-6 col-xl-2 mb-3 hotline-mobile-secondary-filter">
                                 <label for="zona">{{ __('Zona') }}</label>
                                 <select name="zona" id="zona" class="form-control">
                                     <option value="">{{ __('Todas') }}</option>
@@ -1003,12 +1539,12 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-6 col-xl-2 mb-3">
+                            <div class="col-md-6 col-xl-2 mb-3 hotline-mobile-secondary-filter">
                                 <label for="data_fim">{{ __('Data fim') }}</label>
                                 <input type="date" name="data_fim" id="data_fim" value="{{ request('data_fim') }}" class="form-control">
                             </div>
                             @if($canManageAll)
-                                <div class="col-md-6 col-xl-3 mb-3">
+                                <div class="col-md-6 col-xl-3 mb-3 hotline-mobile-secondary-filter">
                                     <label for="assigned_technician_id">{{ __('Técnico') }}</label>
                                     <select name="assigned_technician_id" id="assigned_technician_id" class="form-control selectpicker" data-live-search="true" title="{{ __('Todos') }}">
                                         <option value="">{{ __('Todos') }}</option>
@@ -1021,11 +1557,11 @@
                                     </select>
                                 </div>
                             @endif
-                            <div class="col-md-6 col-xl-2 mb-3">
+                            <div class="col-md-6 col-xl-2 mb-3 hotline-mobile-secondary-filter">
                                 <label for="mes">{{ __('Mês exportação') }}</label>
                                 <input type="month" name="mes" id="mes" value="{{ request('mes') }}" class="form-control">
                             </div>
-                            <div class="col-md-6 col-xl-3 mb-3">
+                            <div class="col-md-6 col-xl-3 mb-3 hotline-mobile-secondary-filter">
                                 <label for="estado">{{ __('Estado') }}</label>
                                 <select name="estado[]" id="estado" class="form-control selectpicker" multiple data-actions-box="true" data-selected-text-format="count > 2" title="{{ __('Selecionar estados') }}">
                                     @foreach($statuses as $value => $label)
