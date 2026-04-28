@@ -41,15 +41,19 @@
     </div>
 @endif
 
-<div class="card border-0 shadow-sm">
+<div class="card border-0 shadow-sm technical-request-card">
     <div class="card-body">
-        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-4">
-            <div>
-                <h5 class="card-title mb-1">
-                    <i class="fas fa-headset mr-2"></i>
-                    {{ $isEdit ? __('Atualizar pedido de assistência') : __('Registar pedido de assistência') }}
-                </h5>
-                <p class="text-muted mb-0">{{ __('Preencha apenas o essencial. Os campos ajustam-se ao estado escolhido.') }}</p>
+        <div class="technical-request-header d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
+            <div class="technical-request-title-wrap">
+                <span class="technical-request-title-icon">
+                    <i class="fas fa-headset"></i>
+                </span>
+                <div>
+                    <h5 class="card-title mb-1">
+                        {{ $isEdit ? __('Atualizar pedido de assistência') : __('Registar pedido de assistência') }}
+                    </h5>
+                    <p class="text-muted mb-0">{{ __('Preencha apenas o essencial. Os campos ajustam-se ao estado escolhido.') }}</p>
+                </div>
             </div>
             <div class="mt-3 mt-lg-0">
                 <a href="{{ $backRoute }}" class="btn btn-outline-secondary">
@@ -58,7 +62,8 @@
             </div>
         </div>
 
-        <div class="alert alert-light border d-flex align-items-start">
+        <div class="technical-request-body">
+        <div class="alert alert-light border d-flex align-items-start technical-request-note">
             <i class="fas fa-lightbulb text-warning mt-1 mr-2"></i>
             <div>
                 <strong>{{ __('Dica rápida') }}:</strong>
@@ -68,8 +73,10 @@
 
         <div class="row">
             <div class="col-12 col-xl-6">
-                <div class="border rounded p-3 h-100 mb-3">
-                    <h6 class="text-uppercase text-muted mb-3">{{ __('Identificação') }}</h6>
+                <div class="border rounded p-3 h-100 mb-3 technical-request-section technical-request-section--identity">
+                    <h6 class="text-uppercase text-muted mb-3">
+                        <i class="fas fa-store mr-1"></i>{{ __('Identificação') }}
+                    </h6>
 
                     @if($canManageAll)
                         <div class="form-group mb-3">
@@ -206,8 +213,10 @@
             </div>
 
             <div class="col-12 col-xl-6">
-                <div class="border rounded p-3 h-100 mb-3">
-                    <h6 class="text-uppercase text-muted mb-3">{{ __('Gestão do pedido') }}</h6>
+                <div class="border rounded p-3 h-100 mb-3 technical-request-section technical-request-section--management">
+                    <h6 class="text-uppercase text-muted mb-3">
+                        <i class="fas fa-clipboard-check mr-1"></i>{{ __('Gestão do pedido') }}
+                    </h6>
 
                     <div class="row">
                         @if($canManageAll)
@@ -317,8 +326,10 @@
             </div>
 
             <div class="col-12">
-                <div class="border rounded p-3">
-                    <h6 class="text-uppercase text-muted mb-3">{{ __('Detalhes técnicos') }}</h6>
+                <div class="border rounded p-3 technical-request-section technical-request-section--details">
+                    <h6 class="text-uppercase text-muted mb-3">
+                        <i class="fas fa-tools mr-1"></i>{{ __('Detalhes técnicos') }}
+                    </h6>
 
                     @if($canManageAll)
                         <div class="form-group mb-3">
@@ -350,9 +361,10 @@
             <input type="hidden" name="page" value="{{ request('page') }}">
         @endif
 
-        <div class="mt-4">
+        <div class="technical-request-actions">
             {!! Form::button('<i class="fa fa-save mr-1"></i> ' . ($isEdit ? __('Atualizar pedido') : __('Gravar pedido')), ['type' => 'submit', 'class' => 'btn btn-success mr-2 mb-2']) !!}
             <a href="{{ $backRoute }}" class="btn btn-outline-secondary">{{ __('Cancelar') }}</a>
+        </div>
         </div>
     </div>
 </div>

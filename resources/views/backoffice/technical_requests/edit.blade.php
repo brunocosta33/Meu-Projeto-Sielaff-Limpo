@@ -4,6 +4,10 @@
 <title>{{ config('app.name') }} - {{ __('Editar Pedido de Assistência') }}</title>
 @endsection
 
+@section('head-scripts')
+    @include('backoffice.technical_requests.partials.form_styles')
+@endsection
+
 @section('content')
 <div class="row">@include('flash::message')</div>
 
