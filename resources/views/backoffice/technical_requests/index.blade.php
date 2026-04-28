@@ -96,6 +96,8 @@
     }
 
     .hotline-stat {
+        display: block;
+        color: inherit;
         border: 1px solid var(--hotline-border);
         border-radius: 22px;
         box-shadow: 0 14px 32px rgba(19, 34, 56, 0.06);
@@ -103,9 +105,21 @@
         transition: transform 0.18s ease, box-shadow 0.18s ease;
     }
 
+    .hotline-stat:hover,
+    .hotline-stat:focus {
+        color: inherit;
+        text-decoration: none;
+        outline: 0;
+    }
+
     .hotline-stat:hover {
         transform: translateY(-2px);
         box-shadow: 0 18px 36px rgba(19, 34, 56, 0.1);
+    }
+
+    .hotline-stat.is-active {
+        border-color: var(--hotline-primary);
+        box-shadow: 0 18px 36px rgba(11, 94, 215, 0.16);
     }
 
     .hotline-stat .card-body {
@@ -147,6 +161,7 @@
     .hotline-stat-total { background: linear-gradient(135deg, #ffffff 0%, #eef4ff 100%); }
     .hotline-stat-pending { background: linear-gradient(135deg, #fffdf7 0%, #fff3d8 100%); }
     .hotline-stat-scheduled { background: linear-gradient(135deg, #f8feff 0%, #e6f7fb 100%); }
+    .hotline-stat-awaiting { background: linear-gradient(135deg, #fff8f8 0%, #fde8e8 100%); }
     .hotline-stat-done { background: linear-gradient(135deg, #f6fff8 0%, #e4f7ea 100%); }
 
     .hotline-panel {
@@ -808,6 +823,9 @@
             return $value !== null && $value !== '';
         })
         ->isNotEmpty();
+    $statBaseParams = request()->except(['estado', 'page']);
+    $selectedStates = (array) request('estado', []);
+    $statUrl = fn (?string $state = null) => route('backoffice.technical_requests.index', $state ? array_merge($statBaseParams, ['estado' => [$state]]) : $statBaseParams);
 @endphp
 
 <div class="row hotline-page">
@@ -839,7 +857,7 @@
 
         <div class="row mb-4 hotline-stats-row">
             <div class="col-md-6 col-xl-3 mb-3">
-                <div class="card hotline-stat hotline-stat-total h-100">
+                <a href="{{ $statUrl() }}" class="card hotline-stat hotline-stat-total h-100 {{ empty($selectedStates) ? 'is-active' : '' }}" aria-label="{{ __('Mostrar todos os pedidos') }}">
                     <div class="card-body">
                         <div class="hotline-stat-top">
                             <small class="text-muted text-uppercase d-block mb-0">{{ __('Total') }}</small>
@@ -850,10 +868,10 @@
                             <span class="badge badge-light">{{ __('Pedidos') }}</span>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
             <div class="col-md-6 col-xl-3 mb-3">
-                <div class="card hotline-stat hotline-stat-pending h-100">
+                <a href="{{ $statUrl('pendente') }}" class="card hotline-stat hotline-stat-pending h-100 {{ in_array('pendente', $selectedStates, true) ? 'is-active' : '' }}" aria-label="{{ __('Mostrar pedidos pendentes') }}">
                     <div class="card-body">
                         <div class="hotline-stat-top">
                             <small class="text-muted text-uppercase d-block mb-0">{{ __('Pendentes') }}</small>
@@ -864,10 +882,10 @@
                             <span class="badge badge-light">{{ __('Ação') }}</span>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
             <div class="col-md-6 col-xl-3 mb-3">
-                <div class="card hotline-stat hotline-stat-scheduled h-100">
+                <a href="{{ $statUrl('agendado') }}" class="card hotline-stat hotline-stat-scheduled h-100 {{ in_array('agendado', $selectedStates, true) ? 'is-active' : '' }}" aria-label="{{ __('Mostrar pedidos agendados') }}">
                     <div class="card-body">
                         <div class="hotline-stat-top">
                             <small class="text-muted text-uppercase d-block mb-0">{{ __('Agendados') }}</small>
@@ -878,10 +896,10 @@
                             <span class="badge badge-light">{{ __('Planeado') }}</span>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
             <div class="col-md-6 col-xl-3 mb-3">
-                <div class="card hotline-stat h-100">
+                <a href="{{ $statUrl('aguarda_peca') }}" class="card hotline-stat hotline-stat-awaiting h-100 {{ in_array('aguarda_peca', $selectedStates, true) ? 'is-active' : '' }}" aria-label="{{ __('Mostrar pedidos a aguardar peça') }}">
                     <div class="card-body">
                         <div class="hotline-stat-top">
                             <small class="text-muted text-uppercase d-block mb-0">{{ __('Aguarda Peça') }}</small>
@@ -892,10 +910,10 @@
                             <span class="badge badge-light">{{ __('Bloqueado') }}</span>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
             <div class="col-md-6 col-xl-3 mb-3">
-                <div class="card hotline-stat hotline-stat-done h-100">
+                <a href="{{ $statUrl('concluido') }}" class="card hotline-stat hotline-stat-done h-100 {{ in_array('concluido', $selectedStates, true) ? 'is-active' : '' }}" aria-label="{{ __('Mostrar pedidos concluídos') }}">
                     <div class="card-body">
                         <div class="hotline-stat-top">
                             <small class="text-muted text-uppercase d-block mb-0">{{ __('Concluídos') }}</small>
@@ -906,7 +924,7 @@
                             <span class="badge badge-light">{{ __('Fechado') }}</span>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
         </div>
 

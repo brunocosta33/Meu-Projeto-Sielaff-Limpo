@@ -83,10 +83,6 @@ class TechnicalRequestController extends Controller
             });
         }
 
-        if ($request->filled('estado')) {
-            $query->whereIn('estado', (array) $request->estado);
-        }
-
         if ($request->filled('prioridade')) {
             $query->where('prioridade', $request->prioridade);
         }
@@ -116,14 +112,20 @@ class TechnicalRequestController extends Controller
 
         $this->applyDateFilters($query, $request);
 
-        $requests = $query->get();
+        $statsRequests = (clone $query)->get();
         $stats = [
-            'total' => $requests->count(),
-            'pendente' => $requests->where('estado', 'pendente')->count(),
-            'agendado' => $requests->where('estado', 'agendado')->count(),
-            'aguarda_peca' => $requests->where('estado', 'aguarda_peca')->count(),
-            'concluido' => $requests->where('estado', 'concluido')->count(),
+            'total' => $statsRequests->count(),
+            'pendente' => $statsRequests->where('estado', 'pendente')->count(),
+            'agendado' => $statsRequests->where('estado', 'agendado')->count(),
+            'aguarda_peca' => $statsRequests->where('estado', 'aguarda_peca')->count(),
+            'concluido' => $statsRequests->where('estado', 'concluido')->count(),
         ];
+
+        if ($request->filled('estado')) {
+            $query->whereIn('estado', (array) $request->estado);
+        }
+
+        $requests = $query->get();
 
         return view('backoffice.technical_requests.index', [
             'requests' => $requests,

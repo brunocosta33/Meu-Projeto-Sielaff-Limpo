@@ -6,6 +6,181 @@
 
 @section('head-scripts')
 <style>
+    .technical-request-show-card {
+        overflow: hidden;
+        border: 1px solid #dfe8e3 !important;
+        border-radius: 8px;
+        box-shadow: 0 18px 42px rgba(15, 23, 42, 0.1) !important;
+    }
+
+    .technical-request-show-card .card-body {
+        padding: 0;
+    }
+
+    .technical-request-show-header {
+        padding: 1.35rem 1.5rem;
+        color: #ffffff;
+        background:
+            linear-gradient(135deg, rgba(18, 52, 59, 0.98), rgba(23, 116, 91, 0.94)),
+            #12343b;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+    }
+
+    .technical-request-show-title {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+    }
+
+    .technical-request-show-icon {
+        width: 44px;
+        height: 44px;
+        flex: 0 0 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #12343b;
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18);
+    }
+
+    .technical-request-show-header h5 {
+        color: #ffffff;
+        font-weight: 800;
+    }
+
+    .technical-request-show-header .text-muted {
+        color: rgba(255, 255, 255, 0.74) !important;
+    }
+
+    .technical-request-show-header .btn {
+        font-weight: 700;
+    }
+
+    .technical-request-show-header .btn-outline-primary,
+    .technical-request-show-header .btn-outline-secondary {
+        border-color: rgba(255, 255, 255, 0.55);
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    .technical-request-show-header .btn-outline-primary:hover,
+    .technical-request-show-header .btn-outline-secondary:hover {
+        color: #12343b;
+        background: #ffffff;
+        border-color: #ffffff;
+    }
+
+    .technical-request-show-body {
+        padding: 1.5rem;
+        background:
+            linear-gradient(135deg, rgba(25, 135, 84, 0.1), rgba(13, 110, 253, 0.08) 48%, rgba(111, 66, 193, 0.1)),
+            #f6faf8;
+    }
+
+    .technical-request-info-card {
+        height: 100%;
+        overflow: hidden;
+        background: #ffffff;
+        border: 1px solid #dde8e3;
+        border-left: 6px solid #198754;
+        border-radius: 8px;
+        box-shadow: 0 10px 26px rgba(15, 23, 42, 0.07);
+    }
+
+    .technical-request-info-card.status-card {
+        border-left-color: #0d6efd;
+    }
+
+    .technical-request-info-card.text-card {
+        border-left-color: #6f42c1;
+    }
+
+    .technical-request-info-header {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        padding: 0.95rem 1rem 0.85rem 1rem;
+        border-bottom: 1px solid rgba(25, 135, 84, 0.18);
+        background: linear-gradient(90deg, rgba(25, 135, 84, 0.16), rgba(25, 135, 84, 0.04));
+        color: #14532d;
+        font-size: 0.84rem;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .technical-request-info-card.status-card .technical-request-info-header {
+        border-bottom-color: rgba(13, 110, 253, 0.18);
+        background: linear-gradient(90deg, rgba(13, 110, 253, 0.15), rgba(13, 110, 253, 0.04));
+        color: #1d4ed8;
+    }
+
+    .technical-request-info-card.text-card .technical-request-info-header {
+        border-bottom-color: rgba(111, 66, 193, 0.18);
+        background: linear-gradient(90deg, rgba(111, 66, 193, 0.15), rgba(111, 66, 193, 0.04));
+        color: #5b21b6;
+    }
+
+    .technical-request-info-header i {
+        width: 30px;
+        height: 30px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        background: #198754;
+        border-radius: 8px;
+    }
+
+    .technical-request-info-card.status-card .technical-request-info-header i {
+        background: #0d6efd;
+    }
+
+    .technical-request-info-card.text-card .technical-request-info-header i {
+        background: #6f42c1;
+    }
+
+    .technical-request-info-body {
+        padding: 1rem;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.88), #ffffff);
+    }
+
+    .technical-request-field {
+        display: grid;
+        grid-template-columns: 140px minmax(0, 1fr);
+        gap: 0.75rem;
+        padding: 0.55rem 0;
+        border-bottom: 1px solid #eef3f0;
+    }
+
+    .technical-request-field:last-child {
+        border-bottom: 0;
+    }
+
+    .technical-request-field-label {
+        color: #66766f;
+        font-weight: 800;
+    }
+
+    .technical-request-field-value {
+        min-width: 0;
+        color: #26342f;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+    }
+
+    .technical-request-text-block {
+        min-height: 96px;
+        padding: 1rem;
+        color: #53645d;
+        background: #ffffff;
+        border: 1px solid #e2eae6;
+        border-radius: 8px;
+        line-height: 1.55;
+        white-space: pre-wrap;
+    }
+
     .technical-request-brand-badge {
         display: inline-flex;
         align-items: center;
@@ -78,6 +253,22 @@
     .technical-request-resolution-highlight i {
         font-size: 1.05rem;
     }
+
+    @media (max-width: 767.98px) {
+        .technical-request-show-header,
+        .technical-request-show-body {
+            padding: 1rem;
+        }
+
+        .technical-request-show-title {
+            align-items: flex-start;
+        }
+
+        .technical-request-field {
+            grid-template-columns: 1fr;
+            gap: 0.2rem;
+        }
+    }
 </style>
 @endsection
 
@@ -91,12 +282,17 @@
 
 <div class="row">
     <div class="col-xl-10">
-        <div class="card shadow-sm border-0">
+        <div class="card shadow-sm border-0 technical-request-show-card">
             <div class="card-body">
-                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-4">
-                    <div>
-                        <h5 class="card-title mb-1">{{ __('Detalhes do Pedido de Assistência Técnica') }}</h5>
-                        <p class="text-muted mb-0">{{ __('Resumo completo do pedido para consulta rápida.') }}</p>
+                <div class="technical-request-show-header d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
+                    <div class="technical-request-show-title">
+                        <span class="technical-request-show-icon">
+                            <i class="fas fa-clipboard-list"></i>
+                        </span>
+                        <div>
+                            <h5 class="card-title mb-1">{{ __('Detalhes do Pedido de Assistência Técnica') }}</h5>
+                            <p class="text-muted mb-0">{{ __('Resumo completo do pedido para consulta rápida.') }}</p>
+                        </div>
                     </div>
                     <div class="mt-3 mt-lg-0">
                         @if($canManageAll || $request->estado !== 'concluido')
@@ -110,6 +306,7 @@
                     </div>
                 </div>
 
+                <div class="technical-request-show-body">
                 @php
                     $tipos = [
                         'software' => 'Software',
@@ -122,19 +319,30 @@
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <div class="border rounded p-3 h-100">
-                            <div class="mb-2"><strong>{{ __('ID') }}:</strong> #{{ $request->id }}</div>
-                            <div class="mb-2">
-                                <strong>{{ __('Loja') }}:</strong>
-                                {{ $request->store->codigo_loja ?? '-' }} - {{ $request->store->nome_loja ?? '-' }}
+                        <div class="technical-request-info-card">
+                            <div class="technical-request-info-header">
+                                <i class="fas fa-store"></i>
+                                {{ __('Identificação') }}
+                            </div>
+                            <div class="technical-request-info-body">
+                            <div class="technical-request-field">
+                                <div class="technical-request-field-label">{{ __('ID') }}</div>
+                                <div class="technical-request-field-value">#{{ $request->id }}</div>
+                            </div>
+                            <div class="technical-request-field">
+                                <div class="technical-request-field-label">{{ __('Loja') }}</div>
+                                <div class="technical-request-field-value">
+                                    {{ $request->store->codigo_loja ?? '-' }} - {{ $request->store->nome_loja ?? '-' }}
                                 @if($request->store->insignia ?? null)
                                     <span class="technical-request-brand-badge brand-{{ $request->store->insignia }}">
                                         {{ ucfirst($request->store->insignia) }}
                                     </span>
                                 @endif
+                                </div>
                             </div>
-                            <div class="mb-2">
-                                <strong>{{ __('Morada') }}:</strong>
+                            <div class="technical-request-field">
+                                <div class="technical-request-field-label">{{ __('Morada') }}</div>
+                                <div class="technical-request-field-value">
                                 @php($storeAddress = implode(', ', array_filter([
                                     $request->store->morada ?? null,
                                     trim(implode(' ', array_filter([
@@ -150,26 +358,61 @@
                                 @else
                                     —
                                 @endif
+                                </div>
                             </div>
-                            <div class="mb-2"><strong>{{ __('Número de Série') }}:</strong> {{ $request->machine->serial_number ?? '—' }}</div>
-                            <div class="mb-2"><strong>{{ __('Origem') }}:</strong> {{ $request->origem ?: '—' }}</div>
-                            <div class="mb-2"><strong>{{ $request->assignedPersonTypeLabel() }} {{ __('atribuído') }}:</strong> {{ $request->assignedPersonLabel() }}</div>
-                            <div class="mb-2"><strong>{{ __('Criado por') }}:</strong> {{ $request->creator->name ?? $request->creator->email ?? '—' }}</div>
-                            <div class="mb-2"><strong>{{ __('Criado em') }}:</strong> {{ $request->created_at ? \Carbon\Carbon::parse($request->created_at)->format('d/m/Y H:i') : '—' }}</div>
+                            <div class="technical-request-field">
+                                <div class="technical-request-field-label">{{ __('Número de Série') }}</div>
+                                <div class="technical-request-field-value">{{ $request->machine->serial_number ?? '—' }}</div>
+                            </div>
+                            <div class="technical-request-field">
+                                <div class="technical-request-field-label">{{ __('Origem') }}</div>
+                                <div class="technical-request-field-value">{{ $request->origem ?: '—' }}</div>
+                            </div>
+                            <div class="technical-request-field">
+                                <div class="technical-request-field-label">{{ $request->assignedPersonTypeLabel() }} {{ __('atribuído') }}</div>
+                                <div class="technical-request-field-value">{{ $request->assignedPersonLabel() }}</div>
+                            </div>
+                            <div class="technical-request-field">
+                                <div class="technical-request-field-label">{{ __('Criado por') }}</div>
+                                <div class="technical-request-field-value">{{ $request->creator->name ?? $request->creator->email ?? '—' }}</div>
+                            </div>
+                            <div class="technical-request-field">
+                                <div class="technical-request-field-label">{{ __('Criado em') }}</div>
+                                <div class="technical-request-field-value">{{ $request->created_at ? \Carbon\Carbon::parse($request->created_at)->format('d/m/Y H:i') : '—' }}</div>
+                            </div>
                             @if($hasEdition)
-                                <div class="mb-2"><strong>{{ __('Última edição por') }}:</strong> {{ $request->editor->name ?? $request->editor->email ?? '—' }}</div>
-                                <div><strong>{{ __('Editado em') }}:</strong> {{ $request->updated_at ? \Carbon\Carbon::parse($request->updated_at)->format('d/m/Y H:i') : '—' }}</div>
+                                <div class="technical-request-field">
+                                    <div class="technical-request-field-label">{{ __('Última edição por') }}</div>
+                                    <div class="technical-request-field-value">{{ $request->editor->name ?? $request->editor->email ?? '—' }}</div>
+                                </div>
+                                <div class="technical-request-field">
+                                    <div class="technical-request-field-label">{{ __('Editado em') }}</div>
+                                    <div class="technical-request-field-value">{{ $request->updated_at ? \Carbon\Carbon::parse($request->updated_at)->format('d/m/Y H:i') : '—' }}</div>
+                                </div>
                             @endif
                             @if($request->estado === 'concluido')
-                                <div class="mt-2"><strong>{{ __('Concluído por') }}:</strong> {{ $request->editor->name ?? $request->editor->email ?? '—' }}</div>
+                                <div class="technical-request-field">
+                                    <div class="technical-request-field-label">{{ __('Concluído por') }}</div>
+                                    <div class="technical-request-field-value">{{ $request->editor->name ?? $request->editor->email ?? '—' }}</div>
+                                </div>
                             @endif
-                            <div class="mt-2"><strong>{{ __('Tipo de Serviço') }}:</strong> {{ $tipos[$request->tipo_servico] ?? ucfirst($request->tipo_servico) }}</div>
+                            <div class="technical-request-field">
+                                <div class="technical-request-field-label">{{ __('Tipo de Serviço') }}</div>
+                                <div class="technical-request-field-value">{{ $tipos[$request->tipo_servico] ?? ucfirst($request->tipo_servico) }}</div>
+                            </div>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <div class="border rounded p-3 h-100">
-                            <div class="mb-2">
-                                <strong>{{ __('Prioridade') }}:</strong>
+                        <div class="technical-request-info-card status-card">
+                            <div class="technical-request-info-header">
+                                <i class="fas fa-clipboard-check"></i>
+                                {{ __('Estado e datas') }}
+                            </div>
+                            <div class="technical-request-info-body">
+                            <div class="technical-request-field">
+                                <div class="technical-request-field-label">{{ __('Prioridade') }}</div>
+                                <div class="technical-request-field-value">
                                 <span class="badge 
                                     @switch($request->prioridade)
                                         @case('baixa') bg-info @break
@@ -179,9 +422,11 @@
                                     @endswitch">
                                     {{ __(ucfirst($request->prioridade)) }}
                                 </span>
+                                </div>
                             </div>
-                            <div class="mb-2">
-                                <strong>{{ __('Estado') }}:</strong>
+                            <div class="technical-request-field">
+                                <div class="technical-request-field-label">{{ __('Estado') }}</div>
+                                <div class="technical-request-field-value">
                                 <span class="badge 
                                     @switch($request->estado)
                                         @case('agendado') bg-info text-dark @break
@@ -193,10 +438,15 @@
                                     @endswitch">
                                     {{ __(ucfirst(str_replace('_', ' ', $request->estado))) }}
                                 </span>
+                                </div>
                             </div>
-                            <div class="mb-2"><strong>{{ __('Data do Pedido') }}:</strong> {{ $request->data_pedido ? \Carbon\Carbon::parse($request->data_pedido)->format('d/m/Y') : '—' }}</div>
-                            <div class="mb-2">
-                                <strong>{{ __('Data de Agendamento') }}:</strong>
+                            <div class="technical-request-field">
+                                <div class="technical-request-field-label">{{ __('Data do Pedido') }}</div>
+                                <div class="technical-request-field-value">{{ $request->data_pedido ? \Carbon\Carbon::parse($request->data_pedido)->format('d/m/Y') : '—' }}</div>
+                            </div>
+                            <div class="technical-request-field">
+                                <div class="technical-request-field-label">{{ __('Data de Agendamento') }}</div>
+                                <div class="technical-request-field-value">
                                 @if($request->data_agendamento)
                                     <div class="mt-2">
                                         <span class="technical-request-schedule-highlight">
@@ -208,9 +458,11 @@
                                 @else
                                     —
                                 @endif
+                                </div>
                             </div>
-                            <div>
-                                <strong>{{ __('Data da Resolução') }}:</strong>
+                            <div class="technical-request-field">
+                                <div class="technical-request-field-label">{{ __('Data da Resolução') }}</div>
+                                <div class="technical-request-field-value">
                                 @if($request->data_resolucao)
                                     <div class="mt-2">
                                         <span class="technical-request-resolution-highlight">
@@ -222,21 +474,34 @@
                                 @else
                                     —
                                 @endif
+                                </div>
+                            </div>
                             </div>
                         </div>
                     </div>
                     <div class="col-12 mb-3">
-                        <div class="border rounded p-3">
-                            <strong>{{ __('Descrição') }}</strong>
-                            <div class="mt-2 text-muted">{{ $request->descricao_problema ?: '—' }}</div>
+                        <div class="technical-request-info-card text-card">
+                            <div class="technical-request-info-header">
+                                <i class="fas fa-tools"></i>
+                                {{ __('Descrição') }}
+                            </div>
+                            <div class="technical-request-info-body">
+                                <div class="technical-request-text-block">{{ $request->descricao_problema ?: '—' }}</div>
+                            </div>
                         </div>
                     </div>
                     <div class="col-12">
-                        <div class="border rounded p-3">
-                            <strong>{{ __('Observações') }}</strong>
-                            <div class="mt-2 text-muted">{{ $request->observacoes ?: '—' }}</div>
+                        <div class="technical-request-info-card text-card">
+                            <div class="technical-request-info-header">
+                                <i class="fas fa-sticky-note"></i>
+                                {{ __('Observações') }}
+                            </div>
+                            <div class="technical-request-info-body">
+                                <div class="technical-request-text-block">{{ $request->observacoes ?: '—' }}</div>
+                            </div>
                         </div>
                     </div>
+                </div>
                 </div>
             </div>
         </div>
