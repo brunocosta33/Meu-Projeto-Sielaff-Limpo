@@ -181,6 +181,69 @@
         white-space: pre-wrap;
     }
 
+    .technical-request-files-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+        gap: 10px;
+    }
+
+    .technical-request-file-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        min-width: 0;
+        padding: 0.7rem;
+        background: #ffffff;
+        border: 1px solid #e2eae6;
+        border-radius: 8px;
+    }
+
+    .technical-request-file-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+    }
+
+    .technical-request-file-thumb {
+        width: 42px;
+        height: 42px;
+        flex: 0 0 42px;
+        object-fit: cover;
+        border-radius: 7px;
+        border: 1px solid #dfe8e3;
+    }
+
+    .technical-request-file-icon {
+        width: 42px;
+        height: 42px;
+        flex: 0 0 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 7px;
+        color: #b42318;
+        background: #fff1f0;
+        border: 1px solid #ffd6d2;
+    }
+
+    .technical-request-file-name {
+        min-width: 0;
+        color: #26342f;
+        font-weight: 700;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .technical-request-file-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex: 0 0 auto;
+    }
+
     .technical-request-brand-badge {
         display: inline-flex;
         align-items: center;
@@ -403,6 +466,34 @@
             font-size: 0.7rem;
             line-height: 1.35;
             overflow-wrap: anywhere;
+        }
+
+        .technical-request-files-list {
+            grid-template-columns: 1fr;
+            gap: 6px;
+        }
+
+        .technical-request-file-item {
+            padding: 0.45rem;
+            gap: 6px;
+        }
+
+        .technical-request-file-thumb,
+        .technical-request-file-icon {
+            width: 32px;
+            height: 32px;
+            flex-basis: 32px;
+            border-radius: 6px;
+        }
+
+        .technical-request-file-name {
+            font-size: 0.68rem;
+        }
+
+        .technical-request-file-actions .btn {
+            padding: 0.22rem 0.35rem;
+            border-radius: 6px;
+            font-size: 0.62rem;
         }
 
         .technical-request-field-value .badge {
@@ -641,6 +732,46 @@
                             </div>
                             <div class="technical-request-info-body">
                                 <div class="technical-request-text-block">{{ $request->observacoes ?: '—' }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 mt-3">
+                        <div class="technical-request-info-card text-card">
+                            <div class="technical-request-info-header">
+                                <i class="fas fa-paperclip"></i>
+                                {{ __('Anexos') }}
+                            </div>
+                            <div class="technical-request-info-body">
+                                @if($request->files->count())
+                                    <div class="technical-request-files-list">
+                                        @foreach($request->files as $file)
+                                            <div class="technical-request-file-item">
+                                                <div class="technical-request-file-info">
+                                                    @if($file->isImage())
+                                                        <img src="{{ asset('storage/' . $file->file_path) }}" alt="{{ $file->file_name }}" class="technical-request-file-thumb">
+                                                    @else
+                                                        <span class="technical-request-file-icon">
+                                                            <i class="fas fa-file-pdf"></i>
+                                                        </span>
+                                                    @endif
+                                                    <span class="technical-request-file-name">{{ $file->file_name }}</span>
+                                                </div>
+                                                <div class="technical-request-file-actions">
+                                                    <a href="{{ asset('storage/' . $file->file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary">{{ __('Abrir') }}</a>
+                                                    @if($canManageAll || $request->estado !== 'concluido')
+                                                        <form method="POST" action="{{ route('backoffice.technical_requests.files.delete', $file->id) }}">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('{{ __('Tem a certeza que deseja apagar este ficheiro?') }}')">{{ __('Apagar') }}</button>
+                                                        </form>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <div class="technical-request-text-block">{{ __('Sem anexos.') }}</div>
+                                @endif
                             </div>
                         </div>
                     </div>

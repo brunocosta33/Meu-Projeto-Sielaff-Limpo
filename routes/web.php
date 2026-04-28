@@ -219,6 +219,7 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
         Route::get('/{id}/edit', [TechnicalRequestController::class, 'edit'])->name('backoffice.technical_requests.edit');
         Route::put('/{id}', [TechnicalRequestController::class, 'update'])->name('backoffice.technical_requests.update');
         Route::patch('/{id}/assign-technician', [TechnicalRequestController::class, 'assignTechnician'])->name('backoffice.technical_requests.assign_technician');
+        Route::delete('/files/{file}', [TechnicalRequestController::class, 'deleteFile'])->name('backoffice.technical_requests.files.delete');
         Route::get('/{id}/delete', [TechnicalRequestController::class, 'delete'])->name('backoffice.technical_requests.delete');
 
         // 🔹 Nova rota de exportação para Excel

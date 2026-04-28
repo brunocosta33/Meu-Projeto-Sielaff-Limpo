@@ -353,6 +353,35 @@
                             <small class="text-muted">{{ __('Pode acrescentar ou atualizar notas internas do pedido.') }}</small>
                         </div>
                     @endif
+
+                    <div class="form-group mt-3 mb-0">
+                        <label for="files">{{ __('Anexos') }}</label>
+                        <input type="file" name="files[]" id="files" class="form-control @error('files.*') is-invalid @enderror" accept="application/pdf,image/*" multiple>
+                        <small class="text-muted">{{ __('Pode anexar PDFs ou imagens ao serviço.') }}</small>
+
+                        @if($isEdit && ($technicalRequest->files ?? collect())->count())
+                            <div class="technical-request-files-list">
+                                @foreach($technicalRequest->files as $file)
+                                    <div class="technical-request-file-item">
+                                        <div class="technical-request-file-info">
+                                            @if($file->isImage())
+                                                <img src="{{ asset('storage/' . $file->file_path) }}" alt="{{ $file->file_name }}" class="technical-request-file-thumb">
+                                            @else
+                                                <span class="technical-request-file-icon">
+                                                    <i class="fas fa-file-pdf"></i>
+                                                </span>
+                                            @endif
+                                            <span class="technical-request-file-name">{{ $file->file_name }}</span>
+                                        </div>
+                                        <div class="technical-request-file-actions">
+                                            <a href="{{ asset('storage/' . $file->file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary">{{ __('Abrir') }}</a>
+                                            <button type="submit" form="technical-request-file-delete-{{ $file->id }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('{{ __('Tem a certeza que deseja apagar este ficheiro?') }}')">{{ __('Apagar') }}</button>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>

@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\TechnicalRequest;
+use App\Models\TechnicalRequestFile;
 use Illuminate\Http\Request;
 use App\Models\Store;
 use App\Models\User;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
@@ -46,7 +48,7 @@ class TechnicalRequestController extends Controller
         $isAdmin = $this->isAdmin();
         $technicians = $this->getAssignableTechnicians();
 
-        $query = TechnicalRequest::with(['store', 'machine', 'creator', 'editor', 'assignedTechnician'])
+        $query = TechnicalRequest::with(['store', 'machine', 'creator', 'editor', 'assignedTechnician', 'files'])
             ->orderByRaw("FIELD(estado, 'pendente', 'agendado', 'aguarda_peca', 'concluido', 'cancelado')")
             ->orderBy('data_pedido', 'desc');
 
@@ -163,6 +165,7 @@ class TechnicalRequestController extends Controller
     public function store(Request $request)
     {
         abort_unless($this->isAdmin(), 403);
+        $this->validateFiles($request);
 
         $data = $this->validateTechnicalRequest($request);
 
@@ -170,7 +173,8 @@ class TechnicalRequestController extends Controller
         $data['created_by'] = auth()->id();
         $data['updated_by'] = auth()->id();
 
-        TechnicalRequest::create($data);
+        $technicalRequest = TechnicalRequest::create($data);
+        $this->storeFiles($request, $technicalRequest);
 
         return redirect()->route('backoffice.technical_requests.index')
             ->with('success', 'Pedido criado com sucesso!');
@@ -183,6 +187,7 @@ class TechnicalRequestController extends Controller
             'creator',
             'editor',
             'assignedTechnician',
+            'files',
             'store.machines',          // máquinas disponíveis da loja
             'machines.machine',        // máquinas associadas ao pedido
             'machines.parts.item',     // peças aplicadas
@@ -199,7 +204,7 @@ class TechnicalRequestController extends Controller
 
     public function edit($id)
     {
-        $technicalRequest = TechnicalRequest::with(['machine', 'creator', 'editor', 'assignedTechnician'])->findOrFail($id);
+        $technicalRequest = TechnicalRequest::with(['machine', 'creator', 'editor', 'assignedTechnician', 'files'])->findOrFail($id);
         $this->authorizeRequestAccess($technicalRequest);
         abort_unless($this->canEditTechnicalRequest($technicalRequest), 403);
 
@@ -225,6 +230,7 @@ class TechnicalRequestController extends Controller
         $req = TechnicalRequest::findOrFail($id);
         $this->authorizeRequestAccess($req);
         abort_unless($this->canEditTechnicalRequest($req), 403);
+        $this->validateFiles($request);
 
         if ($this->isAdmin()) {
             $data = $this->validateTechnicalRequest($request);
@@ -260,6 +266,7 @@ class TechnicalRequestController extends Controller
         }
 
         $req->update($data);
+        $this->storeFiles($request, $req);
 
         $returnUrl = $this->technicalRequestReturnUrl($request);
 
@@ -267,6 +274,17 @@ class TechnicalRequestController extends Controller
                 ? redirect()->to($returnUrl)
                 : redirect()->route('backoffice.technical_requests.index'))
             ->with('success', 'Pedido atualizado com sucesso!');
+    }
+
+    public function deleteFile(TechnicalRequestFile $file)
+    {
+        $this->authorizeRequestAccess($file->technicalRequest);
+        abort_unless($this->canEditTechnicalRequest($file->technicalRequest), 403);
+
+        Storage::disk('public')->delete($file->file_path);
+        $file->delete();
+
+        return back()->with('success', 'Ficheiro apagado com sucesso!');
     }
 
     public function delete(Request $request, $id)
@@ -579,6 +597,33 @@ class TechnicalRequestController extends Controller
         }
 
         return $data;
+    }
+
+    private function validateFiles(Request $request): void
+    {
+        if (!$request->hasFile('files')) {
+            return;
+        }
+
+        $request->validate([
+            'files.*' => 'file|mimes:pdf,jpg,jpeg,png,gif,webp|max:10240',
+        ]);
+    }
+
+    private function storeFiles(Request $request, TechnicalRequest $technicalRequest): void
+    {
+        if (!$request->hasFile('files')) {
+            return;
+        }
+
+        foreach ($request->file('files') as $file) {
+            $path = $file->store('technical_request_files', 'public');
+
+            $technicalRequest->files()->create([
+                'file_path' => $path,
+                'file_name' => $file->getClientOriginalName(),
+            ]);
+        }
     }
 
     private function openRequestsByStore(?int $excludeRequestId = null)

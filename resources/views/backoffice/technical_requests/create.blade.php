@@ -13,7 +13,7 @@
 
 <div class="row">
     <div class="col-xl-10">
-        {!! Form::open(['route' => ['backoffice.technical_requests.store']]) !!}
+        {!! Form::open(['route' => ['backoffice.technical_requests.store'], 'files' => true]) !!}
         {{ csrf_field() }}
         @include('backoffice.technical_requests.partials.form')
         {!! Form::close() !!}

@@ -269,6 +269,70 @@
         border-color: #aebeb6;
     }
 
+    .technical-request-files-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+        gap: 10px;
+        margin-top: 0.85rem;
+    }
+
+    .technical-request-file-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        min-width: 0;
+        padding: 0.7rem;
+        background: rgba(255, 255, 255, 0.86);
+        border: 1px solid #dfe8e3;
+        border-radius: 8px;
+    }
+
+    .technical-request-file-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+    }
+
+    .technical-request-file-thumb {
+        width: 42px;
+        height: 42px;
+        flex: 0 0 42px;
+        object-fit: cover;
+        border-radius: 7px;
+        border: 1px solid #dfe8e3;
+    }
+
+    .technical-request-file-icon {
+        width: 42px;
+        height: 42px;
+        flex: 0 0 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 7px;
+        color: #b42318;
+        background: #fff1f0;
+        border: 1px solid #ffd6d2;
+    }
+
+    .technical-request-file-name {
+        min-width: 0;
+        color: #26342f;
+        font-weight: 700;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .technical-request-file-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex: 0 0 auto;
+    }
+
     @media (max-width: 767.98px) {
         .technical-request-card {
             border-radius: 8px;
@@ -440,6 +504,35 @@
             font-size: 0.68rem;
             line-height: 1.1;
             white-space: normal;
+        }
+
+        .technical-request-files-list {
+            grid-template-columns: 1fr;
+            gap: 6px;
+            margin-top: 0.45rem;
+        }
+
+        .technical-request-file-item {
+            padding: 0.45rem;
+            gap: 6px;
+        }
+
+        .technical-request-file-thumb,
+        .technical-request-file-icon {
+            width: 32px;
+            height: 32px;
+            flex-basis: 32px;
+            border-radius: 6px;
+        }
+
+        .technical-request-file-name {
+            font-size: 0.68rem;
+        }
+
+        .technical-request-file-actions .btn {
+            padding: 0.22rem 0.35rem;
+            border-radius: 6px;
+            font-size: 0.62rem;
         }
     }
 </style>

@@ -420,6 +420,74 @@
         font-size: 0.95rem;
     }
 
+    .hotline-files-preview {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        margin-top: 0.85rem;
+        padding: 0.72rem 0.78rem;
+        border: 1px solid #d9e7fb;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #f4f9ff 0%, #eef7ff 100%);
+    }
+
+    .hotline-files-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #1d4ed8;
+        font-size: 0.76rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-right: 2px;
+    }
+
+    .hotline-file-chip {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        background: #fff;
+        color: #1d4ed8;
+        border: 1px solid #cfe0ff;
+        box-shadow: 0 8px 18px rgba(29, 78, 216, 0.10);
+        text-decoration: none;
+    }
+
+    .hotline-file-chip:hover,
+    .hotline-file-chip:focus {
+        color: #184a93;
+        text-decoration: none;
+        border-color: #9fc0f5;
+    }
+
+    .hotline-file-chip img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .hotline-files-more {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 38px;
+        height: 38px;
+        padding: 0 0.55rem;
+        border-radius: 12px;
+        background: #e7f0ff;
+        color: #184a93;
+        border: 1px solid #cfe0ff;
+        font-size: 0.76rem;
+        font-weight: 800;
+    }
+
     .hotline-ticket-section {
         margin-top: 0;
         padding-top: 0;
@@ -722,6 +790,28 @@
         .hotline-snippet {
             font-size: 0.76rem;
             line-height: 1.32;
+        }
+
+        .hotline-files-preview {
+            gap: 5px;
+            margin-top: 0.42rem;
+            padding: 0.38rem 0.42rem;
+            border-radius: 8px;
+        }
+
+        .hotline-files-label {
+            gap: 3px;
+            font-size: 0.54rem;
+            letter-spacing: 0.02em;
+        }
+
+        .hotline-file-chip,
+        .hotline-files-more {
+            width: 28px;
+            height: 28px;
+            min-width: 28px;
+            border-radius: 7px;
+            font-size: 0.62rem;
         }
 
         .hotline-ticket-section,
@@ -1315,6 +1405,29 @@
             line-height: 1.22 !important;
         }
 
+        .hotline-files-preview {
+            gap: 4px !important;
+            margin-top: 0.28rem !important;
+            padding: 0.28rem 0.32rem !important;
+            border-radius: 6px !important;
+        }
+
+        .hotline-files-label {
+            gap: 3px !important;
+            font-size: 0.48rem !important;
+            letter-spacing: 0 !important;
+        }
+
+        .hotline-file-chip,
+        .hotline-files-more {
+            width: 24px !important;
+            height: 24px !important;
+            min-width: 24px !important;
+            border-radius: 6px !important;
+            font-size: 0.54rem !important;
+            box-shadow: none !important;
+        }
+
         .hotline-ticket-section,
         .hotline-actions {
             padding: 0.34rem !important;
@@ -1679,6 +1792,26 @@
                                         </span>
                                     </div>
                                     <div class="hotline-snippet">{{ Str::limit($request->descricao_problema ?: 'Sem descrição.', 180) }}</div>
+                                    @if($request->files->count())
+                                        <div class="hotline-files-preview">
+                                            <span class="hotline-files-label">
+                                                <i class="fa fa-paperclip"></i>
+                                                {{ __('Anexos') }}
+                                            </span>
+                                            @foreach($request->files->take(3) as $file)
+                                                <a href="{{ asset('storage/' . $file->file_path) }}" target="_blank" class="hotline-file-chip" title="{{ $file->file_name }}">
+                                                    @if($file->isImage())
+                                                        <img src="{{ asset('storage/' . $file->file_path) }}" alt="{{ $file->file_name }}">
+                                                    @else
+                                                        <i class="fa fa-file-pdf"></i>
+                                                    @endif
+                                                </a>
+                                            @endforeach
+                                            @if($request->files->count() > 3)
+                                                <span class="hotline-files-more">+{{ $request->files->count() - 3 }}</span>
+                                            @endif
+                                        </div>
+                                    @endif
                                 </div>
 
                                 <div>

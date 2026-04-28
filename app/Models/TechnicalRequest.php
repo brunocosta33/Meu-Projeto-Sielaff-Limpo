@@ -8,6 +8,7 @@ use App\Models\Store;
 use App\Models\Machine;
 use App\Models\User;
 use App\Models\TechnicalRequestMachine;
+use App\Models\TechnicalRequestFile;
 
 class TechnicalRequest extends Model
 {
@@ -87,5 +88,10 @@ class TechnicalRequest extends Model
     public function machines()
     {
         return $this->hasMany(TechnicalRequestMachine::class, 'technical_request_id');
+    }
+
+    public function files()
+    {
+        return $this->hasMany(TechnicalRequestFile::class);
     }
 }
