@@ -13,6 +13,7 @@ class RestrictTechnicianAccess
         'backoffice.technical_requests.show',
         'backoffice.technical_requests.edit',
         'backoffice.technical_requests.update',
+        'backoffice.technical_requests.files.delete',
         'backoffice.technical_requests.my_open',
         'backoffice.task_schedules.minhas',
         'backoffice.task_schedules.minhas.show',
