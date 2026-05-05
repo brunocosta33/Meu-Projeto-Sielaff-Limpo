@@ -276,7 +276,7 @@ class TechnicalRequestController extends Controller
             ->with('success', 'Pedido atualizado com sucesso!');
     }
 
-    public function deleteFile(TechnicalRequestFile $file)
+    public function deleteFile(Request $request, TechnicalRequestFile $file)
     {
         $this->authorizeRequestAccess($file->technicalRequest);
         abort_unless($this->canEditTechnicalRequest($file->technicalRequest), 403);
@@ -284,7 +284,10 @@ class TechnicalRequestController extends Controller
         Storage::disk('public')->delete($file->file_path);
         $file->delete();
 
-        return back()->with('success', 'Ficheiro apagado com sucesso!');
+        $returnUrl = $this->technicalRequestReturnUrl($request);
+
+        return ($returnUrl ? redirect()->to($returnUrl) : back())
+            ->with('success', 'Ficheiro apagado com sucesso!');
     }
 
     public function delete(Request $request, $id)

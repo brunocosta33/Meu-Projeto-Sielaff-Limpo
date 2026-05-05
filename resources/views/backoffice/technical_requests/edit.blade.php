@@ -25,6 +25,9 @@
             <form id="technical-request-file-delete-{{ $file->id }}" method="POST" action="{{ route('backoffice.technical_requests.files.delete', $file->id) }}" class="d-none">
                 @csrf
                 @method('DELETE')
+                @if(request('return_url'))
+                    <input type="hidden" name="return_url" value="{{ request('return_url') }}">
+                @endif
             </form>
         @endforeach
     </div>

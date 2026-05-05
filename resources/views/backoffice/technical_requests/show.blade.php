@@ -766,6 +766,7 @@
                                                         <form method="POST" action="{{ route('backoffice.technical_requests.files.delete', $file->id) }}">
                                                             @csrf
                                                             @method('DELETE')
+                                                            <input type="hidden" name="return_url" value="{{ url()->full() }}">
                                                             <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('{{ __('Tem a certeza que deseja apagar este ficheiro?') }}')">{{ __('Apagar') }}</button>
                                                         </form>
                                                     @endif
