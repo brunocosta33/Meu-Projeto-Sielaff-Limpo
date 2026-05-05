@@ -599,6 +599,10 @@
                                 <div class="technical-request-field-value">{{ $request->machine->serial_number ?? '—' }}</div>
                             </div>
                             <div class="technical-request-field">
+                                <div class="technical-request-field-label">{{ __('Modelo') }}</div>
+                                <div class="technical-request-field-value">{{ $request->machine->descricao ?? '—' }}</div>
+                            </div>
+                            <div class="technical-request-field">
                                 <div class="technical-request-field-label">{{ __('Origem') }}</div>
                                 <div class="technical-request-field-value">{{ $request->origem ?: '—' }}</div>
                             </div>

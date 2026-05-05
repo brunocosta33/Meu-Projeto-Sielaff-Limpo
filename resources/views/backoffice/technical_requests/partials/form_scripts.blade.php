@@ -24,6 +24,9 @@ document.addEventListener('DOMContentLoaded', function () {
     var dataResolucaoInput = document.getElementById('data_resolucao');
     var storeSelect = document.getElementById('store_id');
     var machineSelect = document.getElementById('machine_id');
+    var machineModelDisplay = document.getElementById('machine_model_display');
+    var filesInput = document.getElementById('files');
+    var filesUploadStatus = document.getElementById('files_upload_status');
     var storeSummary = document.getElementById('store_summary');
     var storeSummaryInsignia = document.getElementById('store_summary_insignia');
     var storeSummaryRegiao = document.getElementById('store_summary_regiao');
@@ -177,6 +180,31 @@ document.addEventListener('DOMContentLoaded', function () {
             $(machineSelect).selectpicker('refresh');
             $(machineSelect).selectpicker('val', machineSelect.value);
         }
+
+        syncMachineModel();
+    }
+
+    function selectedMachineData() {
+        if (!machineSelect) {
+            return null;
+        }
+
+        var storeId = selectedStoreId();
+        var machineId = machineSelect.value || '';
+        var machines = storesMachines[storeId] || [];
+
+        return machines.find(function (machine) {
+            return String(machine.id) === String(machineId);
+        }) || null;
+    }
+
+    function syncMachineModel() {
+        if (!machineModelDisplay) {
+            return;
+        }
+
+        var machine = selectedMachineData();
+        machineModelDisplay.textContent = machine && machine.descricao ? machine.descricao : '—';
     }
 
     function renderOpenRequestsWarning() {
@@ -257,7 +285,128 @@ document.addEventListener('DOMContentLoaded', function () {
     if (machineSelect) {
         machineSelect.addEventListener('change', function () {
             machineSelect.dataset.selectedMachine = machineSelect.value || '';
+            syncMachineModel();
         });
+    }
+
+    function fileToImage(file) {
+        return new Promise(function (resolve, reject) {
+            var image = new Image();
+            var objectUrl = URL.createObjectURL(file);
+
+            image.onload = function () {
+                URL.revokeObjectURL(objectUrl);
+                resolve(image);
+            };
+
+            image.onerror = function () {
+                URL.revokeObjectURL(objectUrl);
+                reject(new Error('Invalid image'));
+            };
+
+            image.src = objectUrl;
+        });
+    }
+
+    function canvasToBlob(canvas, type, quality) {
+        return new Promise(function (resolve) {
+            canvas.toBlob(resolve, type, quality);
+        });
+    }
+
+    async function compressImage(file) {
+        if (!file.type || !file.type.match(/^image\//) || file.type === 'image/gif' || file.size <= 1200 * 1024) {
+            return file;
+        }
+
+        var image = await fileToImage(file);
+        var maxSide = 1600;
+        var scale = Math.min(1, maxSide / Math.max(image.width, image.height));
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(image.width * scale));
+        canvas.height = Math.max(1, Math.round(image.height * scale));
+
+        var context = canvas.getContext('2d');
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+        var blob = await canvasToBlob(canvas, 'image/jpeg', 0.78);
+
+        if (!blob || blob.size >= file.size) {
+            return file;
+        }
+
+        var fileName = file.name.replace(/\.[^.]+$/, '') + '.jpg';
+
+        return new File([blob], fileName, {
+            type: 'image/jpeg',
+            lastModified: Date.now()
+        });
+    }
+
+    async function compressSelectedImages() {
+        if (!filesInput || !filesInput.files || !filesInput.files.length || typeof DataTransfer === 'undefined') {
+            return;
+        }
+
+        var originalFiles = Array.from(filesInput.files);
+        var compressedFiles = [];
+        var changedFiles = 0;
+
+        if (filesUploadStatus) {
+            filesUploadStatus.textContent = @json(__('A preparar imagens para envio...'));
+        }
+
+        for (var index = 0; index < originalFiles.length; index++) {
+            var originalFile = originalFiles[index];
+            var compressedFile = await compressImage(originalFile);
+
+            if (compressedFile.size < originalFile.size) {
+                changedFiles++;
+            }
+
+            compressedFiles.push(compressedFile);
+        }
+
+        if (!changedFiles) {
+            if (filesUploadStatus) {
+                filesUploadStatus.textContent = '';
+            }
+            return;
+        }
+
+        var dataTransfer = new DataTransfer();
+        compressedFiles.forEach(function (file) {
+            dataTransfer.items.add(file);
+        });
+
+        filesInput.files = dataTransfer.files;
+
+        if (filesUploadStatus) {
+            filesUploadStatus.textContent = @json(__('Imagens otimizadas para envio.'));
+        }
+    }
+
+    if (filesInput) {
+        var requestForm = filesInput.closest('form');
+
+        if (requestForm) {
+            requestForm.addEventListener('submit', async function (event) {
+                if (requestForm.dataset.filesPrepared === '1') {
+                    return;
+                }
+
+                event.preventDefault();
+                try {
+                    await compressSelectedImages();
+                } catch (error) {
+                    if (filesUploadStatus) {
+                        filesUploadStatus.textContent = '';
+                    }
+                }
+                requestForm.dataset.filesPrepared = '1';
+                requestForm.submit();
+            });
+        }
     }
 
     syncFields(false);

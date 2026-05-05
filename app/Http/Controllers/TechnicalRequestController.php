@@ -397,10 +397,18 @@ class TechnicalRequestController extends Controller
             ->orderBy('data_pedido', 'desc');
 
         $this->applyDateFilters($query, $request);
+        $statsQuery = clone $query;
+        $selectedStatus = $this->selectedOpenStatus($request);
+
+        if ($selectedStatus) {
+            $query->where('estado', $selectedStatus);
+        }
 
         return view('backoffice.technical_requests.open_by_technician', [
             'technician' => $technician,
             'requests' => $query->get(),
+            'openStats' => $this->openStatusStats($statsQuery),
+            'selectedStatus' => $selectedStatus,
             'statuses' => self::STATUSES,
             'canExport' => true,
             'backRoute' => route('backoffice.technical_requests.technicians', $request->only(['mes', 'data_inicio', 'data_fim'])),
@@ -418,10 +426,18 @@ class TechnicalRequestController extends Controller
             ->orderBy('data_pedido', 'desc');
 
         $this->applyDateFilters($query, $request);
+        $statsQuery = clone $query;
+        $selectedStatus = $this->selectedOpenStatus($request);
+
+        if ($selectedStatus) {
+            $query->where('estado', $selectedStatus);
+        }
 
         return view('backoffice.technical_requests.open_by_technician', [
             'technician' => $technician,
             'requests' => $query->get(),
+            'openStats' => $this->openStatusStats($statsQuery),
+            'selectedStatus' => $selectedStatus,
             'statuses' => self::STATUSES,
             'canExport' => false,
             'backRoute' => route('backoffice.technical_requests.index', $request->only(['mes', 'data_inicio', 'data_fim'])),
@@ -677,6 +693,29 @@ class TechnicalRequestController extends Controller
         if ($request->filled('data_fim')) {
             $query->whereDate('data_pedido', '<=', $request->data_fim);
         }
+    }
+
+    private function selectedOpenStatus(Request $request): ?string
+    {
+        $status = $request->input('estado');
+
+        if (!$status || $status === 'concluido' || !array_key_exists($status, self::STATUSES)) {
+            return null;
+        }
+
+        return $status;
+    }
+
+    private function openStatusStats($query): array
+    {
+        $requests = $query->get(['estado']);
+
+        return [
+            'total' => $requests->count(),
+            'pendente' => $requests->where('estado', 'pendente')->count(),
+            'agendado' => $requests->where('estado', 'agendado')->count(),
+            'aguarda_peca' => $requests->where('estado', 'aguarda_peca')->count(),
+        ];
     }
 
     private function isAdmin(): bool

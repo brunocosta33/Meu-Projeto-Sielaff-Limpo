@@ -122,6 +122,13 @@
                             </select>
                             <small class="text-muted">{{ __('Mostra o número de série gravado e pode alterá-lo se precisar.') }}</small>
                         </div>
+
+                        <div class="form-group mb-3">
+                            <label>{{ __('Modelo') }}</label>
+                            <div id="machine_model_display" class="form-control-plaintext text-muted">
+                                {{ $selectedMachineModel->descricao ?? '—' }}
+                            </div>
+                        </div>
                     @else
                         <div class="mb-3">
                             <label class="font-weight-bold d-block">{{ __('Loja') }}</label>
@@ -147,6 +154,11 @@
                         <div class="mb-3">
                             <label class="font-weight-bold d-block">{{ __('Número de Série') }}</label>
                             <div class="text-muted">{{ $technicalRequest->machine->serial_number ?? '—' }}</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="font-weight-bold d-block">{{ __('Modelo') }}</label>
+                            <div class="text-muted">{{ $technicalRequest->machine->descricao ?? '—' }}</div>
                         </div>
                     @endif
 
@@ -358,6 +370,7 @@
                         <label for="files">{{ __('Anexos') }}</label>
                         <input type="file" name="files[]" id="files" class="form-control @error('files.*') is-invalid @enderror" accept="application/pdf,image/*" multiple>
                         <small class="text-muted">{{ __('Pode anexar PDFs ou imagens ao serviço.') }}</small>
+                        <small id="files_upload_status" class="text-muted d-block mt-1"></small>
 
                         @if($isEdit && ($technicalRequest->files ?? collect())->count())
                             <div class="technical-request-files-list">

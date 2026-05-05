@@ -1819,6 +1819,7 @@
                                     <div class="hotline-meta-stack">
                                         <span class="hotline-meta"><i class="fa fa-user-circle"></i> {{ $request->origem ?: '—' }}</span>
                                         <span class="hotline-meta"><i class="fa fa-hashtag"></i> {{ $request->machine->serial_number ?? '—' }}</span>
+                                        <span class="hotline-meta"><i class="fa fa-server"></i> {{ $request->machine->descricao ?? '—' }}</span>
                                         @if($request->zona)
                                             <span class="hotline-meta"><i class="fa fa-map-marker-alt"></i> {{ $zones[$request->zona] ?? ucfirst($request->zona) }}</span>
                                         @endif

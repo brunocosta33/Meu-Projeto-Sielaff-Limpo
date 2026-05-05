@@ -82,8 +82,16 @@
         width: 7%;
     }
 
+    .open-tech-table .open-col-store {
+        width: 27%;
+    }
+
     .open-tech-table .open-col-serial {
         width: 8%;
+    }
+
+    .open-tech-table .open-col-model {
+        width: 10%;
     }
 
     .open-tech-table .open-col-status {
@@ -230,12 +238,49 @@
     }
 
     .open-mobile-stat {
+        display: block;
         background: #fff;
         border: 1px solid var(--open-border);
         border-radius: 12px;
+        color: inherit;
         padding: 0.65rem 0.7rem;
         box-shadow: 0 10px 20px rgba(19, 34, 56, 0.06);
         min-height: 72px;
+        text-decoration: none;
+        transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+    }
+
+    .open-mobile-stat:hover,
+    .open-mobile-stat:focus {
+        color: inherit;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: 0 14px 24px rgba(19, 34, 56, 0.1);
+    }
+
+    .open-mobile-stat.is-active {
+        border-width: 2px;
+        box-shadow: 0 14px 28px rgba(11, 94, 215, 0.18);
+    }
+
+    .open-mobile-stat:nth-child(1) {
+        background: linear-gradient(135deg, #eef4ff 0%, #ffffff 100%);
+        border-color: #cfe0ff;
+    }
+
+    .open-mobile-stat:nth-child(2) {
+        background: linear-gradient(135deg, #fff4d6 0%, #ffffff 100%);
+        border-color: #f3d27a;
+    }
+
+    .open-mobile-stat:nth-child(3) {
+        background: linear-gradient(135deg, #dff3ff 0%, #ffffff 100%);
+        border-color: #9dd7e6;
+    }
+
+    .open-mobile-stat:nth-child(4) {
+        background: linear-gradient(135deg, #ffe2dc 0%, #ffffff 100%);
+        border-color: #f0a79b;
     }
 
     .open-mobile-stat-label {
@@ -255,6 +300,22 @@
         font-weight: 900;
         line-height: 1.15;
         margin-top: 0.35rem;
+    }
+
+    .open-mobile-stat:nth-child(1) .open-mobile-stat-value {
+        color: #0b5ed7;
+    }
+
+    .open-mobile-stat:nth-child(2) .open-mobile-stat-value {
+        color: #8a6500;
+    }
+
+    .open-mobile-stat:nth-child(3) .open-mobile-stat-value {
+        color: #0f5f77;
+    }
+
+    .open-mobile-stat:nth-child(4) .open-mobile-stat-value {
+        color: #9f2419;
     }
 
     @media (max-width: 767.98px) {
@@ -284,7 +345,7 @@
             min-width: 0;
             table-layout: fixed;
             border: 1px solid #dbe5f0;
-            font-size: 0.52rem;
+            font-size: 0.46rem;
         }
 
         .open-tech-table thead {
@@ -302,7 +363,7 @@
         .open-tech-table td,
         .open-tech-table th {
             display: table-cell;
-            padding: 0.18rem 0.16rem;
+            padding: 0.12rem 0.1rem;
             vertical-align: middle;
             white-space: normal;
             overflow: visible;
@@ -313,7 +374,7 @@
         }
 
         .open-tech-table thead th {
-            font-size: 0.45rem;
+            font-size: 0.38rem;
             letter-spacing: 0;
         }
 
@@ -323,20 +384,29 @@
         }
 
         .open-tech-table .open-col-serial {
-            width: 13%;
+            width: 10%;
+        }
+
+        .open-tech-table .open-col-model {
+            width: 10%;
         }
 
         .open-tech-table .open-col-status,
         .open-tech-table .open-col-priority {
-            width: 14%;
+            width: 12%;
         }
 
         .open-tech-table .open-col-date {
-            width: 11%;
+            width: 10%;
         }
 
         .open-tech-table .open-col-action {
-            width: 9%;
+            width: 7%;
+        }
+
+        .open-tech-table .open-col-store,
+        .open-tech-table .open-tech-main {
+            width: 14%;
         }
 
         .open-tech-table .open-col-description,
@@ -360,10 +430,18 @@
         .open-tech-store,
         .open-tech-address,
         .open-tech-muted {
-            font-size: 0.52rem;
-            line-height: 1.12;
+            font-size: 0.4rem;
+            line-height: 1.05;
             white-space: normal;
             overflow-wrap: anywhere;
+        }
+
+        .open-tech-store {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            word-break: break-word;
         }
 
         .open-tech-address {
@@ -373,8 +451,12 @@
         .open-tech-table .btn {
             padding: 0.12rem 0.22rem;
             border-radius: 5px;
-            font-size: 0.48rem;
+            font-size: 0.42rem;
             line-height: 1.05;
+        }
+
+        .open-tech-table .open-action-text {
+            display: none;
         }
 
     }
@@ -385,11 +467,24 @@
 <div class="row">@include('flash::message')</div>
 
 @php
+    $openStats = $openStats ?? [
+        'total' => $requests->count(),
+        'pendente' => $requests->where('estado', 'pendente')->count(),
+        'agendado' => $requests->where('estado', 'agendado')->count(),
+        'aguarda_peca' => $requests->where('estado', 'aguarda_peca')->count(),
+    ];
+    $selectedStatus = $selectedStatus ?? request('estado');
+    $baseFilterParams = request()->except(['estado', 'page']);
+    $filterUrl = function (array $params) {
+        $query = http_build_query($params);
+
+        return url()->current() . ($query ? '?' . $query : '');
+    };
     $mobileStats = [
-        ['label' => __('Total'), 'value' => $requests->count()],
-        ['label' => $statuses['pendente'] ?? __('Pendente'), 'value' => $requests->where('estado', 'pendente')->count()],
-        ['label' => $statuses['agendado'] ?? __('Agendado'), 'value' => $requests->where('estado', 'agendado')->count()],
-        ['label' => $statuses['aguarda_peca'] ?? __('Aguarda Peça'), 'value' => $requests->where('estado', 'aguarda_peca')->count()],
+        ['label' => __('Total'), 'value' => $openStats['total'] ?? 0, 'status' => null, 'url' => $filterUrl($baseFilterParams)],
+        ['label' => $statuses['pendente'] ?? __('Pendente'), 'value' => $openStats['pendente'] ?? 0, 'status' => 'pendente', 'url' => $filterUrl(array_merge($baseFilterParams, ['estado' => 'pendente']))],
+        ['label' => $statuses['agendado'] ?? __('Agendado'), 'value' => $openStats['agendado'] ?? 0, 'status' => 'agendado', 'url' => $filterUrl(array_merge($baseFilterParams, ['estado' => 'agendado']))],
+        ['label' => $statuses['aguarda_peca'] ?? __('Aguarda Peça'), 'value' => $openStats['aguarda_peca'] ?? 0, 'status' => 'aguarda_peca', 'url' => $filterUrl(array_merge($baseFilterParams, ['estado' => 'aguarda_peca']))],
     ];
 @endphp
 
@@ -419,10 +514,10 @@
 
         <div class="open-mobile-summary mb-3">
             @foreach($mobileStats as $stat)
-                <div class="open-mobile-stat">
+                <a href="{{ $stat['url'] }}" class="open-mobile-stat {{ $selectedStatus === $stat['status'] || (!$selectedStatus && $stat['status'] === null) ? 'is-active' : '' }}">
                     <span class="open-mobile-stat-label">{{ $stat['label'] }}</span>
                     <span class="open-mobile-stat-value">{{ $stat['value'] }}</span>
-                </div>
+                </a>
             @endforeach
         </div>
 
@@ -431,9 +526,10 @@
                 <table class="table table-sm table-bordered open-tech-table">
                     <thead>
                         <tr>
-                            <th>{{ __('Loja') }}</th>
+                            <th class="open-col-store">{{ __('Loja') }}</th>
                             <th class="open-col-brand">{{ __('Insígnia') }}</th>
                             <th class="open-col-serial">{{ __('S/N') }}</th>
+                            <th class="open-col-model">{{ __('Modelo') }}</th>
                             <th class="open-col-status">{{ __('Estado') }}</th>
                             <th class="open-col-priority">{{ __('Prioridade') }}</th>
                             <th class="open-col-date">{{ __('Pedido') }}</th>
@@ -444,7 +540,7 @@
                     <tbody>
                         @foreach($requests as $technicalRequest)
                             <tr>
-                                <td class="open-tech-main" data-label="{{ __('Loja') }}">
+                                <td class="open-tech-main open-col-store" data-label="{{ __('Loja') }}">
                                     <div class="open-tech-store">
                                         {{ optional($technicalRequest->store)->codigo_loja ?: '-' }} - {{ optional($technicalRequest->store)->nome_loja ?: '-' }}
                                     </div>
@@ -461,7 +557,7 @@
                                         </div>
                                     @endif
                                 </td>
-                                <td data-label="{{ __('Insígnia') }}">
+                                <td class="open-col-brand" data-label="{{ __('Insígnia') }}">
                                     @if(optional($technicalRequest->store)->insignia)
                                         <span class="open-brand-badge brand-{{ optional($technicalRequest->store)->insignia }}">
                                             {{ ucfirst(optional($technicalRequest->store)->insignia) }}
@@ -470,7 +566,8 @@
                                         -
                                     @endif
                                 </td>
-                                <td data-label="{{ __('S/N') }}">{{ optional($technicalRequest->machine)->serial_number ?: '-' }}</td>
+                                <td class="open-col-serial" data-label="{{ __('S/N') }}">{{ optional($technicalRequest->machine)->serial_number ?: '-' }}</td>
+                                <td class="open-col-model" data-label="{{ __('Modelo') }}">{{ optional($technicalRequest->machine)->descricao ?: '-' }}</td>
                                 <td class="open-col-status" data-label="{{ __('Estado') }}">
                                     <span class="open-status-badge status-{{ $technicalRequest->estado }}">
                                         {{ $statuses[$technicalRequest->estado] ?? ucfirst(str_replace('_', ' ', $technicalRequest->estado)) }}
@@ -487,9 +584,9 @@
                                 </td>
                                 <td class="open-col-date" data-label="{{ __('Pedido') }}">{{ optional($technicalRequest->data_pedido)->format('d/m/Y') ?: '-' }}</td>
                                 <td class="open-tech-description" data-label="{{ __('Descrição') }}">{{ \Illuminate\Support\Str::limit($technicalRequest->descricao_problema ?: '-', 90) }}</td>
-                                <td data-label="{{ __('Abrir') }}">
+                                <td class="open-col-action" data-label="{{ __('Abrir') }}">
                                     <a href="{{ route('backoffice.technical_requests.show', ['id' => $technicalRequest->id, 'return_url' => url()->full()]) }}" class="btn btn-sm btn-outline-primary" title="{{ __('Abrir') }}" aria-label="{{ __('Abrir') }}">
-                                        <i class="fa fa-eye"></i> {{ __('Abrir') }}
+                                        <i class="fa fa-eye"></i> <span class="open-action-text">{{ __('Abrir') }}</span>
                                     </a>
                                 </td>
                             </tr>
