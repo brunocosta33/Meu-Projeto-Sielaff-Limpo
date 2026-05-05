@@ -113,7 +113,12 @@ document.addEventListener('DOMContentLoaded', function () {
         dataResolucaoInput.min = minDate + 'T00:00';
 
         if (!dataResolucaoInput.disabled && !dataResolucaoInput.value) {
-            dataResolucaoInput.value = dataResolucaoInput.min;
+            dataResolucaoInput.value = currentDateTimeLocal();
+
+            if (dataResolucaoInput.value < dataResolucaoInput.min) {
+                dataResolucaoInput.value = dataResolucaoInput.min;
+            }
+
             return;
         }
 
@@ -124,6 +129,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         dataResolucaoInput.setCustomValidity('');
+    }
+
+    function currentDateTimeLocal() {
+        var now = new Date();
+        now.setSeconds(0, 0);
+        var offsetMs = now.getTimezoneOffset() * 60000;
+
+        return new Date(now.getTime() - offsetMs).toISOString().slice(0, 16);
     }
 
     function syncStoreSummary() {

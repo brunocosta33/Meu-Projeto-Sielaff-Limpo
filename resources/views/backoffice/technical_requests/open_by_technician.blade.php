@@ -493,9 +493,13 @@
         <div class="open-tech-hero mb-4">
             <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
                 <div>
-                    <h4 class="open-tech-title mb-2">{{ __('Pedidos em aberto') }}</h4>
+                    <h4 class="open-tech-title mb-2">{{ $pageTitle ?? __('Pedidos em aberto') }}</h4>
                     <p class="open-tech-copy">
-                        {{ __('Responsável') }}: <strong>{{ $technician->name ?: $technician->email }}</strong>
+                        @if(isset($pageCopy))
+                            {{ $pageCopy }}
+                        @else
+                            {{ __('Responsável') }}: <strong>{{ $technician->name ?: $technician->email }}</strong>
+                        @endif
                         <span class="ml-2">({{ $requests->count() }} {{ __('pedidos') }})</span>
                     </p>
                 </div>
@@ -512,14 +516,16 @@
             </div>
         </div>
 
-        <div class="open-mobile-summary mb-3">
-            @foreach($mobileStats as $stat)
-                <a href="{{ $stat['url'] }}" class="open-mobile-stat {{ $selectedStatus === $stat['status'] || (!$selectedStatus && $stat['status'] === null) ? 'is-active' : '' }}">
-                    <span class="open-mobile-stat-label">{{ $stat['label'] }}</span>
-                    <span class="open-mobile-stat-value">{{ $stat['value'] }}</span>
-                </a>
-            @endforeach
-        </div>
+        @if($showMobileSummary ?? true)
+            <div class="open-mobile-summary mb-3">
+                @foreach($mobileStats as $stat)
+                    <a href="{{ $stat['url'] }}" class="open-mobile-stat {{ $selectedStatus === $stat['status'] || (!$selectedStatus && $stat['status'] === null) ? 'is-active' : '' }}">
+                        <span class="open-mobile-stat-label">{{ $stat['label'] }}</span>
+                        <span class="open-mobile-stat-value">{{ $stat['value'] }}</span>
+                    </a>
+                @endforeach
+            </div>
+        @endif
 
         <div class="open-tech-panel">
             @if($requests->isNotEmpty())
@@ -595,7 +601,7 @@
                 </table>
             @else
                 <div class="open-tech-empty">
-                    {{ __('Este responsável não tem pedidos em aberto.') }}
+                    {{ $emptyMessage ?? __('Este responsável não tem pedidos em aberto.') }}
                 </div>
             @endif
         </div>

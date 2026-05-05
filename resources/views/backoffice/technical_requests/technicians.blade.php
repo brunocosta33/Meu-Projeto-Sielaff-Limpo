@@ -157,6 +157,16 @@
         background: var(--tech-surface);
         border-radius: 14px;
         color: var(--tech-ink);
+        text-decoration: none;
+        transition: box-shadow 0.16s ease, transform 0.16s ease;
+    }
+
+    .tech-state-row:hover,
+    .tech-state-row:focus {
+        color: var(--tech-ink);
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: 0 10px 20px rgba(19, 34, 56, 0.1);
     }
 
     .tech-state-label {
@@ -358,10 +368,10 @@
 
                             <div class="tech-state-list">
                                 @foreach($statuses as $statusKey => $statusLabel)
-                                    <div class="tech-state-row state-{{ $statusKey }}">
+                                    <a href="{{ route('backoffice.technical_requests.by_technician_status', array_merge(['id' => $item['technician']->id, 'estado' => $statusKey], request()->only(['mes', 'data_inicio', 'data_fim']))) }}" class="tech-state-row state-{{ $statusKey }}">
                                         <span class="tech-state-label">{{ __($statusLabel) }}</span>
                                         <strong>{{ $item['states'][$statusKey] ?? 0 }}</strong>
-                                    </div>
+                                    </a>
                                 @endforeach
                             </div>
 

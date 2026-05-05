@@ -418,6 +418,35 @@ class TechnicalRequestController extends Controller
         ]);
     }
 
+    public function byTechnicianStatus(Request $request, $id, string $estado)
+    {
+        abort_unless($this->isAdmin(), 403);
+        abort_unless(array_key_exists($estado, self::STATUSES), 404);
+
+        $technician = User::query()
+            ->whereNull('deleted_at')
+            ->findOrFail($id);
+
+        $query = TechnicalRequest::with(['store', 'machine', 'assignedTechnician'])
+            ->where('assigned_technician_id', $technician->id)
+            ->where('estado', $estado)
+            ->orderBy('data_pedido', 'desc');
+
+        $this->applyDateFilters($query, $request);
+
+        return view('backoffice.technical_requests.open_by_technician', [
+            'technician' => $technician,
+            'requests' => $query->get(),
+            'statuses' => self::STATUSES,
+            'canExport' => true,
+            'showMobileSummary' => false,
+            'pageTitle' => __('Pedidos') . ' - ' . __(self::STATUSES[$estado]),
+            'pageCopy' => __('Responsável') . ': ' . ($technician->name ?: $technician->email),
+            'emptyMessage' => __('Não existem pedidos neste estado para este responsável.'),
+            'backRoute' => route('backoffice.technical_requests.technicians', $request->only(['mes', 'data_inicio', 'data_fim'])),
+        ]);
+    }
+
     public function myOpenRequests(Request $request)
     {
         $technician = auth()->user();
@@ -455,6 +484,27 @@ class TechnicalRequestController extends Controller
     public function openAllRequests(Request $request)
     {
         return $this->openAllRequestsView($request, true);
+    }
+
+    public function closedRequests(Request $request)
+    {
+        abort_unless($this->isAdmin(), 403);
+
+        $query = TechnicalRequest::with(['store', 'machine', 'assignedTechnician'])
+            ->where('estado', 'concluido')
+            ->orderByDesc('data_resolucao')
+            ->orderByDesc('updated_at');
+
+        return view('backoffice.technical_requests.open_by_technician', [
+            'requests' => $query->get(),
+            'statuses' => self::STATUSES,
+            'canExport' => false,
+            'showMobileSummary' => false,
+            'pageTitle' => __('Pedidos fechados'),
+            'pageCopy' => __('Todos os pedidos concluídos, ordenados pela data de fecho mais recente.'),
+            'emptyMessage' => __('Ainda não existem pedidos fechados.'),
+            'backRoute' => route('backoffice.technical_requests.index'),
+        ]);
     }
 
     private function openAllRequestsView(Request $request, bool $includeUnassigned)

@@ -260,6 +260,27 @@
         box-shadow: 0 14px 30px rgba(19, 34, 56, 0.08);
     }
 
+    .hotline-closed-btn {
+        border-color: #198754;
+        color: #17663a;
+        background: linear-gradient(135deg, #e8f8ec 0%, #ffffff 100%);
+        font-weight: 800;
+    }
+
+    .hotline-closed-btn:hover,
+    .hotline-closed-btn:focus {
+        color: #ffffff;
+        background: #198754;
+        border-color: #198754;
+    }
+
+    .hotline-closed-callout {
+        border-color: #bfe6ca;
+        background:
+            radial-gradient(circle at top right, rgba(25, 135, 84, 0.12), transparent 28%),
+            linear-gradient(135deg, #effcf4 0%, #fbfffd 100%);
+    }
+
     .hotline-open-callout-title {
         color: var(--hotline-ink);
         font-weight: 800;
@@ -1615,6 +1636,15 @@
                         </div>
                         <a href="{{ route('backoffice.technical_requests.open_all', request()->only(['mes', 'data_inicio', 'data_fim'])) }}" class="btn btn-primary">
                             <i class="fa fa-table"></i> {{ __('Ver todos em aberto') }}
+                        </a>
+                    </div>
+                    <div class="hotline-open-callout hotline-closed-callout">
+                        <div>
+                            <h5 class="hotline-open-callout-title">{{ __('Todos os pedidos fechados') }}</h5>
+                            <p class="hotline-open-callout-copy">{{ __('Abra uma tabela resumida, ordenada pela data de fecho, para consultar rapidamente tudo o que já foi concluído.') }}</p>
+                        </div>
+                        <a href="{{ route('backoffice.technical_requests.closed_all') }}" class="btn hotline-closed-btn">
+                            <i class="fa fa-check-circle"></i> {{ __('Ver pedidos fechados') }}
                         </a>
                     </div>
                 @else
