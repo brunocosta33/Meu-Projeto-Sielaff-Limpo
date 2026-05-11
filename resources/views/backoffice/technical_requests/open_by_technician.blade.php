@@ -538,7 +538,7 @@
                             <th class="open-col-model">{{ __('Modelo') }}</th>
                             <th class="open-col-status">{{ __('Estado') }}</th>
                             <th class="open-col-priority">{{ __('Prioridade') }}</th>
-                            <th class="open-col-date">{{ __('Pedido') }}</th>
+                            <th class="open-col-date">{{ $dateLabel ?? __('Pedido') }}</th>
                             <th class="open-col-description">{{ __('Descrição') }}</th>
                             <th class="open-col-action">{{ __('Abrir') }}</th>
                         </tr>
@@ -588,7 +588,8 @@
                                         -
                                     @endif
                                 </td>
-                                <td class="open-col-date" data-label="{{ __('Pedido') }}">{{ optional($technicalRequest->data_pedido)->format('d/m/Y') ?: '-' }}</td>
+                                @php($dateValue = optional($technicalRequest->{$dateField ?? 'data_pedido'}))
+                                <td class="open-col-date" data-label="{{ $dateLabel ?? __('Pedido') }}">{{ $dateValue->format('d/m/Y') ?: '-' }}</td>
                                 <td class="open-tech-description" data-label="{{ __('Descrição') }}">{{ \Illuminate\Support\Str::limit($technicalRequest->descricao_problema ?: '-', 90) }}</td>
                                 <td class="open-col-action" data-label="{{ __('Abrir') }}">
                                     <a href="{{ route('backoffice.technical_requests.show', ['id' => $technicalRequest->id, 'return_url' => url()->full()]) }}" class="btn btn-sm btn-outline-primary" title="{{ __('Abrir') }}" aria-label="{{ __('Abrir') }}">

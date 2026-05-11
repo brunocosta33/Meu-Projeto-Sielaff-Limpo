@@ -218,7 +218,8 @@
 
     .open-brand-badge,
     .open-status-badge,
-    .open-priority-badge {
+    .open-priority-badge,
+    .open-zone-badge {
         display: inline-flex;
         align-items: center;
         padding: 0.32rem 0.68rem;
@@ -238,6 +239,29 @@
     .open-brand-badge.brand-sonae {
         background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
         color: #fff7d6;
+    }
+
+    .open-zone-badge {
+        margin-left: 6px;
+        padding: 0.15rem 0.42rem;
+        font-size: 0.62rem;
+        letter-spacing: 0.02em;
+        vertical-align: middle;
+    }
+
+    .open-zone-badge.zone-norte {
+        background: linear-gradient(135deg, #0b5ed7 0%, #2f89d9 100%);
+        color: #fff;
+    }
+
+    .open-zone-badge.zone-centro {
+        background: linear-gradient(135deg, #1f6d3b 0%, #2ea95b 100%);
+        color: #fff;
+    }
+
+    .open-zone-badge.zone-sul {
+        background: linear-gradient(135deg, #a7281d 0%, #dc4c3f 100%);
+        color: #fff;
     }
 
     .open-status-badge.status-pendente {
@@ -555,7 +579,7 @@
                                         <tr>
                                             <td class="open-tech-main" data-label="{{ __('Loja') }}">
                                                 <div class="open-tech-store">
-                                                    {{ optional($technicalRequest->store)->codigo_loja ?: '-' }} - {{ optional($technicalRequest->store)->nome_loja ?: '-' }}
+                                                    {{ optional($technicalRequest->store)->codigo_loja ?: '-' }} - {{ optional($technicalRequest->store)->nome_loja ?: '-' }}@if($technicalRequest->zona)<span class="open-zone-badge zone-{{ $technicalRequest->zona }}">{{ ucfirst($technicalRequest->zona) }}</span>@endif
                                                 </div>
                                                 @php($address = implode(', ', array_filter([
                                                     optional($technicalRequest->store)->morada,

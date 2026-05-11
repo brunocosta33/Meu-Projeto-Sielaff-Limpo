@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\TechnicalRequestsExport;
+use App\Support\RegionResolver;
 
 class TechnicalRequestController extends Controller
 {
@@ -427,10 +428,17 @@ class TechnicalRequestController extends Controller
             ->whereNull('deleted_at')
             ->findOrFail($id);
 
+        $isConcluido = $estado === 'concluido';
+
         $query = TechnicalRequest::with(['store', 'machine', 'assignedTechnician'])
             ->where('assigned_technician_id', $technician->id)
-            ->where('estado', $estado)
-            ->orderBy('data_pedido', 'desc');
+            ->where('estado', $estado);
+
+        if ($isConcluido) {
+            $query->orderByDesc('data_resolucao')->orderByDesc('updated_at');
+        } else {
+            $query->orderBy('data_pedido', 'desc');
+        }
 
         $this->applyDateFilters($query, $request);
 
@@ -444,6 +452,8 @@ class TechnicalRequestController extends Controller
             'pageCopy' => __('Responsável') . ': ' . ($technician->name ?: $technician->email),
             'emptyMessage' => __('Não existem pedidos neste estado para este responsável.'),
             'backRoute' => route('backoffice.technical_requests.technicians', $request->only(['mes', 'data_inicio', 'data_fim'])),
+            'dateLabel' => $isConcluido ? __('Resolução') : __('Pedido'),
+            'dateField' => $isConcluido ? 'data_resolucao' : 'data_pedido',
         ]);
     }
 
@@ -504,6 +514,8 @@ class TechnicalRequestController extends Controller
             'pageCopy' => __('Todos os pedidos concluídos, ordenados pela data de fecho mais recente.'),
             'emptyMessage' => __('Ainda não existem pedidos fechados.'),
             'backRoute' => route('backoffice.technical_requests.index'),
+            'dateLabel' => __('Resolução'),
+            'dateField' => 'data_resolucao',
         ]);
     }
 
@@ -612,7 +624,6 @@ class TechnicalRequestController extends Controller
             'assigned_technician_id' => 'nullable|exists:users,id',
             'origem' => 'required|string|max:255',
             'tipo_servico' => 'required|in:' . implode(',', array_keys(self::SERVICE_TYPES)),
-            'zona' => 'nullable|in:' . implode(',', array_keys(self::ZONES)),
             'descricao_problema' => 'nullable|string',
             'prioridade' => 'required|in:' . implode(',', array_keys(self::PRIORITIES)),
             'estado' => 'required|in:' . implode(',', array_keys(self::STATUSES)),
@@ -651,7 +662,7 @@ class TechnicalRequestController extends Controller
         $data['data_resolucao'] = $data['data_resolucao'] ?? null;
         $data['machine_id'] = $data['machine_id'] ?? null;
         $data['assigned_technician_id'] = $data['assigned_technician_id'] ?? null;
-        $data['zona'] = $data['zona'] ?? null;
+        $data['zona'] = RegionResolver::fromStoreId(isset($data['store_id']) ? (int) $data['store_id'] : null);
         $data['descricao_problema'] = $data['descricao_problema'] ?? '';
         $data['observacoes'] = $data['observacoes'] ?? null;
 

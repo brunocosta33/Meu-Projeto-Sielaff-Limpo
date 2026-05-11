@@ -181,19 +181,6 @@
                             <input type="text" name="origem" id="origem" value="{{ old('origem', $technicalRequest->origem ?? '') }}" class="form-control @error('origem') is-invalid @enderror" placeholder="{{ __('Ex: Loja, cliente, equipa técnica') }}" required>
                         </div>
 
-                        <div class="form-group mb-3">
-                            <label for="zona">{{ __('Zona') }}</label>
-                            <select name="zona" id="zona" class="form-control @error('zona') is-invalid @enderror">
-                                <option value="">{{ __('-- Selecione --') }}</option>
-                                @foreach($zones as $value => $label)
-                                    <option value="{{ $value }}" {{ old('zona', $technicalRequest->zona ?? '') === $value ? 'selected' : '' }}>
-                                        {{ __($label) }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            <small class="text-muted">{{ __('Importante para filtrar depois por Norte, Centro ou Sul.') }}</small>
-                        </div>
-
                         <div class="form-group mb-0">
                             <label for="tipo_servico">{{ __('Tipo de Serviço') }}</label>
                             <select name="tipo_servico" id="tipo_servico" class="form-control @error('tipo_servico') is-invalid @enderror" required>
@@ -204,16 +191,12 @@
                                     </option>
                                 @endforeach
                             </select>
+                            <small class="text-muted">{{ __('A zona Norte/Centro/Sul é definida automaticamente pela loja escolhida.') }}</small>
                         </div>
                     @else
                         <div class="mb-3">
                             <label class="font-weight-bold d-block">{{ __('Origem') }}</label>
                             <div class="text-muted">{{ $technicalRequest->origem ?? '—' }}</div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="font-weight-bold d-block">{{ __('Zona') }}</label>
-                            <div class="text-muted">{{ $zones[$technicalRequest->zona] ?? '—' }}</div>
                         </div>
 
                         <div class="mb-0">

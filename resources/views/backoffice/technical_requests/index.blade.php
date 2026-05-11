@@ -397,6 +397,37 @@
         box-shadow: 0 8px 18px rgba(245, 158, 11, 0.2);
     }
 
+    .hotline-zone-line {
+        margin-top: 0.25rem;
+    }
+
+    .hotline-zone-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.15rem 0.42rem;
+        border-radius: 999px;
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        vertical-align: middle;
+    }
+
+    .hotline-zone-badge.zone-norte {
+        background: linear-gradient(135deg, #0b5ed7 0%, #2f89d9 100%);
+        color: #fff;
+    }
+
+    .hotline-zone-badge.zone-centro {
+        background: linear-gradient(135deg, #1f6d3b 0%, #2ea95b 100%);
+        color: #fff;
+    }
+
+    .hotline-zone-badge.zone-sul {
+        background: linear-gradient(135deg, #a7281d 0%, #dc4c3f 100%);
+        color: #fff;
+    }
+
     .hotline-address {
         display: inline-flex;
         align-items: center;
@@ -1795,6 +1826,11 @@
                                                 </span>
                                             @endif
                                         </div>
+                                        @if($request->zona)
+                                            <div class="hotline-zone-line">
+                                                <span class="hotline-zone-badge zone-{{ $request->zona }}">{{ ucfirst($request->zona) }}</span>
+                                            </div>
+                                        @endif
                                         @if(($request->store->morada ?? null) || ($request->store->cidade ?? null) || ($request->store->codigo_postal ?? null))
                                             <div class="hotline-address">
                                                 <i class="fa fa-map-marker-alt"></i>
@@ -1850,9 +1886,6 @@
                                         <span class="hotline-meta"><i class="fa fa-user-circle"></i> {{ $request->origem ?: '—' }}</span>
                                         <span class="hotline-meta"><i class="fa fa-hashtag"></i> {{ $request->machine->serial_number ?? '—' }}</span>
                                         <span class="hotline-meta"><i class="fa fa-server"></i> {{ $request->machine->descricao ?? '—' }}</span>
-                                        @if($request->zona)
-                                            <span class="hotline-meta"><i class="fa fa-map-marker-alt"></i> {{ $zones[$request->zona] ?? ucfirst($request->zona) }}</span>
-                                        @endif
                                     </div>
                                     <span class="hotline-meta"><i class="fa fa-tools"></i> {{ $serviceTypes[$request->tipo_servico] ?? ucfirst($request->tipo_servico) }}</span>
                                 </div>
