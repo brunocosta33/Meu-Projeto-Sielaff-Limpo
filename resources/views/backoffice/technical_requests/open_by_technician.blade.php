@@ -163,6 +163,49 @@
         color: #fff7d6;
     }
 
+    .open-brand-pill,
+    .open-zone-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.2rem 0.55rem;
+        border-radius: 999px;
+        font-size: 0.66rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #fff;
+        vertical-align: middle;
+    }
+
+    .open-brand-pill {
+        margin-right: 8px;
+        flex-shrink: 0;
+    }
+
+    .open-brand-pill.brand-lidl {
+        background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+        color: #ffeb3b;
+    }
+
+    .open-brand-pill.brand-sonae {
+        background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+        color: #fff7d6;
+    }
+
+    .open-zone-pill.zone-norte {
+        background: linear-gradient(135deg, #0b5ed7 0%, #2f89d9 100%);
+    }
+
+    .open-zone-pill.zone-centro {
+        background: linear-gradient(135deg, #1f6d3b 0%, #2ea95b 100%);
+    }
+
+    .open-zone-pill.zone-sul {
+        background: linear-gradient(135deg, #a7281d 0%, #dc4c3f 100%);
+    }
+
     .open-status-badge,
     .open-priority-badge {
         display: inline-flex;
@@ -533,7 +576,7 @@
                     <thead>
                         <tr>
                             <th class="open-col-store">{{ __('Loja') }}</th>
-                            <th class="open-col-brand">{{ __('Insígnia') }}</th>
+                            <th class="open-col-brand">{{ __('Região') }}</th>
                             <th class="open-col-serial">{{ __('S/N') }}</th>
                             <th class="open-col-model">{{ __('Modelo') }}</th>
                             <th class="open-col-status">{{ __('Estado') }}</th>
@@ -548,6 +591,9 @@
                             <tr>
                                 <td class="open-tech-main open-col-store" data-label="{{ __('Loja') }}">
                                     <div class="open-tech-store">
+                                        @if(optional($technicalRequest->store)->insignia)
+                                            <span class="open-brand-pill brand-{{ optional($technicalRequest->store)->insignia }}">{{ ucfirst(optional($technicalRequest->store)->insignia) }}</span>
+                                        @endif
                                         {{ optional($technicalRequest->store)->codigo_loja ?: '-' }} - {{ optional($technicalRequest->store)->nome_loja ?: '-' }}
                                     </div>
                                     @php($address = implode(', ', array_filter([
@@ -563,11 +609,9 @@
                                         </div>
                                     @endif
                                 </td>
-                                <td class="open-col-brand" data-label="{{ __('Insígnia') }}">
-                                    @if(optional($technicalRequest->store)->insignia)
-                                        <span class="open-brand-badge brand-{{ optional($technicalRequest->store)->insignia }}">
-                                            {{ ucfirst(optional($technicalRequest->store)->insignia) }}
-                                        </span>
+                                <td class="open-col-brand" data-label="{{ __('Região') }}">
+                                    @if($technicalRequest->zona)
+                                        <span class="open-zone-pill zone-{{ $technicalRequest->zona }}">{{ ucfirst($technicalRequest->zona) }}</span>
                                     @else
                                         -
                                     @endif
