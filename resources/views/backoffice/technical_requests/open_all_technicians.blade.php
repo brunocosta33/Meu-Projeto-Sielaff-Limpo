@@ -492,6 +492,16 @@
             overflow-wrap: anywhere;
         }
 
+        .open-brand-pill,
+        .open-zone-pill {
+            padding: 0.08rem 0.2rem;
+            border-radius: 4px;
+            font-size: 0.42rem;
+            letter-spacing: 0;
+            line-height: 1.05;
+            margin-right: 3px;
+        }
+
         .open-tech-store,
         .open-tech-address,
         .open-tech-muted {

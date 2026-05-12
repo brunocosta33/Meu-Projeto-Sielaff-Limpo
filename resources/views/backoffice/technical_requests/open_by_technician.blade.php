@@ -368,6 +368,11 @@
             border-radius: 14px;
         }
 
+        .open-tech-panel {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
         .open-tech-title {
             font-size: 1.25rem;
         }
@@ -384,11 +389,11 @@
 
         .open-tech-table {
             display: table;
-            width: 100%;
-            min-width: 0;
-            table-layout: fixed;
+            width: auto;
+            min-width: 720px;
+            table-layout: auto;
             border: 1px solid #dbe5f0;
-            font-size: 0.46rem;
+            font-size: 0.62rem;
         }
 
         .open-tech-table thead {
@@ -406,18 +411,16 @@
         .open-tech-table td,
         .open-tech-table th {
             display: table-cell;
-            padding: 0.12rem 0.1rem;
+            padding: 0.3rem 0.35rem;
             vertical-align: middle;
-            white-space: normal;
+            white-space: nowrap;
             overflow: visible;
             text-overflow: clip;
-            overflow-wrap: anywhere;
-            word-break: normal;
-            line-height: 1.12;
+            line-height: 1.15;
         }
 
         .open-tech-table thead th {
-            font-size: 0.38rem;
+            font-size: 0.56rem;
             letter-spacing: 0;
         }
 
@@ -426,30 +429,15 @@
             display: none;
         }
 
-        .open-tech-table .open-col-serial {
-            width: 10%;
-        }
-
-        .open-tech-table .open-col-model {
-            width: 10%;
-        }
-
+        .open-tech-table .open-col-serial,
+        .open-tech-table .open-col-model,
         .open-tech-table .open-col-status,
-        .open-tech-table .open-col-priority {
-            width: 12%;
-        }
-
-        .open-tech-table .open-col-date {
-            width: 10%;
-        }
-
-        .open-tech-table .open-col-action {
-            width: 7%;
-        }
-
+        .open-tech-table .open-col-priority,
+        .open-tech-table .open-col-date,
+        .open-tech-table .open-col-action,
         .open-tech-table .open-col-store,
         .open-tech-table .open-tech-main {
-            width: 14%;
+            width: auto;
         }
 
         .open-tech-table .open-col-description,
@@ -460,31 +448,39 @@
         .open-brand-badge,
         .open-status-badge,
         .open-priority-badge {
-            padding: 0.12rem 0.22rem;
-            border-radius: 5px;
-            font-size: 0.44rem;
+            padding: 0.22rem 0.45rem;
+            border-radius: 999px;
+            font-size: 0.58rem;
             letter-spacing: 0;
-            white-space: normal;
+            white-space: nowrap;
             line-height: 1.05;
-            max-width: 100%;
-            overflow-wrap: anywhere;
         }
 
-        .open-tech-store,
+        .open-brand-pill,
+        .open-zone-pill {
+            padding: 0.16rem 0.4rem;
+            border-radius: 999px;
+            font-size: 0.54rem;
+            letter-spacing: 0;
+            line-height: 1.05;
+            margin-right: 4px;
+            white-space: nowrap;
+        }
+
         .open-tech-address,
         .open-tech-muted {
-            font-size: 0.4rem;
-            line-height: 1.05;
-            white-space: normal;
-            overflow-wrap: anywhere;
+            font-size: 0.56rem;
+            line-height: 1.1;
+            white-space: nowrap;
+            overflow: visible;
         }
 
         .open-tech-store {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            word-break: break-word;
+            display: block;
+            font-size: 0.6rem;
+            line-height: 1.15;
+            white-space: nowrap;
+            overflow: visible;
         }
 
         .open-tech-address {
@@ -492,9 +488,9 @@
         }
 
         .open-tech-table .btn {
-            padding: 0.12rem 0.22rem;
-            border-radius: 5px;
-            font-size: 0.42rem;
+            padding: 0.2rem 0.4rem;
+            border-radius: 6px;
+            font-size: 0.58rem;
             line-height: 1.05;
         }
 
