@@ -39,8 +39,21 @@ class StockOperationRequest extends FormRequest
                 'nullable',
                 'exists:users,id',
             ],
+            'machine_id' => [
+                // Obrigatório no consumo para alimentar o histórico da máquina.
+                Rule::requiredIf($routeName === 'backoffice.stock.consume'),
+                'nullable',
+                'exists:machines,id',
+            ],
             'quantity' => 'required|integer|min:1',
         ]);
+    }
+
+    public function messages(): array
+    {
+        return [
+            'machine_id.required' => __('Selecione a máquina/nº de série a que se destina o consumo.'),
+        ];
     }
 
     public function withValidator($validator): void

@@ -136,7 +136,7 @@
         </div>
         <div id="collapseConsume" class="collapse" data-parent="#stockOperations">
             <div class="card-body">
-                <form method="POST" action="{{ route('backoffice.stock.consume') }}" data-stock-operation-form data-operation-type="consume" data-requires-technician="{{ $canManageWarehouse ? 'true' : 'false' }}">
+                <form method="POST" action="{{ route('backoffice.stock.consume') }}" data-stock-operation-form data-operation-type="consume" data-requires-technician="{{ $canManageWarehouse ? 'true' : 'false' }}" data-requires-machine="true">
                     @csrf
                     <div class="form-group">
                         <label>{{ __('Peça') }}</label>
@@ -146,6 +146,15 @@
                             @endforeach
                         </select>
                         <div class="invalid-feedback d-none" data-field-error="item_id"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>{{ __('Máquina / Nº de série') }}</label>
+                        <select name="machine_id" class="form-control selectpicker" data-live-search="true" title="{{ __('Selecionar máquina') }}" data-size="8" data-container="body" required>
+                            @foreach($machines as $machine)
+                                <option value="{{ $machine->id }}">{{ $machine->serial_number }}@if($machine->store) — {{ $machine->store->codigo_loja }} {{ $machine->store->nome_loja }}@endif</option>
+                            @endforeach
+                        </select>
+                        <div class="invalid-feedback d-none" data-field-error="machine_id"></div>
                     </div>
                     @if($canManageWarehouse)
                         <div class="form-group">

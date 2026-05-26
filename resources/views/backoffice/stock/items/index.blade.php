@@ -202,6 +202,7 @@ document.addEventListener('DOMContentLoaded', function () {
         adjustNotZero: @json(__('O ajuste não pode ser zero.')),
         quantityPositive: @json(__('A quantidade tem de ser maior que zero.')),
         selectTechnician: @json(__('Selecione um técnico.')),
+        selectMachine: @json(__('Selecione a máquina/nº de série.')),
         fixFields: @json(__('Existem campos por corrigir antes de gravar.')),
         saving: @json(__('A guardar...')),
         saveFailed: @json(__('Não foi possível concluir a operação.')),
@@ -289,6 +290,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 setFieldError(form, 'technician_id', stockTranslations.selectTechnician);
                 valid = false;
             }
+        }
+
+        const machine = form.querySelector('[name="machine_id"]');
+        if (machine && form.dataset.requiresMachine === 'true' && !machine.value) {
+            setFieldError(form, 'machine_id', stockTranslations.selectMachine);
+            valid = false;
         }
 
         return valid;

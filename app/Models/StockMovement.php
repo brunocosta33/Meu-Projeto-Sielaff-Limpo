@@ -35,6 +35,7 @@ class StockMovement extends Model
         'item_id',
         'part_id',
         'technician_id',
+        'machine_id',
         'movement_type',
         'quantity',
         'source',
@@ -56,6 +57,11 @@ class StockMovement extends Model
     public function technician()
     {
         return $this->belongsTo(User::class, 'technician_id');
+    }
+
+    public function machine()
+    {
+        return $this->belongsTo(Machine::class);
     }
 
     public function creator()

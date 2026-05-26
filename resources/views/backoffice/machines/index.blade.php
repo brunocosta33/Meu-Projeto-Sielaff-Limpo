@@ -112,6 +112,10 @@
                                 {{-- Ações --}}
                                 <td class="text-right">
                                     <div class="d-flex justify-content-end">
+                                        <a href="{{ route('backoffice.machines.history', $m->id) }}"
+                                            class="btn btn-sm btn-outline-info mr-2" title="Histórico">
+                                            <i class="fa fa-history"></i>
+                                        </a>
                                         <a href="{{ route('backoffice.machines.edit', $m->id) }}"
                                             class="btn btn-sm btn-outline-primary mr-2" title="Editar">
                                             <i class="fa fa-edit"></i>

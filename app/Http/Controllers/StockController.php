@@ -8,6 +8,7 @@ use App\Exports\TechnicianStocksExport;
 use App\Http\Requests\StockOperationRequest;
 use App\Http\Requests\UpsertItemRequest;
 use App\Models\Item;
+use App\Models\Machine;
 use App\Models\StockMovement;
 use App\Models\TechnicianItemStock;
 use App\Models\User;
@@ -50,6 +51,7 @@ class StockController extends Controller
             'items' => $items,
             'activeItems' => Item::query()->where('is_active', true)->orderBy('reference')->get(),
             'technicians' => $this->getTechnicians(),
+            'machines' => $this->getMachines(),
             'movementTypes' => StockMovement::TYPES,
             'summary' => [
                 'items' => $items->count(),
@@ -271,8 +273,10 @@ class StockController extends Controller
     {
         $validated = $request->validated();
         $technician = $this->resolveTechnicianForOperation($validated['technician_id'] ?? null);
+        $machine = Machine::with('store')->findOrFail($validated['machine_id']);
+        $destination = $this->machineDestinationLabel($machine);
 
-        DB::transaction(function () use ($validated, $technician) {
+        DB::transaction(function () use ($validated, $technician, $machine, $destination) {
             $item = Item::query()->lockForUpdate()->findOrFail($validated['item_id']);
             $technicianStock = $this->getTechnicianStockForUpdate($technician->id, $item->id);
 
@@ -285,7 +289,16 @@ class StockController extends Controller
             $technicianStock->decrement('quantity', $validated['quantity']);
             $this->cleanupEmptyTechnicianStock($technicianStock);
 
-            $this->recordMovement($item, 'consumed', $validated['quantity'], $technician->id, $technician->name ?: $technician->email, 'Consumo em assistência', $validated['notes'] ?? null);
+            $this->recordMovement(
+                $item,
+                'consumed',
+                $validated['quantity'],
+                $technician->id,
+                $technician->name ?: $technician->email,
+                $destination,
+                $validated['notes'] ?? null,
+                $machine->id
+            );
         });
 
         flash(__('Consumo de peça registado com sucesso.'))->success();
@@ -426,12 +439,14 @@ class StockController extends Controller
         ?int $technicianId,
         ?string $source,
         ?string $destination,
-        ?string $notes
+        ?string $notes,
+        ?int $machineId = null
     ): void {
         StockMovement::create([
             'item_id' => $item->id,
             'part_id' => $item->id,
             'technician_id' => $technicianId,
+            'machine_id' => $machineId,
             'movement_type' => $movementType,
             'quantity' => $quantity,
             'source' => $source,
@@ -484,6 +499,29 @@ class StockController extends Controller
             })
             ->orderBy('name')
             ->get();
+    }
+
+    private function machineDestinationLabel(Machine $machine): string
+    {
+        $parts = [];
+
+        if ($machine->store) {
+            $parts[] = trim(($machine->store->codigo_loja ? $machine->store->codigo_loja . ' - ' : '') . $machine->store->nome_loja);
+        }
+
+        $parts[] = __('Nº Série') . ': ' . $machine->serial_number;
+
+        return implode(' · ', array_filter($parts));
+    }
+
+    private function getMachines()
+    {
+        return Machine::query()
+            ->with('store')
+            ->whereHas('store')
+            ->get()
+            ->sortBy(fn (Machine $machine) => $machine->store->codigo_loja . ' ' . $machine->serial_number)
+            ->values();
     }
 
     private function findTechnician(int $technicianId): User

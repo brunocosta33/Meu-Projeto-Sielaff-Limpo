@@ -80,6 +80,7 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
     // Machines (Máquinas / Números de série por loja)
     Route::prefix('backoffice/machines')->name('backoffice.machines.')->group(function () {
         Route::get('/', [MachineController::class, 'index'])->name('index');          // Listar máquinas
+        Route::get('/{id}/historico', [MachineController::class, 'history'])->name('history'); // Histórico da máquina
         Route::get('/create', [MachineController::class, 'create'])->name('create');  // Formulário nova máquina
         Route::post('/', [MachineController::class, 'store'])->name('store');         // Gravar nova máquina
         Route::get('/{id}/edit', [MachineController::class, 'edit'])->name('edit');   // Editar máquina

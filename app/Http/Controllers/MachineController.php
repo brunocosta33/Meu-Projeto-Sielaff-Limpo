@@ -9,6 +9,61 @@ use Illuminate\Validation\Rule;
 
 class MachineController extends Controller
 {
+    private const SERVICE_TYPES = [
+        'software' => 'Software',
+        'reparacao' => 'Assistência/Reparação',
+        'manutencao' => 'Manutenção',
+        'pre_visita' => 'Pré-Visita',
+    ];
+
+    private const STATUSES = [
+        'pendente' => 'Pendente',
+        'agendado' => 'Agendado',
+        'concluido' => 'Concluído',
+        'cancelado' => 'Cancelado',
+        'aguarda_peca' => 'Aguarda Peça',
+    ];
+
+    public function history($id)
+    {
+        $machine = Machine::with('store')->findOrFail($id);
+
+        $requests = $machine->technicalRequests()
+            ->with(['assignedTechnician', 'creator'])
+            ->orderByRaw('COALESCE(data_resolucao, data_pedido) DESC')
+            ->get();
+
+        $consumptions = $machine->consumptions()
+            ->with(['item', 'technician', 'creator'])
+            ->orderByDesc('created_at')
+            ->get();
+
+        // Total acumulado de peças gastas nesta máquina (por peça).
+        $partsSummary = $consumptions
+            ->groupBy('item_id')
+            ->map(function ($group) {
+                $first = $group->first();
+
+                return [
+                    'reference' => $first->item->reference ?? '—',
+                    'name' => $first->item->name ?? '—',
+                    'quantity' => $group->sum('quantity'),
+                ];
+            })
+            ->sortByDesc('quantity')
+            ->values();
+
+        return view('backoffice.machines.history', [
+            'machine' => $machine,
+            'requests' => $requests,
+            'consumptions' => $consumptions,
+            'partsSummary' => $partsSummary,
+            'serviceTypes' => self::SERVICE_TYPES,
+            'statuses' => self::STATUSES,
+            'totalPartsConsumed' => $consumptions->sum('quantity'),
+        ]);
+    }
+
     public function index(Request $request)
     {
         $query = Machine::with('store')

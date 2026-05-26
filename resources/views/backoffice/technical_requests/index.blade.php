@@ -1953,6 +1953,11 @@
                                     <a href="{{ route('backoffice.technical_requests.show', ['id' => $request->id, 'return_url' => url()->full()]) }}" class="btn btn-sm btn-outline-primary">
                                         <i class="fa fa-eye"></i> {{ __('Ver') }}
                                     </a>
+                                    @if($request->machine)
+                                        <a href="{{ route('backoffice.machines.history', $request->machine->id) }}" class="btn btn-sm btn-outline-info">
+                                            <i class="fa fa-history"></i> {{ __('Histórico') }}
+                                        </a>
+                                    @endif
                                     @if($canManageAll || $request->estado !== 'concluido')
                                         <a href="{{ route('backoffice.technical_requests.edit', ['id' => $request->id, 'return_url' => url()->full()]) }}" class="btn btn-sm btn-outline-secondary">
                                             <i class="fa fa-edit"></i> {{ __('Editar') }}
