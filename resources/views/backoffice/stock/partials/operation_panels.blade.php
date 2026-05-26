@@ -151,7 +151,7 @@
                         <label>{{ __('Máquina / Nº de série') }}</label>
                         <select name="machine_id" class="form-control selectpicker" data-live-search="true" title="{{ __('Selecionar máquina') }}" data-size="8" data-container="body" required>
                             @foreach($machines as $machine)
-                                <option value="{{ $machine->id }}">{{ $machine->serial_number }}@if($machine->store) — {{ $machine->store->codigo_loja }} {{ $machine->store->nome_loja }}@endif</option>
+                                <option value="{{ $machine->id }}">@if($machine->store){{ $machine->store->codigo_loja }} {{ $machine->store->nome_loja }} — @endif{{ __('Nº Série') }}: {{ $machine->serial_number }}</option>
                             @endforeach
                         </select>
                         <div class="invalid-feedback d-none" data-field-error="machine_id"></div>
