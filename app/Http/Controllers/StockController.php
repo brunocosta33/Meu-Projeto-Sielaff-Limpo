@@ -14,6 +14,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -105,32 +106,15 @@ class StockController extends Controller
 
     public function movements(Request $request)
     {
+        $filters = $request->only(['item_id', 'technician_id', 'movement_type', 'date_from', 'date_to', 'period', 'q']);
+
         $query = StockMovement::query()
             ->with(['item', 'technician', 'creator'])
+            ->applyFilters($filters)
             ->latest();
 
         if (!$this->canManageWarehouse()) {
             $query->where('technician_id', auth()->id());
-        }
-
-        if ($request->filled('item_id')) {
-            $query->where('item_id', $request->item_id);
-        }
-
-        if ($request->filled('technician_id')) {
-            $query->where('technician_id', $request->technician_id);
-        }
-
-        if ($request->filled('movement_type')) {
-            $query->where('movement_type', $request->movement_type);
-        }
-
-        if ($request->filled('date_from')) {
-            $query->whereDate('created_at', '>=', $request->date_from);
-        }
-
-        if ($request->filled('date_to')) {
-            $query->whereDate('created_at', '<=', $request->date_to);
         }
 
         $movements = $query->paginate(50)->withQueryString();
@@ -178,7 +162,7 @@ class StockController extends Controller
     {
         return Excel::download(
             new StockMovementsExport(
-                $request->only(['item_id', 'technician_id', 'movement_type', 'date_from', 'date_to']),
+                $request->only(['item_id', 'technician_id', 'movement_type', 'date_from', 'date_to', 'period', 'q']),
                 $this->canManageWarehouse()
             ),
             'movimentos_stock_' . now()->format('Ymd_His') . '.xlsx'
@@ -194,6 +178,18 @@ class StockController extends Controller
         return Excel::download(
             new TechnicianStocksExport($technicians, $this->canManageWarehouse()),
             'stock_tecnicos_' . now()->format('Ymd_His') . '.xlsx'
+        );
+    }
+
+    public function exportTechnician(User $technician)
+    {
+        abort_unless($this->canManageWarehouse() || $technician->id === auth()->id(), 403);
+
+        $slug = Str::slug($technician->name ?: $technician->email) ?: $technician->id;
+
+        return Excel::download(
+            new TechnicianStocksExport(collect([$technician]), $this->canManageWarehouse()),
+            'stock_tecnico_' . $slug . '_' . now()->format('Ymd_His') . '.xlsx'
         );
     }
 
@@ -343,6 +339,72 @@ class StockController extends Controller
         flash(__('Ajuste manual registado com sucesso.'))->success();
 
         return $this->stockResponse(__('Ajuste manual registado com sucesso.'), $validated['item_id']);
+    }
+
+    public function destroyMovement(StockMovement $movement)
+    {
+        abort_unless($this->canManageWarehouse(), 403);
+
+        try {
+            DB::transaction(function () use ($movement) {
+                $item = Item::query()->lockForUpdate()->findOrFail($movement->item_id);
+                $quantity = (int) $movement->quantity;
+                $type = $movement->movement_type;
+
+                // Efeito a aplicar ao armazém para reverter o movimento.
+                $warehouseDelta = match ($type) {
+                    'warehouse_in' => -$quantity,
+                    'to_technician' => $quantity,
+                    'from_technician' => -$quantity,
+                    'adjustment' => $movement->technician_id ? 0 : -$quantity,
+                    default => 0, // consumed
+                };
+
+                // Efeito a aplicar ao stock do técnico (apenas se o movimento envolveu um técnico).
+                $technicianDelta = 0;
+                if ($movement->technician_id) {
+                    $technicianDelta = match ($type) {
+                        'to_technician' => -$quantity,
+                        'from_technician' => $quantity,
+                        'consumed' => $quantity,
+                        'adjustment' => -$quantity,
+                        default => 0,
+                    };
+                }
+
+                if ($warehouseDelta !== 0) {
+                    $newWarehouse = (int) $item->warehouse_stock + $warehouseDelta;
+
+                    if ($newWarehouse < 0) {
+                        throw new \RuntimeException(__('Não é possível remover este movimento: deixaria o armazém com stock negativo. Verifique se as peças já foram movimentadas entretanto.'));
+                    }
+
+                    $item->update(['warehouse_stock' => $newWarehouse]);
+                }
+
+                if ($technicianDelta !== 0) {
+                    $technicianStock = $this->getTechnicianStockForUpdate($movement->technician_id, $item->id);
+                    $newQuantity = (int) $technicianStock->quantity + $technicianDelta;
+
+                    if ($newQuantity < 0) {
+                        throw new \RuntimeException(__('Não é possível remover este movimento: deixaria o técnico com stock negativo. Verifique se as peças já foram movimentadas entretanto.'));
+                    }
+
+                    $technicianStock->update(['quantity' => $newQuantity]);
+                    $this->cleanupEmptyTechnicianStock($technicianStock);
+                }
+
+                $movement->delete();
+            });
+        } catch (\RuntimeException $e) {
+            flash($e->getMessage())->error();
+
+            return redirect()->route('backoffice.stock.movements.index');
+        }
+
+        flash(__('Movimento removido e stock reposto com sucesso.'))->success();
+
+        return redirect()->route('backoffice.stock.movements.index');
     }
 
     private function normalizeItemData(UpsertItemRequest $request): array

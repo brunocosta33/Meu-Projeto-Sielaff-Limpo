@@ -192,10 +192,12 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
         Route::put('/items/{item}', [StockController::class, 'update'])->name('items.update');
 
         Route::get('/movements', [StockController::class, 'movements'])->name('movements.index');
+        Route::delete('/movements/{movement}', [StockController::class, 'destroyMovement'])->name('movements.destroy');
         Route::get('/technicians', [StockController::class, 'technicians'])->name('technicians.index');
         Route::get('/export/items', [StockController::class, 'exportItems'])->name('export.items');
         Route::get('/export/movements', [StockController::class, 'exportMovements'])->name('export.movements');
         Route::get('/export/technicians', [StockController::class, 'exportTechnicians'])->name('export.technicians');
+        Route::get('/export/technicians/{technician}', [StockController::class, 'exportTechnician'])->name('export.technician');
 
         Route::post('/warehouse-in', [StockController::class, 'warehouseIn'])->name('warehouse_in');
         Route::post('/transfer', [StockController::class, 'transfer'])->name('transfer');

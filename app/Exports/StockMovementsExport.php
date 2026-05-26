@@ -3,7 +3,6 @@
 namespace App\Exports;
 
 use App\Models\StockMovement;
-use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStyles;
@@ -19,30 +18,11 @@ class StockMovementsExport implements FromCollection, WithHeadings, WithStyles
     {
         $query = StockMovement::query()
             ->with(['item', 'technician', 'creator'])
+            ->applyFilters($this->filters)
             ->latest();
 
         if (!$this->canManageWarehouse) {
             $query->where('technician_id', auth()->id());
-        }
-
-        if (!empty($this->filters['item_id'])) {
-            $query->where('item_id', $this->filters['item_id']);
-        }
-
-        if (!empty($this->filters['technician_id'])) {
-            $query->where('technician_id', $this->filters['technician_id']);
-        }
-
-        if (!empty($this->filters['movement_type'])) {
-            $query->where('movement_type', $this->filters['movement_type']);
-        }
-
-        if (!empty($this->filters['date_from'])) {
-            $query->whereDate('created_at', '>=', $this->filters['date_from']);
-        }
-
-        if (!empty($this->filters['date_to'])) {
-            $query->whereDate('created_at', '<=', $this->filters['date_to']);
         }
 
         return $query->get()->map(function (StockMovement $movement) {
