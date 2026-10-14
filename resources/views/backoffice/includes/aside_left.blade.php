@@ -103,6 +103,7 @@ use App\Models\Base;
             </a>
             <ul class="collapse list-unstyled" id="pageSubmenuTecnicas" data-parent="#menu-left">
                 <li><a href="{{ route('backoffice.technical_requests.index') }}"><i class="fas fa-headset me-2"></i>{{ __('HotLine') }}</a></li>
+                <li><a href="{{ route('backoffice.technical_requests.open_all') }}"><i class="fas fa-folder-open me-2"></i>{{ __('Todos os Pedidos Abertos') }}</a></li>
                 <li><a href="{{ route('backoffice.technical_requests.technicians') }}"><i class="fas fa-users me-2"></i>{{ __('Pedidos por Responsável') }}</a></li>
                 {{-- <li><a href="{{ route('backoffice.technical_schedules.index') }}"><i class="fas fa-calendar-day me-2"></i>{{ __('Agendamento das Assistências') }}</a>
         </li> --}}
@@ -132,6 +133,21 @@ use App\Models\Base;
     </li>
     @endif
 
+    @if(Auth::user()->hasRole('admin'))
+    <li>
+        <a href="#pageSubmenuRH" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+            <i class="fas fa-user-clock"></i>
+            <span class="hidden-sm-down"> {{__('Recursos Humanos')}}</span>
+        </a>
+        <ul class="collapse list-unstyled" id="pageSubmenuRH" data-parent="#menu-left">
+            <li><a href="{{ route('backoffice.hr.hotline.index') }}"><i class="fas fa-calendar-week me-2"></i>{{ __('Escala Hotline') }}</a></li>
+            <li><a href="{{ route('backoffice.hr.vacations.index') }}"><i class="fas fa-umbrella-beach me-2"></i>{{ __('Férias e Ausências') }}</a></li>
+            <li><a href="{{ route('backoffice.hr.holidays.index') }}"><i class="fas fa-flag me-2"></i>{{ __('Feriados') }}</a></li>
+            <li><a href="{{ route('backoffice.hr.staff.index') }}"><i class="fas fa-id-card me-2"></i>{{ __('Colaboradores') }}</a></li>
+        </ul>
+    </li>
+    @endif
+
     @if(!$isTechnician && Auth::user()->hasAnyPermissionsOrRole(['view_configurations','view_loginactivity','view_users','view_roles','view_permissions']))
     <li>
         <a href="#pageSubmenuUsers" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
@@ -155,6 +171,15 @@ use App\Models\Base;
             <li><a href="{{ route('backoffice.permissions.index') }}"><i class="fas fa-key me-2"></i>{{ __('Permissions') }}</a></li>
             @endif
         </ul>
+    </li>
+    @endif
+
+    @if(\App\Services\DocumentAccess::canView(Auth::user()))
+    <li>
+        <a href="{{ route('backoffice.documents.index') }}" class="collapsed" data-parent="#sidebar">
+            <i class="fas fa-book"></i>
+            <span class="hidden-sm-down"> {{ __('Documentação') }}</span>
+        </a>
     </li>
     @endif
 

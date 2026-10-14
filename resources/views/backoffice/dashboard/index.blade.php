@@ -304,6 +304,20 @@
 @push('styles')
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
 <style>
+    .fc-duty-event { border: 0 !important; border-radius: 8px !important; }
+    .fc-duty-override { box-shadow: inset 0 0 0 3px #ffc107; }
+    /* Cartões compactos por baixo dos indicadores */
+    .dashboard-compact .dashboard-section-card { font-size: .88rem; }
+    .dashboard-compact .card-header { padding: .5rem .9rem; }
+    .dashboard-compact .dashboard-section-subtitle { display: none; }
+    .dashboard-compact .card-body { max-height: 300px; overflow-y: auto; }
+    .dashboard-compact .card-body:not(.p-0) { padding: .6rem .9rem; }
+    .dashboard-compact .card-footer { padding: .4rem .9rem; }
+    .dashboard-compact .dashboard-agenda-item { padding-top: .35rem; padding-bottom: .35rem; }
+    .fc-duty { padding: 3px 6px; line-height: 1.2; color: #fff; overflow: hidden; }
+    .fc-duty-role { display: block; font-size: .65rem; text-transform: uppercase; letter-spacing: .06em; opacity: .85; font-weight: 700; }
+    .fc-duty-name { display: block; font-weight: 700; font-size: .82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .fc-duty-hours { display: block; font-size: .72rem; opacity: .9; }
     #calendar-agendamentos {
         background: #fff;
         border-radius: 12px;
@@ -328,14 +342,35 @@
             var calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
                 locale: @json(app()->getLocale()),
-                height: 500,
+                height: 'auto',
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
                     right: 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
-                events: events,
+                nextDayThreshold: '09:00',
+                eventSources: [
+                    events,
+                    { url: @json(route('backoffice.hr.holidays.events')) },
+                    @if(auth()->user()->hasRole('admin'))
+                    { url: @json(route('backoffice.hr.calendar.events')), display: 'block', className: 'fc-duty-event' },
+                    { url: @json(route('backoffice.hr.absences.events')), display: 'block' }
+                    @endif
+                ],
+                eventContent: function(arg) {
+                    var p = arg.event.extendedProps;
+                    if (!p.funcao) return true; // tarefas mantêm o aspeto normal
+                    var esc = function (t) { var d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML; };
+                    return { html:
+                        '<div class="fc-duty">' +
+                            '<span class="fc-duty-role">' + esc(p.funcao) + (p.substituicao ? ' ⇄' : '') + '</span>' +
+                            '<span class="fc-duty-name">' + esc(p.nome) + '</span>' +
+                            '<span class="fc-duty-hours">' + esc(p.horario) + '</span>' +
+                        '</div>'
+                    };
+                },
                 eventDidMount: function(info) {
+                    if (info.event.display === 'background') return;
                     var tooltip = document.createElement('div');
                     tooltip.className = 'fc-tooltip-custom';
                     tooltip.style.position = 'absolute';
@@ -347,6 +382,7 @@
                     tooltip.style.boxShadow = '0 2px 8px rgba(0,0,0,0.12)';
                     tooltip.style.display = 'none';
                     var html = '<strong>' + info.event.title + '</strong>';
+                    if(info.event.extendedProps.funcao) html += '<br><span><b>' + @json(__('Função')) + ':</b> ' + info.event.extendedProps.funcao + '</span>';
                     if(info.event.extendedProps.prioridade) html += '<br><span><b>' + @json(__('Prioridade')) + ':</b> ' + info.event.extendedProps.prioridade + '</span>';
                     if(info.event.extendedProps.recorrencia) html += '<br><span><b>' + @json(__('Recorrência')) + ':</b> ' + info.event.extendedProps.recorrencia + '</span>';
                     if(info.event.extendedProps.description) html += '<br><span>' + info.event.extendedProps.description + '</span>';
@@ -493,7 +529,7 @@
     </div>
 </div>
 
-<div class="row mt-4">
+<div class="row mt-4 dashboard-compact">
     <div class="col-lg-7 mb-4">
             <div class="card dashboard-section-card">
                 <div class="card-header bg-danger text-white">
@@ -501,7 +537,7 @@
                 <span class="dashboard-section-subtitle">{{ __('Pedidos que merecem acompanhamento mais rápido pela prioridade, estado e antiguidade.') }}</span>
                 </div>
                 <div class="card-body p-0">
-                    <table class="table table-striped mb-0 dashboard-priority-table">
+                    <table class="table table-sm table-striped mb-0 dashboard-priority-table">
                     <thead>
                         <tr>
                             <th>{{ __('Pedido') }}</th>

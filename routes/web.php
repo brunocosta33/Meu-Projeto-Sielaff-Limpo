@@ -36,6 +36,11 @@ use App\Http\Controllers\TechnicalRequestController;
 use App\Http\Controllers\TechnicalScheduleController;
 use App\Http\Controllers\InstallationController;
 use App\Http\Controllers\TechnicianController;
+use App\Http\Controllers\HrController;
+use App\Http\Controllers\HrVacationController;
+use App\Http\Controllers\HrHolidayController;
+use App\Http\Controllers\HrAbsenceController;
+use App\Http\Controllers\DocumentController;
 
 
 
@@ -182,6 +187,59 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
         Route::get('/{id}/edit', [StoreController::class, 'edit'])->name('backoffice.stores.edit');
         Route::post('/{id}/update', [StoreController::class, 'update'])->name('backoffice.stores.update');
         Route::get('/{id}/delete', [StoreController::class, 'delete'])->name('backoffice.stores.delete');
+    });
+
+    // Documentação (manuais e especificações): acesso por função, definido pelo Coordenador (ver DocumentAccess)
+    Route::prefix('backoffice/documentacao')->name('backoffice.documents.')->group(function () {
+        Route::get('/', [DocumentController::class, 'index'])->name('index');
+        Route::get('/exportar', [DocumentController::class, 'zip'])->name('zip');
+        Route::get('/{id}/abrir', [DocumentController::class, 'view'])->name('view');
+        Route::get('/{id}/descarregar', [DocumentController::class, 'download'])->name('download');
+
+        Route::put('/acessos', [DocumentController::class, 'updatePermissions'])->name('permissions');
+        Route::post('/', [DocumentController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [DocumentController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [DocumentController::class, 'update'])->name('update');
+        Route::delete('/{id}', [DocumentController::class, 'destroy'])->name('destroy');
+    });
+
+    // Feriados para os calendários (visível a todos os utilizadores com acesso à dashboard)
+    Route::get('backoffice/rh/feriados/eventos', [HrHolidayController::class, 'events'])->name('backoffice.hr.holidays.events');
+
+    //Recursos Humanos
+    Route::prefix('backoffice/rh')->name('backoffice.hr.')->middleware('role:admin')->group(function () {
+        Route::get('/colaboradores', [HrController::class, 'staffIndex'])->name('staff.index');
+        Route::get('/colaboradores/create', [HrController::class, 'staffCreate'])->name('staff.create');
+        Route::post('/colaboradores', [HrController::class, 'staffStore'])->name('staff.store');
+        Route::get('/colaboradores/{id}/edit', [HrController::class, 'staffEdit'])->name('staff.edit');
+        Route::put('/colaboradores/{id}', [HrController::class, 'staffUpdate'])->name('staff.update');
+        Route::delete('/colaboradores/{id}', [HrController::class, 'staffDelete'])->name('staff.delete');
+
+        Route::get('/hotline', [HrController::class, 'hotlineSchedule'])->name('hotline.index');
+        Route::get('/calendario/eventos', [HrController::class, 'calendarEvents'])->name('calendar.events');
+        Route::get('/hotline/substituicao', [HrController::class, 'overrideCreate'])->name('hotline.override.create');
+        Route::post('/hotline/substituicao', [HrController::class, 'overrideStore'])->name('hotline.override.store');
+        Route::delete('/hotline/substituicao/{id}', [HrController::class, 'overrideDelete'])->name('hotline.override.delete');
+
+        Route::get('/ferias', [HrVacationController::class, 'index'])->name('vacations.index');
+        Route::post('/ferias', [HrVacationController::class, 'store'])->name('vacations.store');
+        Route::post('/ferias/{id}/aprovar', [HrVacationController::class, 'approve'])->name('vacations.approve');
+        Route::post('/ferias/{id}/rejeitar', [HrVacationController::class, 'reject'])->name('vacations.reject');
+        Route::delete('/ferias/{id}', [HrVacationController::class, 'destroy'])->name('vacations.destroy');
+        Route::put('/ferias/saldo/{staff}', [HrVacationController::class, 'updateBalance'])->name('vacations.balance');
+
+        Route::post('/faltas', [HrAbsenceController::class, 'store'])->name('absences.store');
+        Route::get('/faltas/eventos', [HrAbsenceController::class, 'events'])->name('absences.events');
+        Route::get('/faltas/{id}/edit', [HrAbsenceController::class, 'edit'])->name('absences.edit');
+        Route::put('/faltas/{id}', [HrAbsenceController::class, 'update'])->name('absences.update');
+        Route::post('/faltas/{id}/decidir', [HrAbsenceController::class, 'decide'])->name('absences.decide');
+        Route::delete('/faltas/{id}', [HrAbsenceController::class, 'destroy'])->name('absences.destroy');
+        Route::get('/faltas/{id}/comprovativo', [HrAbsenceController::class, 'document'])->name('absences.document');
+        Route::delete('/faltas/{id}/comprovativo', [HrAbsenceController::class, 'deleteDocument'])->name('absences.document.delete');
+
+        Route::get('/feriados', [HrHolidayController::class, 'index'])->name('holidays.index');
+        Route::post('/feriados', [HrHolidayController::class, 'store'])->name('holidays.store');
+        Route::delete('/feriados/{id}', [HrHolidayController::class, 'destroy'])->name('holidays.destroy');
     });
 
     Route::prefix('backoffice/stock')->name('backoffice.stock.')->group(function () {
