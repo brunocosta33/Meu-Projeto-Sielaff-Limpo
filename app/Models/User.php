@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Laratrust\Contracts\LaratrustUser;
@@ -66,11 +67,9 @@ class User extends Authenticatable implements LaratrustUser
     public function hasPermissionsOrRole($permissions_array)
     {
         foreach ($permissions_array as $permission) {
-            $roles = Role::whereIn('id', Permission_role::whereIn('permission_id',
-                Permission::where('name', $permission)->pluck('id')->toarray()
-            )->pluck('role_id')->toarray())->get();
+            $roles = self::rolesWithPermission($permission);
 
-            if (!$this->hasAnyRole($roles ?? []) && !$this->hasPermission($permission)) {
+            if (!($roles && $this->hasRole($roles)) && !$this->hasPermission($permission)) {
                 return false;
             }
         }
@@ -80,18 +79,37 @@ class User extends Authenticatable implements LaratrustUser
 
     public function hasAnyPermissionsOrRole($permissions_array)
     {
-
         foreach ($permissions_array as $permission) {
+            $roles = self::rolesWithPermission($permission);
 
-            $roles = Role::whereIn('id', Permission_role::whereIn(
-                'permission_id',
-                Permission::where('name', $permission)->pluck('id')->toarray()
-            )->pluck('role_id')->toarray())->get();
-            if ($this->hasAnyRole($roles) || $this->hasPermission($permission)) {
+            if (($roles && $this->hasRole($roles)) || $this->hasPermission($permission)) {
                 return true;
             }
         }
         return false;
+    }
+
+    /**
+     * Nomes dos perfis que têm uma permissão. A tabela é lida uma só vez por pedido
+     * (antes eram 3 consultas por permissão, repetidas em cada item do menu).
+     */
+    private static ?array $permissionRoles = null;
+
+    private static function rolesWithPermission(string $permission): array
+    {
+        if (self::$permissionRoles === null) {
+            self::$permissionRoles = DB::table('permission_role')
+                ->join('permissions', 'permissions.id', '=', 'permission_role.permission_id')
+                ->join('roles', 'roles.id', '=', 'permission_role.role_id')
+                ->whereNull('permissions.deleted_at')
+                ->whereNull('roles.deleted_at')
+                ->get(['permissions.name as permission', 'roles.name as role'])
+                ->groupBy('permission')
+                ->map(fn ($rows) => $rows->pluck('role')->unique()->values()->all())
+                ->all();
+        }
+
+        return self::$permissionRoles[$permission] ?? [];
     }
 
 
