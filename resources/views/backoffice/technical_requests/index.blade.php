@@ -1974,6 +1974,12 @@
                             </article>
                         @endforeach
                     </div>
+                    @if($requests->hasPages())
+                        <div class="d-flex flex-column align-items-center mt-4">
+                            {{ $requests->links() }}
+                            <small class="text-muted">{{ __('A mostrar') }} {{ $requests->firstItem() }}–{{ $requests->lastItem() }} {{ __('de') }} {{ $requests->total() }} {{ __('pedidos') }}</small>
+                        </div>
+                    @endif
                 @else
                     <div class="text-center hotline-empty">
                         <div class="hotline-empty-icon">

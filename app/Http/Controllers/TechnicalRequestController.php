@@ -115,20 +115,24 @@ class TechnicalRequestController extends Controller
 
         $this->applyDateFilters($query, $request);
 
-        $statsRequests = (clone $query)->get();
+        // Totais por estado numa única contagem (sem carregar os pedidos e as relações)
+        $counts = (clone $query)->reorder()->toBase()
+            ->selectRaw('estado, COUNT(*) as total')
+            ->groupBy('estado')
+            ->pluck('total', 'estado');
         $stats = [
-            'total' => $statsRequests->count(),
-            'pendente' => $statsRequests->where('estado', 'pendente')->count(),
-            'agendado' => $statsRequests->where('estado', 'agendado')->count(),
-            'aguarda_peca' => $statsRequests->where('estado', 'aguarda_peca')->count(),
-            'concluido' => $statsRequests->where('estado', 'concluido')->count(),
+            'total' => (int) $counts->sum(),
+            'pendente' => (int) ($counts['pendente'] ?? 0),
+            'agendado' => (int) ($counts['agendado'] ?? 0),
+            'aguarda_peca' => (int) ($counts['aguarda_peca'] ?? 0),
+            'concluido' => (int) ($counts['concluido'] ?? 0),
         ];
 
         if ($request->filled('estado')) {
             $query->whereIn('estado', (array) $request->estado);
         }
 
-        $requests = $query->get();
+        $requests = $query->paginate(48)->withQueryString();
 
         return view('backoffice.technical_requests.index', [
             'requests' => $requests,
