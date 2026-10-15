@@ -12,9 +12,9 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Banco de horas: horas extra, intervenções de piquete, horas em falta e acertos (pagamentos e folgas),
- * mais o subsídio de prevenção de piquete em euros.
- * Gestão de RH vê e gere tudo; os restantes veem o seu saldo e registam as suas horas (ficam pendentes).
+ * Banco de horas: pagamentos de piquete (com horas de trabalho suplementar), horas extra,
+ * horas em falta e acertos (pagamentos e folgas).
+ * Gestão de RH vê e gere tudo; os restantes veem o seu saldo e pedem as suas horas extra (ficam pendentes).
  */
 class HrTimeBankController extends Controller
 {
@@ -23,6 +23,7 @@ class HrTimeBankController extends Controller
         $user = auth()->user();
         $isManager = HrAccess::isManager($user);
         $month = $request->filled('mes') ? Carbon::createFromFormat('Y-m', $request->mes)->startOfMonth() : now()->startOfMonth();
+        $monthRange = [$month->toDateString(), $month->copy()->endOfMonth()->toDateString()];
         $types = config('hr.time_entry_types');
 
         $staff = HrStaff::with('user')->where('ativo', true)->get()->sortBy(fn ($s) => $s->user->name ?? '')->values();
@@ -31,25 +32,24 @@ class HrTimeBankController extends Controller
         }
         $filterStaff = $isManager ? $request->input('colaborador') : HrAccess::staffOf($user)?->id;
 
-        // Saldos (todos os movimentos aprovados, desde sempre)
+        // Saldo de horas (todos os movimentos aprovados, desde sempre) e piquetes do mês
         $approved = HrTimeEntry::whereIn('hr_staff_id', $staff->pluck('id'))->where('estado', 'aprovado')->get()->groupBy('hr_staff_id');
         $pending = HrTimeEntry::whereIn('hr_staff_id', $staff->pluck('id'))->where('estado', 'pendente')->get()->groupBy('hr_staff_id');
-        $summary = $staff->map(function ($s) use ($approved, $pending) {
-            $entries = $approved->get($s->id, collect());
-            $sum = fn ($unit) => $entries->filter(fn ($e) => $e->type['unit'] === $unit)->sum(fn ($e) => $e->signed_amount);
+        $monthPiquetes = HrTimeEntry::whereIn('hr_staff_id', $staff->pluck('id'))->where('tipo', 'piquete')->where('estado', 'aprovado')
+            ->whereBetween('data', $monthRange)->get()->groupBy('hr_staff_id');
 
-            return (object) [
-                'staff' => $s,
-                'horas' => round($sum('horas'), 2),
-                'euros' => round($sum('euros'), 2),
-                'pendentes' => $pending->get($s->id, collect())->count(),
-            ];
-        });
+        $summary = $staff->map(fn ($s) => (object) [
+            'staff' => $s,
+            'horas' => round($approved->get($s->id, collect())->sum(fn ($e) => $e->signed_amount), 2),
+            'piquetes' => $monthPiquetes->get($s->id, collect())->count(),
+            'suplementar' => round($monthPiquetes->get($s->id, collect())->sum('horas'), 2),
+            'pendentes' => $pending->get($s->id, collect())->count(),
+        ]);
 
         // Movimentos do mês
         $entries = HrTimeEntry::with(['staff.user', 'creator', 'decider'])
             ->whereIn('hr_staff_id', $staff->pluck('id'))
-            ->whereBetween('data', [$month->toDateString(), $month->copy()->endOfMonth()->toDateString()])
+            ->whereBetween('data', $monthRange)
             ->when($filterStaff, fn ($q) => $q->where('hr_staff_id', $filterStaff))
             ->when($request->filled('tipo'), fn ($q) => $q->where('tipo', $request->tipo))
             ->when($request->filled('estado'), fn ($q) => $q->where('estado', $request->estado))
@@ -66,7 +66,6 @@ class HrTimeBankController extends Controller
             'isManager' => $isManager,
             'ownStaff' => HrAccess::staffOf($user),
             'pendingTotal' => $isManager ? HrTimeEntry::where('estado', 'pendente')->count() : 0,
-            'prevencaoValor' => (float) config('hr.piquete.prevencao_valor'),
         ]);
     }
 
@@ -82,7 +81,6 @@ class HrTimeBankController extends Controller
             'data' => ['required', 'date'],
             'tipo' => ['required', Rule::in($allowedTypes)],
             'horas' => ['nullable', 'regex:/^\d{1,3}([.,:]\d{1,2})?$/'],
-            'valor' => ['nullable', 'numeric', 'min:0', 'max:99999'],
             'descricao' => ['nullable', 'string', 'max:255'],
         ], [
             'horas.regex' => 'Indique as horas como 2, 2,5 ou 2:30.',
@@ -92,11 +90,10 @@ class HrTimeBankController extends Controller
         $staffId = $isManager ? (int) $data['hr_staff_id'] : HrAccess::staffOf($user)?->id;
         abort_unless($staffId, 403);
 
-        $unit = $types[$data['tipo']]['unit'];
-        $hours = $unit === 'horas' ? $this->parseHours($data['horas'] ?? '') : 0;
-        $value = $unit === 'euros' ? (float) ($data['valor'] ?? 0) : 0;
-        if (($unit === 'horas' && $hours <= 0) || ($unit === 'euros' && $value <= 0)) {
-            throw ValidationException::withMessages([$unit === 'horas' ? 'horas' : 'valor' => $unit === 'horas' ? 'Indique o número de horas.' : 'Indique o valor em euros.']);
+        // No pagamento de piquete as horas (trabalho suplementar) são opcionais; nos restantes são obrigatórias
+        $hours = $this->parseHours($data['horas'] ?? '');
+        if ($data['tipo'] !== 'piquete' && $hours <= 0) {
+            throw ValidationException::withMessages(['horas' => 'Indique o número de horas.']);
         }
 
         HrTimeEntry::create([
@@ -104,7 +101,6 @@ class HrTimeBankController extends Controller
             'data' => $data['data'],
             'tipo' => $data['tipo'],
             'horas' => $hours,
-            'valor' => $value,
             'descricao' => $data['descricao'] ?? null,
             'estado' => $isManager ? 'aprovado' : 'pendente',
             'created_by' => $user->id,
@@ -115,6 +111,28 @@ class HrTimeBankController extends Controller
         flash($isManager ? 'Movimento registado.' : 'Pedido registado. Fica pendente até ser aprovado pela gestão de RH.')->success();
 
         return redirect()->route('backoffice.hr.timebank.index', ['mes' => Carbon::parse($data['data'])->format('Y-m')]);
+    }
+
+    /** Alterar as horas (ex.: trabalho suplementar de um piquete) e a descrição. */
+    public function update(Request $request, $id)
+    {
+        $entry = HrTimeEntry::findOrFail($id);
+        $data = $request->validate([
+            'horas' => ['nullable', 'regex:/^\d{1,3}([.,:]\d{1,2})?$/'],
+            'descricao' => ['nullable', 'string', 'max:255'],
+        ], ['horas.regex' => 'Indique as horas como 2, 2,5 ou 2:30.']);
+
+        $hours = $this->parseHours($data['horas'] ?? '');
+        if ($entry->tipo !== 'piquete' && $hours <= 0) {
+            throw ValidationException::withMessages(['horas' => 'Indique o número de horas.']);
+        }
+
+        $entry->update(['horas' => $hours] + ($request->has('descricao') ? ['descricao' => $data['descricao']] : []));
+        flash($entry->tipo === 'piquete'
+            ? 'Trabalho suplementar do piquete de ' . $entry->data->format('d/m') . ': ' . HrTimeEntry::formatHours($hours) . '.'
+            : 'Movimento atualizado.')->success();
+
+        return back();
     }
 
     public function decide(Request $request, $id)
@@ -137,10 +155,10 @@ class HrTimeBankController extends Controller
     }
 
     /**
-     * Cria o subsídio de prevenção para cada sábado de piquete do mês, a quem fez o turno
+     * Cria um "Pagamento de piquete" para cada sábado de piquete do mês, a quem fez o turno
      * (tem em conta trocas; ignora sábados sem substituto). Não duplica.
      */
-    public function generatePrevencoes(Request $request, HotlineRotation $rotation)
+    public function generatePiquetes(Request $request, HotlineRotation $rotation)
     {
         $month = Carbon::createFromFormat('Y-m', $request->validate(['mes' => ['required', 'date_format:Y-m']])['mes'])->startOfMonth();
         $end = $month->copy()->endOfMonth()->min(now()->startOfDay()); // só sábados já passados ou de hoje
@@ -150,7 +168,6 @@ class HrTimeBankController extends Controller
         }
 
         $staffByUser = HrStaff::where('ativo', true)->get()->keyBy('user_id');
-        $value = (float) config('hr.piquete.prevencao_valor');
         $created = 0;
         $skipped = [];
 
@@ -165,12 +182,12 @@ class HrTimeBankController extends Controller
             }
 
             $entry = HrTimeEntry::firstOrCreate(
-                ['referencia' => 'prevencao:' . $shift->date->toDateString() . ':' . $shift->staff->id],
+                ['referencia' => 'piquete:' . $shift->date->toDateString() . ':' . $shift->staff->id],
                 [
                     'hr_staff_id' => $worker->id,
                     'data' => $shift->date->toDateString(),
-                    'tipo' => 'prevencao_piquete',
-                    'valor' => $value,
+                    'tipo' => 'piquete',
+                    'horas' => 0,
                     'descricao' => 'Piquete ' . $shift->date->format('d/m/Y') . ($shift->zona ? ' · ' . $shift->zona : '')
                         . ($worker->id !== $shift->staff->id ? ' (substitui ' . $shift->staff->user->name . ')' : ''),
                     'estado' => 'aprovado',
@@ -184,15 +201,15 @@ class HrTimeBankController extends Controller
             }
         }
 
-        flash($created ? $created . ' prevenção(ões) de piquete registada(s) em ' . $month->translatedFormat('F Y') . '.' : 'Não havia prevenções novas para registar neste mês.')->success();
+        flash($created ? $created . ' piquete(s) registado(s) em ' . $month->translatedFormat('F Y') . '. Indique o trabalho suplementar em cada um, se houve.' : 'Não havia piquetes novos para registar neste mês.')->success();
         if ($skipped) {
-            flash('Sem registo de colaborador (não foi criada prevenção): ' . implode(', ', $skipped))->warning();
+            flash('Sem registo de colaborador (piquete não registado): ' . implode(', ', $skipped))->warning();
         }
 
         return back();
     }
 
-    /** Exportar os movimentos do mês para Excel (CSV com ; e acentos). */
+    /** Exportar os movimentos aprovados do mês para Excel (CSV com ; e acentos). */
     public function export(Request $request)
     {
         $month = $request->filled('mes') ? Carbon::createFromFormat('Y-m', $request->mes)->startOfMonth() : now()->startOfMonth();
@@ -207,15 +224,14 @@ class HrTimeBankController extends Controller
         return response()->streamDownload(function () use ($entries) {
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF"); // BOM para o Excel reconhecer acentos
-            fputcsv($out, ['Colaborador', 'Data', 'Tipo', 'Horas (+/−)', 'Valor € (+/−)', 'Descrição'], ';');
+            fputcsv($out, ['Colaborador', 'Data', 'Tipo', 'Piquete', 'Horas (+/−)', 'Descrição'], ';');
             foreach ($entries as $e) {
-                $isEuros = $e->type['unit'] === 'euros';
                 fputcsv($out, [
                     $e->staff->user->name ?? '',
                     $e->data->format('d/m/Y'),
                     $e->type['label'],
-                    $isEuros ? '' : number_format($e->signed_amount, 2, ',', ''),
-                    $isEuros ? number_format($e->signed_amount, 2, ',', '') : '',
+                    $e->tipo === 'piquete' ? 1 : '',
+                    number_format($e->signed_amount, 2, ',', ''),
                     $e->descricao,
                 ], ';');
             }
@@ -227,6 +243,9 @@ class HrTimeBankController extends Controller
     private function parseHours(string $input): float
     {
         $input = trim($input);
+        if ($input === '') {
+            return 0;
+        }
         if (str_contains($input, ':')) {
             [$h, $m] = array_map('intval', explode(':', $input) + [1 => 0]);
 

@@ -17,7 +17,6 @@ class HrTimeEntry extends Model
         'data',
         'tipo',
         'horas',
-        'valor',
         'descricao',
         'estado',
         'referencia',
@@ -29,7 +28,6 @@ class HrTimeEntry extends Model
     protected $casts = [
         'data' => 'date',
         'horas' => 'float',
-        'valor' => 'float',
         'decided_at' => 'datetime',
     ];
 
@@ -50,15 +48,13 @@ class HrTimeEntry extends Model
 
     public function getTypeAttribute(): array
     {
-        return config('hr.time_entry_types.' . $this->tipo, ['label' => $this->tipo, 'sign' => 1, 'unit' => 'horas', 'color' => '#6c757d', 'icon' => 'fa-clock']);
+        return config('hr.time_entry_types.' . $this->tipo, ['label' => $this->tipo, 'sign' => 1, 'color' => '#6c757d', 'icon' => 'fa-clock']);
     }
 
-    /** Quantidade com sinal (+ a favor do colaborador, − a favor da empresa / acerto). */
+    /** Horas com sinal (+ a favor do colaborador, − a favor da empresa / acerto). */
     public function getSignedAmountAttribute(): float
     {
-        $amount = $this->type['unit'] === 'euros' ? $this->valor : $this->horas;
-
-        return $this->type['sign'] * $amount;
+        return $this->type['sign'] * $this->horas;
     }
 
     /** Formata horas decimais como "7h30". */
@@ -68,12 +64,5 @@ class HrTimeEntry extends Model
         $minutes = (int) round(abs($hours) * 60);
 
         return $sign . intdiv($minutes, 60) . 'h' . str_pad((string) ($minutes % 60), 2, '0', STR_PAD_LEFT);
-    }
-
-    public static function formatEuros(float $value, bool $withSign = false): string
-    {
-        $sign = $value < 0 ? '−' : ($withSign && $value > 0 ? '+' : '');
-
-        return $sign . number_format(abs($value), 2, ',', ' ') . ' €';
     }
 }

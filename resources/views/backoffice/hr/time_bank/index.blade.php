@@ -2,7 +2,6 @@
 
 @php(\Carbon\Carbon::setLocale('pt'))
 @php($fmtH = fn ($h, $s = false) => \App\Models\HrTimeEntry::formatHours($h, $s))
-@php($fmtE = fn ($v, $s = false) => \App\Models\HrTimeEntry::formatEuros($v, $s))
 @php($filters = request()->only(['colaborador', 'tipo', 'estado']))
 @php($selfTypes = array_filter($types, fn ($t) => $t['self']))
 
@@ -43,6 +42,7 @@
     .tb-balance.neg { background: #fde2e1; color: #a31515; }
     .tb-balance.zero { background: #eef2f7; color: #6c7a89; }
     .tb-note { font-size: .72rem; color: #8a96a8; }
+    .tb-sup .form-control { border-radius: 8px; }
 </style>
 @endpush
 
@@ -56,7 +56,7 @@
     <div class="d-flex flex-wrap align-items-center justify-content-between" style="gap: .8rem 1.2rem">
         <div>
             <h4><i class="fas fa-business-time"></i> {{ __('Banco de Horas') }}</h4>
-            <div style="opacity: .8; font-size: .88rem">{{ __('Horas extra, intervenções e prevenções de piquete, horas em falta e acertos') }}</div>
+            <div style="opacity: .8; font-size: .88rem">{{ __('Piquetes e trabalho suplementar, horas extra, horas em falta e acertos') }}</div>
         </div>
         <div class="month">
             <a href="{{ route('backoffice.hr.timebank.index', ['mes' => $month->copy()->subMonth()->format('Y-m')] + $filters) }}"><i class="fa fa-chevron-left"></i></a>
@@ -65,10 +65,10 @@
         </div>
         @if($isManager)
             <div class="d-flex flex-wrap" style="gap: .5rem">
-                <form method="POST" action="{{ route('backoffice.hr.timebank.prevencoes') }}" onsubmit="return confirm('Registar o subsídio de prevenção ({{ $fmtE($prevencaoValor) }}) para cada sábado de piquete de {{ $month->translatedFormat('F Y') }}? Os que já existem não são duplicados.')">
+                <form method="POST" action="{{ route('backoffice.hr.timebank.piquetes') }}" onsubmit="return confirm('Registar um pagamento de piquete para cada sábado de piquete de {{ $month->translatedFormat('F Y') }}? Os que já existem não são duplicados.')">
                     @csrf
                     <input type="hidden" name="mes" value="{{ $month->format('Y-m') }}">
-                    <button class="btn btn-ghost btn-sm"><i class="fas fa-shield-alt"></i> {{ __('Gerar prevenções do mês') }}</button>
+                    <button class="btn btn-ghost btn-sm"><i class="fas fa-tools"></i> {{ __('Gerar piquetes do mês') }}</button>
                 </form>
                 <a href="{{ route('backoffice.hr.timebank.export', ['mes' => $month->format('Y-m')]) }}" class="btn btn-light btn-sm"><i class="fas fa-file-excel"></i> {{ __('Exportar Excel') }}</a>
             </div>
@@ -97,10 +97,10 @@
                             <div class="num">{{ $fmtH($me->horas, true) }}</div>
                             <div class="hint">{{ $me->horas < 0 ? __('horas que deve à empresa') : __('horas por pagar ou gozar') }}</div>
                         </div>
-                        <div class="tb-stat" style="--bg: #fff1e0; --fg: #a85400">
-                            <div class="lbl">{{ __('Prevenções por pagar') }}</div>
-                            <div class="num">{{ $fmtE($me->euros) }}</div>
-                            <div class="hint">{{ __('subsídio de prevenção de piquete') }}</div>
+                        <div class="tb-stat" style="--bg: #e3f0ff; --fg: #0d47a1">
+                            <div class="lbl">{{ __('Piquetes em') }} {{ $month->translatedFormat('F') }}</div>
+                            <div class="num">{{ $me->piquetes }}</div>
+                            <div class="hint">{{ __('trabalho suplementar:') }} {{ $fmtH($me->suplementar) }}</div>
                         </div>
                         <div class="tb-stat" style="--bg: #fff8db; --fg: #7a5600">
                             <div class="lbl">{{ __('Pedidos pendentes') }}</div>
@@ -119,7 +119,7 @@
                             <tr>
                                 <th>{{ __('Colaborador') }}</th>
                                 <th>{{ __('Saldo de horas') }}</th>
-                                <th>{{ __('Prevenções por pagar') }}</th>
+                                <th>{{ __('Piquetes em') }} {{ $month->translatedFormat('F') }}</th>
                                 <th>{{ __('Pendentes') }}</th>
                                 <th></th>
                             </tr>
@@ -135,7 +135,14 @@
                                         <span class="tb-balance {{ $row->horas > 0 ? 'pos' : ($row->horas < 0 ? 'neg' : 'zero') }}">{{ $fmtH($row->horas, true) }}</span>
                                         @if($row->horas < 0)<div class="tb-note">{{ __('deve horas à empresa') }}</div>@elseif($row->horas > 0)<div class="tb-note">{{ __('por pagar ou gozar') }}</div>@endif
                                     </td>
-                                    <td><span class="tb-amount {{ $row->euros > 0 ? 'pos' : 'zero' }}">{{ $fmtE($row->euros) }}</span></td>
+                                    <td>
+                                        @if($row->piquetes)
+                                            <strong>{{ $row->piquetes }}</strong>
+                                            @if($row->suplementar > 0)<span class="tb-note">· {{ $fmtH($row->suplementar) }} {{ __('suplementar') }}</span>@endif
+                                        @else
+                                            <span class="text-muted">—</span>
+                                        @endif
+                                    </td>
                                     <td>@if($row->pendentes)<span class="badge badge-warning">{{ $row->pendentes }}</span>@else<span class="text-muted">—</span>@endif</td>
                                     <td class="text-right">
                                         <a href="{{ route('backoffice.hr.timebank.index', ['mes' => $month->format('Y-m'), 'colaborador' => $row->staff->id]) }}" class="btn btn-sm btn-link" title="{{ __('Ver movimentos') }}"><i class="fa fa-list"></i></a>
@@ -160,17 +167,17 @@
                     <label class="small mb-1">{{ __('Tipo') }}</label>
                     <select name="tipo" id="tb-tipo" class="form-control" required>
                         @if($isManager)
+                            <optgroup label="{{ __('Piquete') }}">
+                                <option value="piquete" @selected(old('tipo') === 'piquete')>{{ $types['piquete']['label'] }}</option>
+                            </optgroup>
                             <optgroup label="{{ __('A favor do colaborador') }}">
-                                @foreach(['hora_extra', 'intervencao_piquete', 'reposicao'] as $k)<option value="{{ $k }}" @selected(old('tipo') === $k)>{{ $types[$k]['label'] }}</option>@endforeach
+                                @foreach(['hora_extra', 'reposicao'] as $k)<option value="{{ $k }}" @selected(old('tipo') === $k)>{{ $types[$k]['label'] }}</option>@endforeach
                             </optgroup>
                             <optgroup label="{{ __('A favor da empresa') }}">
                                 <option value="horas_em_falta" @selected(old('tipo') === 'horas_em_falta')>{{ $types['horas_em_falta']['label'] }}</option>
                             </optgroup>
                             <optgroup label="{{ __('Acertos do saldo de horas') }}">
                                 @foreach(['pagamento_horas', 'folga_compensatoria'] as $k)<option value="{{ $k }}" @selected(old('tipo') === $k)>{{ $types[$k]['label'] }}</option>@endforeach
-                            </optgroup>
-                            <optgroup label="{{ __('Prevenção de piquete (euros)') }}">
-                                @foreach(['prevencao_piquete', 'pagamento_prevencao'] as $k)<option value="{{ $k }}" @selected(old('tipo') === $k)>{{ $types[$k]['label'] }}</option>@endforeach
                             </optgroup>
                         @else
                             @foreach($selfTypes as $k => $t)<option value="{{ $k }}" @selected(old('tipo') === $k)>{{ $t['label'] }}</option>@endforeach
@@ -195,17 +202,13 @@
                         <input type="date" name="data" class="form-control" value="{{ old('data', now()->toDateString()) }}" required>
                     </div>
                     <div class="form-group col-6" id="tb-horas-field">
-                        <label class="small mb-1">{{ __('Horas') }}</label>
+                        <label class="small mb-1" id="tb-horas-label">{{ __('Horas') }}</label>
                         <input type="text" name="horas" class="form-control" value="{{ old('horas') }}" placeholder="ex.: 2,5 ou 2:30" inputmode="decimal">
-                    </div>
-                    <div class="form-group col-6" id="tb-valor-field" style="display: none">
-                        <label class="small mb-1">{{ __('Valor (€)') }}</label>
-                        <input type="number" name="valor" class="form-control" step="0.01" min="0" value="{{ old('valor', $prevencaoValor) }}">
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="small mb-1">{{ __('Descrição') }}</label>
-                    <input type="text" name="descricao" class="form-control" value="{{ old('descricao') }}" placeholder="{{ __('ex.: intervenção na loja 472, avaria do sorter') }}">
+                    <input type="text" name="descricao" class="form-control" value="{{ old('descricao') }}" placeholder="{{ __('ex.: loja 472, avaria do sorter') }}">
                 </div>
                 <button type="submit" class="btn btn-primary btn-block" style="border-radius: 10px; font-weight: 700"><i class="fa fa-save"></i> {{ $isManager ? __('Registar') : __('Enviar pedido') }}</button>
                 @unless($isManager)<small class="form-text text-muted text-center">{{ __('Fica pendente até ser aprovado pela gestão de RH.') }}</small>@endunless
@@ -262,9 +265,24 @@
                             @if($isManager)<td class="text-nowrap">{{ $e->staff->user->name ?? '—' }}</td>@endif
                             <td><span class="tb-type" style="--c: {{ $e->type['color'] }}"><i class="fas {{ $e->type['icon'] }}"></i> {{ $e->type['label'] }}</span></td>
                             <td>
-                                <span class="tb-amount {{ $amount > 0 ? 'pos' : 'neg' }}" @if($e->estado === 'rejeitado') style="text-decoration: line-through; opacity: .6" @endif>
-                                    {{ $e->type['unit'] === 'euros' ? $fmtE($amount, true) : $fmtH($amount, true) }}
-                                </span>
+                                @if($e->tipo === 'piquete' && $isManager)
+                                    <form method="POST" action="{{ route('backoffice.hr.timebank.update', $e->id) }}" class="tb-sup">
+                                        @csrf
+                                        @method('PUT')
+                                        <label class="tb-note mb-0">{{ __('Trabalho suplementar') }}</label>
+                                        <div class="d-flex" style="gap: .3rem">
+                                            <input type="text" name="horas" class="form-control form-control-sm" value="{{ $e->horas > 0 ? str_replace('h', ':', $fmtH($e->horas)) : '' }}" placeholder="0:00" style="width: 78px" inputmode="decimal">
+                                            <button class="btn btn-sm btn-outline-primary" title="{{ __('Gravar horas') }}"><i class="fa fa-save"></i></button>
+                                        </div>
+                                    </form>
+                                @elseif($e->tipo === 'piquete')
+                                    <span class="tb-amount {{ $amount > 0 ? 'pos' : 'zero' }}">{{ $amount > 0 ? $fmtH($amount, true) : '—' }}</span>
+                                    <div class="tb-note">{{ __('trabalho suplementar') }}</div>
+                                @else
+                                    <span class="tb-amount {{ $amount > 0 ? 'pos' : 'neg' }}" @if($e->estado === 'rejeitado') style="text-decoration: line-through; opacity: .6" @endif>
+                                        {{ $fmtH($amount, true) }}
+                                    </span>
+                                @endif
                             </td>
                             <td class="small">{{ $e->descricao }}<div class="tb-note">{{ __('registado por') }} {{ $e->creator->name ?? '—' }}</div></td>
                             <td>
@@ -306,27 +324,19 @@
     document.addEventListener('DOMContentLoaded', function () {
         var types = @json($types);
         var help = {
+            piquete: 'Um sábado de piquete a pagar (normalmente gerado automaticamente). As horas de trabalho suplementar são opcionais.',
             hora_extra: 'Horas trabalhadas além do horário. Ficam no saldo para pagar ou gozar.',
-            intervencao_piquete: 'Horas de deslocação a clientes durante o piquete. São pagas à hora.',
             reposicao: 'Horas que o colaborador repôs (reduz o que deve à empresa).',
             horas_em_falta: 'O colaborador trabalhou menos e fica a dever estas horas.',
             pagamento_horas: 'Horas pagas: saem do saldo do colaborador.',
-            folga_compensatoria: 'Horas gozadas em descanso: saem do saldo do colaborador.',
-            prevencao_piquete: 'Subsídio de prevenção de um sábado de piquete (normalmente gerado automaticamente).',
-            pagamento_prevencao: 'Valor de prevenções pago: sai do valor por pagar.'
+            folga_compensatoria: 'Horas gozadas em descanso: saem do saldo do colaborador.'
         };
         var tipo = document.getElementById('tb-tipo');
         if (!tipo) return;
-        var horas = document.getElementById('tb-horas-field');
-        var valor = document.getElementById('tb-valor-field');
+        var horasLabel = document.getElementById('tb-horas-label');
         var helpEl = document.getElementById('tb-help');
         var sync = function () {
-            var t = types[tipo.value] || {};
-            var euros = t.unit === 'euros';
-            horas.style.display = euros ? 'none' : '';
-            valor.style.display = euros ? '' : 'none';
-            horas.querySelector('input').disabled = euros;
-            valor.querySelector('input').disabled = !euros;
+            horasLabel.textContent = tipo.value === 'piquete' ? 'Trabalho suplementar (h)' : 'Horas';
             helpEl.textContent = help[tipo.value] || '';
         };
         tipo.addEventListener('change', sync);
