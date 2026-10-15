@@ -17,6 +17,7 @@ class HrTimeEntry extends Model
         'data',
         'tipo',
         'horas',
+        'horas_propostas',
         'descricao',
         'estado',
         'referencia',
@@ -28,6 +29,7 @@ class HrTimeEntry extends Model
     protected $casts = [
         'data' => 'date',
         'horas' => 'float',
+        'horas_propostas' => 'float',
         'decided_at' => 'datetime',
     ];
 
@@ -39,6 +41,23 @@ class HrTimeEntry extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function files()
+    {
+        return $this->hasMany(HrTimeEntryFile::class);
+    }
+
+    /** Pedidos à espera de decisão da gestão: pendentes ou com proposta de trabalho suplementar. */
+    public function scopeAwaitingDecision($query)
+    {
+        return $query->where(fn ($q) => $q->where('estado', 'pendente')->orWhereNotNull('horas_propostas'));
+    }
+
+    /** Tem horas de trabalho suplementar propostas pelo técnico à espera de aprovação? */
+    public function hasProposal(): bool
+    {
+        return $this->horas_propostas !== null;
     }
 
     public function decider()

@@ -44,6 +44,14 @@
     .tb-balance.zero { background: #eef2f7; color: #6c7a89; }
     .tb-note { font-size: .72rem; color: #8a96a8; }
     .tb-sup .form-control { border-radius: 8px; }
+    .tb-proposal { margin-top: .25rem; font-size: .74rem; font-weight: 700; color: #7a5600; background: #fff4cc; border-radius: 999px; padding: .1rem .5rem; display: inline-block; white-space: nowrap; }
+    .tb-files { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .35rem; }
+    .tb-file { display: inline-flex; align-items: center; gap: .25rem; background: #e3f0ff; border-radius: 999px; padding: .1rem .5rem; font-size: .72rem; }
+    .tb-file a { color: #0d47a1; text-decoration: none; font-weight: 600; }
+    .tb-file-x { color: #8a96a8; font-size: .9rem; line-height: 1; }
+    .tb-attach { margin-top: .3rem; }
+    .tb-attach label { cursor: pointer; font-size: .72rem; color: #546e7a; font-weight: 600; }
+    .tb-attach label:hover { color: #1f6fd1; }
 </style>
 @endpush
 
@@ -162,7 +170,7 @@
         <div class="tb-card" style="border-top: 5px solid #1f6fd1">
             <h5><i class="fas fa-plus-circle text-primary"></i> {{ $isManager ? __('Registar movimento') : __('Pedir horas') }}</h5>
             @if($isManager || $ownStaff)
-            <form method="POST" action="{{ route('backoffice.hr.timebank.store') }}" id="tb-form">
+            <form method="POST" action="{{ route('backoffice.hr.timebank.store') }}" id="tb-form" enctype="multipart/form-data">
                 @csrf
                 <div class="form-group">
                     <label class="small mb-1">{{ __('Tipo') }}</label>
@@ -181,7 +189,7 @@
                                 @foreach(['pagamento_horas', 'folga_compensatoria'] as $k)<option value="{{ $k }}" @selected(old('tipo') === $k)>{{ $types[$k]['label'] }}</option>@endforeach
                             </optgroup>
                         @else
-                            @foreach($selfTypes as $k => $t)<option value="{{ $k }}" @selected(old('tipo') === $k)>{{ $t['label'] }}</option>@endforeach
+                            @foreach($selfTypes as $k => $t)<option value="{{ $k }}" @selected(old('tipo') === $k)>{{ $t['self_label'] ?? $t['label'] }}</option>@endforeach
                         @endif
                     </select>
                     <small class="form-text text-muted" id="tb-help"></small>
@@ -219,6 +227,11 @@
                 <div class="form-group">
                     <label class="small mb-1">{{ __('Descrição') }}</label>
                     <input type="text" name="descricao" class="form-control" value="{{ old('descricao') }}" placeholder="{{ __('ex.: loja 472, avaria do sorter') }}">
+                </div>
+                <div class="form-group">
+                    <label class="small mb-1"><i class="fa fa-camera"></i> {{ __('Comprovativos (opcional)') }}</label>
+                    <input type="file" name="anexos[]" class="form-control-file" accept="image/*,application/pdf" multiple>
+                    <small class="form-text text-muted">{{ __('Fotografias ou PDF (ex.: folha de serviço, máquina reparada). No telemóvel pode tirar a fotografia na hora.') }}</small>
                 </div>
                 <button type="submit" class="btn btn-primary btn-block" style="border-radius: 10px; font-weight: 700"><i class="fa fa-save"></i> {{ $isManager ? __('Registar') : __('Enviar pedido') }}</button>
                 @unless($isManager)<small class="form-text text-muted text-center">{{ __('Fica pendente até ser aprovado pela gestão de RH.') }}</small>@endunless
@@ -293,15 +306,49 @@
                                         {{ $fmtH($amount, true) }}
                                     </span>
                                 @endif
+                                @if($e->hasProposal())
+                                    <div class="tb-proposal"><i class="fa fa-hourglass-half"></i> {{ __('Proposto:') }} {{ $fmtH($e->horas_propostas) }}</div>
+                                @endif
                             </td>
-                            <td class="small">{{ $e->descricao }}<div class="tb-note">{{ __('registado por') }} {{ $e->creator->name ?? '—' }}</div></td>
+                            <td class="small">
+                                {{ $e->descricao }}<div class="tb-note">{{ __('registado por') }} {{ $e->creator->name ?? '—' }}</div>
+                                @if($e->files->isNotEmpty())
+                                    <div class="tb-files">
+                                        @foreach($e->files as $f)
+                                            <span class="tb-file">
+                                                <a href="{{ route('backoffice.hr.timebank.files.show', $f->id) }}" target="_blank" title="{{ $f->nome }}">
+                                                    <i class="fas {{ $f->isImage() ? 'fa-image' : 'fa-file-pdf' }}"></i> {{ \Illuminate\Support\Str::limit($f->nome, 18) }}
+                                                </a>
+                                                @if($isManager || $f->uploaded_by === auth()->id())
+                                                    <form method="POST" action="{{ route('backoffice.hr.timebank.files.delete', $f->id) }}" class="d-inline" onsubmit="return confirm('Remover este comprovativo?')">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button class="btn btn-link p-0 tb-file-x" title="{{ __('Remover') }}">&times;</button>
+                                                    </form>
+                                                @endif
+                                            </span>
+                                        @endforeach
+                                    </div>
+                                @endif
+                                <form method="POST" action="{{ route('backoffice.hr.timebank.files.store', $e->id) }}" enctype="multipart/form-data" class="tb-attach">
+                                    @csrf
+                                    <label class="mb-0" title="{{ __('Anexar fotografia ou PDF') }}">
+                                        <i class="fa fa-paperclip"></i> {{ __('Anexar') }}
+                                        <input type="file" name="anexos[]" accept="image/*,application/pdf" multiple hidden onchange="this.form.submit()">
+                                    </label>
+                                </form>
+                            </td>
                             <td>
-                                <span class="badge {{ \App\Models\HrTimeEntry::STATES[$e->estado]['class'] ?? 'badge-light' }}">{{ \App\Models\HrTimeEntry::STATES[$e->estado]['label'] ?? $e->estado }}</span>
+                                @if($e->hasProposal() && $e->estado === 'aprovado')
+                                    <span class="badge badge-warning">{{ __('Proposta pendente') }}</span>
+                                @else
+                                    <span class="badge {{ \App\Models\HrTimeEntry::STATES[$e->estado]['class'] ?? 'badge-light' }}">{{ \App\Models\HrTimeEntry::STATES[$e->estado]['label'] ?? $e->estado }}</span>
+                                @endif
                                 @if($e->decided_at && $e->decided_by !== $e->created_by)<div class="tb-note">{{ __('por') }} {{ $e->decider->name ?? '' }}</div>@endif
                             </td>
                             @if($isManager)
                                 <td class="text-right text-nowrap">
-                                    @if($e->estado === 'pendente')
+                                    @if($e->estado === 'pendente' || $e->hasProposal())
                                         <form method="POST" action="{{ route('backoffice.hr.timebank.decide', $e->id) }}" class="d-inline">
                                             @csrf
                                             <input type="hidden" name="estado" value="aprovado">
@@ -334,7 +381,9 @@
     document.addEventListener('DOMContentLoaded', function () {
         var types = @json($types);
         var help = {
-            piquete: 'Um sábado de piquete a pagar (normalmente gerado automaticamente). As horas de trabalho suplementar são opcionais.',
+            piquete: @json($isManager
+                ? 'Sábado de piquete a pagar (normalmente gerado automaticamente). As horas de trabalho suplementar são opcionais.'
+                : 'Indique o sábado de piquete e as horas que trabalhou em clientes. Junte fotografias para validar.'),
             hora_extra: 'Horas trabalhadas além do horário. Ficam no saldo para pagar ou gozar.',
             reposicao: 'Horas que o colaborador repôs (reduz o que deve à empresa).',
             horas_em_falta: 'O colaborador trabalhou menos e fica a dever estas horas.',

@@ -236,6 +236,9 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
         Route::get('/feriados', [HrHolidayController::class, 'index'])->name('holidays.index');
         Route::get('/banco-horas', [HrTimeBankController::class, 'index'])->name('timebank.index');
         Route::post('/banco-horas', [HrTimeBankController::class, 'store'])->name('timebank.store');
+        Route::post('/banco-horas/{id}/anexos', [HrTimeBankController::class, 'attach'])->name('timebank.files.store');
+        Route::get('/banco-horas/anexo/{file}', [HrTimeBankController::class, 'showFile'])->name('timebank.files.show');
+        Route::delete('/banco-horas/anexo/{file}', [HrTimeBankController::class, 'deleteFile'])->name('timebank.files.delete');
 
         // Colaboradores: o controlador limita ao Coordenador e ao Country Manager
         Route::get('/colaboradores', [HrController::class, 'staffIndex'])->name('staff.index');
