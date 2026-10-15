@@ -36,6 +36,7 @@
     .tb-amount.pos { color: #2e7d32; }
     .tb-amount.neg { color: #c62828; }
     .tb-amount.zero { color: #8a96a8; }
+    .tb-amount.pay { color: #0d47a1; }
     .tb-type { display: inline-flex; align-items: center; gap: .35rem; font-size: .76rem; font-weight: 700; padding: .2rem .6rem; border-radius: 999px;
                background: color-mix(in srgb, var(--c) 12%, #fff); color: var(--c); white-space: nowrap; }
     .tb-balance { display: inline-block; font-weight: 800; padding: .25rem .65rem; border-radius: 999px; font-size: .9rem; white-space: nowrap; }
@@ -109,7 +110,7 @@
                         <div class="tb-stat" style="--bg: #e3f0ff; --fg: #0d47a1">
                             <div class="lbl">{{ __('Piquetes em') }} {{ $month->translatedFormat('F') }}</div>
                             <div class="num">{{ $me->piquetes }}</div>
-                            <div class="hint">{{ __('trabalho suplementar:') }} {{ $fmtH($me->suplementar) }}</div>
+                            <div class="hint">{{ __('trabalho suplementar:') }} {{ $fmtH($me->suplementar) }} · {{ __('pago à parte, não conta no saldo') }}</div>
                         </div>
                         <div class="tb-stat" style="--bg: #fff8db; --fg: #7a5600">
                             <div class="lbl">{{ __('Pedidos pendentes') }}</div>
@@ -292,15 +293,15 @@
                                     <form method="POST" action="{{ route('backoffice.hr.timebank.update', $e->id) }}" class="tb-sup">
                                         @csrf
                                         @method('PUT')
-                                        <label class="tb-note mb-0">{{ __('Trabalho suplementar') }}</label>
+                                        <label class="tb-note mb-0">{{ __('Trabalho suplementar · pago à parte') }}</label>
                                         <div class="d-flex" style="gap: .3rem">
                                             <input type="text" name="horas" class="form-control form-control-sm" value="{{ $e->horas > 0 ? str_replace('h', ':', $fmtH($e->horas)) : '' }}" placeholder="0:00" style="width: 78px" inputmode="decimal">
                                             <button class="btn btn-sm btn-outline-primary" title="{{ __('Gravar horas') }}"><i class="fa fa-save"></i></button>
                                         </div>
                                     </form>
                                 @elseif($e->tipo === 'piquete')
-                                    <span class="tb-amount {{ $amount > 0 ? 'pos' : 'zero' }}">{{ $amount > 0 ? $fmtH($amount, true) : '—' }}</span>
-                                    <div class="tb-note">{{ __('trabalho suplementar') }}</div>
+                                    <span class="tb-amount {{ $e->horas > 0 ? 'pay' : 'zero' }}">{{ $e->horas > 0 ? $fmtH($e->horas) : '—' }}</span>
+                                    <div class="tb-note">{{ __('trabalho suplementar · pago à parte') }}</div>
                                 @else
                                     <span class="tb-amount {{ $amount > 0 ? 'pos' : 'neg' }}" @if($e->estado === 'rejeitado') style="text-decoration: line-through; opacity: .6" @endif>
                                         {{ $fmtH($amount, true) }}
@@ -382,8 +383,8 @@
         var types = @json($types);
         var help = {
             piquete: @json($isManager
-                ? 'Sábado de piquete a pagar (normalmente gerado automaticamente). As horas de trabalho suplementar são opcionais.'
-                : 'Indique o sábado de piquete e as horas que trabalhou em clientes. Junte fotografias para validar.'),
+                ? 'Sábado de piquete a pagar (normalmente gerado automaticamente). O trabalho suplementar é pago em dinheiro e não conta para o saldo de horas.'
+                : 'Indique o sábado de piquete e as horas que trabalhou em clientes (pagas em dinheiro, não contam para o saldo). Junte fotografias para validar.'),
             hora_extra: 'Horas trabalhadas além do horário. Ficam no saldo para pagar ou gozar.',
             reposicao: 'Horas que o colaborador repôs (reduz o que deve à empresa).',
             horas_em_falta: 'O colaborador trabalhou menos e fica a dever estas horas.',

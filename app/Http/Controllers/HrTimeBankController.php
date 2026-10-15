@@ -37,7 +37,7 @@ class HrTimeBankController extends Controller
         }
         $filterStaff = $isManager ? $request->input('colaborador') : HrAccess::staffOf($user)?->id;
 
-        // Saldo de horas (todos os movimentos aprovados, desde sempre) e piquetes do mês
+        // Saldo de horas (movimentos aprovados, desde sempre; o piquete é pago à parte e não conta) e piquetes do mês
         $approved = HrTimeEntry::whereIn('hr_staff_id', $staff->pluck('id'))->where('estado', 'aprovado')->get()->groupBy('hr_staff_id');
         $pending = HrTimeEntry::whereIn('hr_staff_id', $staff->pluck('id'))->awaitingDecision()->get()->groupBy('hr_staff_id');
         $monthPiquetes = HrTimeEntry::whereIn('hr_staff_id', $staff->pluck('id'))->where('tipo', 'piquete')->where('estado', 'aprovado')
@@ -45,7 +45,7 @@ class HrTimeBankController extends Controller
 
         $summary = $staff->map(fn ($s) => (object) [
             'staff' => $s,
-            'horas' => round($approved->get($s->id, collect())->sum(fn ($e) => $e->signed_amount), 2),
+            'horas' => round($approved->get($s->id, collect())->filter(fn ($e) => $e->countsInBalance())->sum(fn ($e) => $e->signed_amount), 2),
             'piquetes' => $monthPiquetes->get($s->id, collect())->count(),
             'suplementar' => round($monthPiquetes->get($s->id, collect())->sum('horas'), 2),
             'pendentes' => $pending->get($s->id, collect())->count(),
@@ -263,14 +263,16 @@ class HrTimeBankController extends Controller
         return response()->streamDownload(function () use ($entries) {
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF"); // BOM para o Excel reconhecer acentos
-            fputcsv($out, ['Colaborador', 'Data', 'Tipo', 'Piquete', 'Horas (+/−)', 'Descrição'], ';');
+            fputcsv($out, ['Colaborador', 'Data', 'Tipo', 'Piquete (a pagar)', 'Trabalho suplementar em piquete (h, a pagar)', 'Saldo de horas (+/−)', 'Descrição'], ';');
             foreach ($entries as $e) {
+                $isPiquete = !$e->countsInBalance();
                 fputcsv($out, [
                     $e->staff->user->name ?? '',
                     $e->data->format('d/m/Y'),
                     $e->type['label'],
-                    $e->tipo === 'piquete' ? 1 : '',
-                    number_format($e->signed_amount, 2, ',', ''),
+                    $isPiquete ? 1 : '',
+                    $isPiquete ? number_format($e->horas, 2, ',', '') : '',
+                    $isPiquete ? '' : number_format($e->signed_amount, 2, ',', ''),
                     $e->descricao,
                 ], ';');
             }

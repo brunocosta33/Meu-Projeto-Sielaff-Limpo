@@ -70,6 +70,12 @@ class HrTimeEntry extends Model
         return config('hr.time_entry_types.' . $this->tipo, ['label' => $this->tipo, 'sign' => 1, 'color' => '#6c757d', 'icon' => 'fa-clock']);
     }
 
+    /** Conta para o saldo de horas? (o piquete é pago em dinheiro e fica fora do saldo) */
+    public function countsInBalance(): bool
+    {
+        return $this->type['in_balance'] ?? true;
+    }
+
     /** Horas com sinal (+ a favor do colaborador, − a favor da empresa / acerto). */
     public function getSignedAmountAttribute(): float
     {
