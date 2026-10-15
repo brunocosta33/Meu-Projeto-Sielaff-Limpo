@@ -1,6 +1,7 @@
 @extends('layouts.backoffice_master')
 
 @php(\Carbon\Carbon::setLocale('pt'))
+@php($canEdit = $canEdit ?? true)
 
 @section('head-meta')
     <title>{{ config('app.name') }} - {{ __('Férias e Ausências') }} {{ $year }}</title>
@@ -54,6 +55,7 @@
                     <h4 class="mb-0 mx-3">{{ __('Férias e Ausências') }} {{ $year }}</h4>
                     <a class="btn btn-outline-secondary btn-sm" href="{{ route('backoffice.hr.vacations.index', ['ano' => $year + 1, 'colaborador' => $filterStaff]) }}"><i class="fa fa-chevron-right"></i></a>
                 </div>
+                @if($canEdit)
                 <form method="GET" class="form-inline mb-2">
                     <input type="hidden" name="ano" value="{{ $year }}">
                     <label class="mr-2 small">{{ __('Colaborador') }}</label>
@@ -64,6 +66,9 @@
                         @endforeach
                     </select>
                 </form>
+                @else
+                <span class="text-muted small mb-2"><i class="fa fa-eye"></i> {{ __('As suas férias e ausências') }}</span>
+                @endif
             </div>
         </div>
     </div>
@@ -77,7 +82,7 @@
 
 <div class="row">
     {{-- Calendário anual --}}
-    <div class="col-xl-8 mb-3">
+    <div class="{{ $canEdit ? 'col-xl-8' : 'col-12' }} mb-3">
         <div class="card">
             <div class="card-body">
                 <div class="vac-legend mb-3">
@@ -93,7 +98,7 @@
                     <span><i style="background:#fde2e1"></i>{{ __('Feriado') }}</span>
                     <span><i style="background:#eceff4"></i>{{ __('Fim de semana') }}</span>
                 </div>
-                <p class="small text-muted"><i class="fa fa-mouse-pointer"></i> {{ __('Clique no dia de início e depois no dia de fim para preencher o formulário.') }}</p>
+                <p class="small text-muted {{ $canEdit ? '' : 'd-none' }}"><i class="fa fa-mouse-pointer"></i> {{ __('Clique no dia de início e depois no dia de fim para preencher o formulário.') }}</p>
 
                 <div class="vac-months">
                     @for($m = 1; $m <= 12; $m++)
@@ -144,6 +149,7 @@
         </div>
     </div>
 
+    @if($canEdit)
     {{-- Formulário de marcação --}}
     <div class="col-xl-4 mb-3">
         <div class="card border-primary vac-form-card">
@@ -243,6 +249,7 @@
             </div>
         </div>
     </div>
+    @endif
 </div>
 
 {{-- Resumo / saldos --}}
@@ -270,6 +277,10 @@
                             <td class="align-middle"><span class="vac-dot" style="--vac-color: {{ $row['color'] }}"></span>{{ $row['staff']->user->name }}
                                 @if($row['staff']->funcao_label)<span class="badge text-white ml-1" style="background: {{ $row['staff']->funcao_color }}">{{ $row['staff']->funcao_label }}</span>@endif
                             </td>
+                            @if(!$canEdit)
+                            <td class="align-middle">{{ $row['direito'] }}</td>
+                            <td class="align-middle">{{ $row['transitados'] }}</td>
+                            @else
                             <td colspan="2" class="align-middle">
                                 <form method="POST" action="{{ route('backoffice.hr.vacations.balance', $row['staff']->id) }}" class="form-inline" id="balance-{{ $row['staff']->id }}">
                                     @csrf
@@ -282,6 +293,7 @@
                                     @if($row['transitados_auto'])<small class="text-muted ml-1">{{ __('auto') }}</small>@endif
                                 </form>
                             </td>
+                            @endif
                             <td class="align-middle font-weight-bold">{{ $row['total'] }}</td>
                             <td class="align-middle">{{ $row['aprovados'] }}</td>
                             <td class="align-middle">{{ $row['pendentes'] }}</td>
@@ -307,7 +319,7 @@
                                 @unless($hasAbsences)<span class="text-muted">—</span>@endunless
                             </td>
                             <td class="align-middle text-right">
-                                <button type="submit" form="balance-{{ $row['staff']->id }}" class="btn btn-outline-secondary btn-sm" title="{{ __('Gravar dias') }}"><i class="fa fa-save"></i></button>
+                                @if($canEdit)<button type="submit" form="balance-{{ $row['staff']->id }}" class="btn btn-outline-secondary btn-sm" title="{{ __('Gravar dias') }}"><i class="fa fa-save"></i></button>@endif
                             </td>
                         </tr>
                     @endforeach
@@ -379,12 +391,14 @@
                                             <button class="btn btn-sm btn-outline-warning" title="{{ __('Rejeitar') }}"><i class="fa fa-times"></i></button>
                                         </form>
                                     @endif
+                                    @if($canEdit)
                                     <form method="POST" action="{{ route('backoffice.hr.vacations.destroy', $v->id) }}" class="d-inline"
                                           onsubmit="return confirm('Apagar esta marcação de férias?')">
                                         @csrf
                                         @method('DELETE')
                                         <button class="btn btn-sm btn-outline-danger" title="{{ __('Apagar') }}"><i class="fa fa-trash"></i></button>
                                     </form>
+                                    @endif
                                 </td>
                             </tr>
                         @endforeach
@@ -440,6 +454,7 @@
                                 </td>
                                 <td class="small text-muted">{{ $a->observacoes }}</td>
                                 <td class="text-right text-nowrap">
+                                    @if($canEdit)
                                     @if($a->situacao !== 'justificada' && $a->motivo !== 'sem_motivo')
                                         <form method="POST" action="{{ route('backoffice.hr.absences.decide', $a->id) }}" class="d-inline">
                                             @csrf
@@ -462,6 +477,7 @@
                                         @method('DELETE')
                                         <button class="btn btn-sm btn-outline-danger" title="{{ __('Apagar') }}"><i class="fa fa-trash"></i></button>
                                     </form>
+                                    @endif
                                 </td>
                             </tr>
                         @endforeach
@@ -478,6 +494,7 @@
     document.addEventListener('DOMContentLoaded', function () {
         var holidays = @json($holidaysJs);
         var from = document.getElementById('vac-from');
+        if (!from) return; // só consulta
         var to = document.getElementById('vac-to');
         var daysEl = document.getElementById('vac-days');
         var cells = document.querySelectorAll('.vac-day[data-date]');

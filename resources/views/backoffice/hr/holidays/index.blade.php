@@ -26,7 +26,7 @@
 </div>
 
 <div class="row">
-    <div class="col-lg-7 mb-3">
+    <div class="{{ $canEdit ? 'col-lg-7' : 'col-lg-9' }} mb-3">
         <div class="card mb-3">
             <div class="card-body">
                 <h5 class="card-title"><i class="fas fa-flag text-danger"></i> {{ __('Feriados nacionais') }}</h5>
@@ -64,12 +64,14 @@
                                     </td>
                                     <td class="small text-muted">{{ $h->creator->name ?? '' }}</td>
                                     <td class="text-right">
+                                        @if($canEdit)
                                         <form method="POST" action="{{ route('backoffice.hr.holidays.destroy', $h->id) }}" class="d-inline"
                                               onsubmit="return confirm('Remover este feriado?{{ $h->recorrente ? ' Será removido de todos os anos.' : '' }} As férias marcadas serão recalculadas.')">
                                             @csrf
                                             @method('DELETE')
                                             <button class="btn btn-link btn-sm text-danger p-0"><i class="fa fa-trash"></i></button>
                                         </form>
+                                        @endif
                                     </td>
                                 </tr>
                             @endforeach
@@ -80,6 +82,7 @@
         </div>
     </div>
 
+    @if($canEdit)
     <div class="col-lg-5 mb-3">
         <div class="card border-primary">
             <div class="card-body">
@@ -104,5 +107,6 @@
             </div>
         </div>
     </div>
+    @endif
 </div>
 @endsection

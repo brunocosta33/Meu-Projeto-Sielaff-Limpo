@@ -44,6 +44,9 @@ return [
         'administrativa' => 'Administrativa',
     ],
 
+    // Gestão de RH: veem e gerem tudo em Recursos Humanos; os restantes só veem a sua parte
+    'manager_functions' => ['coordenador', 'country_manager', 'administrativa'],
+
     // Funções que podem ver e gerir a página Colaboradores
     'staff_manager_functions' => ['coordenador', 'country_manager'],
 

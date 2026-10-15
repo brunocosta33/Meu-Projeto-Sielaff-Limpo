@@ -25,7 +25,9 @@ class HrHolidayController extends Controller
             ->orderByRaw("DATE_FORMAT(data, '%m-%d')")
             ->get();
 
-        return view('backoffice.hr.holidays.index', compact('year', 'national', 'custom'));
+        $canEdit = \App\Services\HrAccess::isManager(auth()->user());
+
+        return view('backoffice.hr.holidays.index', compact('year', 'national', 'custom', 'canEdit'));
     }
 
     public function store(Request $request)

@@ -219,7 +219,18 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
     Route::get('backoffice/rh/feriados/eventos', [HrHolidayController::class, 'events'])->name('backoffice.hr.holidays.events');
 
     //Recursos Humanos
-    Route::prefix('backoffice/rh')->name('backoffice.hr.')->middleware('role:admin')->group(function () {
+    // Recursos Humanos: gestão de RH vê e gere tudo; os restantes só veem a sua parte (App\Services\HrAccess)
+    Route::prefix('backoffice/rh')->name('backoffice.hr.')->middleware('hr.access')->group(function () {
+        // Consulta (cada um vê a sua parte; a filtragem é feita nos controladores)
+        Route::get('/hotline', [HrController::class, 'hotlineSchedule'])->name('hotline.index');
+        Route::get('/piquete', [HrController::class, 'piqueteSchedule'])->name('piquete.index');
+        Route::get('/calendario/eventos', [HrController::class, 'calendarEvents'])->name('calendar.events');
+        Route::get('/ferias', [HrVacationController::class, 'index'])->name('vacations.index');
+        Route::get('/faltas/eventos', [HrAbsenceController::class, 'events'])->name('absences.events');
+        Route::get('/faltas/{id}/comprovativo', [HrAbsenceController::class, 'document'])->name('absences.document');
+        Route::get('/feriados', [HrHolidayController::class, 'index'])->name('holidays.index');
+
+        // Colaboradores: o controlador limita ao Coordenador e ao Country Manager
         Route::get('/colaboradores', [HrController::class, 'staffIndex'])->name('staff.index');
         Route::get('/colaboradores/create', [HrController::class, 'staffCreate'])->name('staff.create');
         Route::post('/colaboradores', [HrController::class, 'staffStore'])->name('staff.store');
@@ -227,32 +238,28 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
         Route::put('/colaboradores/{id}', [HrController::class, 'staffUpdate'])->name('staff.update');
         Route::delete('/colaboradores/{id}', [HrController::class, 'staffDelete'])->name('staff.delete');
 
-        Route::get('/hotline', [HrController::class, 'hotlineSchedule'])->name('hotline.index');
-        Route::get('/piquete', [HrController::class, 'piqueteSchedule'])->name('piquete.index');
-        Route::get('/calendario/eventos', [HrController::class, 'calendarEvents'])->name('calendar.events');
-        Route::get('/hotline/substituicao', [HrController::class, 'overrideCreate'])->name('hotline.override.create');
-        Route::post('/hotline/substituicao', [HrController::class, 'overrideStore'])->name('hotline.override.store');
-        Route::delete('/hotline/substituicao/{id}', [HrController::class, 'overrideDelete'])->name('hotline.override.delete');
+        // Alterações: só gestão de RH
+        Route::middleware('hr.access:manager')->group(function () {
+            Route::get('/hotline/substituicao', [HrController::class, 'overrideCreate'])->name('hotline.override.create');
+            Route::post('/hotline/substituicao', [HrController::class, 'overrideStore'])->name('hotline.override.store');
+            Route::delete('/hotline/substituicao/{id}', [HrController::class, 'overrideDelete'])->name('hotline.override.delete');
 
-        Route::get('/ferias', [HrVacationController::class, 'index'])->name('vacations.index');
-        Route::post('/ferias', [HrVacationController::class, 'store'])->name('vacations.store');
-        Route::post('/ferias/{id}/aprovar', [HrVacationController::class, 'approve'])->name('vacations.approve');
-        Route::post('/ferias/{id}/rejeitar', [HrVacationController::class, 'reject'])->name('vacations.reject');
-        Route::delete('/ferias/{id}', [HrVacationController::class, 'destroy'])->name('vacations.destroy');
-        Route::put('/ferias/saldo/{staff}', [HrVacationController::class, 'updateBalance'])->name('vacations.balance');
+            Route::post('/ferias', [HrVacationController::class, 'store'])->name('vacations.store');
+            Route::post('/ferias/{id}/aprovar', [HrVacationController::class, 'approve'])->name('vacations.approve');
+            Route::post('/ferias/{id}/rejeitar', [HrVacationController::class, 'reject'])->name('vacations.reject');
+            Route::delete('/ferias/{id}', [HrVacationController::class, 'destroy'])->name('vacations.destroy');
+            Route::put('/ferias/saldo/{staff}', [HrVacationController::class, 'updateBalance'])->name('vacations.balance');
 
-        Route::post('/faltas', [HrAbsenceController::class, 'store'])->name('absences.store');
-        Route::get('/faltas/eventos', [HrAbsenceController::class, 'events'])->name('absences.events');
-        Route::get('/faltas/{id}/edit', [HrAbsenceController::class, 'edit'])->name('absences.edit');
-        Route::put('/faltas/{id}', [HrAbsenceController::class, 'update'])->name('absences.update');
-        Route::post('/faltas/{id}/decidir', [HrAbsenceController::class, 'decide'])->name('absences.decide');
-        Route::delete('/faltas/{id}', [HrAbsenceController::class, 'destroy'])->name('absences.destroy');
-        Route::get('/faltas/{id}/comprovativo', [HrAbsenceController::class, 'document'])->name('absences.document');
-        Route::delete('/faltas/{id}/comprovativo', [HrAbsenceController::class, 'deleteDocument'])->name('absences.document.delete');
+            Route::post('/faltas', [HrAbsenceController::class, 'store'])->name('absences.store');
+            Route::get('/faltas/{id}/edit', [HrAbsenceController::class, 'edit'])->name('absences.edit');
+            Route::put('/faltas/{id}', [HrAbsenceController::class, 'update'])->name('absences.update');
+            Route::post('/faltas/{id}/decidir', [HrAbsenceController::class, 'decide'])->name('absences.decide');
+            Route::delete('/faltas/{id}', [HrAbsenceController::class, 'destroy'])->name('absences.destroy');
+            Route::delete('/faltas/{id}/comprovativo', [HrAbsenceController::class, 'deleteDocument'])->name('absences.document.delete');
 
-        Route::get('/feriados', [HrHolidayController::class, 'index'])->name('holidays.index');
-        Route::post('/feriados', [HrHolidayController::class, 'store'])->name('holidays.store');
-        Route::delete('/feriados/{id}', [HrHolidayController::class, 'destroy'])->name('holidays.destroy');
+            Route::post('/feriados', [HrHolidayController::class, 'store'])->name('holidays.store');
+            Route::delete('/feriados/{id}', [HrHolidayController::class, 'destroy'])->name('holidays.destroy');
+        });
     });
 
     Route::prefix('backoffice/stock')->name('backoffice.stock.')->group(function () {

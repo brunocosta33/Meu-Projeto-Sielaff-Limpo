@@ -3,6 +3,7 @@
 @php(\Carbon\Carbon::setLocale('pt'))
 @php($isPiquete = ($kind ?? 'hotline') === 'piquete')
 @php($pageTitle = $isPiquete ? __('Escala Piquete') : __('Escala Hotline'))
+@php($canEdit = $canEdit ?? true)
 
 @section('head-meta')
     <title>{{ config('app.name') }} - {{ $pageTitle }}</title>
@@ -29,7 +30,7 @@
 
 @section('content')
 <div class="row">
-    <div class="col-lg-8 mb-3">
+    <div class="{{ $canEdit ? 'col-lg-8' : 'col-12' }} mb-3">
         <div class="card h-100">
             <div class="card-body">
                 <h5 class="card-title mb-2">{{ $pageTitle }}</h5>
@@ -40,7 +41,7 @@
                     </p>
                 @endif
                 @if($hotliners->isEmpty())
-                    <p class="mb-0">{{ $isPiquete ? __('Ainda não há técnicos com grupo de piquete e zona definidos.') : __('Ainda não há hotliners ativos com grupo de rotação.') }}
+                    <p class="mb-0">{{ !$canEdit ? __('Não faz parte desta escala.') : ($isPiquete ? __('Ainda não há técnicos com grupo de piquete e zona definidos.') : __('Ainda não há hotliners ativos com grupo de rotação.')) }}
                         @if(\App\Models\HrStaff::canManageStaff(auth()->user()))<a href="{{ route('backoffice.hr.staff.index') }}">{{ __('Definir colaboradores') }}</a>@endif</p>
                 @else
                     <div class="hr-legend mb-2">
@@ -51,13 +52,18 @@
                         <span><i style="background: {{ \App\Services\HotlineRotation::UNCOVERED_COLOR }}"></i>{{ __('Sem substituto') }}</span>
                     </div>
                     <p class="text-muted small mb-0">
-                        <i class="fa fa-exchange-alt"></i> {{ __('Clique num turno para o trocar, ou num dia para o escolher no cartão ao lado.') }}
+                        @if($canEdit)
+                            <i class="fa fa-exchange-alt"></i> {{ __('Clique num turno para o trocar, ou num dia para o escolher no cartão ao lado.') }}
+                        @else
+                            <i class="fa fa-eye"></i> {{ __('Mostra os seus turnos, incluindo os que faz em substituição de colegas. As trocas são registadas pela gestão de RH.') }}
+                        @endif
                     </p>
                 @endif
             </div>
         </div>
     </div>
 
+    @if($canEdit)
     <div class="col-lg-4 mb-3">
         <div class="card h-100 border-primary" id="swap-card">
             <div class="card-body">
@@ -82,6 +88,7 @@
             </div>
         </div>
     </div>
+    @endif
 </div>
 
 <div class="row">
@@ -119,7 +126,7 @@
                                         <td>{{ config('hr.override_reasons.' . $o->motivo) }}</td>
                                         <td class="small text-muted">{{ $o->observacoes }}</td>
                                         <td class="text-right">
-                                            <a href="{{ route('backoffice.hr.hotline.override.create', ['staff' => $o->hr_staff_id, 'data' => $o->data->toDateString()]) }}"><i class="fa fa-edit" title="{{ __('Editar') }}"></i></a>
+                                            @if($canEdit)<a href="{{ route('backoffice.hr.hotline.override.create', ['staff' => $o->hr_staff_id, 'data' => $o->data->toDateString()]) }}"><i class="fa fa-edit" title="{{ __('Editar') }}"></i></a>@endif
                                         </td>
                                     </tr>
                                 @endforeach
@@ -174,6 +181,7 @@
                 info.el.title = info.event.extendedProps.description || '';
             },
             dateClick: function (info) {
+                if (!document.getElementById('swap-card')) return;
                 document.getElementById('swap-date').value = info.dateStr.substring(0, 10);
                 var card = document.getElementById('swap-card');
                 card.scrollIntoView({ behavior: 'smooth', block: 'center' });

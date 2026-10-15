@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\HrAbsence;
 use App\Models\HrStaff;
 use App\Models\HrVacation;
+use App\Services\HrAccess;
 use App\Services\WorkingDays;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -98,6 +99,8 @@ class HrAbsenceController extends Controller
     public function document($id)
     {
         $absence = HrAbsence::findOrFail($id);
+        $own = HrAccess::ownStaffIdFilter(auth()->user());
+        abort_unless($own === null || $absence->hr_staff_id === $own, 403);
         abort_unless($absence->documento_path && Storage::disk(self::DISK)->exists($absence->documento_path), 404);
 
         return Storage::disk(self::DISK)->response($absence->documento_path, $absence->documento_nome);
@@ -121,15 +124,19 @@ class HrAbsenceController extends Controller
         $from = Carbon::parse($request->input('start', now()->startOfMonth()))->startOfDay();
         $to = Carbon::parse($request->input('end', now()->endOfMonth()))->startOfDay();
 
+        $own = HrAccess::ownStaffIdFilter(auth()->user());
+        $canEdit = $own === null;
+
         $events = HrAbsence::with('staff.user')
             ->overlapping($from->toDateString(), $to->toDateString())
+            ->when(!$canEdit, fn ($q) => $q->where('hr_staff_id', $own))
             ->get()
-            ->map(function (HrAbsence $a) {
+            ->map(function (HrAbsence $a) use ($canEdit) {
                 $name = $a->staff->user->name ?? '—';
                 $event = [
                     'title' => 'Falta – ' . $name,
                     'color' => $a->situacao_color,
-                    'url' => route('backoffice.hr.absences.edit', $a->id),
+                    'url' => $canEdit ? route('backoffice.hr.absences.edit', $a->id) : null,
                     'ausencia' => true,
                     'description' => $a->motivo_label . ' · ' . $a->situacao_label . ' · ' . $a->duracao
                         . ($a->situacao === 'justificada' && !$a->documento_path ? ' · sem comprovativo' : ''),

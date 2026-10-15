@@ -6,6 +6,7 @@ use App\Models\HrShiftOverride;
 use App\Models\HrStaff;
 use App\Models\User;
 use App\Services\HotlineRotation;
+use App\Services\HrAccess;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -125,6 +126,12 @@ class HrController extends Controller
 
         $hotliners = HotlineRotation::staffFor($kind);
         $colors = HotlineRotation::colorMap($hotliners);
+        $canEdit = HrAccess::isManager(auth()->user());
+
+        // Quem não é gestão de RH só vê a sua parte
+        if (!$canEdit) {
+            $hotliners = $hotliners->where('user_id', auth()->id())->values();
+        }
         $legend = $hotliners->map(fn ($s) => [
             'name' => $s->user->name,
             'group' => $s->rotation_group,
@@ -133,13 +140,16 @@ class HrController extends Controller
         ]);
 
         $upcomingOverrides = HrShiftOverride::with(['staff.user', 'substitute'])
-            ->whereIn('hr_staff_id', $hotliners->pluck('id'))
+            ->whereIn('hr_staff_id', HotlineRotation::staffFor($kind)->pluck('id'))
+            ->when(!$canEdit, fn ($q) => $q->where(fn ($w) => $w
+                ->whereIn('hr_staff_id', $hotliners->pluck('id'))
+                ->orWhere('substitute_user_id', auth()->id())))
             ->whereDate('data', '>=', now()->startOfMonth())
             ->orderBy('data')
             ->limit(50)
             ->get();
 
-        return view('backoffice.hr.hotline.index', compact('month', 'hotliners', 'legend', 'upcomingOverrides', 'kind'));
+        return view('backoffice.hr.hotline.index', compact('month', 'hotliners', 'legend', 'upcomingOverrides', 'kind', 'canEdit'));
     }
 
     /** Página da escala a que o colaborador pertence, no mês indicado. */
@@ -171,13 +181,22 @@ class HrController extends Controller
 
         $kind = in_array($request->input('tipo'), ['hotline', 'piquete'], true) ? $request->input('tipo') : 'todos';
 
-        $events = $this->rotation->shifts($from, $to, HotlineRotation::staffFor($kind))->map(fn ($s) => [
+        $canEdit = HrAccess::isManager(auth()->user());
+        $shifts = $this->rotation->shifts($from, $to, HotlineRotation::staffFor($kind));
+
+        // Quem não é gestão de RH só vê os seus turnos (incluindo os que faz em substituição)
+        if (!$canEdit) {
+            $me = auth()->id();
+            $shifts = $shifts->filter(fn ($s) => $s->staff->user_id === $me || $s->worker_id === $me);
+        }
+
+        $events = $shifts->map(fn ($s) => [
             'title' => $s->funcao . ' – ' . $s->name . ($s->zona ? ' · ' . $s->zona : ''),
             'start' => $s->start->format('Y-m-d\TH:i:s'),
             'end' => $s->end->format('Y-m-d\TH:i:s'),
             'color' => $s->color,
             'classNames' => $s->override ? ['fc-duty-override'] : [],
-            'url' => route('backoffice.hr.hotline.override.create', ['staff' => $s->staff->id, 'data' => $s->date->toDateString()]),
+            'url' => $canEdit ? route('backoffice.hr.hotline.override.create', ['staff' => $s->staff->id, 'data' => $s->date->toDateString()]) : null,
             'funcao' => $s->funcao,
             'nome' => $s->name . ($s->zona ? ' · ' . $s->zona : ''),
             'horario' => $s->hours,

@@ -6,6 +6,7 @@ use App\Models\HrAbsence;
 use App\Models\HrStaff;
 use App\Models\HrVacation;
 use App\Models\HrVacationBalance;
+use App\Services\HrAccess;
 use App\Services\VacationBalance;
 use App\Services\WorkingDays;
 use Carbon\Carbon;
@@ -25,6 +26,12 @@ class HrVacationController extends Controller
     {
         $year = (int) ($request->input('ano') ?: now()->year);
         $filterStaff = $request->input('colaborador');
+        $canEdit = HrAccess::isManager(auth()->user());
+
+        // Quem não é gestão de RH só vê a sua parte
+        if (!$canEdit) {
+            $filterStaff = HrAccess::ownStaffIdFilter(auth()->user());
+        }
 
         $staff = HrStaff::with('user')->where('ativo', true)->get()->sortBy(fn ($s) => $s->user->name ?? '')->values();
         $colors = $staff->mapWithKeys(fn ($s, $i) => [$s->id => self::COLORS[$i % count(self::COLORS)]]);
@@ -76,6 +83,7 @@ class HrVacationController extends Controller
             'absenceDays' => $absenceDays,
             'summary' => $summary,
             'canApprove' => HrStaff::canApproveVacations(auth()->user()),
+            'canEdit' => $canEdit,
             'approverNames' => $this->approverNames(),
             'holidays' => $this->workingDays->holidays($year),
             'holidaysJs' => $this->workingDays->holidays($year - 1) + $this->workingDays->holidays($year) + $this->workingDays->holidays($year + 1),

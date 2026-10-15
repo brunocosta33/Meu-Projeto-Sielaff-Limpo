@@ -353,7 +353,7 @@
                 eventSources: [
                     events,
                     { url: @json(route('backoffice.hr.holidays.events')) },
-                    @if(auth()->user()->hasRole('admin'))
+                    @if(\App\Services\HrAccess::canAccess(auth()->user()))
                     { url: @json(route('backoffice.hr.calendar.events')), display: 'block', className: 'fc-duty-event' },
                     { url: @json(route('backoffice.hr.absences.events')), display: 'block' }
                     @endif

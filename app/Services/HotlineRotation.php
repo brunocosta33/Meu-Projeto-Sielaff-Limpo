@@ -168,6 +168,7 @@ class HotlineRotation
                     'zona' => config('hr.zones.' . $cell['staff']->zona),
                     'staff' => $cell['staff'],
                     'name' => $cell['worker']->name ?? 'Sem substituto',
+                    'worker_id' => $cell['worker']->id ?? null,
                     'override' => $override,
                     'override_note' => $override
                         ? 'Substitui ' . $cell['staff']->user->name . ' (' . ($reasons[$override->motivo] ?? $override->motivo) . ')'

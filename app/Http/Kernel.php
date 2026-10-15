@@ -83,6 +83,7 @@ class Kernel extends HttpKernel
         'hasMaterial' => \App\Http\Middleware\HasMaterial::class,
         'hasPermission' => \App\Http\Middleware\HasPermission::class,
         'restrictTechnicianAccess' => \App\Http\Middleware\RestrictTechnicianAccess::class,
+        'hr.access' => \App\Http\Middleware\EnsureHrAccess::class,
     ];
 
     /**

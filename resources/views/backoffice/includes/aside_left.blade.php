@@ -134,15 +134,21 @@ use App\Models\Base;
     </li>
     @endif
 
-    @if(Auth::user()->hasRole('admin'))
+    @if(\App\Services\HrAccess::canAccess(Auth::user()))
+    @php($hrManager = \App\Services\HrAccess::isManager(Auth::user()))
+    @php($hrFuncao = \App\Services\HrAccess::staffOf(Auth::user())?->funcao)
     <li>
         <a href="#pageSubmenuRH" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
             <i class="fas fa-user-clock"></i>
             <span class="hidden-sm-down"> {{__('Recursos Humanos')}}</span>
         </a>
         <ul class="collapse list-unstyled" id="pageSubmenuRH" data-parent="#menu-left">
+            @if($hrManager || $hrFuncao === 'hotliner')
             <li><a href="{{ route('backoffice.hr.hotline.index') }}"><i class="fas fa-calendar-week me-2"></i>{{ __('Escala Hotline') }}</a></li>
+            @endif
+            @if($hrManager || $hrFuncao === 'tecnico')
             <li><a href="{{ route('backoffice.hr.piquete.index') }}"><i class="fas fa-tools me-2"></i>{{ __('Escala Piquete') }}</a></li>
+            @endif
             <li><a href="{{ route('backoffice.hr.vacations.index') }}"><i class="fas fa-umbrella-beach me-2"></i>{{ __('Férias e Ausências') }}</a></li>
             <li><a href="{{ route('backoffice.hr.holidays.index') }}"><i class="fas fa-flag me-2"></i>{{ __('Feriados') }}</a></li>
             @if(\App\Models\HrStaff::canManageStaff(Auth::user()))
