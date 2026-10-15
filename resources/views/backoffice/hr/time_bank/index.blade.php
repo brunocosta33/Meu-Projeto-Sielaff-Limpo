@@ -4,6 +4,7 @@
 @php($fmtH = fn ($h, $s = false) => \App\Models\HrTimeEntry::formatHours($h, $s))
 @php($filters = request()->only(['colaborador', 'tipo', 'estado']))
 @php($selfTypes = array_filter($types, fn ($t) => $t['self']))
+@php($workDay = (float) config('hr.work_day_hours', 8))
 
 @section('head-meta')
     <title>{{ config('app.name') }} - {{ __('Banco de Horas') }}</title>
@@ -203,7 +204,16 @@
                     </div>
                     <div class="form-group col-6" id="tb-horas-field">
                         <label class="small mb-1" id="tb-horas-label">{{ __('Horas') }}</label>
-                        <input type="text" name="horas" class="form-control" value="{{ old('horas') }}" placeholder="ex.: 2,5 ou 2:30" inputmode="decimal">
+                        <input type="text" name="horas" id="tb-horas" class="form-control" value="{{ old('horas') }}" placeholder="ex.: 2,5 ou 2:30" inputmode="decimal">
+                    </div>
+                </div>
+                {{-- Folga compensatória: escolher o período em vez de horas --}}
+                <div class="form-group" id="tb-folga-field" style="display: none">
+                    <label class="small mb-1">{{ __('Período da folga') }}</label>
+                    <div class="btn-group btn-group-toggle d-flex" id="tb-folga">
+                        <button type="button" class="btn btn-outline-primary w-100" data-horas="{{ $workDay }}">{{ __('Dia inteiro') }}<small class="d-block">{{ $workDay }}h</small></button>
+                        <button type="button" class="btn btn-outline-primary w-100" data-horas="{{ $workDay / 2 }}">{{ __('Meio dia') }}<small class="d-block">{{ str_replace('.', ',', $workDay / 2) }}h</small></button>
+                        <button type="button" class="btn btn-outline-primary w-100" data-horas="">{{ __('Outro') }}<small class="d-block">{{ __('em horas') }}</small></button>
                     </div>
                 </div>
                 <div class="form-group">
@@ -329,15 +339,31 @@
             reposicao: 'Horas que o colaborador repôs (reduz o que deve à empresa).',
             horas_em_falta: 'O colaborador trabalhou menos e fica a dever estas horas.',
             pagamento_horas: 'Horas pagas: saem do saldo do colaborador.',
-            folga_compensatoria: 'Horas gozadas em descanso: saem do saldo do colaborador.'
+            folga_compensatoria: 'Dia ou meio dia de descanso para compensar horas extra: sai do saldo do colaborador.'
         };
         var tipo = document.getElementById('tb-tipo');
         if (!tipo) return;
         var horasLabel = document.getElementById('tb-horas-label');
         var helpEl = document.getElementById('tb-help');
+        var horasField = document.getElementById('tb-horas-field');
+        var horasInput = document.getElementById('tb-horas');
+        var folgaField = document.getElementById('tb-folga-field');
+        var folgaButtons = document.querySelectorAll('#tb-folga button');
+        var pickFolga = function (btn) {
+            folgaButtons.forEach(function (b) { b.classList.toggle('active', b === btn); b.classList.toggle('btn-primary', b === btn); b.classList.toggle('btn-outline-primary', b !== btn); });
+            var other = btn.dataset.horas === '';
+            horasField.style.visibility = other ? 'visible' : 'hidden';
+            if (!other) horasInput.value = String(btn.dataset.horas).replace('.', ',');
+            else { horasInput.value = ''; horasInput.focus(); }
+        };
+        folgaButtons.forEach(function (b) { b.addEventListener('click', function () { pickFolga(b); }); });
         var sync = function () {
+            var folga = tipo.value === 'folga_compensatoria';
             horasLabel.textContent = tipo.value === 'piquete' ? 'Trabalho suplementar (h)' : 'Horas';
             helpEl.textContent = help[tipo.value] || '';
+            folgaField.style.display = folga ? '' : 'none';
+            horasField.style.visibility = 'visible';
+            if (folga) pickFolga(folgaButtons[0]); // por defeito: dia inteiro
         };
         tipo.addEventListener('change', sync);
         sync();

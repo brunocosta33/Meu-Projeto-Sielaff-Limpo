@@ -78,6 +78,9 @@ return [
         'sul' => 'Sul',
     ],
 
+    // Horas de um dia normal de trabalho (folga compensatória: dia inteiro = isto, meio dia = metade)
+    'work_day_hours' => 8,
+
     // Banco de horas: tipos de movimento (todos em horas).
     // sign: +1 a favor do colaborador (empresa deve), -1 a favor da empresa / acerto.
     // self: o próprio colaborador pode registar (fica pendente).
