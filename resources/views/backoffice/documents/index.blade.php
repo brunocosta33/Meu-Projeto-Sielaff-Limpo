@@ -259,10 +259,10 @@
                     <input type="checkbox" name="ids[]" value="{{ $doc->id }}" form="doc-zip-form" class="doc-select">
                 </label>
                 <div class="doc-body">
-                    <a href="{{ route('backoffice.documents.view', $doc->id) }}" class="doc-icon"><i class="fas fa-file-pdf"></i></a>
+                    <a href="{{ route('backoffice.documents.view', $doc->id) }}" target="_blank" data-mobile-href="{{ route('backoffice.documents.read', [$doc->id, 'voltar' => request()->fullUrl()]) }}" class="doc-icon"><i class="fas fa-file-pdf"></i></a>
                     <div class="flex-grow-1" style="min-width: 0; padding-right: 1.2rem">
                         <span class="doc-type"><i class="fas {{ $doc->type['icon'] }}"></i> {{ $doc->type['label'] }}</span>
-                        <a href="{{ route('backoffice.documents.view', $doc->id) }}" class="doc-title">{{ $doc->titulo }}</a>
+                        <a href="{{ route('backoffice.documents.view', $doc->id) }}" target="_blank" data-mobile-href="{{ route('backoffice.documents.read', [$doc->id, 'voltar' => request()->fullUrl()]) }}" class="doc-title">{{ $doc->titulo }}</a>
                         <div class="doc-models">
                             @forelse($doc->modelos ?? [] as $model)
                                 <span class="doc-model">{{ $model }}</span>
@@ -278,7 +278,7 @@
                     </div>
                 </div>
                 <div class="doc-actions">
-                    <a href="{{ route('backoffice.documents.view', $doc->id) }}" class="btn btn-sm btn-primary"><i class="fa fa-eye"></i> {{ __('Abrir') }}</a>
+                    <a href="{{ route('backoffice.documents.view', $doc->id) }}" target="_blank" data-mobile-href="{{ route('backoffice.documents.read', [$doc->id, 'voltar' => request()->fullUrl()]) }}" class="btn btn-sm btn-primary"><i class="fa fa-eye"></i> {{ __('Abrir') }}</a>
                     <a href="{{ route('backoffice.documents.download', $doc->id) }}" class="btn btn-sm btn-outline-secondary"><i class="fa fa-download"></i> {{ __('Descarregar') }}</a>
                     @if($canManage)
                         <a href="{{ route('backoffice.documents.edit', $doc->id) }}" class="btn btn-sm btn-link text-secondary ml-auto px-1" title="{{ __('Editar') }}"><i class="fa fa-edit"></i></a>
@@ -298,6 +298,18 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        // Abrir PDF: no computador abre num separador novo (rápido); no telemóvel abre a página
+        // de leitura do site, que tem o botão "Voltar" (as apps no ecrã principal não têm botão de voltar)
+        var isMobile = window.matchMedia('(pointer: coarse)').matches && window.innerWidth < 1024;
+        if (isMobile) {
+            document.querySelectorAll('a[data-mobile-href]').forEach(function (a) {
+                a.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    window.location.href = a.dataset.mobileHref;
+                });
+            });
+        }
+
         // Acessos: quem gere também vê
         document.querySelectorAll('.doc-perm-manage').forEach(function (m) {
             m.addEventListener('change', function () {

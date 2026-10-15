@@ -207,6 +207,7 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
     Route::prefix('backoffice/documentacao')->name('backoffice.documents.')->group(function () {
         Route::get('/', [DocumentController::class, 'index'])->name('index');
         Route::get('/exportar', [DocumentController::class, 'zip'])->name('zip');
+        Route::get('/{id}/ver', [DocumentController::class, 'read'])->name('read');
         Route::get('/{id}/abrir', [DocumentController::class, 'view'])->name('view');
         Route::get('/{id}/descarregar', [DocumentController::class, 'download'])->name('download');
 
