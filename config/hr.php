@@ -71,11 +71,27 @@ return [
         'reference_saturday' => '2026-01-03',
         'days' => [6], // 6 = sábado
         'hours' => ['08:00', '20:00'],
+        // Subsídio de prevenção pago por cada sábado de piquete (euros)
+        'prevencao_valor' => 40.00,
     ],
 
     'zones' => [
         'norte' => 'Norte',
         'sul' => 'Sul',
+    ],
+
+    // Banco de horas: tipos de movimento.
+    // sign: +1 a favor do colaborador (empresa deve), -1 a favor da empresa / acerto.
+    // unit: 'horas' ou 'euros'. self: o próprio colaborador pode registar (fica pendente).
+    'time_entry_types' => [
+        'hora_extra' => ['label' => 'Horas extra', 'sign' => 1, 'unit' => 'horas', 'self' => true, 'color' => '#2e7d32', 'icon' => 'fa-plus-circle'],
+        'intervencao_piquete' => ['label' => 'Intervenção em piquete', 'sign' => 1, 'unit' => 'horas', 'self' => true, 'color' => '#0277bd', 'icon' => 'fa-tools'],
+        'reposicao' => ['label' => 'Reposição de horas', 'sign' => 1, 'unit' => 'horas', 'self' => false, 'color' => '#00897b', 'icon' => 'fa-undo'],
+        'horas_em_falta' => ['label' => 'Horas em falta', 'sign' => -1, 'unit' => 'horas', 'self' => false, 'color' => '#c62828', 'icon' => 'fa-minus-circle'],
+        'folga_compensatoria' => ['label' => 'Folga compensatória', 'sign' => -1, 'unit' => 'horas', 'self' => false, 'color' => '#6a1b9a', 'icon' => 'fa-bed'],
+        'pagamento_horas' => ['label' => 'Pagamento de horas', 'sign' => -1, 'unit' => 'horas', 'self' => false, 'color' => '#455a64', 'icon' => 'fa-money-bill-wave'],
+        'prevencao_piquete' => ['label' => 'Prevenção de piquete', 'sign' => 1, 'unit' => 'euros', 'self' => false, 'color' => '#ef6c00', 'icon' => 'fa-shield-alt'],
+        'pagamento_prevencao' => ['label' => 'Pagamento de prevenções', 'sign' => -1, 'unit' => 'euros', 'self' => false, 'color' => '#455a64', 'icon' => 'fa-euro-sign'],
     ],
 
     // Motivos de falta (baseados nas faltas justificadas do Código do Trabalho)

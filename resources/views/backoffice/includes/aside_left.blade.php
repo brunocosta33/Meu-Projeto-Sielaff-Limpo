@@ -151,6 +151,7 @@ use App\Models\Base;
             @endif
             <li><a href="{{ route('backoffice.hr.team.index') }}"><i class="fas fa-calendar-alt me-2"></i>{{ __('Horário da Equipa') }}</a></li>
             <li><a href="{{ route('backoffice.hr.vacations.index') }}"><i class="fas fa-umbrella-beach me-2"></i>{{ __('Férias e Ausências') }}</a></li>
+            <li><a href="{{ route('backoffice.hr.timebank.index') }}"><i class="fas fa-business-time me-2"></i>{{ __('Banco de Horas') }}</a></li>
             <li><a href="{{ route('backoffice.hr.holidays.index') }}"><i class="fas fa-flag me-2"></i>{{ __('Feriados') }}</a></li>
             @if(\App\Models\HrStaff::canManageStaff(Auth::user()))
                 <li><a href="{{ route('backoffice.hr.staff.index') }}"><i class="fas fa-id-card me-2"></i>{{ __('Colaboradores') }}</a></li>

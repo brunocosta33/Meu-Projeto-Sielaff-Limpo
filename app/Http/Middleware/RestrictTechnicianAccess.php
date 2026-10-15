@@ -28,6 +28,8 @@ class RestrictTechnicianAccess
         'backoffice.hr.absences.events',
         'backoffice.hr.absences.document',
         'backoffice.hr.holidays.index',
+        'backoffice.hr.timebank.index',
+        'backoffice.hr.timebank.store',
         'backoffice.hr.holidays.events',
         'backoffice.documents.index',
         'backoffice.documents.read',

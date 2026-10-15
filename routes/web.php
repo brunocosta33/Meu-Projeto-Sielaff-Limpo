@@ -40,6 +40,7 @@ use App\Http\Controllers\HrController;
 use App\Http\Controllers\HrVacationController;
 use App\Http\Controllers\HrHolidayController;
 use App\Http\Controllers\HrAbsenceController;
+use App\Http\Controllers\HrTimeBankController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\StoreMaintenanceController;
 
@@ -233,6 +234,8 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
         Route::get('/faltas/eventos', [HrAbsenceController::class, 'events'])->name('absences.events');
         Route::get('/faltas/{id}/comprovativo', [HrAbsenceController::class, 'document'])->name('absences.document');
         Route::get('/feriados', [HrHolidayController::class, 'index'])->name('holidays.index');
+        Route::get('/banco-horas', [HrTimeBankController::class, 'index'])->name('timebank.index');
+        Route::post('/banco-horas', [HrTimeBankController::class, 'store'])->name('timebank.store');
 
         // Colaboradores: o controlador limita ao Coordenador e ao Country Manager
         Route::get('/colaboradores', [HrController::class, 'staffIndex'])->name('staff.index');
@@ -260,6 +263,11 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
             Route::post('/faltas/{id}/decidir', [HrAbsenceController::class, 'decide'])->name('absences.decide');
             Route::delete('/faltas/{id}', [HrAbsenceController::class, 'destroy'])->name('absences.destroy');
             Route::delete('/faltas/{id}/comprovativo', [HrAbsenceController::class, 'deleteDocument'])->name('absences.document.delete');
+
+            Route::post('/banco-horas/{id}/decidir', [HrTimeBankController::class, 'decide'])->name('timebank.decide');
+            Route::delete('/banco-horas/{id}', [HrTimeBankController::class, 'destroy'])->name('timebank.destroy');
+            Route::post('/banco-horas/prevencoes', [HrTimeBankController::class, 'generatePrevencoes'])->name('timebank.prevencoes');
+            Route::get('/banco-horas/exportar', [HrTimeBankController::class, 'export'])->name('timebank.export');
 
             Route::post('/feriados', [HrHolidayController::class, 'store'])->name('holidays.store');
             Route::delete('/feriados/{id}', [HrHolidayController::class, 'destroy'])->name('holidays.destroy');
