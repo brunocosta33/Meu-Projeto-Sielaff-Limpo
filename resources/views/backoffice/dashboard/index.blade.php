@@ -304,9 +304,6 @@
 @push('styles')
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
 <style>
-    .fc-duty-event { border: 0 !important; border-radius: 8px !important; }
-    #calendar-agendamentos a.fc-event { cursor: default; }
-    .fc-duty-override { box-shadow: inset 0 0 0 3px #ffc107; }
     /* Cartões compactos por baixo dos indicadores */
     .dashboard-compact .dashboard-section-card { font-size: .88rem; }
     .dashboard-compact .card-header { padding: .5rem .9rem; }
@@ -315,17 +312,63 @@
     .dashboard-compact .card-body:not(.p-0) { padding: .6rem .9rem; }
     .dashboard-compact .card-footer { padding: .4rem .9rem; }
     .dashboard-compact .dashboard-agenda-item { padding-top: .35rem; padding-bottom: .35rem; }
-    .fc-duty { padding: 3px 6px; line-height: 1.2; color: #fff; overflow: hidden; }
-    .fc-duty-role { display: block; font-size: .65rem; text-transform: uppercase; letter-spacing: .06em; opacity: .85; font-weight: 700; }
-    .fc-duty-name { display: block; font-weight: 700; font-size: .82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .fc-duty-hours { display: block; font-size: .72rem; opacity: .9; }
-    #calendar-agendamentos {
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-        padding: 16px;
-        margin-bottom: 2rem;
-    }
+    /* ===== Calendário da dashboard ===== */
+    #calendar-agendamentos { background: #fff; border-radius: 18px; box-shadow: 0 12px 28px rgba(15, 23, 42, .08); padding: 20px 22px; margin-bottom: 2rem; }
+    #calendar-agendamentos.fc { --fc-border-color: #edf0f5; --fc-today-bg-color: #f2f7ff; --fc-neutral-bg-color: #fafbfd; font-size: .9rem; }
+    #calendar-agendamentos .fc-toolbar.fc-header-toolbar { margin-bottom: 1.1rem; }
+    #calendar-agendamentos .fc-toolbar-title { font-size: 1.35rem; font-weight: 700; color: #132238; }
+    #calendar-agendamentos .fc-toolbar-title::first-letter { text-transform: uppercase; }
+    #calendar-agendamentos .fc-button { background: #fff; border: 1px solid #dfe5ee; color: #415166; font-weight: 600; font-size: .82rem; padding: .4rem .8rem; box-shadow: none !important; text-transform: none; }
+    #calendar-agendamentos .fc-button:hover { background: #f3f6fb; color: #132238; }
+    #calendar-agendamentos .fc-button-primary:not(:disabled).fc-button-active,
+    #calendar-agendamentos .fc-button-primary:not(:disabled):active { background: #1f6fd1; border-color: #1f6fd1; color: #fff; }
+    #calendar-agendamentos .fc-today-button { background: #1f6fd1; border-color: #1f6fd1; color: #fff; }
+    #calendar-agendamentos .fc-today-button:disabled { opacity: .45; }
+    #calendar-agendamentos .fc-button-group > .fc-button:first-child { border-radius: 10px 0 0 10px; }
+    #calendar-agendamentos .fc-button-group > .fc-button:last-child { border-radius: 0 10px 10px 0; }
+    #calendar-agendamentos .fc-today-button { border-radius: 10px; margin-left: .5rem !important; }
+    #calendar-agendamentos .fc-scrollgrid { border-radius: 12px; overflow: hidden; border-color: #edf0f5; }
+    #calendar-agendamentos .fc-col-header-cell { background: #f7f9fc; padding: .45rem 0; }
+    #calendar-agendamentos .fc-col-header-cell-cushion { color: #6c7a89; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; text-decoration: none; }
+    #calendar-agendamentos .fc-day-sat, #calendar-agendamentos .fc-day-sun { background: #fafbfd; }
+    #calendar-agendamentos .fc-daygrid-day-frame { min-height: 96px; padding: 2px 3px 4px; }
+    #calendar-agendamentos .fc-daygrid-day-number { font-size: .8rem; font-weight: 600; color: #6c7a89; padding: 6px 7px; text-decoration: none; }
+    #calendar-agendamentos .fc-day-other .fc-daygrid-day-number { opacity: .45; }
+    #calendar-agendamentos .fc-day-today .fc-daygrid-day-number { background: #1f6fd1; color: #fff; border-radius: 999px; min-width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; margin: 3px; padding: 0 6px; }
+    #calendar-agendamentos a.fc-event { cursor: default; }
+    #calendar-agendamentos .fc-daygrid-event-harness { margin-bottom: 3px; }
+
+    /* Turnos (Hotline e Piquete) */
+    .fc-duty-event { background: transparent !important; border: 0 !important; box-shadow: none !important; }
+    .fc-duty-chip { display: flex; align-items: center; gap: 6px; width: 100%; padding: 4px 6px 4px 5px; border-radius: 9px; overflow: hidden;
+                    background: color-mix(in srgb, var(--duty) 13%, #fff); border-left: 4px solid var(--duty); color: #1d2733; line-height: 1.15; }
+    .fc-duty-avatar { flex: 0 0 24px; height: 24px; border-radius: 50%; background: var(--duty); color: #fff; font-size: .62rem; font-weight: 700;
+                      display: flex; align-items: center; justify-content: center; letter-spacing: .02em; }
+    .fc-duty-text { min-width: 0; flex: 1; }
+    .fc-duty-name { display: block; font-weight: 700; font-size: .78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .fc-duty-meta { display: flex; align-items: center; gap: 4px; font-size: .68rem; color: #5b6878; white-space: nowrap; overflow: hidden; }
+    .fc-duty-meta i { font-size: .62rem; color: var(--duty); }
+    .fc-duty-zone { font-size: .58rem; font-weight: 700; text-transform: uppercase; background: var(--duty); color: #fff; border-radius: 4px; padding: 0 4px; }
+    .fc-duty-chip.is-override { box-shadow: inset 0 0 0 2px #f2b705; }
+    .fc-duty-chip.is-uncovered { --duty: #c62828; background: #fdecea; }
+    .fc-duty-swap { color: #b58500; font-size: .7rem; }
+    .fc-timegrid-event .fc-duty-chip { height: 100%; align-items: flex-start; padding-top: 6px; }
+
+    /* Ausências, férias e feriados (pílulas de dia inteiro) */
+    .fc-pill-event { background: transparent !important; border: 0 !important; }
+    .fc-pill { display: flex; align-items: center; gap: 6px; width: 100%; padding: 3px 9px; border-radius: 999px; font-size: .74rem; font-weight: 600;
+               background: color-mix(in srgb, var(--pill) 14%, #fff); color: color-mix(in srgb, var(--pill) 85%, #000); overflow: hidden; white-space: nowrap; }
+    .fc-pill i { font-size: .7rem; }
+    .fc-pill span { overflow: hidden; text-overflow: ellipsis; }
+
+    /* Tarefas */
+    #calendar-agendamentos .fc-task-event { border-radius: 7px !important; border: 0 !important; padding: 1px 4px; font-size: .74rem; }
+
+    /* Tooltip */
+    .fc-tooltip-custom { position: absolute; z-index: 9999; display: none; max-width: 280px; background: #132238; color: #fff; padding: 9px 12px;
+                         border-radius: 10px; box-shadow: 0 10px 24px rgba(15, 23, 42, .25); font-size: .8rem; line-height: 1.4; pointer-events: none; }
+    .fc-tooltip-custom strong { display: block; font-size: .85rem; margin-bottom: 2px; }
+    .fc-tooltip-custom .muted { color: #b8c4d4; }
 </style>
 @endpush
 <div class="row mb-4">
@@ -340,6 +383,11 @@
         var calendarEl = document.getElementById('calendar-agendamentos');
         if(calendarEl) {
             var events = @json($eventosCalendario);
+            var esc = function (t) { var d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML; };
+            var initials = function (name) {
+                var parts = (name || '').split(' · ')[0].trim().split(/\s+/);
+                return ((parts[0] || '')[0] || '') + (parts.length > 1 ? parts[parts.length - 1][0] : '');
+            };
             var calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
                 locale: @json(app()->getLocale()),
@@ -362,65 +410,56 @@
                     { url: @json(route('backoffice.hr.absences.events')), display: 'block' }
                     @endif
                 ],
-                eventContent: function(arg) {
-                    var p = arg.event.extendedProps;
-                    if (!p.funcao) return true; // tarefas mantêm o aspeto normal
-                    var esc = function (t) { var d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML; };
-                    return { html:
-                        '<div class="fc-duty">' +
-                            '<span class="fc-duty-role">' + esc(p.funcao) + (p.substituicao ? ' ⇄' : '') + '</span>' +
-                            '<span class="fc-duty-name">' + esc(p.nome) + '</span>' +
-                            '<span class="fc-duty-hours">' + esc(p.horario) + '</span>' +
-                        '</div>'
-                    };
-                },
-                // Calendário só de consulta: os turnos e faltas editam-se nas páginas de Recursos Humanos
-                eventClick: function(info) {
-                    info.jsEvent.preventDefault();
-                },
-                eventDidMount: function(info) {
-                    if (info.event.display === 'background') return;
-                    var tooltip = document.createElement('div');
-                    tooltip.className = 'fc-tooltip-custom';
-                    tooltip.style.position = 'absolute';
-                    tooltip.style.zIndex = 9999;
-                    tooltip.style.background = '#fff';
-                    tooltip.style.border = '1px solid #ccc';
-                    tooltip.style.padding = '8px 12px';
-                    tooltip.style.borderRadius = '8px';
-                    tooltip.style.boxShadow = '0 2px 8px rgba(0,0,0,0.12)';
-                    tooltip.style.display = 'none';
-                    var html = '<strong>' + info.event.title + '</strong>';
-                    if(info.event.extendedProps.funcao) html += '<br><span><b>' + @json(__('Função')) + ':</b> ' + info.event.extendedProps.funcao + '</span>';
-                    if(info.event.extendedProps.prioridade) html += '<br><span><b>' + @json(__('Prioridade')) + ':</b> ' + info.event.extendedProps.prioridade + '</span>';
-                    if(info.event.extendedProps.recorrencia) html += '<br><span><b>' + @json(__('Recorrência')) + ':</b> ' + info.event.extendedProps.recorrencia + '</span>';
-                    if(info.event.extendedProps.description) html += '<br><span>' + info.event.extendedProps.description + '</span>';
-                    tooltip.innerHTML = html;
-                    document.body.appendChild(tooltip);
-                    info.el.addEventListener('mouseenter', function(e) {
-                        tooltip.style.display = 'block';
-                        tooltip.style.left = (e.pageX + 10) + 'px';
-                        tooltip.style.top = (e.pageY + 10) + 'px';
-                    });
-                    info.el.addEventListener('mousemove', function(e) {
-                        tooltip.style.left = (e.pageX + 10) + 'px';
-                        tooltip.style.top = (e.pageY + 10) + 'px';
-                    });
-                    info.el.addEventListener('mouseleave', function() {
-                        tooltip.style.display = 'none';
-                    });
-                },
-                dayCellDidMount: function(arg) {
-                    var today = new Date();
-                    if(arg.date.getDate() === today.getDate() && arg.date.getMonth() === today.getMonth() && arg.date.getFullYear() === today.getFullYear()) {
-                        arg.el.style.backgroundColor = '#ffebee';
-                        var num = arg.el.querySelector('.fc-daygrid-day-number');
-                        if(num) {
-                            num.style.color = '#c62828';
-                            num.style.fontWeight = 'bold';
-                            num.style.fontSize = '1.2em';
-                        }
+                slotEventOverlap: false,
+                slotMinTime: '07:00:00',
+                slotMaxTime: '21:00:00',
+                eventContent: function (arg) {
+                    var e = arg.event, p = e.extendedProps;
+                    if (p.funcao) {
+                        var piquete = /piquete/i.test(p.funcao);
+                        var parts = (p.nome || '').split(' · ');
+                        var uncovered = /sem substituto/i.test(p.nome || '');
+                        return { html:
+                            '<div class="fc-duty-chip' + (p.substituicao ? ' is-override' : '') + (uncovered ? ' is-uncovered' : '') + '" style="--duty:' + e.backgroundColor + '">' +
+                                '<span class="fc-duty-avatar">' + (uncovered ? '!' : esc(initials(parts[0]).toUpperCase())) + '</span>' +
+                                '<span class="fc-duty-text">' +
+                                    '<span class="fc-duty-name">' + esc(parts[0]) + '</span>' +
+                                    '<span class="fc-duty-meta"><i class="fas ' + (piquete ? 'fa-tools' : 'fa-headset') + '"></i>' + esc(p.horario) +
+                                        (parts[1] ? ' <span class="fc-duty-zone">' + esc(parts[1]) + '</span>' : '') +
+                                        (p.substituicao ? ' <i class="fas fa-exchange-alt fc-duty-swap"></i>' : '') +
+                                    '</span>' +
+                                '</span>' +
+                            '</div>' };
                     }
+                    if (p.ausencia || p.feriado) {
+                        var icon = p.feriado ? 'fa-flag' : (/^Férias/.test(e.title) ? 'fa-umbrella-beach' : 'fa-user-clock');
+                        return { html: '<div class="fc-pill" style="--pill:' + e.backgroundColor + '"><i class="fas ' + icon + '"></i><span>' + esc(e.title) + '</span></div>' };
+                    }
+                    return true;
+                },
+                eventClassNames: function (arg) {
+                    var p = arg.event.extendedProps;
+                    if (p.funcao) return ['fc-duty-event'];
+                    if (p.ausencia || p.feriado) return ['fc-pill-event'];
+                    return arg.event.display === 'background' ? [] : ['fc-task-event'];
+                },
+                eventClick: function (info) { info.jsEvent.preventDefault(); },
+                eventDidMount: function (info) {
+                    if (info.event.display === 'background') return;
+                    var p = info.event.extendedProps;
+                    var tip = document.createElement('div');
+                    tip.className = 'fc-tooltip-custom';
+                    var html = '<strong>' + esc(info.event.title) + '</strong>';
+                    if (p.funcao) html += '<span class="muted">' + esc(p.funcao) + '</span><br>';
+                    if (p.description) html += esc(p.description);
+                    if (p.prioridade) html += '<br><span class="muted">Prioridade:</span> ' + esc(p.prioridade);
+                    if (p.recorrencia) html += '<br><span class="muted">Recorrência:</span> ' + esc(p.recorrencia);
+                    tip.innerHTML = html;
+                    document.body.appendChild(tip);
+                    var move = function (ev) { tip.style.left = (ev.pageX + 12) + 'px'; tip.style.top = (ev.pageY + 12) + 'px'; };
+                    info.el.addEventListener('mouseenter', function (ev) { tip.style.display = 'block'; move(ev); });
+                    info.el.addEventListener('mousemove', move);
+                    info.el.addEventListener('mouseleave', function () { tip.style.display = 'none'; });
                 }
             });
             calendar.render();
