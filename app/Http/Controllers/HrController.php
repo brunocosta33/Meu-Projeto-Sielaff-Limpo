@@ -184,8 +184,11 @@ class HrController extends Controller
         $canEdit = HrAccess::isManager(auth()->user());
         $shifts = $this->rotation->shifts($from, $to, HotlineRotation::staffFor($kind));
 
+        // Hotliners veem no calendário da dashboard (tipo "todos") a escala completa: Hotline e Piquete
+        $fullDashboardView = $kind === 'todos' && HrAccess::staffOf(auth()->user())?->funcao === 'hotliner';
+
         // Quem não é gestão de RH só vê os seus turnos (incluindo os que faz em substituição)
-        if (!$canEdit) {
+        if (!$canEdit && !$fullDashboardView) {
             $me = auth()->id();
             $shifts = $shifts->filter(fn ($s) => $s->staff->user_id === $me || $s->worker_id === $me);
         }
