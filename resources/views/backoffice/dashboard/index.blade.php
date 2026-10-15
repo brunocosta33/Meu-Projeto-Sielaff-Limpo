@@ -305,6 +305,7 @@
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
 <style>
     .fc-duty-event { border: 0 !important; border-radius: 8px !important; }
+    #calendar-agendamentos a.fc-event { cursor: default; }
     .fc-duty-override { box-shadow: inset 0 0 0 3px #ffc107; }
     /* Cartões compactos por baixo dos indicadores */
     .dashboard-compact .dashboard-section-card { font-size: .88rem; }
@@ -368,6 +369,10 @@
                             '<span class="fc-duty-hours">' + esc(p.horario) + '</span>' +
                         '</div>'
                     };
+                },
+                // Calendário só de consulta: os turnos e faltas editam-se nas páginas de Recursos Humanos
+                eventClick: function(info) {
+                    info.jsEvent.preventDefault();
                 },
                 eventDidMount: function(info) {
                     if (info.event.display === 'background') return;
