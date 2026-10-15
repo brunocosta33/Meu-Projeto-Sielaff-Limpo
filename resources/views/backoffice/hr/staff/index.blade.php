@@ -23,7 +23,7 @@
                             <tr>
                                 <th>{{ __('Nome') }}</th>
                                 <th>{{ __('Função') }}</th>
-                                <th>{{ __('Grupo de rotação') }}</th>
+                                <th>{{ __('Escala (grupo · zona)') }}</th>
                                 <th>{{ __('Estado') }}</th>
                                 <th class="text-right">{{ __('Ações') }}</th>
                             </tr>
@@ -35,7 +35,7 @@
                                     <td>
                                         @if($member->funcao)<span class="badge text-white" style="background: {{ $member->funcao_color }}; font-size: .85rem">{{ $member->funcao_label }}</span>@else — @endif
                                     </td>
-                                    <td>{{ $member->rotation_group ? __('Grupo') . ' ' . $member->rotation_group : '—' }}</td>
+                                    <td>{{ $member->rotation_group ? __('Grupo') . ' ' . $member->rotation_group . ($member->zona ? ' · ' . config('hr.zones.' . $member->zona) : '') : '—' }}</td>
                                     <td>
                                         @if($member->ativo)
                                             <span class="badge badge-success">{{ __('Ativo') }}</span>

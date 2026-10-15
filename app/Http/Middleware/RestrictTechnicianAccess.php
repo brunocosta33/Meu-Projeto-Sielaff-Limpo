@@ -21,6 +21,7 @@ class RestrictTechnicianAccess
         'backoffice.task_schedules.minhas.concluir_todas',
         'backoffice.stores.index',
         'backoffice.documents.index',
+        'backoffice.documents.read',
         'backoffice.documents.view',
         'backoffice.documents.download',
         'backoffice.documents.zip',

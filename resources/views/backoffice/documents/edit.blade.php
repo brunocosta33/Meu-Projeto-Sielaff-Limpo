@@ -21,7 +21,7 @@
             <div class="card-body">
                 <h5 class="card-title mb-1">{{ __('Editar documento') }}</h5>
                 <p class="text-muted small mb-4">
-                    <a href="{{ route('backoffice.documents.view', $document->id) }}" target="_blank"><i class="fas fa-file-pdf text-danger"></i> {{ $document->file_name }}</a>
+                    <a href="{{ route('backoffice.documents.read', $document->id) }}"><i class="fas fa-file-pdf text-danger"></i> {{ $document->file_name }}</a>
                     · {{ $document->size_label }}
                     · {{ __('Adicionado por') }} {{ $document->uploader->name ?? '—' }} {{ __('em') }} {{ $document->created_at->format('d/m/Y') }}
                 </p>

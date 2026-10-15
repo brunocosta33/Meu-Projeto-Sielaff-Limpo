@@ -58,6 +58,20 @@ return [
     // Férias: dias úteis de direito por ano (valor por defeito; pode ser alterado por colaborador/ano)
     'vacation_default_days' => 25,
 
+    // Piquete dos técnicos: sábados alternados, um técnico do Norte e um do Sul.
+    // No sábado de referência está de serviço o grupo A; no seguinte o grupo B, e assim por diante.
+    'piquete' => [
+        'label' => 'Técnico de Piquete',
+        'reference_saturday' => '2026-01-03',
+        'days' => [6], // 6 = sábado
+        'hours' => ['08:00', '20:00'],
+    ],
+
+    'zones' => [
+        'norte' => 'Norte',
+        'sul' => 'Sul',
+    ],
+
     // Motivos de falta (baseados nas faltas justificadas do Código do Trabalho)
     'absence_reasons' => [
         'doenca' => 'Doença',

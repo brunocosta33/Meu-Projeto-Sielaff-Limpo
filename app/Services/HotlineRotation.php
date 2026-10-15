@@ -11,13 +11,30 @@ use Carbon\CarbonPeriod;
 use Illuminate\Support\Collection;
 
 /**
- * Calcula a escala rotativa dos hotliners a partir da regra em config/hr.php.
+ * Calcula as escalas rotativas a partir das regras em config/hr.php:
+ * hotliners (semanas alternadas) e técnicos de piquete (sábados alternados, Norte + Sul).
  * Só as substituições são gravadas na base de dados; o resto é calculado.
  */
 class HotlineRotation
 {
     public const COLORS = ['#6f42c1', '#00897b', '#ef6c00', '#3949ab'];
+    public const PIQUETE_COLORS = ['#2e7d32', '#0277bd', '#6d4c41', '#ad1457'];
     public const UNCOVERED_COLOR = '#c62828';
+
+    /** Colaboradores de uma escala: 'hotline', 'piquete' ou 'todos'. */
+    public static function staffFor(string $kind = 'todos'): Collection
+    {
+        $hotline = $kind !== 'piquete' ? HrStaff::activeHotliners()->with('user')->orderBy('rotation_group')->get() : collect();
+        $piquete = $kind !== 'hotline' ? HrStaff::activePiquete()->with('user')->orderBy('rotation_group')->orderBy('zona')->get() : collect();
+
+        return $hotline->concat($piquete)->values();
+    }
+
+    /** Escala a que o colaborador pertence. */
+    public static function kindOf(HrStaff $staff): string
+    {
+        return $staff->funcao === 'tecnico' ? 'piquete' : 'hotline';
+    }
 
     public function weekType(Carbon $date, string $group): string
     {
@@ -32,18 +49,39 @@ class HotlineRotation
     /** Turno previsto pela rotação, ou null se for folga. */
     public function scheduledShift(HrStaff $staff, Carbon $date): ?array
     {
+        if (self::kindOf($staff) === 'piquete') {
+            return $this->piqueteShift($staff, $date);
+        }
+
         $pattern = config('hr.week_patterns.' . $this->weekType($date, $staff->rotation_group));
         $hours = $pattern['days'][$date->dayOfWeekIso] ?? null;
 
         return $hours ? ['inicio' => $hours[0], 'fim' => $hours[1]] : null;
     }
 
+    /** Piquete: sábados alternados; o grupo A está de serviço no sábado de referência. */
+    public function piqueteShift(HrStaff $staff, Carbon $date): ?array
+    {
+        $config = config('hr.piquete');
+        if (!in_array($date->dayOfWeekIso, $config['days'], true) || !$staff->rotation_group) {
+            return null;
+        }
+
+        $reference = Carbon::parse($config['reference_saturday'])->startOfWeek();
+        $weeks = intdiv((int) $reference->diffInDays($date->copy()->startOfWeek(), false), 7);
+        $groupOnDuty = $weeks % 2 === 0 ? 'A' : 'B';
+
+        return $staff->rotation_group === $groupOnDuty
+            ? ['inicio' => $config['hours'][0], 'fim' => $config['hours'][1]]
+            : null;
+    }
+
     /**
-     * Escala para um intervalo de datas: um item por dia, com uma célula por hotliner.
+     * Escala para um intervalo de datas: um item por dia, com uma célula por colaborador.
      */
     public function schedule(Carbon $from, Carbon $to, ?Collection $hotliners = null): array
     {
-        $hotliners ??= HrStaff::activeHotliners()->with('user')->orderBy('rotation_group')->get();
+        $hotliners ??= self::staffFor('hotline');
 
         $overrides = HrShiftOverride::with('substitute')
             ->whereBetween('data', [$from->toDateString(), $to->toDateString()])
@@ -95,12 +133,13 @@ class HotlineRotation
     }
 
     /**
-     * Lista "plana" de turnos (só dias com turno), com início/fim em data-hora e cor do hotliner.
+     * Lista "plana" de turnos (só dias com turno), com início/fim em data-hora e cor do colaborador.
      */
     public function shifts(Carbon $from, Carbon $to, ?Collection $hotliners = null): Collection
     {
-        $hotliners ??= HrStaff::activeHotliners()->with('user')->orderBy('rotation_group')->get();
+        $hotliners ??= self::staffFor('hotline');
         $reasons = config('hr.override_reasons');
+        $colors = self::colorMap($hotliners);
 
         $shifts = collect();
         foreach ($this->schedule($from, $to, $hotliners) as $day) {
@@ -125,7 +164,8 @@ class HotlineRotation
                     'start' => $start,
                     'end' => $end,
                     'hours' => self::formatHours($cell['shift']),
-                    'funcao' => 'Hotliner',
+                    'funcao' => self::kindOf($cell['staff']) === 'piquete' ? config('hr.piquete.label') : 'Hotliner',
+                    'zona' => config('hr.zones.' . $cell['staff']->zona),
                     'staff' => $cell['staff'],
                     'name' => $cell['worker']->name ?? 'Sem substituto',
                     'override' => $override,
@@ -134,14 +174,26 @@ class HotlineRotation
                         : ($onVacation ? $cell['staff']->user->name . ' está de férias'
                             : ($absent ? $cell['staff']->user->name . ' faltou (' . $cell['absence']->motivo_label . ')' : null)),
                     'uncovered' => $uncovered,
-                    'color' => $uncovered
-                        ? self::UNCOVERED_COLOR
-                        : self::COLORS[$hotliners->search(fn ($s) => $s->id === $cell['staff']->id) % count(self::COLORS)],
+                    'color' => $uncovered ? self::UNCOVERED_COLOR : $colors[$cell['staff']->id],
                 ]);
             }
         }
 
         return $shifts;
+    }
+
+    /** Cor de cada colaborador: hotliners e técnicos com paletas diferentes. */
+    public static function colorMap(Collection $staff): array
+    {
+        $map = [];
+        foreach ($staff->groupBy(fn ($s) => self::kindOf($s)) as $kind => $group) {
+            $palette = $kind === 'piquete' ? self::PIQUETE_COLORS : self::COLORS;
+            foreach ($group->values() as $i => $member) {
+                $map[$member->id] = $palette[$i % count($palette)];
+            }
+        }
+
+        return $map;
     }
 
     public static function formatHours(?array $shift): string

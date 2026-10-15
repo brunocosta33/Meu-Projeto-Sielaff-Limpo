@@ -137,6 +137,19 @@ class DocumentController extends Controller
         return back();
     }
 
+    /** Página de leitura com barra "Voltar" (funciona também no telemóvel). */
+    public function read(Request $request, $id)
+    {
+        $this->authorizeView();
+        $document = $this->findWithFile($id);
+
+        // Só aceita voltar para a própria Documentação (evita redirecionamentos para fora)
+        $back = (string) $request->query('voltar');
+        $backUrl = str_starts_with($back, route('backoffice.documents.index')) ? $back : route('backoffice.documents.index');
+
+        return view('backoffice.documents.viewer', compact('document', 'backUrl'));
+    }
+
     /** Abre o PDF no browser. */
     public function view($id)
     {

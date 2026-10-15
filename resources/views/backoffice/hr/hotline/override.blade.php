@@ -51,7 +51,7 @@
                     <div class="form-group p-3 rounded" id="devolucao-field" style="background:#eef4ff; display:none">
                         <label class="font-weight-bold mb-1"><i class="fa fa-exchange-alt"></i> {{ __('Troca de dias (opcional)') }}</label>
                         <p class="small text-muted mb-2">
-                            {{ __('Se é uma troca entre os dois hotliners, indique o dia em que') }} <strong>{{ $staff->user->name }}</strong>
+                            {{ __('Se é uma troca com um colega da mesma escala, indique o dia em que') }} <strong>{{ $staff->user->name }}</strong>
                             {{ __('fica com o turno do colega. Os dois dias ficam registados de uma vez.') }}
                         </p>
                         <input type="date" name="devolucao_data" class="form-control" style="max-width: 220px" value="{{ old('devolucao_data') }}">
@@ -84,7 +84,7 @@
                         </p>
                     @endif
 
-                    <a class="btn btn-outline-secondary" href="{{ route('backoffice.hr.hotline.index', ['mes' => $date->format('Y-m')]) }}">
+                    <a class="btn btn-outline-secondary" href="{{ route(\App\Services\HotlineRotation::kindOf($staff) === 'piquete' ? 'backoffice.hr.piquete.index' : 'backoffice.hr.hotline.index', ['mes' => $date->format('Y-m')]) }}">
                         <i class="fa fa-arrow-left"></i> {{ __('Voltar') }}
                     </a>
                     <button type="submit" class="btn btn-outline-secondary"><i class="fa fa-save"></i> {{ __('Gravar') }}</button>

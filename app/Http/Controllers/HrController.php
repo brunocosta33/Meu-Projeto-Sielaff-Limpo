@@ -71,42 +71,78 @@ class HrController extends Controller
             'user_id' => ['required', 'exists:users,id', Rule::unique('hr_staff', 'user_id')->ignore($member?->id)],
             'funcao' => ['required', Rule::in(array_keys(config('hr.functions')))],
             'rotation_group' => ['nullable', 'required_if:funcao,hotliner', Rule::in(['A', 'B'])],
+            'zona' => ['nullable', Rule::in(array_keys(config('hr.zones')))],
         ], [
             'funcao.required' => 'Escolha a função do colaborador.',
             'rotation_group.required_if' => 'Escolha o grupo de rotação do hotliner.',
         ]);
 
+        // Técnico no piquete: precisa de grupo (sábado A/B) e zona (Norte/Sul)
+        if ($data['funcao'] === 'tecnico' && !empty($data['rotation_group']) && empty($data['zona'])) {
+            throw ValidationException::withMessages(['zona' => 'Escolha a zona (Norte ou Sul) do técnico de piquete.']);
+        }
+
         $data['ativo'] = $request->boolean('ativo');
-        if ($data['funcao'] !== 'hotliner') {
+        if (!in_array($data['funcao'], ['hotliner', 'tecnico'], true)) {
             $data['rotation_group'] = null;
+        }
+        if ($data['funcao'] !== 'tecnico' || empty($data['rotation_group'])) {
+            $data['zona'] = null;
         }
 
         return $data;
     }
 
-    // ---------- Escala dos Hotliners ----------
+    // ---------- Escalas (Hotline e Piquete) ----------
 
     public function hotlineSchedule(Request $request)
+    {
+        return $this->schedulePage($request, 'hotline');
+    }
+
+    public function piqueteSchedule(Request $request)
+    {
+        return $this->schedulePage($request, 'piquete');
+    }
+
+    private function schedulePage(Request $request, string $kind)
     {
         // Mês inicial do calendário (para voltar ao mês certo depois de gravar uma troca)
         $month = $request->filled('mes')
             ? Carbon::createFromFormat('Y-m', $request->mes)->startOfMonth()
             : now()->startOfMonth();
 
-        $hotliners = HrStaff::activeHotliners()->with('user')->orderBy('rotation_group')->get();
-        $legend = $hotliners->values()->map(fn ($s, $i) => [
+        $hotliners = HotlineRotation::staffFor($kind);
+        $colors = HotlineRotation::colorMap($hotliners);
+        $legend = $hotliners->map(fn ($s) => [
             'name' => $s->user->name,
             'group' => $s->rotation_group,
-            'color' => HotlineRotation::COLORS[$i % count(HotlineRotation::COLORS)],
+            'zona' => config('hr.zones.' . $s->zona),
+            'color' => $colors[$s->id],
         ]);
 
         $upcomingOverrides = HrShiftOverride::with(['staff.user', 'substitute'])
+            ->whereIn('hr_staff_id', $hotliners->pluck('id'))
             ->whereDate('data', '>=', now()->startOfMonth())
             ->orderBy('data')
             ->limit(50)
             ->get();
 
-        return view('backoffice.hr.hotline.index', compact('month', 'hotliners', 'legend', 'upcomingOverrides'));
+        return view('backoffice.hr.hotline.index', compact('month', 'hotliners', 'legend', 'upcomingOverrides', 'kind'));
+    }
+
+    /** Página da escala a que o colaborador pertence, no mês indicado. */
+    private function scheduleRedirect(HrStaff $staff, Carbon $date)
+    {
+        $route = HotlineRotation::kindOf($staff) === 'piquete' ? 'backoffice.hr.piquete.index' : 'backoffice.hr.hotline.index';
+
+        return redirect()->route($route, ['mes' => $date->format('Y-m')]);
+    }
+
+    /** Outros colaboradores da mesma escala (para trocas). */
+    private function sameScheduleStaff(HrStaff $staff)
+    {
+        return HotlineRotation::staffFor(HotlineRotation::kindOf($staff))->where('id', '!=', $staff->id)->values();
     }
 
     /**
@@ -122,15 +158,17 @@ class HrController extends Controller
             return response()->json([]);
         }
 
-        $events = $this->rotation->shifts($from, $to)->map(fn ($s) => [
-            'title' => $s->funcao . ' – ' . $s->name,
+        $kind = in_array($request->input('tipo'), ['hotline', 'piquete'], true) ? $request->input('tipo') : 'todos';
+
+        $events = $this->rotation->shifts($from, $to, HotlineRotation::staffFor($kind))->map(fn ($s) => [
+            'title' => $s->funcao . ' – ' . $s->name . ($s->zona ? ' · ' . $s->zona : ''),
             'start' => $s->start->format('Y-m-d\TH:i:s'),
             'end' => $s->end->format('Y-m-d\TH:i:s'),
             'color' => $s->color,
             'classNames' => $s->override ? ['fc-duty-override'] : [],
             'url' => route('backoffice.hr.hotline.override.create', ['staff' => $s->staff->id, 'data' => $s->date->toDateString()]),
             'funcao' => $s->funcao,
-            'nome' => $s->name,
+            'nome' => $s->name . ($s->zona ? ' · ' . $s->zona : ''),
             'horario' => $s->hours,
             'substituicao' => $s->override_note,
             'description' => __('Horário') . ': ' . $s->hours . ($s->override_note ? ' · ' . $s->override_note : ''),
@@ -145,7 +183,7 @@ class HrController extends Controller
             'staff' => ['required', 'exists:hr_staff,id'],
             'data' => ['required', 'date'],
         ], [
-            'staff.required' => 'Escolha o hotliner cujo turno vai ser trocado.',
+            'staff.required' => 'Escolha de quem é o turno a trocar.',
             'data.required' => 'Escolha o dia.',
         ]);
 
@@ -154,12 +192,12 @@ class HrController extends Controller
         $shift = $this->rotation->scheduledShift($staff, $date);
 
         if (!$shift) {
-            flash($staff->user->name . ' está de folga a ' . $date->format('d/m/Y') . ', não há turno para trocar nesse dia.')->warning();
-            return redirect()->route('backoffice.hr.hotline.index', ['mes' => $date->format('Y-m')]);
+            flash($staff->user->name . ' não tem turno a ' . $date->format('d/m/Y') . ', não há nada para trocar nesse dia.')->warning();
+            return $this->scheduleRedirect($staff, $date);
         }
 
         $override = HrShiftOverride::where('hr_staff_id', $staff->id)->whereDate('data', $date)->first();
-        $otherHotliners = HrStaff::activeHotliners()->where('id', '!=', $staff->id)->pluck('user_id');
+        $otherHotliners = $this->sameScheduleStaff($staff)->pluck('user_id');
 
         return view('backoffice.hr.hotline.override', [
             'staff' => $staff,
@@ -191,12 +229,12 @@ class HrController extends Controller
         $returnDate = !empty($data['devolucao_data']) && $data['motivo'] === 'troca' ? Carbon::parse($data['devolucao_data']) : null;
         unset($data['devolucao_data']);
 
-        // Troca de dois dias: o colega também cede um turno dele ao hotliner original
+        // Troca de dois dias: o colega da mesma escala também cede um turno dele
         $returnStaff = null;
         if ($returnDate) {
-            $returnStaff = HrStaff::activeHotliners()->with('user')->where('user_id', $data['substitute_user_id'] ?? 0)->first();
+            $returnStaff = $this->sameScheduleStaff($staff)->firstWhere('user_id', (int) ($data['substitute_user_id'] ?? 0));
             if (!$returnStaff) {
-                throw ValidationException::withMessages(['devolucao_data' => 'A devolução só é possível quando a troca é feita com outro hotliner.']);
+                throw ValidationException::withMessages(['devolucao_data' => 'A devolução só é possível quando a troca é feita com um colega da mesma escala.']);
             }
             if (!$this->rotation->scheduledShift($returnStaff, $returnDate)) {
                 throw ValidationException::withMessages([
@@ -229,24 +267,23 @@ class HrController extends Controller
             flash('Substituição gravada com sucesso!')->success();
         }
 
-        return redirect()->route('backoffice.hr.hotline.index', ['mes' => $date->format('Y-m')]);
+        return $this->scheduleRedirect($staff, $date);
     }
 
     public function overrideDelete($id)
     {
-        $override = HrShiftOverride::findOrFail($id);
-        $month = $override->data->format('Y-m');
+        $override = HrShiftOverride::with('staff')->findOrFail($id);
         $override->delete();
 
         flash('Substituição removida. O dia volta à rotação normal.')->success();
-        return redirect()->route('backoffice.hr.hotline.index', ['mes' => $month]);
+        return $this->scheduleRedirect($override->staff, $override->data);
     }
 
     private function substituteOptions(HrStaff $staff)
     {
-        $hotlinerUserIds = HrStaff::activeHotliners()->pluck('user_id');
+        $hotlinerUserIds = $this->sameScheduleStaff($staff)->pluck('user_id');
 
-        // Outros hotliners primeiro, depois os restantes utilizadores
+        // Colegas da mesma escala primeiro, depois os restantes utilizadores
         return User::whereNull('deleted_at')
             ->where('id', '!=', $staff->user_id)
             ->orderBy('name')
@@ -261,7 +298,7 @@ class HrController extends Controller
             return;
         }
 
-        $other = HrStaff::activeHotliners()->where('user_id', $userId)->first();
+        $other = HotlineRotation::staffFor()->firstWhere('user_id', $userId);
         if (!$other || $other->id === $replaced->id) {
             return;
         }

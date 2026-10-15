@@ -31,6 +31,7 @@ class LogSuccessfulLogin
     {
         DB::table('login_activities')->insert([
             'user_id'       =>  $event->user->id,
+            'tipo'          =>  'login',
             'user_agent'    =>  \Illuminate\Support\Facades\Request::header('User-Agent'),
             'ip_address'    =>  \Illuminate\Support\Facades\Request::ip(), 
             'created_at' => now()

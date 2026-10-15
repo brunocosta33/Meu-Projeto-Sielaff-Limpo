@@ -193,6 +193,7 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
     Route::prefix('backoffice/documentacao')->name('backoffice.documents.')->group(function () {
         Route::get('/', [DocumentController::class, 'index'])->name('index');
         Route::get('/exportar', [DocumentController::class, 'zip'])->name('zip');
+        Route::get('/{id}/ver', [DocumentController::class, 'read'])->name('read');
         Route::get('/{id}/abrir', [DocumentController::class, 'view'])->name('view');
         Route::get('/{id}/descarregar', [DocumentController::class, 'download'])->name('download');
 
@@ -216,6 +217,7 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
         Route::delete('/colaboradores/{id}', [HrController::class, 'staffDelete'])->name('staff.delete');
 
         Route::get('/hotline', [HrController::class, 'hotlineSchedule'])->name('hotline.index');
+        Route::get('/piquete', [HrController::class, 'piqueteSchedule'])->name('piquete.index');
         Route::get('/calendario/eventos', [HrController::class, 'calendarEvents'])->name('calendar.events');
         Route::get('/hotline/substituicao', [HrController::class, 'overrideCreate'])->name('hotline.override.create');
         Route::post('/hotline/substituicao', [HrController::class, 'overrideStore'])->name('hotline.override.store');

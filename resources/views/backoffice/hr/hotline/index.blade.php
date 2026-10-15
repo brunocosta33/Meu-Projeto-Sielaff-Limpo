@@ -1,9 +1,11 @@
 @extends('layouts.backoffice_master')
 
 @php(\Carbon\Carbon::setLocale('pt'))
+@php($isPiquete = ($kind ?? 'hotline') === 'piquete')
+@php($pageTitle = $isPiquete ? __('Escala Piquete') : __('Escala Hotline'))
 
 @section('head-meta')
-    <title>{{ config('app.name') }} - {{ __('Escala Hotline') }}</title>
+    <title>{{ config('app.name') }} - {{ $pageTitle }}</title>
 @endsection
 
 @push('styles')
@@ -30,14 +32,20 @@
     <div class="col-lg-8 mb-3">
         <div class="card h-100">
             <div class="card-body">
-                <h5 class="card-title mb-2">{{ __('Escala Hotline') }}</h5>
+                <h5 class="card-title mb-2">{{ $pageTitle }}</h5>
+                @if($isPiquete)
+                    <p class="small text-muted mb-2">
+                        <i class="fa fa-info-circle"></i> {{ __('Sábados alternados, das') }} {{ config('hr.piquete.hours')[0] }} {{ __('às') }} {{ config('hr.piquete.hours')[1] }}:
+                        {{ __('em cada sábado estão de serviço um técnico do Norte e um do Sul do mesmo grupo (A ou B).') }}
+                    </p>
+                @endif
                 @if($hotliners->isEmpty())
-                    <p class="mb-0">{{ __('Ainda não há hotliners ativos com grupo de rotação.') }}
+                    <p class="mb-0">{{ $isPiquete ? __('Ainda não há técnicos com grupo de piquete e zona definidos.') : __('Ainda não há hotliners ativos com grupo de rotação.') }}
                         <a href="{{ route('backoffice.hr.staff.index') }}">{{ __('Definir colaboradores') }}</a></p>
                 @else
                     <div class="hr-legend mb-2">
                         @foreach($legend as $item)
-                            <span><i style="background: {{ $item['color'] }}"></i>{{ $item['name'] }} <small class="text-muted">({{ __('Grupo') }} {{ $item['group'] }})</small></span>
+                            <span><i style="background: {{ $item['color'] }}"></i>{{ $item['name'] }} <small class="text-muted">({{ __('Grupo') }} {{ $item['group'] }}{{ $item['zona'] ? ' · ' . $item['zona'] : '' }})</small></span>
                         @endforeach
                         <span><i style="background: #fff; box-shadow: inset 0 0 0 3px #ffc107"></i>{{ __('Troca / substituição') }}</span>
                         <span><i style="background: {{ \App\Services\HotlineRotation::UNCOVERED_COLOR }}"></i>{{ __('Sem substituto') }}</span>
@@ -64,7 +72,7 @@
                             <label class="small mb-1">{{ __('Turno de') }}</label>
                             <select name="staff" class="form-control form-control-sm" required>
                                 @foreach($hotliners as $staff)
-                                    <option value="{{ $staff->id }}">{{ $staff->user->name }}</option>
+                                    <option value="{{ $staff->id }}">{{ $staff->user->name }}{{ $staff->zona ? ' · ' . config('hr.zones.' . $staff->zona) : '' }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -143,7 +151,7 @@
             buttonText: { today: 'Hoje', month: 'Mês', week: 'Semana', list: 'Lista' },
             slotMinTime: '00:00:00',
             eventSources: [
-                { url: @json(route('backoffice.hr.calendar.events')), display: 'block', className: 'fc-duty-event' },
+                { url: @json(route('backoffice.hr.calendar.events', ['tipo' => $kind ?? 'hotline'])), display: 'block', className: 'fc-duty-event' },
                 { url: @json(route('backoffice.hr.holidays.events')) }
             ],
             eventContent: function (arg) {

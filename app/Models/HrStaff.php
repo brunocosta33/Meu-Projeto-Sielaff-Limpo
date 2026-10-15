@@ -12,6 +12,7 @@ class HrStaff extends Model
         'user_id',
         'funcao',
         'rotation_group',
+        'zona',
         'contacto',
         'ativo',
         'observacoes',
@@ -58,6 +59,12 @@ class HrStaff extends Model
     public function vacationBalances()
     {
         return $this->hasMany(HrVacationBalance::class);
+    }
+
+    /** Técnicos com grupo e zona definidos (entram na escala de piquete). */
+    public function scopeActivePiquete($query)
+    {
+        return $query->where('ativo', true)->where('funcao', 'tecnico')->whereNotNull('rotation_group')->whereNotNull('zona');
     }
 
     public function scopeActiveHotliners($query)

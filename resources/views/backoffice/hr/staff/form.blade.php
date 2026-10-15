@@ -44,19 +44,32 @@
                                 <option value="{{ $key }}" @selected(old('funcao', $member->funcao) === $key)>{{ $label }}</option>
                             @endforeach
                         </select>
-                        <small class="form-text text-muted">{{ __('Os hotliners entram na escala rotativa da Hotline.') }}</small>
+                        <small class="form-text text-muted">{{ __('Os hotliners entram na escala da Hotline; os técnicos podem entrar na escala de piquete.') }}</small>
                     </div>
 
                     <div class="form-group" id="rotation-group-field">
-                        <label>{{ __('Grupo de rotação (Hotliner)') }}</label>
+                        <label id="rotation-group-label">{{ __('Grupo de rotação (Hotliner)') }}</label>
                         <select name="rotation_group" class="form-control">
-                            <option value="">—</option>
+                            <option value="">{{ __('— Não entra na escala —') }}</option>
                             <option value="A" @selected(old('rotation_group', $member->rotation_group) === 'A')>{{ __('Grupo A') }}</option>
                             <option value="B" @selected(old('rotation_group', $member->rotation_group) === 'B')>{{ __('Grupo B') }}</option>
                         </select>
-                        <small class="form-text text-muted">
+                        <small class="form-text text-muted" data-help="hotliner">
                             {{ __('Os dois hotliners devem estar em grupos diferentes: quando um faz a semana com fim de semana, o outro faz a semana normal. Se a escala estiver trocada uma semana, troque os grupos.') }}
                         </small>
+                        <small class="form-text text-muted" data-help="tecnico">
+                            {{ __('Sábados alternados das') }} {{ config('hr.piquete.hours')[0] }} {{ __('às') }} {{ config('hr.piquete.hours')[1] }}. {{ __('Em cada grupo deve haver um técnico do Norte e um do Sul. Se a escala estiver trocada um sábado, troque os grupos.') }}
+                        </small>
+                    </div>
+
+                    <div class="form-group" id="zona-field">
+                        <label>{{ __('Zona (piquete)') }}</label>
+                        <select name="zona" class="form-control">
+                            <option value="">—</option>
+                            @foreach(config('hr.zones') as $key => $label)
+                                <option value="{{ $key }}" @selected(old('zona', $member->zona) === $key)>{{ $label }}</option>
+                            @endforeach
+                        </select>
                     </div>
 
                     <div class="form-group form-check">
@@ -78,7 +91,15 @@
     document.addEventListener('DOMContentLoaded', function () {
         var funcao = document.getElementById('funcao');
         var field = document.getElementById('rotation-group-field');
-        var toggle = function () { field.style.display = funcao.value === 'hotliner' ? '' : 'none'; };
+        var zona = document.getElementById('zona-field');
+        var label = document.getElementById('rotation-group-label');
+        var toggle = function () {
+            var f = funcao.value;
+            field.style.display = (f === 'hotliner' || f === 'tecnico') ? '' : 'none';
+            zona.style.display = f === 'tecnico' ? '' : 'none';
+            label.textContent = f === 'tecnico' ? 'Grupo de piquete (sábados)' : 'Grupo de rotação (Hotliner)';
+            document.querySelectorAll('[data-help]').forEach(function (h) { h.style.display = h.dataset.help === f ? '' : 'none'; });
+        };
         funcao.addEventListener('change', toggle);
         toggle();
     });
