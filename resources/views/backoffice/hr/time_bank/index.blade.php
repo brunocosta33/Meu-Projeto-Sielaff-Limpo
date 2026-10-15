@@ -103,9 +103,12 @@
                             <div class="hint">{{ $me->horas < 0 ? __('horas que deve à empresa') : __('horas por pagar ou gozar') }}</div>
                         </div>
                         <div class="tb-stat" style="--bg: #e3f0ff; --fg: #0d47a1">
-                            <div class="lbl">{{ __('Piquetes feitos em') }} {{ $month->translatedFormat('F') }}</div>
+                            <div class="lbl">{{ __('Piquetes confirmados em') }} {{ $month->translatedFormat('F') }}</div>
                             <div class="num">{{ $me->piquetes }}</div>
-                            <div class="hint">{{ __('trabalho suplementar:') }} {{ $fmtH($me->suplementar) }} · {{ __('pago à parte, não conta no saldo') }}</div>
+                            <div class="hint">
+                                @if($me->aConfirmar){{ $me->aConfirmar }} {{ __('a confirmar pela gestão') }} · @endif
+                                {{ __('trabalho suplementar:') }} {{ $fmtH($me->suplementar) }} · {{ __('pago à parte') }}
+                            </div>
                         </div>
                         <div class="tb-stat" style="--bg: #fff8db; --fg: #7a5600">
                             <div class="lbl">{{ __('Pedidos pendentes') }}</div>
@@ -124,7 +127,7 @@
                             <tr>
                                 <th>{{ __('Colaborador') }}</th>
                                 <th>{{ __('Saldo de horas') }}</th>
-                                <th>{{ __('Piquetes feitos em') }} {{ $month->translatedFormat('F') }} <small class="text-muted font-weight-normal">({{ __('da escala') }})</small></th>
+                                <th>{{ __('Piquetes confirmados em') }} {{ $month->translatedFormat('F') }}</th>
                                 <th>{{ __('Pendentes') }}</th>
                                 <th></th>
                             </tr>
@@ -147,6 +150,7 @@
                                         @else
                                             <span class="text-muted">—</span>
                                         @endif
+                                        @if($row->aConfirmar)<div class="tb-note" style="color: #b26a00">{{ $row->aConfirmar }} {{ __('a confirmar') }}</div>@endif
                                     </td>
                                     <td>@if($row->pendentes)<span class="badge badge-warning">{{ $row->pendentes }}</span>@else<span class="text-muted">—</span>@endif</td>
                                     <td class="text-right">
@@ -174,6 +178,7 @@
                         @if($isManager)
                             <optgroup label="{{ __('Piquete') }}">
                                 <option value="piquete" @selected(old('tipo') === 'piquete')>{{ $types['piquete']['label'] }}</option>
+                                <option value="piquete_feito" @selected(old('tipo') === 'piquete_feito')>{{ __('Piquete realizado (acrescentar à mão)') }}</option>
                             </optgroup>
                             <optgroup label="{{ __('A favor do colaborador') }}">
                                 @foreach(['hora_extra', 'reposicao'] as $k)<option value="{{ $k }}" @selected(old('tipo') === $k)>{{ $types[$k]['label'] }}</option>@endforeach
@@ -237,6 +242,68 @@
     </div>
 </div>
 
+{{-- Piquetes da escala a confirmar (gestão) --}}
+@if($isManager)
+<div class="tb-card">
+    @php($pendingSlots = collect($slots)->where('decision', null)->count())
+    <h5 class="mb-1"><i class="fas fa-shield-alt text-primary"></i> {{ __('Piquetes de') }} {{ $month->translatedFormat('F') }}
+        @if($pendingSlots)<span class="badge badge-warning ml-1">{{ $pendingSlots }} {{ __('a confirmar') }}</span>@endif
+    </h5>
+    <p class="small text-muted">{{ __('Sábados já passados da escala de piquete. Só contam (e aparecem no Excel) os que forem confirmados.') }}</p>
+    @if(empty($slots))
+        <p class="text-muted mb-0">{{ __('Ainda não há sábados de piquete passados neste mês.') }}</p>
+    @else
+        <div class="table-responsive">
+            <table class="table table-sm tb-table mb-0">
+                <thead>
+                    <tr><th>{{ __('Sábado') }}</th><th>{{ __('Zona') }}</th><th>{{ __('Previsto na escala') }}</th><th>{{ __('Decisão') }}</th></tr>
+                </thead>
+                <tbody>
+                    @foreach($slots as $slot)
+                        <tr>
+                            <td class="text-nowrap">{{ ucfirst($slot->date->translatedFormat('D d/m')) }}</td>
+                            <td>{{ $slot->zona ?? '—' }}</td>
+                            <td>
+                                <strong>{{ $slot->worker_name }}</strong>
+                                @if($slot->note)<div class="tb-note">{{ $slot->note }}</div>@endif
+                            </td>
+                            <td>
+                                @if($slot->decision && $slot->decision->estado === 'aprovado')
+                                    <span class="badge badge-success"><i class="fa fa-check"></i> {{ __('Confirmado') }} · {{ $slot->decision->staff->user->name ?? '' }}</span>
+                                @elseif($slot->decision)
+                                    <span class="badge badge-secondary"><i class="fa fa-times"></i> {{ __('Não fez') }}</span>
+                                @endif
+                                @if($slot->decision)
+                                    <form method="POST" action="{{ route('backoffice.hr.timebank.destroy', $slot->decision->id) }}" class="d-inline" onsubmit="return confirm('Desfazer esta decisão? O piquete volta a ficar por confirmar.')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="btn btn-sm btn-link px-1" title="{{ __('Desfazer') }}"><i class="fa fa-undo"></i></button>
+                                    </form>
+                                @else
+                                    <form method="POST" action="{{ route('backoffice.hr.timebank.piquetes.confirm') }}" class="d-inline-flex align-items-center" style="gap: .3rem">
+                                        @csrf
+                                        <input type="hidden" name="data" value="{{ $slot->date->toDateString() }}">
+                                        <input type="hidden" name="slot_staff_id" value="{{ $slot->slot_staff->id }}">
+                                        <select name="hr_staff_id" class="form-control form-control-sm" style="width: auto" title="{{ __('Quem fez o piquete') }}">
+                                            <option value="">{{ __('Quem fez?') }}</option>
+                                            @foreach($staff as $st)
+                                                <option value="{{ $st->id }}" @selected($slot->worker_staff_id === $st->id)>{{ $st->user->name }}</option>
+                                            @endforeach
+                                        </select>
+                                        <button name="acao" value="confirmar" class="btn btn-sm btn-success" title="{{ __('Confirmar') }}"><i class="fa fa-check"></i> {{ __('Confirmar') }}</button>
+                                        <button name="acao" value="recusar" class="btn btn-sm btn-outline-secondary" title="{{ __('Não fez') }}" onclick="return confirm('Marcar este piquete como não feito?')"><i class="fa fa-times"></i></button>
+                                    </form>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @endif
+</div>
+@endif
+
 {{-- Movimentos do mês --}}
 <div class="tb-card">
     <div class="d-flex flex-wrap align-items-center justify-content-between mb-2" style="gap: .5rem">
@@ -284,7 +351,10 @@
                             @if($isManager)<td class="text-nowrap">{{ $e->staff->user->name ?? '—' }}</td>@endif
                             <td><span class="tb-type" style="--c: {{ $e->type['color'] }}"><i class="fas {{ $e->type['icon'] }}"></i> {{ $e->type['label'] }}</span></td>
                             <td>
-                                @if($e->tipo === 'piquete' && $isManager)
+                                @if($e->tipo === 'piquete_feito')
+                                    <span class="tb-amount {{ $e->estado === 'aprovado' ? 'pay' : 'zero' }}">{{ $e->estado === 'aprovado' ? __('1 piquete') : __('não fez') }}</span>
+                                    <div class="tb-note">{{ __('pago à parte') }}</div>
+                                @elseif($e->tipo === 'piquete' && $isManager)
                                     <form method="POST" action="{{ route('backoffice.hr.timebank.update', $e->id) }}" class="tb-sup">
                                         @csrf
                                         @method('PUT')
@@ -384,6 +454,7 @@
             reposicao: 'Horas que o colaborador repôs (reduz o que deve à empresa).',
             horas_em_falta: 'O colaborador trabalhou menos e fica a dever estas horas.',
             pagamento_horas: 'Horas pagas: saem do saldo do colaborador.',
+            piquete_feito: 'Piquete que não está na escala (ex.: troca não registada). Os da escala confirmam-se no cartão "Piquetes a confirmar".',
             folga_compensatoria: 'Dia ou meio dia de descanso para compensar horas extra: sai do saldo do colaborador.'
         };
         var tipo = document.getElementById('tb-tipo');
@@ -404,10 +475,12 @@
         folgaButtons.forEach(function (b) { b.addEventListener('click', function () { pickFolga(b); }); });
         var sync = function () {
             var folga = tipo.value === 'folga_compensatoria';
+            var noHours = tipo.value === 'piquete_feito';
             horasLabel.textContent = tipo.value === 'piquete' ? 'Trabalho suplementar (h)' : 'Horas';
             helpEl.textContent = help[tipo.value] || '';
             folgaField.style.display = folga ? '' : 'none';
-            horasField.style.visibility = 'visible';
+            horasField.style.visibility = noHours ? 'hidden' : 'visible';
+            if (noHours) horasInput.value = '';
             if (folga) pickFolga(folgaButtons[0]); // por defeito: dia inteiro
         };
         tipo.addEventListener('change', sync);

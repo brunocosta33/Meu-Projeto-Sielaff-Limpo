@@ -40,15 +40,21 @@ class HrTimeBankController extends Controller
         // Saldo de horas (movimentos aprovados, desde sempre; o piquete é pago à parte e não conta)
         $approved = HrTimeEntry::whereIn('hr_staff_id', $staff->pluck('id'))->where('estado', 'aprovado')->get()->groupBy('hr_staff_id');
         $pending = HrTimeEntry::whereIn('hr_staff_id', $staff->pluck('id'))->awaitingDecision()->get()->groupBy('hr_staff_id');
-        // Piquetes do mês: realizados (escala) e trabalho suplementar aprovado
-        $piquetesDone = $this->piquetesDone($rotation, $month);
-        $monthSupplementary = HrTimeEntry::whereIn('hr_staff_id', $staff->pluck('id'))->where('tipo', 'piquete')->where('estado', 'aprovado')
-            ->whereBetween('data', $monthRange)->get()->groupBy('hr_staff_id');
+        // Piquetes do mês: só contam os confirmados pela gestão; trabalho suplementar aprovado
+        $monthApproved = HrTimeEntry::whereIn('hr_staff_id', $staff->pluck('id'))->where('estado', 'aprovado')
+            ->whereIn('tipo', ['piquete_feito', 'piquete'])->whereBetween('data', $monthRange)->get();
+        $confirmed = $monthApproved->where('tipo', 'piquete_feito')->groupBy('hr_staff_id');
+        $monthSupplementary = $monthApproved->where('tipo', 'piquete')->groupBy('hr_staff_id');
+
+        // Sábados de piquete da escala (já passados) e decisão de cada um
+        $slots = $this->piqueteSlots($rotation, $month);
+        $toConfirm = collect($slots)->where('decision', null);
 
         $summary = $staff->map(fn ($s) => (object) [
             'staff' => $s,
             'horas' => round($approved->get($s->id, collect())->filter(fn ($e) => $e->countsInBalance())->sum(fn ($e) => $e->signed_amount), 2),
-            'piquetes' => count($piquetesDone[$s->id] ?? []),
+            'piquetes' => $confirmed->get($s->id, collect())->count(),
+            'aConfirmar' => $toConfirm->where('worker_staff_id', $s->id)->count(),
             'suplementar' => round($monthSupplementary->get($s->id, collect())->sum('horas'), 2),
             'pendentes' => $pending->get($s->id, collect())->count(),
         ]);
@@ -73,6 +79,8 @@ class HrTimeBankController extends Controller
             'isManager' => $isManager,
             'ownStaff' => HrAccess::staffOf($user),
             'pendingTotal' => $isManager ? HrTimeEntry::awaitingDecision()->count() : 0,
+            'slots' => $isManager ? $slots : [],
+            'piqueteStaff' => $isManager ? HotlineRotation::staffFor('piquete') : collect(),
         ]);
     }
 
@@ -98,16 +106,27 @@ class HrTimeBankController extends Controller
         abort_unless($staffId, 403);
 
         $hours = $this->parseHours($data['horas'] ?? '');
-        if ($hours <= 0) {
+        if ($data['tipo'] !== 'piquete_feito' && $hours <= 0) {
             throw ValidationException::withMessages(['horas' => 'Indique o número de horas.']);
+        }
+
+        // Piquete acrescentado à mão pela gestão (fora da escala): um por pessoa e dia
+        if ($data['tipo'] === 'piquete_feito') {
+            $hours = 0;
+            $duplicate = HrTimeEntry::where('hr_staff_id', $staffId)->where('tipo', 'piquete_feito')
+                ->whereDate('data', $data['data'])->where('estado', 'aprovado')->exists();
+            if ($duplicate) {
+                throw ValidationException::withMessages(['data' => 'Esta pessoa já tem um piquete confirmado nesse dia.']);
+            }
         }
 
         // Trabalho suplementar num dia em que a pessoa não estava de piquete: avisa (não bloqueia)
         if ($data['tipo'] === 'piquete') {
             $date = Carbon::parse($data['data']);
-            $done = $this->piquetesDone(app(HotlineRotation::class), $date->copy()->startOfDay(), $date->copy()->startOfDay());
-            if (!in_array($date->toDateString(), $done[$staffId] ?? [], true)) {
-                flash('Atenção: segundo a escala, esta pessoa não estava de piquete a ' . $date->format('d/m/Y') . '.')->warning();
+            $onPiquete = HrTimeEntry::where('hr_staff_id', $staffId)->where('tipo', 'piquete_feito')->where('estado', 'aprovado')->whereDate('data', $date)->exists()
+                || collect($this->piqueteSlots(app(HotlineRotation::class), $date->copy()->startOfDay(), $date->copy()->startOfDay()))->contains('worker_staff_id', $staffId);
+            if (!$onPiquete) {
+                flash('Atenção: esta pessoa não estava de piquete a ' . $date->format('d/m/Y') . ' (nem na escala nem confirmado).')->warning();
             }
         }
 
@@ -203,10 +222,10 @@ class HrTimeBankController extends Controller
     }
 
     /**
-     * Sábados de piquete realizados, por colaborador (id) → lista de datas, calculados a partir da escala:
-     * conta quem fez de facto o turno (trocas incluídas) e ignora sábados sem substituto e ainda por acontecer.
+     * Sábados de piquete da escala (só os já passados), com quem estava previsto e a decisão da gestão:
+     * decision = null (a confirmar), entrada aprovada (confirmado) ou rejeitada (não fez).
      */
-    private function piquetesDone(HotlineRotation $rotation, Carbon $from, ?Carbon $to = null): array
+    private function piqueteSlots(HotlineRotation $rotation, Carbon $from, ?Carbon $to = null): array
     {
         $to = ($to ?? $from->copy()->endOfMonth())->copy()->min(now()->startOfDay());
         if ($to->lt($from)) {
@@ -214,25 +233,72 @@ class HrTimeBankController extends Controller
         }
 
         $staffByUser = HrStaff::where('ativo', true)->pluck('id', 'user_id');
-        $done = [];
-        foreach ($rotation->shifts($from->copy(), $to, HotlineRotation::staffFor('piquete')) as $shift) {
-            if ($shift->uncovered || !$shift->worker_id || !isset($staffByUser[$shift->worker_id])) {
-                continue;
-            }
-            $done[$staffByUser[$shift->worker_id]][] = $shift->date->toDateString();
-        }
+        $shifts = $rotation->shifts($from->copy(), $to, HotlineRotation::staffFor('piquete'));
+        $decisions = HrTimeEntry::with('staff.user')->where('tipo', 'piquete_feito')
+            ->whereIn('referencia', $shifts->map(fn ($sh) => self::slotRef($sh->date, $sh->staff->id)))
+            ->get()->keyBy('referencia');
 
-        return $done;
+        return $shifts->map(fn ($sh) => (object) [
+            'date' => $sh->date,
+            'zona' => $sh->zona,
+            'slot_staff' => $sh->staff,
+            'worker_name' => $sh->name,
+            'worker_staff_id' => $sh->worker_id ? ($staffByUser[$sh->worker_id] ?? null) : null,
+            'uncovered' => $sh->uncovered,
+            'note' => $sh->override_note,
+            'ref' => self::slotRef($sh->date, $sh->staff->id),
+            'decision' => $decisions->get(self::slotRef($sh->date, $sh->staff->id)),
+        ])->sortBy(fn ($slot) => $slot->date->toDateString() . $slot->zona)->values()->all();
+    }
+
+    private static function slotRef(Carbon $date, int $slotStaffId): string
+    {
+        return 'piquete:' . $date->toDateString() . ':' . $slotStaffId;
+    }
+
+    /** Confirmar (com a pessoa que o fez) ou marcar como não feito um sábado de piquete da escala. */
+    public function confirmPiquete(Request $request)
+    {
+        $data = $request->validate([
+            'data' => ['required', 'date'],
+            'slot_staff_id' => ['required', 'exists:hr_staff,id'],
+            'hr_staff_id' => ['nullable', 'required_if:acao,confirmar', 'exists:hr_staff,id'],
+            'acao' => ['required', Rule::in(['confirmar', 'recusar'])],
+        ], ['hr_staff_id.required_if' => 'Escolha quem fez o piquete.']);
+
+        $date = Carbon::parse($data['data']);
+        $slotStaff = HrStaff::with('user')->findOrFail($data['slot_staff_id']);
+        $confirm = $data['acao'] === 'confirmar';
+        $worker = $confirm ? HrStaff::with('user')->findOrFail($data['hr_staff_id']) : $slotStaff;
+
+        HrTimeEntry::updateOrCreate(
+            ['referencia' => self::slotRef($date, $slotStaff->id)],
+            [
+                'hr_staff_id' => $worker->id,
+                'data' => $date->toDateString(),
+                'tipo' => 'piquete_feito',
+                'horas' => 0,
+                'descricao' => 'Piquete ' . $date->format('d/m/Y') . ($slotStaff->zona ? ' · ' . config('hr.zones.' . $slotStaff->zona) : '')
+                    . ($worker->id !== $slotStaff->id ? ' (no lugar de ' . $slotStaff->user->name . ')' : ''),
+                'estado' => $confirm ? 'aprovado' : 'rejeitado',
+                'created_by' => auth()->id(),
+                'decided_by' => auth()->id(),
+                'decided_at' => now(),
+            ]
+        );
+
+        flash($confirm
+            ? 'Piquete de ' . $date->format('d/m') . ' confirmado: ' . $worker->user->name . '.'
+            : 'Piquete de ' . $date->format('d/m') . ' marcado como não feito.')->success();
+
+        return back();
     }
 
     /** Exportar os movimentos aprovados do mês para Excel (CSV com ; e acentos). */
-    public function export(Request $request, HotlineRotation $rotation)
+    public function export(Request $request)
     {
         $month = $request->filled('mes') ? Carbon::createFromFormat('Y-m', $request->mes)->startOfMonth() : now()->startOfMonth();
-        $names = HrStaff::with('user')->get()->mapWithKeys(fn ($s) => [$s->id => $s->user->name ?? '']);
-        $piquetes = collect($this->piquetesDone($rotation, $month))
-            ->flatMap(fn ($dates, $staffId) => collect($dates)->map(fn ($d) => [$names[$staffId] ?? '', $d]))
-            ->sortBy(fn ($r) => $r[0] . $r[1])->values();
+
         $entries = HrTimeEntry::with('staff.user')
             ->whereBetween('data', [$month->toDateString(), $month->copy()->endOfMonth()->toDateString()])
             ->where('estado', 'aprovado')
@@ -241,21 +307,18 @@ class HrTimeBankController extends Controller
 
         $filename = 'horas-e-piquetes-' . $month->format('Y-m') . '.csv';
 
-        return response()->streamDownload(function () use ($entries, $piquetes) {
+        return response()->streamDownload(function () use ($entries) {
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF"); // BOM para o Excel reconhecer acentos
             fputcsv($out, ['Colaborador', 'Data', 'Tipo', 'Piquete (a pagar)', 'Trabalho suplementar em piquete (h, a pagar)', 'Saldo de horas (+/−)', 'Descrição'], ';');
-            foreach ($piquetes as [$name, $date]) {
-                fputcsv($out, [$name, Carbon::parse($date)->format('d/m/Y'), 'Piquete realizado', 1, '', '', 'Segundo a escala de piquete'], ';');
-            }
             foreach ($entries as $e) {
                 $isPiquete = !$e->countsInBalance();
                 fputcsv($out, [
                     $e->staff->user->name ?? '',
                     $e->data->format('d/m/Y'),
                     $e->type['label'],
-                    '',
-                    $isPiquete ? number_format($e->horas, 2, ',', '') : '',
+                    $e->tipo === 'piquete_feito' ? 1 : '',
+                    $e->tipo === 'piquete' ? number_format($e->horas, 2, ',', '') : '',
                     $isPiquete ? '' : number_format($e->signed_amount, 2, ',', ''),
                     $e->descricao,
                 ], ';');
