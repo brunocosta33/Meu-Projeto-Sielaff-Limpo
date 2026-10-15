@@ -42,6 +42,7 @@ class DocumentController extends Controller
         return view('backoffice.documents.index', [
             'documents' => $query->get(),
             'models' => $this->knownModels(),
+            'modelGroups' => $this->modelGroups(),
             'typeCounts' => $all->countBy('tipo'),
             'modelCounts' => $all->flatMap(fn ($d) => $d->modelos ?: ['geral'])->countBy(),
             'total' => $all->count(),
@@ -93,6 +94,7 @@ class DocumentController extends Controller
         return view('backoffice.documents.edit', [
             'document' => Document::with('uploader')->findOrFail($id),
             'models' => $this->knownModels(),
+            'modelGroups' => $this->modelGroups(),
         ]);
     }
 
@@ -270,10 +272,27 @@ class DocumentController extends Controller
         ];
     }
 
-    /** Lista de modelos da configuração + outros modelos já usados em documentos. */
+    /** Modelos por família (configuração) + "Outros" com modelos escritos à mão em documentos. */
+    private function modelGroups(): array
+    {
+        $groups = config('documents.model_groups', []);
+        $configured = collect($groups)->flatten();
+        $extra = Document::pluck('modelos')->flatten()
+            ->map(fn ($m) => trim((string) $m))
+            ->filter()
+            ->reject(fn ($m) => $configured->contains(fn ($c) => mb_strtolower($c) === mb_strtolower($m)))
+            ->unique(fn ($m) => mb_strtolower($m))
+            ->sort(SORT_NATURAL | SORT_FLAG_CASE)
+            ->values()
+            ->all();
+
+        return $extra ? $groups + ['Outros' => $extra] : $groups;
+    }
+
+    /** Lista simples de todos os modelos (configuração + outros). */
     private function knownModels(): array
     {
-        $configured = collect(config('documents.models', []));
+        $configured = collect(config('documents.model_groups', []))->flatten();
         $extra = Document::pluck('modelos')->flatten()
             ->map(fn ($m) => trim((string) $m))
             ->filter()

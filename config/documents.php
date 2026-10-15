@@ -5,17 +5,11 @@ return [
     // Função com acesso total, que escolhe as outras funções com acesso
     'owner_function' => 'coordenador',
 
-    // Modelos disponíveis na Documentação (pela ordem em que aparecem).
-    // Modelos escritos à mão ao adicionar documentos também passam a aparecer.
-    'models' => [
-        'SiCompact 2020',
-        'SiCompact 2020 XL',
-        'SiCompact ECO',
-        'SiVario 2020 DualSort 4 Housings',
-        'SiVario 2020 DualSort 6 Housings',
-        'SiVario 2020 MonoSort 2 Housings',
-        'SiVario 2020 MonoSort 3 Housings',
-        'SiVario 2020 MonoSort 4 Housings',
+    // Modelos disponíveis na Documentação, agrupados por família (sem variantes de housings).
+    // Modelos escritos à mão ao adicionar documentos aparecem em "Outros".
+    'model_groups' => [
+        'SiCompact' => ['SiCompact 2020', 'SiCompact 2020 XL', 'SiCompact ECO'],
+        'SiVario' => ['SiVario DualSort', 'SiVario MonoSort'],
     ],
 
     // Tipos de documento (cor usada nas etiquetas e filtros)

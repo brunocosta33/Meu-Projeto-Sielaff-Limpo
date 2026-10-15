@@ -6,11 +6,20 @@
 
 @push('styles')
 <style>
-    .doc-pick { display: flex; flex-wrap: wrap; gap: .4rem; }
-    .doc-pick label { margin: 0; }
-    .doc-pick input { display: none; }
-    .doc-pick span { display: inline-block; padding: .3rem .75rem; border-radius: 999px; border: 1px solid #dee2e6; cursor: pointer; font-size: .85rem; background: #fff; }
-    .doc-pick input:checked + span { background: var(--chip-color, #1976d2); border-color: var(--chip-color, #1976d2); color: #fff; }
+    .type-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: .6rem; }
+    .type-tile { margin: 0; cursor: pointer; }
+    .type-tile input { display: none; }
+    .type-tile .box { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .45rem; text-align: center; height: 88px; padding: .5rem;
+                      border: 2px solid #e3e9f1; border-radius: 12px; background: #fff; font-size: .8rem; font-weight: 700; color: #415166; transition: all .12s; }
+    .type-tile .box i { font-size: 1.3rem; color: var(--c); }
+    .type-tile:hover .box { border-color: var(--c); }
+    .type-tile input:checked + .box { border-color: var(--c); background: color-mix(in srgb, var(--c) 10%, #fff); color: #132238; box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 25%, transparent); }
+    .model-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .7rem; }
+    .model-group { border: 1px solid #e3e9f1; border-radius: 12px; padding: .65rem .75rem; background: #fafbfd; }
+    .model-group .gtitle { font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: #546e7a; margin-bottom: .45rem; }
+    .model-pick { display: flex; align-items: center; gap: .5rem; margin: 0 0 .3rem; padding: .35rem .5rem; border-radius: 8px; cursor: pointer; font-size: .86rem; font-weight: 600; color: #263238; }
+    .model-pick:hover { background: #eef4fc; }
+    .model-pick input { width: 17px; height: 17px; accent-color: #1f6fd1; }
 </style>
 @endpush
 
@@ -43,24 +52,26 @@
 
                     <div class="form-group">
                         <label class="font-weight-bold">{{ __('Tipo de documento') }}</label>
-                        <div class="doc-pick">
+                        <div class="type-tiles">
                             @foreach(config('documents.types') as $key => $type)
-                                <label style="--chip-color: {{ $type['color'] }}">
+                                <label class="type-tile" style="--c: {{ $type['color'] }}">
                                     <input type="radio" name="tipo" value="{{ $key }}" @checked(old('tipo', $document->tipo) === $key)>
-                                    <span><i class="fas {{ $type['icon'] }}"></i> {{ $type['label'] }}</span>
+                                    <span class="box"><i class="fas {{ $type['icon'] }}"></i>{{ $type['label'] }}</span>
                                 </label>
                             @endforeach
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label class="font-weight-bold">{{ __('Modelo(s)') }} <span class="font-weight-normal text-muted small">— {{ __('nenhum = Geral') }}</span></label>
-                        <div class="doc-pick mb-2">
-                            @foreach($models as $model)
-                                <label style="--chip-color: #37474f">
-                                    <input type="checkbox" name="modelos[]" value="{{ $model }}" @checked(in_array($model, old('modelos', $document->modelos ?? [])))>
-                                    <span>{{ $model }}</span>
-                                </label>
+                        <label class="font-weight-bold">{{ __('Modelo(s)') }} <span class="font-weight-normal text-muted small">— {{ __('nenhum marcado = Geral (todos os modelos)') }}</span></label>
+                        <div class="model-groups mb-2">
+                            @foreach($modelGroups as $family => $list)
+                                <div class="model-group">
+                                    <div class="gtitle">{{ $family }}</div>
+                                    @foreach($list as $model)
+                                        <label class="model-pick"><input type="checkbox" name="modelos[]" value="{{ $model }}" @checked(in_array($model, old('modelos', $document->modelos ?? [])))> {{ $model }}</label>
+                                    @endforeach
+                                </div>
                             @endforeach
                         </div>
                         <input type="text" name="novo_modelo" class="form-control form-control-sm" value="{{ old('novo_modelo') }}" placeholder="{{ __('Outro modelo (separe vários por vírgula)') }}">
