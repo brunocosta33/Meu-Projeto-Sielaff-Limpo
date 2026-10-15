@@ -42,6 +42,26 @@ class HrStaff extends Model
         return config('hr.function_colors.' . $this->funcao, '#6c757d');
     }
 
+    /**
+     * O utilizador pode ver e gerir os Colaboradores (coordenador ou country manager ativo)?
+     * Enquanto não houver nenhum registado, os administradores mantêm acesso para a configuração inicial.
+     */
+    public static function canManageStaff(?User $user): bool
+    {
+        if (!$user) {
+            return false;
+        }
+
+        $functions = config('hr.staff_manager_functions', []);
+        $managers = static::where('ativo', true)->whereIn('funcao', $functions);
+
+        if (!(clone $managers)->exists()) {
+            return $user->hasRole('admin');
+        }
+
+        return $managers->where('user_id', $user->id)->exists();
+    }
+
     /** O utilizador pode aprovar férias (é coordenador ou country manager ativo)? */
     public static function canApproveVacations(?User $user): bool
     {

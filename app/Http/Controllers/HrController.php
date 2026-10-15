@@ -21,6 +21,7 @@ class HrController extends Controller
 
     public function staffIndex()
     {
+        $this->authorizeStaff();
         $order = array_flip(array_keys(config('hr.functions')));
         $staff = HrStaff::with('user')->get()
             ->sortBy(fn ($s) => sprintf('%02d %s', $order[$s->funcao] ?? 99, $s->user->name ?? ''));
@@ -29,6 +30,7 @@ class HrController extends Controller
 
     public function staffCreate()
     {
+        $this->authorizeStaff();
         $users = User::whereNull('deleted_at')
             ->whereNotIn('id', HrStaff::pluck('user_id'))
             ->orderBy('name')
@@ -39,6 +41,7 @@ class HrController extends Controller
 
     public function staffStore(Request $request)
     {
+        $this->authorizeStaff();
         HrStaff::create($this->validateStaff($request));
         flash('Colaborador adicionado com sucesso!')->success();
         return redirect()->route('backoffice.hr.staff.index');
@@ -46,12 +49,14 @@ class HrController extends Controller
 
     public function staffEdit($id)
     {
+        $this->authorizeStaff();
         $member = HrStaff::with('user')->findOrFail($id);
         return view('backoffice.hr.staff.form', ['member' => $member, 'users' => collect([$member->user])]);
     }
 
     public function staffUpdate(Request $request, $id)
     {
+        $this->authorizeStaff();
         $member = HrStaff::findOrFail($id);
         $member->update($this->validateStaff($request, $member));
         flash('Colaborador atualizado com sucesso!')->success();
@@ -60,9 +65,15 @@ class HrController extends Controller
 
     public function staffDelete($id)
     {
+        $this->authorizeStaff();
         HrStaff::findOrFail($id)->delete();
         flash('Colaborador removido com sucesso!')->success();
         return redirect()->route('backoffice.hr.staff.index');
+    }
+
+    private function authorizeStaff(): void
+    {
+        abort_unless(HrStaff::canManageStaff(auth()->user()), 403, 'Só o Coordenador e o Country Manager podem ver os Colaboradores.');
     }
 
     private function validateStaff(Request $request, ?HrStaff $member = null): array

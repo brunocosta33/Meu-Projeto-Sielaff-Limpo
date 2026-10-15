@@ -71,7 +71,7 @@
 
 @if($staff->isEmpty())
     <div class="alert alert-info">
-        {{ __('Ainda não há colaboradores registados.') }} <a href="{{ route('backoffice.hr.staff.index') }}">{{ __('Adicionar colaboradores') }}</a>
+        {{ __('Ainda não há colaboradores registados.') }} @if(\App\Models\HrStaff::canManageStaff(auth()->user()))<a href="{{ route('backoffice.hr.staff.index') }}">{{ __('Adicionar colaboradores') }}</a>@endif
     </div>
 @endif
 

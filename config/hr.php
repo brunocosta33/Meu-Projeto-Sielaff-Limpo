@@ -44,6 +44,9 @@ return [
         'administrativa' => 'Administrativa',
     ],
 
+    // Funções que podem ver e gerir a página Colaboradores
+    'staff_manager_functions' => ['coordenador', 'country_manager'],
+
     // Funções que podem aprovar/rejeitar férias
     'vacation_approver_functions' => ['coordenador', 'country_manager'],
 

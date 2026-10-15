@@ -144,7 +144,9 @@ use App\Models\Base;
             <li><a href="{{ route('backoffice.hr.piquete.index') }}"><i class="fas fa-tools me-2"></i>{{ __('Escala Piquete') }}</a></li>
             <li><a href="{{ route('backoffice.hr.vacations.index') }}"><i class="fas fa-umbrella-beach me-2"></i>{{ __('Férias e Ausências') }}</a></li>
             <li><a href="{{ route('backoffice.hr.holidays.index') }}"><i class="fas fa-flag me-2"></i>{{ __('Feriados') }}</a></li>
-            <li><a href="{{ route('backoffice.hr.staff.index') }}"><i class="fas fa-id-card me-2"></i>{{ __('Colaboradores') }}</a></li>
+            @if(\App\Models\HrStaff::canManageStaff(Auth::user()))
+                <li><a href="{{ route('backoffice.hr.staff.index') }}"><i class="fas fa-id-card me-2"></i>{{ __('Colaboradores') }}</a></li>
+            @endif
         </ul>
     </li>
     @endif

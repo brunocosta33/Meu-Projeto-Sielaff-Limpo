@@ -41,7 +41,7 @@
                 @endif
                 @if($hotliners->isEmpty())
                     <p class="mb-0">{{ $isPiquete ? __('Ainda não há técnicos com grupo de piquete e zona definidos.') : __('Ainda não há hotliners ativos com grupo de rotação.') }}
-                        <a href="{{ route('backoffice.hr.staff.index') }}">{{ __('Definir colaboradores') }}</a></p>
+                        @if(\App\Models\HrStaff::canManageStaff(auth()->user()))<a href="{{ route('backoffice.hr.staff.index') }}">{{ __('Definir colaboradores') }}</a>@endif</p>
                 @else
                     <div class="hr-legend mb-2">
                         @foreach($legend as $item)
