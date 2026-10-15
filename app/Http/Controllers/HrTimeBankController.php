@@ -14,7 +14,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Banco de horas: pagamentos de piquete (com horas de trabalho suplementar), horas extra,
+ * Horas e Piquetes: pagamentos de piquete (com horas de trabalho suplementar), horas extra,
  * horas em falta e acertos (pagamentos e folgas).
  * Gestão de RH vê e gere tudo; os restantes veem o seu saldo e pedem as suas horas extra (ficam pendentes).
  */
@@ -133,7 +133,7 @@ class HrTimeBankController extends Controller
         ]);
         $this->storeFiles($request, $entry);
 
-        flash($isManager ? 'Movimento registado.' : 'Pedido registado. Fica pendente até ser aprovado pela gestão de RH.')->success();
+        flash($isManager ? 'Movimento registado.' : 'Horas enviadas para aprovação. Contam para o saldo depois de aprovadas pela gestão de RH.')->success();
 
         return redirect()->route('backoffice.hr.timebank.index', ['mes' => Carbon::parse($data['data'])->format('Y-m')]);
     }
@@ -258,7 +258,7 @@ class HrTimeBankController extends Controller
             ->orderBy('hr_staff_id')->orderBy('data')
             ->get();
 
-        $filename = 'banco-de-horas-' . $month->format('Y-m') . '.csv';
+        $filename = 'horas-e-piquetes-' . $month->format('Y-m') . '.csv';
 
         return response()->streamDownload(function () use ($entries) {
             $out = fopen('php://output', 'w');

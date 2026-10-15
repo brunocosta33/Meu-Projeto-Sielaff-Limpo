@@ -7,7 +7,7 @@
 @php($workDay = (float) config('hr.work_day_hours', 8))
 
 @section('head-meta')
-    <title>{{ config('app.name') }} - {{ __('Banco de Horas') }}</title>
+    <title>{{ config('app.name') }} - {{ __('Horas e Piquetes') }}</title>
 @endsection
 
 @push('styles')
@@ -64,7 +64,7 @@
 <div class="tb-hero">
     <div class="d-flex flex-wrap align-items-center justify-content-between" style="gap: .8rem 1.2rem">
         <div>
-            <h4><i class="fas fa-business-time"></i> {{ __('Banco de Horas') }}</h4>
+            <h4><i class="fas fa-business-time"></i> {{ __('Horas e Piquetes') }}</h4>
             <div style="opacity: .8; font-size: .88rem">{{ __('Piquetes e trabalho suplementar, horas extra, horas em falta e acertos') }}</div>
         </div>
         <div class="month">
@@ -168,7 +168,7 @@
     {{-- Registar --}}
     <div class="col-xl-4">
         <div class="tb-card" style="border-top: 5px solid #1f6fd1">
-            <h5><i class="fas fa-plus-circle text-primary"></i> {{ $isManager ? __('Registar movimento') : __('Pedir horas') }}</h5>
+            <h5><i class="fas fa-plus-circle text-primary"></i> {{ $isManager ? __('Registar movimento') : __('Registar horas') }}</h5>
             @if($isManager || $ownStaff)
             <form method="POST" action="{{ route('backoffice.hr.timebank.store') }}" id="tb-form" enctype="multipart/form-data">
                 @csrf
@@ -233,7 +233,7 @@
                     <input type="file" name="anexos[]" class="form-control-file" accept="image/*,application/pdf" multiple>
                     <small class="form-text text-muted">{{ __('Fotografias ou PDF (ex.: folha de serviço, máquina reparada). No telemóvel pode tirar a fotografia na hora.') }}</small>
                 </div>
-                <button type="submit" class="btn btn-primary btn-block" style="border-radius: 10px; font-weight: 700"><i class="fa fa-save"></i> {{ $isManager ? __('Registar') : __('Enviar pedido') }}</button>
+                <button type="submit" class="btn btn-primary btn-block" style="border-radius: 10px; font-weight: 700"><i class="fa fa-save"></i> {{ $isManager ? __('Registar') : __('Enviar para aprovação') }}</button>
                 @unless($isManager)<small class="form-text text-muted text-center">{{ __('Fica pendente até ser aprovado pela gestão de RH.') }}</small>@endunless
             </form>
             @endif
