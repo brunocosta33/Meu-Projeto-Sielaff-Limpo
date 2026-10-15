@@ -375,9 +375,9 @@
                          border-radius: 10px; box-shadow: 0 10px 24px rgba(15, 23, 42, .25); font-size: .8rem; line-height: 1.4; pointer-events: none; }
     .fc-tooltip-custom strong { display: block; font-size: .85rem; margin-bottom: 2px; }
     .fc-tooltip-custom .muted { color: #b8c4d4; }
-    /* Feriados: fundo dourado claro, linha no topo e número do dia em âmbar */
-    #calendar-agendamentos .fc-bg-event.fc-holiday-bg { background: #fff1c2 !important; opacity: 1 !important; box-shadow: inset 0 3px 0 #e0a100; }
-    #calendar-agendamentos .fc-daygrid-day.is-holiday .fc-daygrid-day-number { color: #a86400; font-weight: 800; }
+    /* Feriados: fundo vermelho claro, linha no topo e número do dia a vermelho */
+    #calendar-agendamentos .fc-bg-event.fc-holiday-bg { background: #ffe1e1 !important; opacity: 1 !important; box-shadow: inset 0 3px 0 #d32f2f; }
+    #calendar-agendamentos .fc-daygrid-day.is-holiday .fc-daygrid-day-number { color: #b71c1c; font-weight: 800; }
 
     /* Legenda por baixo do calendário */
     .cal-legend { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem 1.1rem; margin: 14px 18px 0; padding: 10px 14px; background: #f4f7fb; border-radius: 12px; font-size: .8rem; color: #3c4b5f; }
@@ -501,7 +501,7 @@
                 }
                 if (hasVacation) html += '<span class="lg-item"><span class="lg-pill" style="--c:#0288d1"></span>Férias</span>';
                 if (hasAbsent) html += '<span class="lg-item"><span class="lg-pill" style="--c:#78909c"></span>Ausente / falta</span>';
-                if (hasHoliday) html += '<span class="lg-item"><span class="lg-pill" style="--c:#d48806"></span>Feriado</span>';
+                if (hasHoliday) html += '<span class="lg-item"><span class="lg-pill" style="--c:#d32f2f"></span>Feriado</span>';
                 if (hasSwap) html += '<span class="lg-item"><span class="lg-swap"></span>Troca / substituição</span>';
                 if (hasUncovered) html += '<span class="lg-item"><span class="lg-dot" style="--c:#c62828">!</span>Sem substituto</span>';
                 box.innerHTML = html;

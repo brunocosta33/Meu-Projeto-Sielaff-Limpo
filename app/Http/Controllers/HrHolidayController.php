@@ -86,12 +86,12 @@ class HrHolidayController extends Controller
                 if ($date < $from->toDateString() || $date >= $to->toDateString()) {
                     continue;
                 }
-                $events[] = ['start' => $date, 'display' => 'background', 'color' => '#fff1c2', 'classNames' => ['fc-holiday-bg'], 'feriadoFundo' => true];
+                $events[] = ['start' => $date, 'display' => 'background', 'color' => '#ffe1e1', 'classNames' => ['fc-holiday-bg'], 'feriadoFundo' => true];
                 $events[] = [
                     'title' => $name,
                     'start' => $date,
                     'allDay' => true,
-                    'color' => isset($national[$date]) ? '#d48806' : '#b35c00',
+                    'color' => isset($national[$date]) ? '#d32f2f' : '#ad1457',
                     'feriado' => isset($national[$date]) ? 'Feriado nacional' : 'Feriado da empresa',
                     'description' => isset($national[$date]) ? 'Feriado nacional' : 'Feriado da empresa',
                 ];
