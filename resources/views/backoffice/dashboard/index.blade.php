@@ -432,6 +432,13 @@
                 slotEventOverlap: false,
                 slotMinTime: '07:00:00',
                 slotMaxTime: '21:00:00',
+            // Ordem dentro de cada dia: ausências/feriados, hotliners, piquete, tarefas
+            eventDataTransform: function (data) {
+                var f = data.funcao || (data.extendedProps && data.extendedProps.funcao) || '';
+                data.ordem = (data.ausencia || data.feriado) ? 0 : (/hotliner/i.test(f) ? 1 : (/piquete/i.test(f) ? 2 : 3));
+                return data;
+            },
+            eventOrder: 'ordem,start,-duration,title',
             eventContent: function (arg) {
                 var e = arg.event, p = e.extendedProps;
                 if (p.funcao) {
