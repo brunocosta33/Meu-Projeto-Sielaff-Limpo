@@ -313,56 +313,63 @@
     .dashboard-compact .card-footer { padding: .4rem .9rem; }
     .dashboard-compact .dashboard-agenda-item { padding-top: .35rem; padding-bottom: .35rem; }
     /* ===== Calendário da dashboard ===== */
-    #calendar-agendamentos { background: #fff; border-radius: 18px; box-shadow: 0 12px 28px rgba(15, 23, 42, .08); padding: 20px 22px; margin-bottom: 2rem; }
-    #calendar-agendamentos.fc { --fc-border-color: #edf0f5; --fc-today-bg-color: #f2f7ff; --fc-neutral-bg-color: #fafbfd; font-size: .9rem; }
-    #calendar-agendamentos .fc-toolbar.fc-header-toolbar { margin-bottom: 1.1rem; }
-    #calendar-agendamentos .fc-toolbar-title { font-size: 1.35rem; font-weight: 700; color: #132238; }
+    #calendar-agendamentos { background: #fff; border-radius: 18px; box-shadow: 0 12px 28px rgba(15, 23, 42, .1); padding: 0 0 18px; margin-bottom: 2rem; overflow: hidden; }
+    #calendar-agendamentos.fc { --fc-border-color: #d9e1ec; --fc-today-bg-color: #dcebff; --fc-neutral-bg-color: #eef2f8; font-size: .9rem; }
+    #calendar-agendamentos .fc-toolbar.fc-header-toolbar { margin: 0 0 14px; padding: 16px 20px; background: linear-gradient(135deg, #0f4c81 0%, #1f76c2 100%); }
+    #calendar-agendamentos .fc-view-harness { margin: 0 18px; }
+    #calendar-agendamentos .fc-toolbar-title { font-size: 1.4rem; font-weight: 700; color: #fff; }
     #calendar-agendamentos .fc-toolbar-title::first-letter { text-transform: uppercase; }
-    #calendar-agendamentos .fc-button { background: #fff; border: 1px solid #dfe5ee; color: #415166; font-weight: 600; font-size: .82rem; padding: .4rem .8rem; box-shadow: none !important; text-transform: none; }
-    #calendar-agendamentos .fc-button:hover { background: #f3f6fb; color: #132238; }
+    #calendar-agendamentos .fc-button { background: rgba(255, 255, 255, .14); border: 1px solid rgba(255, 255, 255, .35); color: #fff; font-weight: 600; font-size: .82rem; padding: .4rem .85rem; box-shadow: none !important; text-transform: none; }
+    #calendar-agendamentos .fc-button:hover { background: rgba(255, 255, 255, .26); color: #fff; }
     #calendar-agendamentos .fc-button-primary:not(:disabled).fc-button-active,
-    #calendar-agendamentos .fc-button-primary:not(:disabled):active { background: #1f6fd1; border-color: #1f6fd1; color: #fff; }
-    #calendar-agendamentos .fc-today-button { background: #1f6fd1; border-color: #1f6fd1; color: #fff; }
-    #calendar-agendamentos .fc-today-button:disabled { opacity: .45; }
+    #calendar-agendamentos .fc-button-primary:not(:disabled):active { background: #fff; border-color: #fff; color: #0f4c81; }
+    #calendar-agendamentos .fc-today-button { background: #fff; border-color: #fff; color: #0f4c81; border-radius: 10px; margin-left: .5rem !important; }
+    #calendar-agendamentos .fc-today-button:disabled { background: rgba(255, 255, 255, .55); border-color: transparent; color: #0f4c81; opacity: 1; }
     #calendar-agendamentos .fc-button-group > .fc-button:first-child { border-radius: 10px 0 0 10px; }
     #calendar-agendamentos .fc-button-group > .fc-button:last-child { border-radius: 0 10px 10px 0; }
-    #calendar-agendamentos .fc-today-button { border-radius: 10px; margin-left: .5rem !important; }
-    #calendar-agendamentos .fc-scrollgrid { border-radius: 12px; overflow: hidden; border-color: #edf0f5; }
-    #calendar-agendamentos .fc-col-header-cell { background: #f7f9fc; padding: .45rem 0; }
-    #calendar-agendamentos .fc-col-header-cell-cushion { color: #6c7a89; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; text-decoration: none; }
-    #calendar-agendamentos .fc-day-sat, #calendar-agendamentos .fc-day-sun { background: #fafbfd; }
+    #calendar-agendamentos .fc-scrollgrid { border-radius: 12px; overflow: hidden; border-color: #d9e1ec; }
+    #calendar-agendamentos .fc-col-header-cell { background: #1d3557; padding: .5rem 0; border-color: #1d3557; }
+    #calendar-agendamentos .fc-col-header-cell-cushion { color: #fff; font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; text-decoration: none; }
+    #calendar-agendamentos .fc-daygrid-day, #calendar-agendamentos .fc-timegrid-col { background: #f4f7fb; }
+    #calendar-agendamentos .fc-day-sat, #calendar-agendamentos .fc-day-sun { background: #e7edf6 !important; }
+    #calendar-agendamentos .fc-col-header-cell.fc-day-sat, #calendar-agendamentos .fc-col-header-cell.fc-day-sun { background: #2b4a75 !important; }
+    #calendar-agendamentos .fc-day-other { background: #eceff4 !important; }
+    #calendar-agendamentos .fc-col-header-cell.fc-day-today { background: #1f6fd1 !important; box-shadow: none; }
+    #calendar-agendamentos .fc-day-today { background: #dcebff !important; box-shadow: inset 0 0 0 2px #1f6fd1; }
     #calendar-agendamentos .fc-daygrid-day-frame { min-height: 96px; padding: 2px 3px 4px; }
-    #calendar-agendamentos .fc-daygrid-day-number { font-size: .8rem; font-weight: 600; color: #6c7a89; padding: 6px 7px; text-decoration: none; }
-    #calendar-agendamentos .fc-day-other .fc-daygrid-day-number { opacity: .45; }
+    #calendar-agendamentos .fc-daygrid-day-number { font-size: .82rem; font-weight: 700; color: #3c4b5f; padding: 6px 7px; text-decoration: none; }
+    #calendar-agendamentos .fc-day-other .fc-daygrid-day-number { opacity: .4; }
     #calendar-agendamentos .fc-day-today .fc-daygrid-day-number { background: #1f6fd1; color: #fff; border-radius: 999px; min-width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; margin: 3px; padding: 0 6px; }
+    #calendar-agendamentos .fc-timegrid-slot-label-cushion, #calendar-agendamentos .fc-timegrid-axis-cushion { color: #3c4b5f; font-weight: 600; font-size: .78rem; }
     #calendar-agendamentos a.fc-event { cursor: default; }
     #calendar-agendamentos .fc-daygrid-event-harness { margin-bottom: 3px; }
 
-    /* Turnos (Hotline e Piquete) */
+    /* Turnos (Hotline e Piquete): blocos de cor cheia */
     .fc-duty-event { background: transparent !important; border: 0 !important; box-shadow: none !important; }
-    .fc-duty-chip { display: flex; align-items: center; gap: 6px; width: 100%; padding: 4px 6px 4px 5px; border-radius: 9px; overflow: hidden;
-                    background: color-mix(in srgb, var(--duty) 13%, #fff); border-left: 4px solid var(--duty); color: #1d2733; line-height: 1.15; }
-    .fc-duty-avatar { flex: 0 0 24px; height: 24px; border-radius: 50%; background: var(--duty); color: #fff; font-size: .62rem; font-weight: 700;
+    .fc-duty-chip { display: flex; align-items: center; gap: 6px; width: 100%; padding: 4px 7px 4px 4px; border-radius: 9px; overflow: hidden;
+                    background: linear-gradient(135deg, var(--duty) 0%, color-mix(in srgb, var(--duty) 78%, #fff) 100%); color: #fff; line-height: 1.15;
+                    box-shadow: 0 2px 6px color-mix(in srgb, var(--duty) 35%, transparent); }
+    .fc-duty-avatar { flex: 0 0 24px; height: 24px; border-radius: 50%; background: #fff; color: var(--duty); font-size: .62rem; font-weight: 800;
                       display: flex; align-items: center; justify-content: center; letter-spacing: .02em; }
     .fc-duty-text { min-width: 0; flex: 1; }
     .fc-duty-name { display: block; font-weight: 700; font-size: .78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .fc-duty-meta { display: flex; align-items: center; gap: 4px; font-size: .68rem; color: #5b6878; white-space: nowrap; overflow: hidden; }
-    .fc-duty-meta i { font-size: .62rem; color: var(--duty); }
-    .fc-duty-zone { font-size: .58rem; font-weight: 700; text-transform: uppercase; background: var(--duty); color: #fff; border-radius: 4px; padding: 0 4px; }
-    .fc-duty-chip.is-override { box-shadow: inset 0 0 0 2px #f2b705; }
-    .fc-duty-chip.is-uncovered { --duty: #c62828; background: #fdecea; }
-    .fc-duty-swap { color: #b58500; font-size: .7rem; }
+    .fc-duty-meta { display: flex; align-items: center; gap: 4px; font-size: .68rem; color: rgba(255, 255, 255, .9); white-space: nowrap; overflow: hidden; }
+    .fc-duty-meta i { font-size: .62rem; color: #fff; opacity: .85; }
+    .fc-duty-zone { font-size: .56rem; font-weight: 800; text-transform: uppercase; background: rgba(255, 255, 255, .92); color: var(--duty); border-radius: 4px; padding: 0 4px; }
+    .fc-duty-chip.is-override { box-shadow: 0 0 0 2px #ffc107, 0 2px 6px rgba(0, 0, 0, .15); }
+    .fc-duty-chip.is-uncovered { --duty: #c62828; }
+    .fc-duty-swap { color: #ffe082 !important; opacity: 1 !important; font-size: .7rem !important; }
     .fc-timegrid-event .fc-duty-chip { height: 100%; align-items: flex-start; padding-top: 6px; }
 
     /* Ausências, férias e feriados (pílulas de dia inteiro) */
     .fc-pill-event { background: transparent !important; border: 0 !important; }
-    .fc-pill { display: flex; align-items: center; gap: 6px; width: 100%; padding: 3px 9px; border-radius: 999px; font-size: .74rem; font-weight: 600;
-               background: color-mix(in srgb, var(--pill) 14%, #fff); color: color-mix(in srgb, var(--pill) 85%, #000); overflow: hidden; white-space: nowrap; }
+    .fc-pill { display: flex; align-items: center; gap: 6px; width: 100%; padding: 3px 10px; border-radius: 999px; font-size: .74rem; font-weight: 700;
+               background: var(--pill); color: #fff; overflow: hidden; white-space: nowrap; box-shadow: 0 2px 6px color-mix(in srgb, var(--pill) 35%, transparent); }
     .fc-pill i { font-size: .7rem; }
     .fc-pill span { overflow: hidden; text-overflow: ellipsis; }
 
     /* Tarefas */
-    #calendar-agendamentos .fc-task-event { border-radius: 7px !important; border: 0 !important; padding: 1px 4px; font-size: .74rem; }
+    #calendar-agendamentos .fc-task-event { border-radius: 7px !important; border: 0 !important; padding: 1px 5px; font-size: .74rem; font-weight: 600; }
 
     /* Tooltip */
     .fc-tooltip-custom { position: absolute; z-index: 9999; display: none; max-width: 280px; background: #132238; color: #fff; padding: 9px 12px;
