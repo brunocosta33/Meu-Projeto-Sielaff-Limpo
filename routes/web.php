@@ -269,7 +269,6 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
 
             Route::post('/banco-horas/{id}/decidir', [HrTimeBankController::class, 'decide'])->name('timebank.decide');
             Route::delete('/banco-horas/{id}', [HrTimeBankController::class, 'destroy'])->name('timebank.destroy');
-            Route::post('/banco-horas/piquetes', [HrTimeBankController::class, 'generatePiquetes'])->name('timebank.piquetes');
             Route::put('/banco-horas/{id}', [HrTimeBankController::class, 'update'])->name('timebank.update');
             Route::get('/banco-horas/exportar', [HrTimeBankController::class, 'export'])->name('timebank.export');
 

@@ -75,11 +75,6 @@
         </div>
         @if($isManager)
             <div class="d-flex flex-wrap" style="gap: .5rem">
-                <form method="POST" action="{{ route('backoffice.hr.timebank.piquetes') }}" onsubmit="return confirm('Registar um pagamento de piquete para cada sábado de piquete de {{ $month->translatedFormat('F Y') }}? Os que já existem não são duplicados.')">
-                    @csrf
-                    <input type="hidden" name="mes" value="{{ $month->format('Y-m') }}">
-                    <button class="btn btn-ghost btn-sm"><i class="fas fa-tools"></i> {{ __('Gerar piquetes do mês') }}</button>
-                </form>
                 <a href="{{ route('backoffice.hr.timebank.export', ['mes' => $month->format('Y-m')]) }}" class="btn btn-light btn-sm"><i class="fas fa-file-excel"></i> {{ __('Exportar Excel') }}</a>
             </div>
         @endif
@@ -108,7 +103,7 @@
                             <div class="hint">{{ $me->horas < 0 ? __('horas que deve à empresa') : __('horas por pagar ou gozar') }}</div>
                         </div>
                         <div class="tb-stat" style="--bg: #e3f0ff; --fg: #0d47a1">
-                            <div class="lbl">{{ __('Piquetes em') }} {{ $month->translatedFormat('F') }}</div>
+                            <div class="lbl">{{ __('Piquetes feitos em') }} {{ $month->translatedFormat('F') }}</div>
                             <div class="num">{{ $me->piquetes }}</div>
                             <div class="hint">{{ __('trabalho suplementar:') }} {{ $fmtH($me->suplementar) }} · {{ __('pago à parte, não conta no saldo') }}</div>
                         </div>
@@ -129,7 +124,7 @@
                             <tr>
                                 <th>{{ __('Colaborador') }}</th>
                                 <th>{{ __('Saldo de horas') }}</th>
-                                <th>{{ __('Piquetes em') }} {{ $month->translatedFormat('F') }}</th>
+                                <th>{{ __('Piquetes feitos em') }} {{ $month->translatedFormat('F') }} <small class="text-muted font-weight-normal">({{ __('da escala') }})</small></th>
                                 <th>{{ __('Pendentes') }}</th>
                                 <th></th>
                             </tr>
@@ -383,7 +378,7 @@
         var types = @json($types);
         var help = {
             piquete: @json($isManager
-                ? 'Sábado de piquete a pagar (normalmente gerado automaticamente). O trabalho suplementar é pago em dinheiro e não conta para o saldo de horas.'
+                ? 'Horas trabalhadas em clientes durante um sábado de piquete. São pagas em dinheiro e não contam para o saldo de horas. (Os piquetes feitos contam-se sozinhos a partir da escala.)'
                 : 'Indique o sábado de piquete e as horas que trabalhou em clientes (pagas em dinheiro, não contam para o saldo). Junte fotografias para validar.'),
             hora_extra: 'Horas trabalhadas além do horário. Ficam no saldo para pagar ou gozar.',
             reposicao: 'Horas que o colaborador repôs (reduz o que deve à empresa).',

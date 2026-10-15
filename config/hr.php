@@ -86,7 +86,7 @@ return [
     // self: o próprio colaborador pode registar (fica pendente).
     // in_balance: conta para o saldo de horas (o piquete é pago em dinheiro, à parte, e não conta).
     'time_entry_types' => [
-        'piquete' => ['label' => 'Pagamento de piquete', 'self_label' => 'Trabalho suplementar em piquete', 'sign' => 1, 'self' => true, 'in_balance' => false, 'color' => '#0277bd', 'icon' => 'fa-tools'],
+        'piquete' => ['label' => 'Trabalho suplementar em piquete', 'sign' => 1, 'self' => true, 'in_balance' => false, 'color' => '#0277bd', 'icon' => 'fa-tools'],
         'hora_extra' => ['label' => 'Horas extra', 'sign' => 1, 'self' => true, 'color' => '#2e7d32', 'icon' => 'fa-plus-circle'],
         'reposicao' => ['label' => 'Reposição de horas', 'sign' => 1, 'self' => false, 'color' => '#00897b', 'icon' => 'fa-undo'],
         'horas_em_falta' => ['label' => 'Horas em falta', 'sign' => -1, 'self' => false, 'color' => '#c62828', 'icon' => 'fa-minus-circle'],
