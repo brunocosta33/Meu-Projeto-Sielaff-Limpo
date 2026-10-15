@@ -375,6 +375,9 @@
                          border-radius: 10px; box-shadow: 0 10px 24px rgba(15, 23, 42, .25); font-size: .8rem; line-height: 1.4; pointer-events: none; }
     .fc-tooltip-custom strong { display: block; font-size: .85rem; margin-bottom: 2px; }
     .fc-tooltip-custom .muted { color: #b8c4d4; }
+    /* Feriados: fundo às riscas e número do dia a vermelho */
+    #calendar-agendamentos .fc-bg-event.fc-holiday-bg { background: repeating-linear-gradient(135deg, #ffc9cf 0 7px, #ffe2e5 7px 14px) !important; opacity: 1 !important; }
+    #calendar-agendamentos .fc-daygrid-day.is-holiday .fc-daygrid-day-number { color: #c62828; font-weight: 800; }
 
     /* Legenda por baixo do calendário */
     .cal-legend { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem 1.1rem; margin: 14px 18px 0; padding: 10px 14px; background: #f4f7fb; border-radius: 12px; font-size: .8rem; color: #3c4b5f; }
@@ -432,10 +435,10 @@
                 slotEventOverlap: false,
                 slotMinTime: '07:00:00',
                 slotMaxTime: '21:00:00',
-            // Ordem dentro de cada dia: ausências/feriados, hotliners, piquete, tarefas
+            // Ordem dentro de cada dia: hotliners, piquete, feriado, férias/ausências, tarefas
             eventDataTransform: function (data) {
                 var f = data.funcao || (data.extendedProps && data.extendedProps.funcao) || '';
-                data.ordem = (data.ausencia || data.feriado) ? 0 : (/hotliner/i.test(f) ? 1 : (/piquete/i.test(f) ? 2 : 3));
+                data.ordem = /hotliner/i.test(f) ? 0 : (/piquete/i.test(f) ? 1 : (data.feriado ? 2 : (data.ausencia ? 3 : 4)));
                 return data;
             },
             eventOrder: 'ordem,start,-duration,title',
@@ -504,7 +507,10 @@
                 box.innerHTML = html;
             },
             eventDidMount: function (info) {
-                if (info.event.display === 'background') return;
+                if (info.event.display === 'background') {
+                    if (info.event.extendedProps.feriadoFundo) { var cell = info.el.closest('.fc-daygrid-day'); if (cell) cell.classList.add('is-holiday'); }
+                    return;
+                }
                 var p = info.event.extendedProps;
                 var tip = document.createElement('div');
                 tip.className = 'fc-tooltip-custom';

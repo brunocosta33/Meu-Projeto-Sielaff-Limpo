@@ -86,7 +86,7 @@ class HrHolidayController extends Controller
                 if ($date < $from->toDateString() || $date >= $to->toDateString()) {
                     continue;
                 }
-                $events[] = ['start' => $date, 'display' => 'background', 'color' => '#ffcdd2'];
+                $events[] = ['start' => $date, 'display' => 'background', 'color' => '#ffcdd2', 'classNames' => ['fc-holiday-bg'], 'feriadoFundo' => true];
                 $events[] = [
                     'title' => $name,
                     'start' => $date,
