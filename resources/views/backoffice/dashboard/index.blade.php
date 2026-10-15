@@ -378,6 +378,8 @@
     /* Feriados: fundo vermelho claro, linha no topo e número do dia a vermelho */
     #calendar-agendamentos .fc-bg-event.fc-holiday-bg { background: #ffe1e1 !important; opacity: 1 !important; box-shadow: inset 0 3px 0 #d32f2f; }
     #calendar-agendamentos .fc-daygrid-day.is-holiday .fc-daygrid-day-number { color: #b71c1c; font-weight: 800; }
+    #calendar-agendamentos .fc-daygrid-day.is-holiday .fc-daygrid-day-frame { position: relative; }
+    #calendar-agendamentos .fc-daygrid-day.is-holiday .fc-daygrid-day-frame::before { content: 'Feriado'; display: inline-block !important; white-space: nowrap; clear: none; position: absolute; top: 9px; left: 7px; z-index: 5; font-size: .66rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #fff; background: #d32f2f; border-radius: 999px; padding: 3px 9px; line-height: 1.2; box-shadow: 0 1px 3px rgba(183, 28, 28, .35); }
 
     /* Legenda por baixo do calendário */
     .cal-legend { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem 1.1rem; margin: 14px 18px 0; padding: 10px 14px; background: #f4f7fb; border-radius: 12px; font-size: .8rem; color: #3c4b5f; }
