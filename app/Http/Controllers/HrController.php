@@ -190,6 +190,9 @@ class HrController extends Controller
             $shifts = $shifts->filter(fn ($s) => $s->staff->user_id === $me || $s->worker_id === $me);
         }
 
+        // O motivo real das ausências só é visível para a gestão de RH
+        $noteOf = fn ($s) => $canEdit ? $s->override_note : $s->public_note;
+
         $events = $shifts->map(fn ($s) => [
             'title' => $s->funcao . ' – ' . $s->name . ($s->zona ? ' · ' . $s->zona : ''),
             'start' => $s->start->format('Y-m-d\TH:i:s'),
@@ -200,8 +203,8 @@ class HrController extends Controller
             'funcao' => $s->funcao,
             'nome' => $s->name . ($s->zona ? ' · ' . $s->zona : ''),
             'horario' => $s->hours,
-            'substituicao' => $s->override_note,
-            'description' => __('Horário') . ': ' . $s->hours . ($s->override_note ? ' · ' . $s->override_note : ''),
+            'substituicao' => $noteOf($s),
+            'description' => __('Horário') . ': ' . $s->hours . ($noteOf($s) ? ' · ' . $noteOf($s) : ''),
         ])->values();
 
         return response()->json($events);

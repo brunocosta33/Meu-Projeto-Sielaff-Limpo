@@ -174,6 +174,11 @@ class HotlineRotation
                         ? 'Substitui ' . $cell['staff']->user->name . ' (' . ($reasons[$override->motivo] ?? $override->motivo) . ')'
                         : ($onVacation ? $cell['staff']->user->name . ' está de férias'
                             : ($absent ? $cell['staff']->user->name . ' faltou (' . $cell['absence']->motivo_label . ')' : null)),
+                    // Versão sem o motivo real, para quem não é gestão de RH (férias e trocas ficam visíveis)
+                    'public_note' => $override
+                        ? 'Substitui ' . $cell['staff']->user->name . ' (' . self::publicReason($override->motivo) . ')'
+                        : ($onVacation ? $cell['staff']->user->name . ' está de férias'
+                            : ($absent ? $cell['staff']->user->name . ' ausente' : null)),
                     'uncovered' => $uncovered,
                     'color' => $uncovered ? self::UNCOVERED_COLOR : $colors[$cell['staff']->id],
                 ]);
@@ -181,6 +186,16 @@ class HotlineRotation
         }
 
         return $shifts;
+    }
+
+    /** Motivo de substituição que todos podem ver: férias e trocas; o resto aparece como "Ausente". */
+    public static function publicReason(string $motivo): string
+    {
+        return match ($motivo) {
+            'ferias' => 'Férias',
+            'troca' => 'Troca',
+            default => 'Ausente',
+        };
     }
 
     /** Cor de cada colaborador: hotliners e técnicos com paletas diferentes. */

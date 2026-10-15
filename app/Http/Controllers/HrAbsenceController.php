@@ -119,27 +119,41 @@ class HrAbsenceController extends Controller
     }
 
     /** Faltas para o calendário da dashboard. */
+    /**
+     * Faltas e férias aprovadas para o calendário da dashboard.
+     * Todos veem quem está ausente; o motivo real só aparece à gestão de RH (e ao próprio).
+     * Para os restantes: férias aparecem como "Férias", tudo o resto como "Ausente".
+     */
     public function events(Request $request)
     {
         $from = Carbon::parse($request->input('start', now()->startOfMonth()))->startOfDay();
         $to = Carbon::parse($request->input('end', now()->endOfMonth()))->startOfDay();
 
-        $own = HrAccess::ownStaffIdFilter(auth()->user());
-        $canEdit = $own === null;
+        $canEdit = HrAccess::isManager(auth()->user());
+        $ownStaffId = HrAccess::staffOf(auth()->user())?->id;
 
-        $events = HrAbsence::with('staff.user')
+        $absences = HrAbsence::with('staff.user')
             ->overlapping($from->toDateString(), $to->toDateString())
-            ->when(!$canEdit, fn ($q) => $q->where('hr_staff_id', $own))
             ->get()
-            ->map(function (HrAbsence $a) use ($canEdit) {
+            ->map(function (HrAbsence $a) use ($canEdit, $ownStaffId) {
                 $name = $a->staff->user->name ?? '—';
-                $event = [
-                    'title' => 'Falta – ' . $name,
-                    'color' => $a->situacao_color,
+                $showReason = $canEdit || $a->hr_staff_id === $ownStaffId;
+
+                $event = $showReason
+                    ? [
+                        'title' => 'Falta – ' . $name,
+                        'color' => $a->situacao_color,
+                        'description' => $a->motivo_label . ' · ' . $a->situacao_label . ' · ' . $a->duracao
+                            . ($a->situacao === 'justificada' && !$a->documento_path ? ' · sem comprovativo' : ''),
+                    ]
+                    : [
+                        'title' => 'Ausente – ' . $name,
+                        'color' => '#78909c',
+                        'description' => 'Ausente · ' . $a->duracao,
+                    ];
+                $event += [
                     'url' => $canEdit ? route('backoffice.hr.absences.edit', $a->id) : null,
                     'ausencia' => true,
-                    'description' => $a->motivo_label . ' · ' . $a->situacao_label . ' · ' . $a->duracao
-                        . ($a->situacao === 'justificada' && !$a->documento_path ? ' · sem comprovativo' : ''),
                 ];
 
                 if ($a->isPartial()) {
@@ -156,7 +170,21 @@ class HrAbsenceController extends Controller
                 ];
             });
 
-        return response()->json($events->values());
+        $vacations = HrVacation::with('staff.user')
+            ->approved()
+            ->overlapping($from->toDateString(), $to->toDateString())
+            ->get()
+            ->map(fn (HrVacation $v) => [
+                'title' => 'Férias – ' . ($v->staff->user->name ?? '—'),
+                'color' => '#0288d1',
+                'start' => $v->data_inicio->toDateString(),
+                'end' => $v->data_fim->copy()->addDay()->toDateString(),
+                'allDay' => true,
+                'ausencia' => true,
+                'description' => 'Férias · ' . $v->dias_uteis . ' ' . ($v->dias_uteis === 1 ? 'dia útil' : 'dias úteis'),
+            ]);
+
+        return response()->json($absences->concat($vacations)->values());
     }
 
     private function validated(Request $request): array
