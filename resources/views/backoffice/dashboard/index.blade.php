@@ -343,6 +343,10 @@
             var calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
                 locale: @json(app()->getLocale()),
+                firstDay: 1, // semana de segunda a domingo
+                buttonText: { today: 'Hoje', month: 'Mês', week: 'Semana', day: 'Dia', list: 'Lista' },
+                allDayText: 'Dia todo',
+                moreLinkText: 'mais',
                 height: 'auto',
                 headerToolbar: {
                     left: 'prev,next today',
