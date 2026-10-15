@@ -41,6 +41,7 @@ use App\Http\Controllers\HrVacationController;
 use App\Http\Controllers\HrHolidayController;
 use App\Http\Controllers\HrAbsenceController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\StoreMaintenanceController;
 
 
 
@@ -187,6 +188,16 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
         Route::get('/{id}/edit', [StoreController::class, 'edit'])->name('backoffice.stores.edit');
         Route::post('/{id}/update', [StoreController::class, 'update'])->name('backoffice.stores.update');
         Route::get('/{id}/delete', [StoreController::class, 'delete'])->name('backoffice.stores.delete');
+    });
+
+    // Manutenções anuais obrigatórias por loja
+    Route::prefix('backoffice/manutencoes')->name('backoffice.maintenances.')->middleware('role:admin')->group(function () {
+        Route::get('/', [StoreMaintenanceController::class, 'index'])->name('index');
+        Route::post('/', [StoreMaintenanceController::class, 'store'])->name('store');
+        Route::put('/{id}', [StoreMaintenanceController::class, 'update'])->name('update');
+        Route::delete('/{id}', [StoreMaintenanceController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/feita', [StoreMaintenanceController::class, 'markDone'])->name('done');
+        Route::delete('/registo/{record}', [StoreMaintenanceController::class, 'undo'])->name('undo');
     });
 
     // Documentação (manuais e especificações): acesso por função, definido pelo Coordenador (ver DocumentAccess)
