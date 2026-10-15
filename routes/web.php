@@ -224,6 +224,7 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
         // Consulta (cada um vê a sua parte; a filtragem é feita nos controladores)
         Route::get('/hotline', [HrController::class, 'hotlineSchedule'])->name('hotline.index');
         Route::get('/piquete', [HrController::class, 'piqueteSchedule'])->name('piquete.index');
+        Route::get('/horario', [HrController::class, 'teamCalendar'])->name('team.index');
         Route::get('/calendario/eventos', [HrController::class, 'calendarEvents'])->name('calendar.events');
         Route::get('/ferias', [HrVacationController::class, 'index'])->name('vacations.index');
         Route::get('/faltas/eventos', [HrAbsenceController::class, 'events'])->name('absences.events');

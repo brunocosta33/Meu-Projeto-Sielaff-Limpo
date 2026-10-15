@@ -22,6 +22,7 @@ class RestrictTechnicianAccess
         'backoffice.stores.index',
         'backoffice.hr.hotline.index',
         'backoffice.hr.piquete.index',
+        'backoffice.hr.team.index',
         'backoffice.hr.calendar.events',
         'backoffice.hr.vacations.index',
         'backoffice.hr.absences.events',

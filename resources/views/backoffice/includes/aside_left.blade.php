@@ -146,9 +146,10 @@ use App\Models\Base;
             @if($hrManager || $hrFuncao === 'hotliner')
             <li><a href="{{ route('backoffice.hr.hotline.index') }}"><i class="fas fa-calendar-week me-2"></i>{{ __('Escala Hotline') }}</a></li>
             @endif
-            @if($hrManager || $hrFuncao === 'tecnico')
+            @if($hrManager)
             <li><a href="{{ route('backoffice.hr.piquete.index') }}"><i class="fas fa-tools me-2"></i>{{ __('Escala Piquete') }}</a></li>
             @endif
+            <li><a href="{{ route('backoffice.hr.team.index') }}"><i class="fas fa-calendar-alt me-2"></i>{{ __('Horário da Equipa') }}</a></li>
             <li><a href="{{ route('backoffice.hr.vacations.index') }}"><i class="fas fa-umbrella-beach me-2"></i>{{ __('Férias e Ausências') }}</a></li>
             <li><a href="{{ route('backoffice.hr.holidays.index') }}"><i class="fas fa-flag me-2"></i>{{ __('Feriados') }}</a></li>
             @if(\App\Models\HrStaff::canManageStaff(Auth::user()))

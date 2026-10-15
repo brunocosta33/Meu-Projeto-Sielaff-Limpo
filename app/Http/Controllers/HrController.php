@@ -152,6 +152,12 @@ class HrController extends Controller
         return view('backoffice.hr.hotline.index', compact('month', 'hotliners', 'legend', 'upcomingOverrides', 'kind', 'canEdit'));
     }
 
+    /** Horário da Equipa: o mesmo calendário da dashboard, só de consulta (para quem não usa a dashboard, como os técnicos). */
+    public function teamCalendar()
+    {
+        return view('backoffice.hr.team_calendar');
+    }
+
     /** Página da escala a que o colaborador pertence, no mês indicado. */
     private function scheduleRedirect(HrStaff $staff, Carbon $date)
     {
@@ -184,8 +190,9 @@ class HrController extends Controller
         $canEdit = HrAccess::isManager(auth()->user());
         $shifts = $this->rotation->shifts($from, $to, HotlineRotation::staffFor($kind));
 
-        // Hotliners veem no calendário da dashboard (tipo "todos") a escala completa: Hotline e Piquete
-        $fullDashboardView = $kind === 'todos' && HrAccess::staffOf(auth()->user())?->funcao === 'hotliner';
+        // Calendário da equipa (dashboard e Horário da Equipa, tipo "todos"): todos veem a escala completa,
+        // com os motivos das ausências escondidos para quem não é gestão de RH
+        $fullDashboardView = $kind === 'todos';
 
         // Quem não é gestão de RH só vê os seus turnos (incluindo os que faz em substituição)
         if (!$canEdit && !$fullDashboardView) {
