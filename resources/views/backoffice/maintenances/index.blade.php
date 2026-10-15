@@ -23,6 +23,9 @@
     .mt-store small { display: block; font-weight: 400; color: #6c757d; }
     .mt-window { white-space: nowrap; font-size: .85rem; }
     .mt-window .due { font-weight: 700; font-size: .95rem; }
+    .mt-doc { display: inline-flex; align-items: center; gap: .3rem; margin-top: .3rem; font-weight: 600; font-size: .78rem; color: #1565c0; background: #e3f0ff; border-radius: 999px; padding: .1rem .55rem; text-decoration: none !important; }
+    .mt-doc:hover { background: #cfe3ff; }
+    .mt-doc-missing { display: inline-block; margin-top: .3rem; font-size: .74rem; color: #8a96a8; }
 </style>
 @endpush
 
@@ -147,14 +150,29 @@
                                         <strong>{{ $row->record->data_realizada->format('d/m/Y') }}</strong>
                                         @if($row->record->technician)<div>{{ $row->record->technician->name }}</div>@endif
                                         @if($row->record->observacoes)<div class="text-muted">{{ \Illuminate\Support\Str::limit($row->record->observacoes, 60) }}</div>@endif
+                                        @if($row->record->documento_path)
+                                            <a href="{{ route('backoffice.maintenances.document', $row->record->id) }}" class="mt-doc" title="{{ $row->record->documento_nome }}">
+                                                <i class="fa fa-file-alt"></i> {{ __('Folha de obra') }}
+                                            </a>
+                                        @else
+                                            <span class="mt-doc-missing"><i class="fa fa-paperclip"></i> {{ __('sem folha de obra') }}</span>
+                                        @endif
                                     @else
                                         —
                                     @endif
                                 </td>
                                 <td class="text-right text-nowrap">
                                     @if($row->record)
+                                        <button type="button" class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#mt-attach"
+                                                title="{{ $row->record->documento_path ? __('Substituir folha de obra') : __('Anexar folha de obra') }}"
+                                                data-action="{{ route('backoffice.maintenances.document.store', $row->record->id) }}"
+                                                data-delete="{{ $row->record->documento_path ? route('backoffice.maintenances.document.delete', $row->record->id) : '' }}"
+                                                data-current="{{ $row->record->documento_nome }}"
+                                                data-store="{{ $row->store->codigo_loja }} — {{ $row->store->nome_loja }}">
+                                            <i class="fa fa-paperclip"></i>
+                                        </button>
                                         <form method="POST" action="{{ route('backoffice.maintenances.undo', $row->record->id) }}" class="d-inline"
-                                              onsubmit="return confirm('Anular o registo desta manutenção? Volta a ficar por fazer.')">
+                                              onsubmit="return confirm('Anular o registo desta manutenção? Volta a ficar por fazer (a folha de obra anexada também é apagada).')">
                                             @csrf
                                             @method('DELETE')
                                             <button class="btn btn-sm btn-outline-secondary" title="{{ __('Anular registo') }}"><i class="fa fa-undo"></i></button>
@@ -188,7 +206,7 @@
 {{-- Modal: marcar como feita --}}
 <div class="modal fade" id="mt-done" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
-        <form method="POST" class="modal-content" id="mt-done-form">
+        <form method="POST" class="modal-content" id="mt-done-form" enctype="multipart/form-data">
             @csrf
             <input type="hidden" name="ano" value="{{ $year }}">
             <div class="modal-header">
@@ -211,9 +229,14 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="form-group mb-0">
+                <div class="form-group">
                     <label class="small mb-1">{{ __('Observações') }}</label>
                     <textarea name="observacoes" class="form-control" rows="2"></textarea>
+                </div>
+                <div class="form-group mb-0">
+                    <label class="small mb-1"><i class="fa fa-file-alt"></i> {{ __('Folha de obra (opcional)') }}</label>
+                    <input type="file" name="documento" class="form-control-file" accept=".pdf,.jpg,.jpeg,.png,.heic,.doc,.docx">
+                    <small class="form-text text-muted">{{ __('PDF, foto ou Word, até 32 MB. Pode ser anexada mais tarde.') }}</small>
                 </div>
             </div>
             <div class="modal-footer">
@@ -221,6 +244,42 @@
                 <button type="submit" class="btn btn-success"><i class="fa fa-check"></i> {{ __('Marcar como feita') }}</button>
             </div>
         </form>
+    </div>
+</div>
+
+{{-- Modal: anexar / substituir folha de obra --}}
+<div class="modal fade" id="mt-attach" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="POST" id="mt-attach-form" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fa fa-file-alt text-primary"></i> {{ __('Folha de obra') }} {{ $year }}</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p class="font-weight-bold" id="mt-attach-store"></p>
+                    <p class="small text-muted" id="mt-attach-current"></p>
+                    <div class="form-group mb-0">
+                        <input type="file" name="documento" class="form-control-file" accept=".pdf,.jpg,.jpeg,.png,.heic,.doc,.docx" required>
+                        <small class="form-text text-muted">{{ __('PDF, foto ou Word, até 32 MB.') }}</small>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="submit" form="mt-attach-delete" class="btn btn-link text-danger" id="mt-attach-delete-btn" onclick="return confirm('Remover a folha de obra?')">
+                        <i class="fa fa-trash"></i> {{ __('Remover') }}
+                    </button>
+                    <div>
+                        <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">{{ __('Cancelar') }}</button>
+                        <button type="submit" class="btn btn-primary"><i class="fa fa-upload"></i> {{ __('Gravar') }}</button>
+                    </div>
+                </div>
+            </form>
+            <form method="POST" id="mt-attach-delete">
+                @csrf
+                @method('DELETE')
+            </form>
+        </div>
     </div>
 </div>
 
@@ -275,6 +334,15 @@
             $('#mt-done-form').attr('action', b.data('action'));
             $('#mt-done-store').text(b.data('store'));
             $('#mt-done-window').text(b.data('window'));
+        });
+        $('#mt-attach').on('show.bs.modal', function (e) {
+            var b = $(e.relatedTarget);
+            $('#mt-attach-form').attr('action', b.data('action'));
+            $('#mt-attach-store').text(b.data('store'));
+            var current = b.data('current');
+            $('#mt-attach-current').text(current ? 'Atual: ' + current + ' (será substituída)' : 'Ainda sem folha de obra anexada.');
+            $('#mt-attach-delete').attr('action', b.data('delete') || '');
+            $('#mt-attach-delete-btn').toggle(!!b.data('delete'));
         });
         $('#mt-edit').on('show.bs.modal', function (e) {
             var b = $(e.relatedTarget);

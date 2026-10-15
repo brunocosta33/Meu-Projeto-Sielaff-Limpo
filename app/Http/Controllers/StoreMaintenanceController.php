@@ -9,10 +9,14 @@ use App\Models\StoreMaintenanceRecord;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class StoreMaintenanceController extends Controller
 {
+    // Folhas de obra ficam no disco privado (só abrem com sessão iniciada)
+    private const DISK = 'local';
+
     public function index(Request $request)
     {
         $year = (int) ($request->input('ano') ?: now()->year);
@@ -118,14 +122,17 @@ class StoreMaintenanceController extends Controller
             'data_realizada' => ['required', 'date', 'before_or_equal:today'],
             'user_id' => ['nullable', 'exists:users,id'],
             'observacoes' => ['nullable', 'string', 'max:1000'],
+            'documento' => self::documentRule(),
         ], [
             'data_realizada.before_or_equal' => 'A data em que foi feita não pode ser no futuro.',
-        ]);
+        ] + self::documentMessages());
+        unset($data['documento']);
 
-        StoreMaintenanceRecord::updateOrCreate(
+        $record = StoreMaintenanceRecord::updateOrCreate(
             ['store_maintenance_id' => $maintenance->id, 'ano' => $data['ano']],
             $data + ['created_by' => auth()->id()]
         );
+        $this->storeDocument($request, $record);
 
         [$start, $end] = $maintenance->window((int) $data['ano']);
         $done = Carbon::parse($data['data_realizada']);
@@ -140,9 +147,75 @@ class StoreMaintenanceController extends Controller
     public function undo($recordId)
     {
         $record = StoreMaintenanceRecord::with('maintenance.store')->findOrFail($recordId);
+        if ($record->documento_path) {
+            Storage::disk(self::DISK)->delete($record->documento_path);
+        }
         $record->delete();
         flash('Registo removido: a manutenção ' . $record->ano . ' da loja ' . $record->maintenance->store->codigo_loja . ' volta a estar por fazer.')->success();
 
         return back();
+    }
+
+    /** Anexar (ou substituir) a folha de obra de uma manutenção já feita. */
+    public function attachDocument(Request $request, $recordId)
+    {
+        $record = StoreMaintenanceRecord::with('maintenance.store')->findOrFail($recordId);
+        $request->validate(['documento' => array_merge(['required'], array_slice(self::documentRule(), 1))], self::documentMessages() + [
+            'documento.required' => 'Escolha o ficheiro da folha de obra.',
+        ]);
+
+        $this->storeDocument($request, $record);
+        flash('Folha de obra anexada à manutenção ' . $record->ano . ' da loja ' . $record->maintenance->store->codigo_loja . '.')->success();
+
+        return back();
+    }
+
+    /** Abrir a folha de obra no browser (no mesmo separador). */
+    public function document($recordId)
+    {
+        $record = StoreMaintenanceRecord::findOrFail($recordId);
+        abort_unless($record->documento_path && Storage::disk(self::DISK)->exists($record->documento_path), 404);
+
+        return Storage::disk(self::DISK)->response($record->documento_path, $record->documento_nome);
+    }
+
+    public function deleteDocument($recordId)
+    {
+        $record = StoreMaintenanceRecord::findOrFail($recordId);
+        if ($record->documento_path) {
+            Storage::disk(self::DISK)->delete($record->documento_path);
+            $record->update(['documento_path' => null, 'documento_nome' => null]);
+        }
+        flash('Folha de obra removida.')->success();
+
+        return back();
+    }
+
+    private static function documentRule(): array
+    {
+        return ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,heic,doc,docx', 'max:32768'];
+    }
+
+    private static function documentMessages(): array
+    {
+        return [
+            'documento.mimes' => 'A folha de obra tem de ser PDF, imagem ou Word.',
+            'documento.max' => 'A folha de obra não pode ter mais de 32 MB.',
+        ];
+    }
+
+    private function storeDocument(Request $request, StoreMaintenanceRecord $record): void
+    {
+        if (!$request->hasFile('documento')) {
+            return;
+        }
+        if ($record->documento_path) {
+            Storage::disk(self::DISK)->delete($record->documento_path);
+        }
+        $file = $request->file('documento');
+        $record->update([
+            'documento_path' => $file->store('maintenance_reports', self::DISK),
+            'documento_nome' => $file->getClientOriginalName(),
+        ]);
     }
 }

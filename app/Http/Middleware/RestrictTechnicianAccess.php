@@ -30,7 +30,6 @@ class RestrictTechnicianAccess
         'backoffice.hr.holidays.index',
         'backoffice.hr.holidays.events',
         'backoffice.documents.index',
-        'backoffice.documents.read',
         'backoffice.documents.view',
         'backoffice.documents.download',
         'backoffice.documents.zip',

@@ -12,6 +12,8 @@ class StoreMaintenanceRecord extends Model
         'data_realizada',
         'user_id',
         'observacoes',
+        'documento_path',
+        'documento_nome',
         'created_by',
     ];
 

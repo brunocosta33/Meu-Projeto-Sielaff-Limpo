@@ -198,13 +198,15 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
         Route::delete('/{id}', [StoreMaintenanceController::class, 'destroy'])->name('destroy');
         Route::post('/{id}/feita', [StoreMaintenanceController::class, 'markDone'])->name('done');
         Route::delete('/registo/{record}', [StoreMaintenanceController::class, 'undo'])->name('undo');
+        Route::post('/registo/{record}/folha', [StoreMaintenanceController::class, 'attachDocument'])->name('document.store');
+        Route::get('/registo/{record}/folha', [StoreMaintenanceController::class, 'document'])->name('document');
+        Route::delete('/registo/{record}/folha', [StoreMaintenanceController::class, 'deleteDocument'])->name('document.delete');
     });
 
     // Documentação (manuais e especificações): acesso por função, definido pelo Coordenador (ver DocumentAccess)
     Route::prefix('backoffice/documentacao')->name('backoffice.documents.')->group(function () {
         Route::get('/', [DocumentController::class, 'index'])->name('index');
         Route::get('/exportar', [DocumentController::class, 'zip'])->name('zip');
-        Route::get('/{id}/ver', [DocumentController::class, 'read'])->name('read');
         Route::get('/{id}/abrir', [DocumentController::class, 'view'])->name('view');
         Route::get('/{id}/descarregar', [DocumentController::class, 'download'])->name('download');
 
