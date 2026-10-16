@@ -137,14 +137,6 @@ class TechnicalRequestController extends Controller
             $query->whereIn('estado', (array) $request->estado);
         }
 
-        // Vista em quadro (experiência): a escolha fica guardada na sessão
-        if ($request->filled('vista')) {
-            session(['technical_requests_view' => $request->vista === 'quadro' ? 'quadro' : 'lista']);
-        }
-        if (session('technical_requests_view') === 'quadro') {
-            return $this->board($query, $stats, $isAdmin, $technicians);
-        }
-
         $requests = $query->paginate(48)->withQueryString();
 
         return view('backoffice.technical_requests.index', [
@@ -159,45 +151,6 @@ class TechnicalRequestController extends Controller
         ]);
     }
 
-
-    /** Quadro por estado: abertos todos (até 150 por coluna) e os últimos concluídos. */
-    private function board($query, array $stats, bool $isAdmin, $technicians)
-    {
-        $selected = (array) request('estado', []);
-        $columns = [];
-
-        foreach (['pendente', 'agendado', 'aguarda_peca', 'concluido'] as $state) {
-            if ($selected && !in_array($state, $selected, true)) {
-                continue;
-            }
-
-            $columnQuery = (clone $query)->reorder()->where('estado', $state);
-            $columnQuery = $state === 'concluido'
-                ? $columnQuery->orderByDesc('data_resolucao')->orderByDesc('updated_at')->limit(15)
-                : $columnQuery->orderByRaw("FIELD(prioridade, 'alta', 'media', 'baixa')")->orderBy('data_pedido')->limit(150);
-
-            $columns[$state] = $columnQuery->get();
-        }
-
-        $today = now()->toDateString();
-        $todayStats = [
-            'novos' => (clone $query)->reorder()->whereDate('created_at', $today)->count(),
-            'concluidos' => (clone $query)->reorder()->where('estado', 'concluido')->whereDate('data_resolucao', $today)->count(),
-            'urgentes' => (clone $query)->reorder()->where('prioridade', 'alta')->whereIn('estado', ['pendente', 'agendado', 'aguarda_peca'])->count(),
-        ];
-
-        return view('backoffice.technical_requests.board', [
-            'columns' => $columns,
-            'stats' => $stats,
-            'todayStats' => $todayStats,
-            'serviceTypes' => self::translatedLabels(self::SERVICE_TYPES),
-            'priorities' => self::translatedLabels(self::PRIORITIES),
-            'statuses' => self::translatedLabels(self::STATUSES),
-            'zones' => self::translatedLabels(self::ZONES),
-            'technicians' => $technicians,
-            'canManageAll' => $isAdmin,
-        ]);
-    }
 
     public function create()
     {

@@ -1580,9 +1580,6 @@
                                 <i class="fa fa-file-excel"></i> {{ __('Exportar Excel') }}
                             </a>
                         @endif
-                        <a href="{{ route('backoffice.technical_requests.index', ['vista' => 'quadro']) }}" class="btn btn-outline-dark px-4 {{ $canManageAll ? 'ml-lg-2' : '' }}">
-                            <i class="fa fa-columns"></i> {{ __('Vista quadro') }}
-                        </a>
                     </div>
                 </div>
             </div>
