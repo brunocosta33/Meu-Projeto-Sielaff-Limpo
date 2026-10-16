@@ -53,6 +53,9 @@ return [
     // Funções que podem aprovar/rejeitar férias
     'vacation_approver_functions' => ['coordenador', 'country_manager'],
 
+    // Funções com acesso a Assistência > Fora da Garantia (cotações e ordens de compra)
+    'warranty_functions' => ['coordenador', 'country_manager'],
+
     'function_colors' => [
         'hotliner' => '#1976d2',
         'tecnico' => '#ef6c00',

@@ -106,6 +106,9 @@ use App\Models\Base;
                 <li><a href="{{ route('backoffice.technical_requests.open_all') }}"><i class="fas fa-folder-open me-2"></i>{{ __('Todos os Pedidos Abertos') }}</a></li>
                 <li><a href="{{ route('backoffice.technical_requests.technicians') }}"><i class="fas fa-users me-2"></i>{{ __('Pedidos por Responsável') }}</a></li>
                 <li><a href="{{ route('backoffice.maintenances.index') }}"><i class="fas fa-clipboard-check me-2"></i>{{ __('Manutenções Anuais') }}</a></li>
+                @if(\App\Services\HrAccess::canManageWarranty(Auth::user()))
+                    <li><a href="{{ route('backoffice.warranty.index') }}"><i class="fas fa-file-invoice-dollar me-2"></i>{{ __('Fora da Garantia') }}</a></li>
+                @endif
                 {{-- <li><a href="{{ route('backoffice.technical_schedules.index') }}"><i class="fas fa-calendar-day me-2"></i>{{ __('Agendamento das Assistências') }}</a>
         </li> --}}
     </ul>

@@ -8,6 +8,7 @@ use App\Http\Controllers\UsersController;
 use App\Http\Controllers\RolesController;
 use App\Http\Controllers\PermissionsController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\WarrantyCaseController;
 use App\Http\Controllers\ConfigurationsController;
 use App\Http\Controllers\Frontoffice\HomeController;
 use App\Http\Controllers\LanguageController;
@@ -202,6 +203,25 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
         Route::post('/registo/{record}/folha', [StoreMaintenanceController::class, 'attachDocument'])->name('document.store');
         Route::get('/registo/{record}/folha', [StoreMaintenanceController::class, 'document'])->name('document');
         Route::delete('/registo/{record}/folha', [StoreMaintenanceController::class, 'deleteDocument'])->name('document.delete');
+    });
+
+    // Assistência > Fora da Garantia: cotações e ordens de compra (Coordenador e Country Manager)
+    Route::prefix('backoffice/fora-garantia')->name('backoffice.warranty.')->middleware('hr.access:warranty')->group(function () {
+        Route::get('/', [WarrantyCaseController::class, 'index'])->name('index');
+        Route::get('/exportar', [WarrantyCaseController::class, 'export'])->name('export');
+        Route::get('/novo', [WarrantyCaseController::class, 'create'])->name('create');
+        Route::post('/', [WarrantyCaseController::class, 'store'])->name('store');
+        Route::get('/fotos/{photo}', [WarrantyCaseController::class, 'photo'])->name('photo');
+        Route::delete('/fotos/{photo}', [WarrantyCaseController::class, 'deletePhoto'])->name('photo.delete');
+        Route::get('/{id}', [WarrantyCaseController::class, 'show'])->name('show');
+        Route::put('/{id}', [WarrantyCaseController::class, 'update'])->name('update');
+        Route::delete('/{id}', [WarrantyCaseController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/avancar', [WarrantyCaseController::class, 'advance'])->name('advance');
+        Route::post('/{id}/recusar', [WarrantyCaseController::class, 'refuse'])->name('refuse');
+        Route::post('/{id}/desfazer', [WarrantyCaseController::class, 'undo'])->name('undo');
+        Route::post('/{id}/fotos', [WarrantyCaseController::class, 'addPhotos'])->name('photos.store');
+        Route::get('/{id}/documento/{tipo}', [WarrantyCaseController::class, 'document'])->name('document');
+        Route::post('/{id}/documento/{tipo}', [WarrantyCaseController::class, 'replaceDocument'])->name('document.replace');
     });
 
     // Documentação (manuais e especificações): acesso por função, definido pelo Coordenador (ver DocumentAccess)

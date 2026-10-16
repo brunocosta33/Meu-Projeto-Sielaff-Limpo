@@ -1,0 +1,150 @@
+@extends('layouts.backoffice_master')
+
+@php(\Carbon\Carbon::setLocale(app()->getLocale()))
+@php($filters = request()->only(['q', 'cliente']))
+
+@section('head-meta')
+    <title>{{ config('app.name') }} - {{ __('Fora da Garantia') }}</title>
+@endsection
+
+@push('styles')
+<style>
+    .wc-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .75rem; }
+    .wc-stat { display: block; border-radius: 14px; padding: .8rem 1rem; background: var(--bg); color: var(--fg); border: 2px solid transparent;
+               text-decoration: none !important; transition: transform .15s; }
+    .wc-stat:hover { transform: translateY(-2px); color: var(--fg); }
+    .wc-stat.is-active { border-color: var(--fg); }
+    .wc-stat .num { font-size: 1.8rem; font-weight: 700; line-height: 1; }
+    .wc-stat .lbl { font-size: .78rem; font-weight: 600; margin-top: .3rem; line-height: 1.25; }
+    .wc-badge { display: inline-flex; align-items: center; gap: .3rem; font-size: .76rem; font-weight: 600; padding: .2rem .55rem;
+                border-radius: 999px; background: var(--bg); color: var(--fg); border: 1px solid var(--fg); white-space: nowrap; }
+    .wc-client { display: inline-block; font-size: .68rem; font-weight: 800; letter-spacing: .03em; padding: .1rem .45rem; border-radius: 6px; text-transform: uppercase; }
+    .wc-client-lidl { background: #0050aa; color: #fff200; }
+    .wc-client-sonae { background: #f39200; color: #fff; }
+    .wc-table td { vertical-align: middle; }
+    .wc-row { cursor: pointer; }
+    .wc-row:hover { background: #f8fafc; }
+    .wc-store { font-weight: 600; }
+    .wc-store small { display: block; font-weight: 400; color: #6c757d; }
+    .wc-problem { max-width: 340px; font-size: .86rem; color: #334155; }
+    .wc-wait { font-size: .76rem; margin-top: .3rem; color: #64748b; }
+    .wc-wait.warn { color: #b45309; font-weight: 600; }
+    .wc-wait.late { color: #b91c1c; font-weight: 700; }
+    .wc-docs { font-size: .78rem; white-space: nowrap; }
+    .wc-docs div + div { margin-top: .2rem; }
+</style>
+@endpush
+
+@section('content')
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="d-flex flex-wrap align-items-center justify-content-between mb-3" style="gap: .75rem">
+            <div>
+                <h4 class="mb-1"><i class="fas fa-file-invoice-dollar text-danger"></i> {{ __('Fora da Garantia') }}</h4>
+                <p class="text-muted small mb-0">{{ __('Avarias por culpa do cliente: cotação da Sielaff, envio ao cliente e ordem de compra.') }}</p>
+            </div>
+            <div class="d-flex flex-wrap" style="gap: .5rem">
+                <form method="GET" class="form-inline" style="gap: .5rem">
+                    @if(request('fase'))<input type="hidden" name="fase" value="{{ request('fase') }}">@endif
+                    <select name="cliente" class="form-control form-control-sm" onchange="this.form.submit()">
+                        <option value="">{{ __('Todos os clientes') }}</option>
+                        @foreach($clients as $value => $label)
+                            <option value="{{ $value }}" @selected(request('cliente') === $value)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    <input type="search" name="q" class="form-control form-control-sm" value="{{ request('q') }}" placeholder="{{ __('Loja, nº série, nº cotação…') }}" style="min-width: 220px">
+                </form>
+                <a href="{{ route('backoffice.warranty.export', $filters + request()->only('fase')) }}" class="btn btn-outline-success btn-sm"><i class="fa fa-file-excel"></i> {{ __('Exportar Excel') }}</a>
+                <a href="{{ route('backoffice.warranty.create') }}" class="btn btn-danger btn-sm"><i class="fa fa-plus"></i> {{ __('Novo processo') }}</a>
+            </div>
+        </div>
+
+        <div class="wc-summary">
+            <a href="{{ route('backoffice.warranty.index', $filters) }}" class="wc-stat {{ request('fase') ? '' : 'is-active' }}" style="--bg: #f1f3f6; --fg: #263238">
+                <div class="num">{{ $counts->sum() }}</div><div class="lbl">{{ __('Todos') }}</div>
+            </a>
+            <a href="{{ route('backoffice.warranty.index', ['fase' => 'abertos'] + $filters) }}" class="wc-stat {{ request('fase') === 'abertos' ? 'is-active' : '' }}" style="--bg: #fff1f2; --fg: #be123c">
+                <div class="num">{{ $openTotal }}</div><div class="lbl">{{ __('Em aberto') }}</div>
+            </a>
+            @foreach($phases as $key => $phase)
+                <a href="{{ route('backoffice.warranty.index', ['fase' => $key] + $filters) }}" class="wc-stat {{ request('fase') === $key ? 'is-active' : '' }}" style="--bg: {{ $phase['bg'] }}; --fg: {{ $phase['color'] }}">
+                    <div class="num">{{ $counts[$key] ?? 0 }}</div>
+                    <div class="lbl"><i class="fas {{ $phase['icon'] }}"></i> {{ $phase['waiting'] ? __($phase['waiting']) : __($phase['label']) }}</div>
+                </a>
+            @endforeach
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        @if($cases->isEmpty())
+            <div class="text-center text-muted py-5">
+                <i class="fas fa-file-invoice-dollar fa-3x mb-3"></i>
+                <p class="mb-3">{{ $counts->sum() ? __('Nenhum processo corresponde aos filtros.') : __('Ainda não há processos fora da garantia.') }}</p>
+                <a href="{{ route('backoffice.warranty.create') }}" class="btn btn-danger btn-sm"><i class="fa fa-plus"></i> {{ __('Novo processo') }}</a>
+            </div>
+        @else
+            <div class="table-responsive">
+                <table class="table wc-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>{{ __('Loja') }}</th>
+                            <th>{{ __('Problema') }}</th>
+                            <th>{{ __('Fase') }}</th>
+                            <th>{{ __('Cotação / Ordem de compra') }}</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($cases as $case)
+                            @php($phase = $case->phase())
+                            @php($alert = $case->waitingAlert())
+                            <tr class="wc-row" onclick="if (!event.target.closest('a')) location.href = this.dataset.href" data-href="{{ route('backoffice.warranty.show', $case->id) }}">
+                                <td class="wc-store">
+                                    <span class="wc-client wc-client-{{ $case->cliente }}">{{ $case->clientLabel() }}</span>
+                                    {{ $case->store->codigo_loja ?? '—' }} — {{ $case->store->nome_loja ?? '—' }}
+                                    <small>
+                                        #{{ $case->id }} · {{ $case->created_at->format('d/m/Y') }}
+                                        @if($case->machine) · <i class="fa fa-hashtag"></i>{{ $case->machine->serial_number }}@endif
+                                    </small>
+                                </td>
+                                <td class="wc-problem">
+                                    {{ \Illuminate\Support\Str::limit($case->descricao, 110) }}
+                                    @if($case->photos_count)
+                                        <span class="text-muted small text-nowrap"><i class="fa fa-camera"></i> {{ $case->photos_count }}</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <span class="wc-badge" style="--bg: {{ $phase['bg'] }}; --fg: {{ $phase['color'] }}"><i class="fas {{ $phase['icon'] }}"></i> {{ __($phase['label']) }}</span>
+                                    @if($case->isOpen())
+                                        <div class="wc-wait {{ $alert }}">
+                                            @if($alert === 'late')<i class="fa fa-exclamation-triangle"></i>@endif
+                                            {{ __($phase['waiting']) }} · {{ trans_choice('{0} hoje|{1} há :count dia|[2,*] há :count dias', $case->daysInPhase(), ['count' => $case->daysInPhase()]) }}
+                                        </div>
+                                    @elseif($case->fechado_em)
+                                        <div class="wc-wait">{{ $case->fechado_em->format('d/m/Y') }}</div>
+                                    @endif
+                                </td>
+                                <td class="wc-docs">
+                                    @if($case->cotacao_numero)
+                                        <div><a href="{{ route('backoffice.warranty.document', [$case->id, 'cotacao']) }}" target="_blank"><i class="fa fa-file-invoice"></i> {{ __('Cotação') }} {{ $case->cotacao_numero }}</a></div>
+                                    @endif
+                                    @if($case->oc_numero)
+                                        <div><a href="{{ route('backoffice.warranty.document', [$case->id, 'oc']) }}" target="_blank"><i class="fa fa-file-signature"></i> {{ __('OC') }} {{ $case->oc_numero }}</a></div>
+                                    @endif
+                                    @if(!$case->cotacao_numero && !$case->oc_numero)<span class="text-muted">—</span>@endif
+                                </td>
+                                <td class="text-right"><a href="{{ route('backoffice.warranty.show', $case->id) }}" class="btn btn-sm btn-outline-primary"><i class="fa fa-arrow-right"></i></a></td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            @if($cases->hasPages())
+                <div class="mt-3 d-flex justify-content-center">{{ $cases->links() }}</div>
+            @endif
+        @endif
+    </div>
+</div>
+@endsection

@@ -8,13 +8,17 @@ use Illuminate\Http\Request;
 
 class EnsureHrAccess
 {
-    /** Uso: 'hr.access' (ver a sua parte) ou 'hr.access:manager' (só gestão de RH). */
+    /** Uso: 'hr.access' (ver a sua parte), 'hr.access:manager' (só gestão de RH) ou 'hr.access:warranty' (Fora da Garantia). */
     public function handle(Request $request, Closure $next, string $level = 'view')
     {
         $user = $request->user();
-        $allowed = $level === 'manager' ? HrAccess::isManager($user) : HrAccess::canAccess($user);
+        $allowed = match ($level) {
+            'manager' => HrAccess::isManager($user),
+            'warranty' => HrAccess::canManageWarranty($user),
+            default => HrAccess::canAccess($user),
+        };
 
-        abort_unless($allowed, 403, 'Não tem acesso a esta área de Recursos Humanos.');
+        abort_unless($allowed, 403, $level === 'warranty' ? __('Não tem acesso a esta área.') : 'Não tem acesso a esta área de Recursos Humanos.');
 
         return $next($request);
     }

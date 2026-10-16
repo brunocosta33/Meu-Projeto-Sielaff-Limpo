@@ -529,6 +529,18 @@
                         </div>
                     </div>
                     <div class="mt-3 mt-lg-0">
+                        @if(\App\Services\HrAccess::canManageWarranty(auth()->user()))
+                            @php($warrantyCase = \App\Models\WarrantyCase::where('technical_request_id', $request->id)->latest('id')->first())
+                            @if($warrantyCase)
+                                <a href="{{ route('backoffice.warranty.show', $warrantyCase->id) }}" class="btn btn-outline-danger mr-2">
+                                    <i class="fa fa-file-invoice-dollar"></i> {{ __('Ver processo fora da garantia') }}
+                                </a>
+                            @else
+                                <a href="{{ route('backoffice.warranty.create', ['pedido' => $request->id]) }}" class="btn btn-outline-danger mr-2">
+                                    <i class="fa fa-file-invoice-dollar"></i> {{ __('Fora da garantia') }}
+                                </a>
+                            @endif
+                        @endif
                         @if($canManageAll || $request->estado !== 'concluido')
                             <a href="{{ route('backoffice.technical_requests.edit', ['id' => $request->id, 'return_url' => $backRoute]) }}" class="btn btn-outline-primary mr-2">
                                 <i class="fa fa-edit"></i> {{ __('Editar') }}
