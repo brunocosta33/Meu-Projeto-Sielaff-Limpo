@@ -1891,10 +1891,5 @@
     "— Sem substituto (turno a descoberto) —": "— No substitute (shift uncovered) —",
     "Enviado para técnico": "Sent to technician",
     "Devolvido ao armazém": "Returned to warehouse",
-    "Consumido": "Consumed",
-    "Aberto em": "Opened on",
-    "Máquina": "Machine",
-    "Ordenados pela data de fecho.": "Sorted by closing date.",
-    "Tabela resumida, agrupada por técnico.": "Summary table, grouped by technician.",
-    "Vista resumida, adaptada ao telemóvel.": "Summary view, adapted for mobile."
+    "Consumido": "Consumed"
 }

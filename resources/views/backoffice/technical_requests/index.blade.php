@@ -1539,93 +1539,6 @@
             margin-bottom: 0.25rem !important;
         }
     }
-
-    /* Cartões de pedido (redesenho) */
-    .tk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(560px, 1fr)); gap: 1rem; }
-    .tk { --tk-c: #94a3b8; --tk-soft: #f1f5f9; position: relative; display: flex; flex-direction: column; background: #fff; border-radius: 18px;
-          border: 1px solid #e8edf3; overflow: hidden; box-shadow: 0 1px 2px rgba(15, 23, 42, .05), 0 8px 24px -18px rgba(15, 23, 42, .45);
-          transition: transform .18s ease, box-shadow .18s ease; animation: tk-in .35s ease both; }
-    .tk:hover { transform: translateY(-2px); box-shadow: 0 2px 4px rgba(15, 23, 42, .06), 0 18px 34px -20px rgba(15, 23, 42, .5); }
-    .tk::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--tk-c); }
-    .tk--pendente { --tk-c: #f59e0b; --tk-soft: #fffbeb; }
-    .tk--agendado { --tk-c: #0ea5e9; --tk-soft: #f0f9ff; }
-    .tk--aguarda_peca { --tk-c: #ef4444; --tk-soft: #fef2f2; }
-    .tk--concluido { --tk-c: #10b981; --tk-soft: #ecfdf5; }
-    .tk--cancelado { --tk-c: #94a3b8; --tk-soft: #f8fafc; }
-    @keyframes tk-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-
-    .tk-head { display: flex; justify-content: space-between; gap: .75rem; padding: 1.1rem 1.15rem .8rem; background: linear-gradient(180deg, var(--tk-soft), #fff); }
-    .tk-store { min-width: 0; }
-    .tk-store-name { font-weight: 800; font-size: 1.02rem; color: #0f172a; line-height: 1.3; display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
-    .tk-code { background: #0f172a; color: #fff; border-radius: 7px; padding: .05rem .45rem; font-size: .8rem; font-weight: 700; }
-    .tk-store-sub { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem; margin-top: .35rem; font-size: .78rem; color: #64748b; }
-    .tk-store-sub .hotline-zone-badge { margin: 0; }
-    .tk-address { overflow: hidden; text-overflow: ellipsis; }
-    .tk-badges { display: flex; flex-direction: column; align-items: flex-end; gap: .3rem; flex-shrink: 0; }
-    .tk-status, .tk-prio, .tk-age { display: inline-flex; align-items: center; gap: .3rem; border-radius: 999px; padding: .2rem .65rem; font-size: .74rem; font-weight: 700; white-space: nowrap; }
-    .tk-status { background: var(--tk-c); color: #fff; }
-    .tk-prio { background: #f1f5f9; color: #475569; }
-    .tk-prio--alta .tk-prio { background: #fee2e2; color: #b91c1c; }
-    .tk-prio--media .tk-prio { background: #fef3c7; color: #92400e; }
-    .tk-prio--baixa .tk-prio { background: #e0f2fe; color: #0369a1; }
-    .tk-age--fresh { background: #dcfce7; color: #15803d; }
-    .tk-age--warm { background: #fef3c7; color: #a16207; }
-    .tk-age--hot { background: #fee2e2; color: #b91c1c; }
-    .tk-age--hot .fa { animation: tk-pulse 1.4s ease-in-out infinite; }
-    @keyframes tk-pulse { 50% { opacity: .3; } }
-
-    .tk-body { display: grid; grid-template-columns: 1.3fr 1fr; gap: 1rem; padding: .35rem 1.15rem .9rem; flex: 1; }
-    .tk-desc { font-size: .92rem; color: #1e293b; line-height: 1.45; }
-    .tk-note { display: flex; gap: .45rem; margin-top: .6rem; padding: .5rem .65rem; border-radius: 10px; background: #fefce8; color: #713f12; font-size: .8rem; }
-    .tk-note .fa { margin-top: .15rem; color: #ca8a04; }
-    .tk-problem .hotline-files-preview { margin-top: .6rem; }
-    .tk-facts { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; margin: 0; align-content: start; }
-    .tk-facts > div { background: #f8fafc; border-radius: 10px; padding: .4rem .55rem; min-width: 0; }
-    .tk-facts dt { font-size: .66rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #94a3b8; margin: 0; }
-    .tk-facts dd { margin: .1rem 0 0; font-size: .82rem; font-weight: 600; color: #334155; overflow-wrap: anywhere; line-height: 1.3; }
-
-    .tk-dates { display: flex; flex-wrap: wrap; gap: .4rem 1.1rem; padding: .55rem 1.15rem; border-top: 1px dashed #e2e8f0; font-size: .78rem; color: #64748b; }
-    .tk-dates strong { color: #334155; margin-left: .15rem; }
-    .tk-date--sched, .tk-date--sched strong { color: #0369a1; }
-    .tk-date--done, .tk-date--done strong { color: #047857; }
-
-    .tk-foot { display: flex; justify-content: space-between; align-items: center; gap: .75rem; flex-wrap: wrap; padding: .75rem 1.15rem; background: #f8fafc; border-top: 1px solid #eef2f6; }
-    .tk-person { display: flex; align-items: center; gap: .6rem; min-width: 0; }
-    .tk-avatar { width: 36px; height: 36px; flex-shrink: 0; border-radius: 50%; display: grid; place-items: center; color: #fff; font-size: .78rem; font-weight: 800;
-                 box-shadow: 0 0 0 3px #fff, 0 0 0 4px rgba(15, 23, 42, .08); }
-    .tk-avatar--none { background: repeating-linear-gradient(45deg, #e2e8f0, #e2e8f0 5px, #f1f5f9 5px, #f1f5f9 10px); color: #64748b; }
-    .tk-person-name { font-size: .84rem; color: #334155; }
-    .tk-trail { font-size: .72rem; color: #94a3b8; line-height: 1.35; }
-    .tk-actions { display: flex; flex-wrap: wrap; gap: .4rem; }
-    .tk-actions .btn { border-radius: 9px; font-weight: 600; }
-
-    .hotline-quicklinks { display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1.25rem; }
-    .hotline-quicklink { flex: 1 1 260px; display: flex; align-items: center; gap: .75rem; padding: .75rem 1rem; border-radius: 14px; color: #1e3a8a; background: #eff6ff;
-                         border: 1px solid #dbeafe; transition: transform .15s ease, box-shadow .15s ease; }
-    .hotline-quicklink:hover { text-decoration: none; color: #1e3a8a; transform: translateY(-2px); box-shadow: 0 10px 22px -16px rgba(37, 99, 235, .7); }
-    .hotline-quicklink .fa { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; background: #2563eb; color: #fff; flex-shrink: 0; }
-    .hotline-quicklink small { display: block; color: #64748b; font-size: .76rem; }
-    .hotline-quicklink strong { display: block; font-size: .92rem; }
-    .hotline-quicklink.is-closed { background: #ecfdf5; border-color: #d1fae5; color: #065f46; }
-    .hotline-quicklink.is-closed .fa { background: #10b981; }
-    .hotline-quicklink .tk-go { margin-left: auto; width: auto; height: auto; background: none; color: inherit; opacity: .5; }
-
-    @media (max-width: 767.98px) {
-        .tk-grid { grid-template-columns: 1fr; }
-        .tk-head { flex-direction: column; padding: 1rem .9rem .7rem; }
-        .tk-badges { flex-direction: row; flex-wrap: wrap; align-items: center; }
-        .tk-body { grid-template-columns: 1fr; padding: .3rem .9rem .8rem; }
-        .tk-dates, .tk-foot { padding-left: .9rem; padding-right: .9rem; }
-        .tk-actions { width: 100%; }
-        .tk-actions .btn { flex: 1 1 calc(50% - .4rem); }
-    }
-    @media (max-width: 380px) {
-        .tk-grid { grid-template-columns: minmax(0, 1fr); }
-        .tk-facts { grid-template-columns: 1fr; }
-    }
-    @media (prefers-reduced-motion: reduce) {
-        .tk, .tk-age--hot .fa { animation: none; }
-    }
 </style>
 @endsection
 
@@ -1746,26 +1659,36 @@
 
         <div class="card hotline-panel border-0">
             <div class="card-body">
-                <div class="hotline-quicklinks">
-                    @if($canManageAll)
-                        <a href="{{ route('backoffice.technical_requests.open_all', request()->only(['mes', 'data_inicio', 'data_fim'])) }}" class="hotline-quicklink">
-                            <i class="fa fa-table"></i>
-                            <span><strong>{{ __('Todos os pedidos em aberto') }}</strong><small>{{ __('Tabela resumida, agrupada por técnico.') }}</small></span>
-                            <i class="fa fa-chevron-right tk-go"></i>
+                @if($canManageAll)
+                    <div class="hotline-open-callout">
+                        <div>
+                            <h5 class="hotline-open-callout-title">{{ __('Todos os pedidos em aberto') }}</h5>
+                            <p class="hotline-open-callout-copy">{{ __('Abra uma tabela resumida, agrupada por técnico, para perceber rapidamente tudo o que ainda está por concluir.') }}</p>
+                        </div>
+                        <a href="{{ route('backoffice.technical_requests.open_all', request()->only(['mes', 'data_inicio', 'data_fim'])) }}" class="btn btn-primary">
+                            <i class="fa fa-table"></i> {{ __('Ver todos em aberto') }}
                         </a>
-                        <a href="{{ route('backoffice.technical_requests.closed_all') }}" class="hotline-quicklink is-closed">
-                            <i class="fa fa-check-circle"></i>
-                            <span><strong>{{ __('Todos os pedidos fechados') }}</strong><small>{{ __('Ordenados pela data de fecho.') }}</small></span>
-                            <i class="fa fa-chevron-right tk-go"></i>
+                    </div>
+                    <div class="hotline-open-callout hotline-closed-callout">
+                        <div>
+                            <h5 class="hotline-open-callout-title">{{ __('Todos os pedidos fechados') }}</h5>
+                            <p class="hotline-open-callout-copy">{{ __('Abra uma tabela resumida, ordenada pela data de fecho, para consultar rapidamente tudo o que já foi concluído.') }}</p>
+                        </div>
+                        <a href="{{ route('backoffice.technical_requests.closed_all') }}" class="btn hotline-closed-btn">
+                            <i class="fa fa-check-circle"></i> {{ __('Ver pedidos fechados') }}
                         </a>
-                    @else
-                        <a href="{{ route('backoffice.technical_requests.my_open', request()->only(['mes', 'data_inicio', 'data_fim'])) }}" class="hotline-quicklink">
-                            <i class="fa fa-table"></i>
-                            <span><strong>{{ __('Meus pedidos em aberto') }}</strong><small>{{ __('Vista resumida, adaptada ao telemóvel.') }}</small></span>
-                            <i class="fa fa-chevron-right tk-go"></i>
+                    </div>
+                @else
+                    <div class="hotline-open-callout">
+                        <div>
+                            <h5 class="hotline-open-callout-title">{{ __('Meus pedidos em aberto') }}</h5>
+                            <p class="hotline-open-callout-copy">{{ __('Abra uma vista resumida e adaptada ao telemóvel com todos os seus pedidos ainda por concluir.') }}</p>
+                        </div>
+                        <a href="{{ route('backoffice.technical_requests.my_open', request()->only(['mes', 'data_inicio', 'data_fim'])) }}" class="btn btn-primary">
+                            <i class="fa fa-table"></i> {{ __('Ver pedidos em aberto') }}
                         </a>
-                    @endif
-                </div>
+                    </div>
+                @endif
 
                 <div class="hotline-panel-header">
                     <div>
@@ -1887,144 +1810,167 @@
                 @endif
 
                 @if($requests->isNotEmpty())
-                    @php
-                        $tkPalette = ['#2563eb', '#7c3aed', '#db2777', '#ea580c', '#059669', '#0891b2', '#4f46e5', '#b45309', '#0d9488', '#9333ea'];
-                        $tkInitials = function ($name) {
-                            $parts = preg_split('/\s+/', trim((string) $name)) ?: [];
-                            return mb_strtoupper(mb_substr($parts[0] ?? '?', 0, 1) . (count($parts) > 1 ? mb_substr(end($parts), 0, 1) : ''));
-                        };
-                        $tkStateIcons = ['pendente' => 'fa-clock', 'agendado' => 'fa-calendar-check', 'aguarda_peca' => 'fa-tools', 'concluido' => 'fa-check-circle', 'cancelado' => 'fa-ban'];
-                    @endphp
-                    <div class="tk-grid">
+                    <div class="hotline-grid">
                         @foreach($requests as $request)
-                            @php
-                                $wasEdited = $request->updated_at && $request->created_at && $request->updated_at->ne($request->created_at);
-                                $isOpen = in_array($request->estado, ['pendente', 'agendado', 'aguarda_peca'], true);
-                                $opened = $request->created_at ?? \Carbon\Carbon::parse($request->data_pedido);
-                                $ageDays = $opened->diffInDays(now());
-                                $ageClass = $ageDays < 1 ? 'fresh' : ($ageDays <= 3 ? 'warm' : 'hot');
-                                $person = $request->assignedTechnician;
-                                $address = implode(', ', array_filter([
-                                    $request->store->morada ?? null,
-                                    trim(implode(' ', array_filter([$request->store->codigo_postal ?? null, $request->store->cidade ?? null]))),
-                                ]));
-                            @endphp
-                            <article class="tk tk--{{ $request->estado }} tk-prio--{{ $request->prioridade }}" data-state="{{ $request->estado }}">
-                                <header class="tk-head">
-                                    <div class="tk-store">
-                                        <div class="tk-store-name">
-                                            <span class="tk-code">{{ $request->store->codigo_loja ?? '—' }}</span>
-                                            {{ $request->store->nome_loja ?? __('Sem loja associada') }}
+                            <article class="hotline-ticket" data-state="{{ $request->estado }}">
+                                @php
+                                    $wasEdited = $request->updated_at && $request->created_at && $request->updated_at->ne($request->created_at);
+                                @endphp
+                                <div>
+                                    <div class="hotline-ticket-header">
+                                        <div class="hotline-store-title">
+                                            {{ $request->store->codigo_loja ?? '-' }} - {{ $request->store->nome_loja ?? '-' }}
                                             @if($request->store->insignia ?? null)
-                                                <span class="hotline-brand-badge brand-{{ $request->store->insignia }}">{{ ucfirst($request->store->insignia) }}</span>
+                                                <span class="hotline-brand-badge brand-{{ $request->store->insignia }}">
+                                                    {{ ucfirst($request->store->insignia) }}
+                                                </span>
                                             @endif
                                         </div>
-                                        <div class="tk-store-sub">
-                                            @if($request->zona)
+                                        @if($request->zona)
+                                            <div class="hotline-zone-line">
                                                 <span class="hotline-zone-badge zone-{{ $request->zona }}">{{ $zones[$request->zona] ?? ucfirst($request->zona) }}</span>
-                                            @endif
-                                            @if($address)
-                                                <span class="tk-address"><i class="fa fa-map-marker-alt"></i> {{ $address }}</span>
-                                            @endif
-                                        </div>
+                                            </div>
+                                        @endif
+                                        @if(($request->store->morada ?? null) || ($request->store->cidade ?? null) || ($request->store->codigo_postal ?? null))
+                                            <div class="hotline-address">
+                                                <i class="fa fa-map-marker-alt"></i>
+                                                {{ implode(', ', array_filter([
+                                                    $request->store->morada ?? null,
+                                                    trim(implode(' ', array_filter([
+                                                        $request->store->codigo_postal ?? null,
+                                                        $request->store->cidade ?? null,
+                                                    ]))),
+                                                ])) }}
+                                            </div>
+                                        @endif
+                                        <div class="hotline-store-subtitle">{{ __('Criado por') }}: {{ $request->creator->name ?? $request->creator->email ?? '—' }} - {{ $request->created_at ? \Carbon\Carbon::parse($request->created_at)->format('H:i') : '—' }}</div>
+                                        @if($wasEdited)
+                                            <div class="hotline-store-subtitle">{{ __('Última edição por') }}: {{ $request->editor->name ?? $request->editor->email ?? '—' }} - {{ $request->updated_at ? \Carbon\Carbon::parse($request->updated_at)->format('H:i') : '—' }}</div>
+                                        @endif
+                                        @if($request->estado === 'concluido')
+                                            <div class="hotline-store-subtitle">{{ __('Concluído por') }}: {{ $request->editor->name ?? $request->editor->email ?? '—' }}</div>
+                                        @endif
                                     </div>
-                                    <div class="tk-badges">
-                                        <span class="tk-status"><i class="fa {{ $tkStateIcons[$request->estado] ?? 'fa-circle' }}"></i> {{ $statuses[$request->estado] ?? ucfirst(str_replace('_', ' ', $request->estado)) }}</span>
-                                        <span class="tk-prio" title="{{ __('Prioridade') }}">
-                                            @if($request->prioridade === 'alta')<i class="fa fa-fire"></i>@else<i class="fa fa-flag"></i>@endif
-                                            {{ $priorities[$request->prioridade] ?? ucfirst((string) $request->prioridade) }}
+                                    <div class="hotline-meta-stack">
+                                        <span class="hotline-meta hotline-meta-strong">
+                                            <i class="fa fa-user-cog"></i>
+                                            {{ $request->assignedPersonTypeLabel() }}: {{ $request->assignedPersonLabel() }}
                                         </span>
-                                        @if($isOpen)
-                                            <span class="tk-age tk-age--{{ $ageClass }}" title="{{ __('Aberto em') }} {{ $opened->format('d/m/Y H:i') }}">
-                                                <i class="fa fa-hourglass-half"></i> {{ $opened->diffForHumans() }}
+                                    </div>
+                                    <div class="hotline-snippet">{{ Str::limit($request->descricao_problema ?: __('Sem descrição.'), 180) }}</div>
+                                    @if($request->files->count())
+                                        <div class="hotline-files-preview">
+                                            <span class="hotline-files-label">
+                                                <i class="fa fa-paperclip"></i>
+                                                {{ __('Anexos') }}
                                             </span>
-                                        @endif
-                                    </div>
-                                </header>
-
-                                <div class="tk-body">
-                                    <div class="tk-problem">
-                                        <div class="tk-desc">{{ Str::limit($request->descricao_problema ?: __('Sem descrição.'), 180) }}</div>
-                                        @if($request->observacoes)
-                                            <div class="tk-note"><i class="fa fa-sticky-note"></i> <span><strong>{{ __('Observações') }}:</strong> {{ Str::limit($request->observacoes, 120) }}</span></div>
-                                        @endif
-                                        @if($request->files->count())
-                                            <div class="hotline-files-preview">
-                                                <span class="hotline-files-label"><i class="fa fa-paperclip"></i> {{ __('Anexos') }}</span>
-                                                @foreach($request->files->take(3) as $file)
-                                                    <a href="{{ asset('storage/' . $file->file_path) }}" target="_blank" class="hotline-file-chip" title="{{ $file->file_name }}">
-                                                        @if($file->isImage())
-                                                            <img src="{{ asset('storage/' . $file->file_path) }}" alt="{{ $file->file_name }}">
-                                                        @else
-                                                            <i class="fa fa-file-pdf"></i>
-                                                        @endif
-                                                    </a>
-                                                @endforeach
-                                                @if($request->files->count() > 3)
-                                                    <span class="hotline-files-more">+{{ $request->files->count() - 3 }}</span>
-                                                @endif
-                                            </div>
-                                        @endif
-                                    </div>
-                                    <dl class="tk-facts">
-                                        <div><dt><i class="fa fa-user-circle"></i> {{ __('Origem') }}</dt><dd>{{ $request->origem ?: '—' }}</dd></div>
-                                        <div><dt><i class="fa fa-hashtag"></i> {{ __('Nº Série') }}</dt><dd>{{ $request->machine->serial_number ?? '—' }}</dd></div>
-                                        <div><dt><i class="fa fa-server"></i> {{ __('Máquina') }}</dt><dd>{{ $request->machine->descricao ?? '—' }}</dd></div>
-                                        <div><dt><i class="fa fa-tools"></i> {{ __('Serviço') }}</dt><dd>{{ $serviceTypes[$request->tipo_servico] ?? ucfirst((string) $request->tipo_servico) }}</dd></div>
-                                    </dl>
-                                </div>
-
-                                <div class="tk-dates">
-                                    <span><i class="fa fa-inbox"></i> {{ __('Pedido') }} <strong>{{ \Carbon\Carbon::parse($request->data_pedido)->format('d/m/Y') }}</strong></span>
-                                    @if($request->estado === 'agendado' && $request->data_agendamento)
-                                        <span class="tk-date--sched"><i class="fa fa-calendar-alt"></i> {{ __('Agendado') }} <strong>{{ \Carbon\Carbon::parse($request->data_agendamento)->format('d/m/Y H:i') }}</strong></span>
+                                            @foreach($request->files->take(3) as $file)
+                                                <a href="{{ asset('storage/' . $file->file_path) }}" target="_blank" class="hotline-file-chip" title="{{ $file->file_name }}">
+                                                    @if($file->isImage())
+                                                        <img src="{{ asset('storage/' . $file->file_path) }}" alt="{{ $file->file_name }}">
+                                                    @else
+                                                        <i class="fa fa-file-pdf"></i>
+                                                    @endif
+                                                </a>
+                                            @endforeach
+                                            @if($request->files->count() > 3)
+                                                <span class="hotline-files-more">+{{ $request->files->count() - 3 }}</span>
+                                            @endif
+                                        </div>
                                     @endif
-                                    <span class="{{ $request->data_resolucao ? 'tk-date--done' : '' }}"><i class="fa fa-check-circle"></i> {{ __('Resolução') }} <strong>{{ $request->data_resolucao ? \Carbon\Carbon::parse($request->data_resolucao)->format('d/m/Y H:i') : '—' }}</strong></span>
                                 </div>
 
-                                <footer class="tk-foot">
-                                    <div class="tk-person">
-                                        @if($person)
-                                            <span class="tk-avatar" style="background: {{ $tkPalette[$person->id % count($tkPalette)] }}">{{ $tkInitials($person->name ?: $person->email) }}</span>
-                                        @else
-                                            <span class="tk-avatar tk-avatar--none"><i class="fa fa-user-plus"></i></span>
-                                        @endif
-                                        <div>
-                                            <div class="tk-person-name">{{ $request->assignedPersonTypeLabel() }}: <strong>{{ $request->assignedPersonLabel() }}</strong></div>
-                                            <div class="tk-trail">
-                                                {{ __('Criado por') }}: {{ $request->creator->name ?? $request->creator->email ?? '—' }} - {{ $request->created_at ? \Carbon\Carbon::parse($request->created_at)->format('H:i') : '—' }}
-                                                @if($wasEdited)
-                                                    <br>{{ __('Última edição por') }}: {{ $request->editor->name ?? $request->editor->email ?? '—' }} - {{ $request->updated_at ? \Carbon\Carbon::parse($request->updated_at)->format('H:i') : '—' }}
-                                                @endif
-                                                @if($request->estado === 'concluido')
-                                                    <br>{{ __('Concluído por') }}: {{ $request->editor->name ?? $request->editor->email ?? '—' }}
-                                                @endif
-                                            </div>
+                                <div>
+                                    <div class="hotline-section-label">{{ __('Dados') }}</div>
+                                    <div class="hotline-meta-stack">
+                                        <span class="hotline-meta"><i class="fa fa-user-circle"></i> {{ $request->origem ?: '—' }}</span>
+                                        <span class="hotline-meta"><i class="fa fa-hashtag"></i> {{ $request->machine->serial_number ?? '—' }}</span>
+                                        <span class="hotline-meta"><i class="fa fa-server"></i> {{ $request->machine->descricao ?? '—' }}</span>
+                                    </div>
+                                    <span class="hotline-meta"><i class="fa fa-tools"></i> {{ $serviceTypes[$request->tipo_servico] ?? ucfirst($request->tipo_servico) }}</span>
+                                </div>
+
+                                <div>
+                                    <span class="badge 
+                                        hotline-status-badge
+                                        @switch($request->estado)
+                                            @case('pendente') bg-warning @break
+                                            @case('agendado') bg-info @break
+                                            @case('concluido') bg-success @break
+                                            @case('cancelado') bg-danger @break
+                                            @case('aguarda_peca') bg-danger text-white @break
+                                            @default bg-light
+                                        @endswitch">
+                                        {{ $statuses[$request->estado] ?? ucfirst(str_replace('_', ' ', $request->estado)) }}
+                                    </span>
+                                    <div class="hotline-section-label">{{ __('Prioridade') }}</div>
+                                    <span class="badge 
+                                        @switch($request->prioridade)
+                                            @case('baixa') bg-info @break
+                                            @case('media') bg-warning text-dark @break
+                                            @case('alta') bg-danger text-white @break
+                                            @default bg-light
+                                        @endswitch">
+                                        {{ $priorities[$request->prioridade] ?? ucfirst($request->prioridade) }}
+                                    </span>
+                                    @if($request->observacoes)
+                                        <div class="hotline-note-highlight">
+                                            <div class="hotline-section-label">{{ __('Observações') }}</div>
+                                            <div class="hotline-note">{{ Str::limit($request->observacoes, 120) }}</div>
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <div>
+                                    <div class="hotline-section-label">{{ __('Datas') }}</div>
+                                    <div class="hotline-dates">
+                                        <div class="hotline-date-box">
+                                            <strong>{{ __('Pedido') }}</strong>
+                                            {{ \Carbon\Carbon::parse($request->data_pedido)->format('d/m/Y') }}
+                                        </div>
+                                        <div class="hotline-date-box">
+                                            <strong>{{ __('Resolução') }}</strong>
+                                            {{ $request->data_resolucao ? \Carbon\Carbon::parse($request->data_resolucao)->format('d/m/Y H:i') : '—' }}
                                         </div>
                                     </div>
-                                    <div class="tk-actions">
-                                        <a href="{{ route('backoffice.technical_requests.show', ['id' => $request->id, 'return_url' => url()->full()]) }}" class="btn btn-sm btn-primary">
-                                            <i class="fa fa-eye"></i> {{ __('Ver') }}
+                                    @if($request->estado === 'agendado' && $request->data_agendamento)
+                                        <div class="hotline-schedule-highlight">
+                                            <i class="fa fa-calendar-alt"></i>
+                                            {{ __('Data de Agendamento') }}:
+                                            {{ \Carbon\Carbon::parse($request->data_agendamento)->format('d/m/Y H:i') }}
+                                        </div>
+                                    @endif
+                                    @if($request->data_resolucao)
+                                        <div class="hotline-resolution-highlight">
+                                            <i class="fa fa-check-circle"></i>
+                                            {{ __('Data de Resolução') }}:
+                                            {{ \Carbon\Carbon::parse($request->data_resolucao)->format('d/m/Y H:i') }}
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <div class="hotline-actions">
+                                    <a href="{{ route('backoffice.technical_requests.show', ['id' => $request->id, 'return_url' => url()->full()]) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fa fa-eye"></i> {{ __('Ver') }}
+                                    </a>
+                                    @if($request->machine)
+                                        <a href="{{ route('backoffice.machines.history', $request->machine->id) }}" class="btn btn-sm btn-outline-info">
+                                            <i class="fa fa-history"></i> {{ __('Histórico') }}
                                         </a>
-                                        @if($request->machine)
-                                            <a href="{{ route('backoffice.machines.history', $request->machine->id) }}" class="btn btn-sm btn-outline-info">
-                                                <i class="fa fa-history"></i> {{ __('Histórico') }}
-                                            </a>
-                                        @endif
-                                        @if($canManageAll || $request->estado !== 'concluido')
-                                            <a href="{{ route('backoffice.technical_requests.edit', ['id' => $request->id, 'return_url' => url()->full()]) }}" class="btn btn-sm btn-outline-secondary">
-                                                <i class="fa fa-edit"></i> {{ __('Editar') }}
-                                            </a>
-                                        @endif
-                                        @if($canManageAll)
-                                            <a href="{{ route('backoffice.technical_requests.delete', array_merge(['id' => $request->id], request()->only(['page', 'q', 'codigo_loja', 'serial_number', 'estado', 'prioridade', 'zona', 'assigned_technician_id']))) }}"
-                                               onclick="return confirm('@lang('Tem a certeza que deseja apagar este pedido?')')"
-                                               class="btn btn-sm btn-outline-danger">
-                                                <i class="fa fa-trash"></i> {{ __('Apagar') }}
-                                            </a>
-                                        @endif
-                                    </div>
-                                </footer>
+                                    @endif
+                                    @if($canManageAll || $request->estado !== 'concluido')
+                                        <a href="{{ route('backoffice.technical_requests.edit', ['id' => $request->id, 'return_url' => url()->full()]) }}" class="btn btn-sm btn-outline-secondary">
+                                            <i class="fa fa-edit"></i> {{ __('Editar') }}
+                                        </a>
+                                    @endif
+                                    @if($canManageAll)
+                                        <a href="{{ route('backoffice.technical_requests.delete', array_merge(['id' => $request->id], request()->only(['page', 'q', 'codigo_loja', 'serial_number', 'estado', 'prioridade', 'zona', 'assigned_technician_id']))) }}"
+                                           onclick="return confirm('@lang('Tem a certeza que deseja apagar este pedido?')')"
+                                           class="btn btn-sm btn-outline-danger">
+                                            <i class="fa fa-trash"></i> {{ __('Apagar') }}
+                                        </a>
+                                    @endif
+                                </div>
                             </article>
                         @endforeach
                     </div>
