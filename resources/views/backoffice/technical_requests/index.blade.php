@@ -1540,40 +1540,36 @@
         }
     }
 
-    /* Cartões com mais cor: cada estado pinta o cartão inteiro */
-    .hotline-ticket { --tc: #2563eb; --tc-ink: #1e3a8a; --tc-soft: #eef4ff; --tc-chip: #e0ebff; --tc-line: #c7dafc; }
-    .hotline-ticket[data-state="pendente"] { --tc: #f59e0b; --tc-ink: #8a5300; --tc-soft: #fff6e0; --tc-chip: #ffecc2; --tc-line: #fbd98a; }
-    .hotline-ticket[data-state="agendado"] { --tc: #0ea5e9; --tc-ink: #075985; --tc-soft: #e6f6fe; --tc-chip: #ccecfc; --tc-line: #9fd8f5; }
-    .hotline-ticket[data-state="aguarda_peca"] { --tc: #ef4444; --tc-ink: #991b1b; --tc-soft: #fff0f0; --tc-chip: #ffdcdc; --tc-line: #fbb4b4; }
-    .hotline-ticket[data-state="concluido"] { --tc: #10b981; --tc-ink: #065f46; --tc-soft: #e9faf2; --tc-chip: #ccf3e2; --tc-line: #98e2c1; }
-    .hotline-ticket[data-state="cancelado"] { --tc: #64748b; --tc-ink: #334155; --tc-soft: #f3f5f8; --tc-chip: #e4e9ef; --tc-line: #cbd5e1; }
+    /* Cartões com mais cor: cada estado tem a sua cor de destaque */
+    .hotline-ticket { --tc: #6366f1; --tc-ink: #3730a3; --tc-soft: #f3f3ff; --tc-chip: #ebebff; --tc-line: #d9dafc; }
+    .hotline-ticket[data-state="pendente"] { --tc: #f97316; --tc-ink: #9a3412; --tc-soft: #fff5ee; --tc-chip: #ffedde; --tc-line: #fed7bd; }
+    .hotline-ticket[data-state="agendado"] { --tc: #8b5cf6; --tc-ink: #5b21b6; --tc-soft: #f7f3ff; --tc-chip: #efe8ff; --tc-line: #ddd0fd; }
+    .hotline-ticket[data-state="aguarda_peca"] { --tc: #e11d48; --tc-ink: #9f1239; --tc-soft: #fff1f4; --tc-chip: #ffe3ea; --tc-line: #fdc3d1; }
+    .hotline-ticket[data-state="concluido"] { --tc: #14b8a6; --tc-ink: #115e59; --tc-soft: #effcfa; --tc-chip: #d9f7f2; --tc-line: #a7ebe1; }
+    .hotline-ticket[data-state="cancelado"] { --tc: #64748b; --tc-ink: #334155; --tc-soft: #f6f8fa; --tc-chip: #eceff3; --tc-line: #d5dce4; }
 
-    .hotline-ticket {
-        background: linear-gradient(120deg, var(--tc-soft) 0%, #ffffff 45%, #ffffff 70%, var(--tc-soft) 100%);
-        border-color: var(--tc-line);
-    }
-    .hotline-ticket:hover { border-color: var(--tc); box-shadow: 0 22px 44px -12px color-mix(in srgb, var(--tc) 35%, transparent); }
-    .hotline-ticket::before { width: 9px; }
-    .hotline-ticket .hotline-store-title { color: var(--tc-ink); }
+    .hotline-ticket { background: radial-gradient(circle at 0 0, var(--tc-soft) 0, #fff 340px); border-color: var(--tc-line); }
+    .hotline-ticket:hover { border-color: var(--tc); }
+    .hotline-ticket::before, .hotline-ticket[data-state]::before { width: 6px; background: var(--tc); }
+    .hotline-ticket .hotline-store-title { color: #0f172a; }
     .hotline-ticket .hotline-section-label { color: var(--tc); }
     .hotline-ticket .hotline-meta { background: var(--tc-chip); color: var(--tc-ink); }
     .hotline-ticket .hotline-meta .fa { color: var(--tc); }
-    .hotline-ticket .hotline-meta-strong { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: #fff; border-color: transparent;
-                                           box-shadow: 0 8px 18px -10px rgba(79, 70, 229, .8); }
+    .hotline-ticket .hotline-meta-strong { background: #0f172a; color: #fff; border-color: #0f172a; }
     .hotline-ticket .hotline-meta-strong .fa { color: #fff; }
-    .hotline-ticket .hotline-address { color: var(--tc-ink); }
-    .hotline-ticket .hotline-status-badge { box-shadow: 0 6px 16px -8px var(--tc); }
-    .hotline-ticket .hotline-date-box { background: #fff; border-color: var(--tc-line); border-left: 4px solid var(--tc); }
-    .hotline-ticket .hotline-date-box strong { color: var(--tc-ink); }
-    .hotline-ticket .hotline-actions { background: linear-gradient(160deg, var(--tc-chip) 0%, var(--tc-soft) 100%); border-color: var(--tc-line); }
+    .hotline-ticket .hotline-status-badge { background: var(--tc) !important; color: #fff !important; }
+    .hotline-ticket .hotline-date-box { background: #fff; border-color: var(--tc-line); }
+    .hotline-ticket .hotline-date-box strong { color: var(--tc); }
+    .hotline-ticket .hotline-actions { background: var(--tc-soft); border-color: var(--tc-line); }
 
-    .hotline-ticket .hotline-actions .btn { border: 0; color: #fff; box-shadow: 0 6px 14px -8px rgba(15, 23, 42, .55); transition: transform .15s ease, filter .15s ease; }
-    .hotline-ticket .hotline-actions .btn:hover { transform: translateY(-1px); filter: brightness(1.08); color: #fff; }
-    .hotline-ticket .hotline-actions .btn-outline-primary { background: linear-gradient(135deg, #2563eb, #3b82f6); }
-    .hotline-ticket .hotline-actions .btn-outline-info { background: linear-gradient(135deg, #0891b2, #06b6d4); }
-    .hotline-ticket .hotline-actions .btn-outline-secondary { background: linear-gradient(135deg, #7c3aed, #a855f7); }
-    .hotline-ticket .hotline-actions .btn-outline-danger { background: #fff; color: #dc2626; box-shadow: inset 0 0 0 1.5px #fca5a5; }
-    .hotline-ticket .hotline-actions .btn-outline-danger:hover { background: #dc2626; color: #fff; }
+    .hotline-ticket .hotline-actions .btn { transition: transform .15s ease, background .15s ease, color .15s ease; }
+    .hotline-ticket .hotline-actions .btn:hover { transform: translateY(-1px); }
+    .hotline-ticket .hotline-actions .btn-outline-primary { background: #0f172a; border-color: #0f172a; color: #fff; }
+    .hotline-ticket .hotline-actions .btn-outline-primary:hover { background: #1e293b; color: #fff; }
+    .hotline-ticket .hotline-actions .btn-outline-info,
+    .hotline-ticket .hotline-actions .btn-outline-secondary { background: #fff; border-color: var(--tc-line); color: var(--tc-ink); }
+    .hotline-ticket .hotline-actions .btn-outline-info:hover,
+    .hotline-ticket .hotline-actions .btn-outline-secondary:hover { background: var(--tc); border-color: var(--tc); color: #fff; }
 </style>
 @endsection
 
