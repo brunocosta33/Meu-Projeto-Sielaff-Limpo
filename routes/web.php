@@ -396,7 +396,7 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
     Route::get('/dashboard/users/delete/{user}', [UsersController::class, 'delete'])->name('dashboard.users.delete')->middleware(['hasPermission:manage_users']);
     Route::get('/backoffice/dashboard/users/destroy/{user}', [UsersController::class, 'destroy'])->name('dashboard.users.destroy')->middleware(['hasPermission:manage_users']);
     Route::put('/backoffice/dashboard/users/{user}/locale', [UsersController::class, 'locale'])->name('user.locale')->middleware(['auth']);
-    Route::put('/backoffice/dashboard/users/{user}/password', [UsersController::class, 'password'])->name('user.password');
+    Route::put('/backoffice/dashboard/users/{user}/password', [ProfileController::class, 'changePassword'])->name('user.password');
     Route::get('/dashboard/users/pass/{user}', [UsersController::class, 'pass'])->name('dashboard.users.pass')->middleware(['hasPermission:manage_users']);
     Route::post('/dashboard/users/pass/store', [UsersController::class, 'passstore'])->name('dashboard.users.passstore')->middleware(['hasPermission:manage_users']);
 
@@ -416,8 +416,8 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
 
     Route::get('/backoffice/profile', [ProfileController::class, 'index'])->name('backoffice.profile.index');
     Route::get('/backoffice/myprofile', [ProfileController::class, 'myprofile'])->name('backoffice.myprofile.index');
-    Route::get('/backoffice/change-password', [UsersController::class, 'changePasswordForm'])->name('backoffice.profile.change-password');
-    Route::post('/backoffice/profile/change-password/save', [UsersController::class, 'changePassword'])->name('backoffice.profile.change-password.save');
+    Route::get('/backoffice/change-password', [ProfileController::class, 'changePasswordForm'])->name('backoffice.profile.change-password');
+    Route::post('/backoffice/profile/change-password/save', [ProfileController::class, 'changePassword'])->name('backoffice.profile.change-password.save');
 
     Route::get('/backoffice/configurations', [ConfigurationsController::class, 'index'])->name('backoffice.configurations.index')->middleware(['hasPermission:view_configurations']);
     Route::post('/backoffice/configurations/store', [ConfigurationsController::class, 'store'])->name('backoffice.configurations.store')->middleware(['hasPermission:manage_configurations']);

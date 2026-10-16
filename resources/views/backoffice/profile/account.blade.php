@@ -51,10 +51,9 @@
                             {{ __('Change Password') }}
                         </button>
                     </div>
-                    <div class="changePassword" @if($errors->isEmpty()) style="display: none" @endif>
-                        <form id="form-change-password" role="form" method="POST" action="{{ route('user.password', $user->id) }}" novalidate class="form-horizontal">
+                    <div class="changePassword" @if($errors->isEmpty() && !request('password')) style="display: none" @endif>
+                        <form id="form-change-password" role="form" method="POST" action="{{ route('backoffice.profile.change-password.save') }}" novalidate class="form-horizontal">
                             @csrf
-                            @method('PUT')
                             <div>             
                                 <label for="current-password" class="control-label">{{ __('Current Password') }}</label>
                                 <div>

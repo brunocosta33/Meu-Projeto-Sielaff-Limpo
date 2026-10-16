@@ -128,7 +128,8 @@ class UsersController extends Controller
 
     public function locale(Request $request, $user_id)
     {
-        $user = User::find($user_id);
+        // Só o próprio utilizador muda o seu idioma
+        $user = $request->user();
         $user->lang = $request->lang;
         $user->save();
 
@@ -146,22 +147,5 @@ class UsersController extends Controller
             else
                 echo $user->name . " is offline. Last seen: " . Carbon::parse($user->last_seen)->diffForHumans() . " <br>";
         }
-    }
-
-    public function password(Request $request, $user_id){
-
-        $validated = $request->validate([
-            'current' => ['required', new Old_Password],
-            'password' => 'required|min:8|string',
-            'password_confirmation' => 'required|min:8|string|same:password'
-        ]);
-
-        $user = User::find($user_id);
-        $user->password = bcrypt($request->password);
-        $user->save();
-
-        flash(__('Password successfully updated!'))->success();
-
-        return redirect()->back();
     }
 }
