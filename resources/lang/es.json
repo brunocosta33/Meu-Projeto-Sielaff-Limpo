@@ -1372,5 +1372,10 @@
     "Entrada em armazém": "Entrada en almacén",
     "Enviado para técnico": "Enviado al técnico",
     "Devolvido ao armazém": "Devuelto al almacén",
-    "Consumido": "Consumido"
+    "Consumido": "Consumido",
+    "Aberto em": "Abierto el",
+    "Máquina": "Máquina",
+    "Ordenados pela data de fecho.": "Ordenadas por fecha de cierre.",
+    "Tabela resumida, agrupada por técnico.": "Tabla resumida, agrupada por técnico.",
+    "Vista resumida, adaptada ao telemóvel.": "Vista resumida, adaptada al móvil."
 }
