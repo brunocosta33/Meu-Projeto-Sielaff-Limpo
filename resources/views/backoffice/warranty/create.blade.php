@@ -68,11 +68,17 @@
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label class="small font-weight-bold mb-1">{{ __('Máquina') }} <span class="text-muted font-weight-normal">({{ __('opcional') }})</span></label>
-                        <select name="machine_id" id="wc-machine" class="form-control" data-selected="{{ $prefillMachine }}">
-                            <option value="">—</option>
-                        </select>
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            <label class="small font-weight-bold mb-1">{{ __('Data da avaria') }}</label>
+                            <input type="date" name="data_avaria" class="form-control" value="{{ old('data_avaria', $technicalRequest ? \Carbon\Carbon::parse($technicalRequest->data_pedido)->toDateString() : now()->toDateString()) }}" max="{{ now()->toDateString() }}" required>
+                        </div>
+                        <div class="form-group col-md-8">
+                            <label class="small font-weight-bold mb-1">{{ __('Máquina') }} <span class="text-muted font-weight-normal">({{ __('opcional') }})</span></label>
+                            <select name="machine_id" id="wc-machine" class="form-control" data-selected="{{ $prefillMachine }}">
+                                <option value="">—</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="form-group">

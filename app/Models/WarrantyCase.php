@@ -11,13 +11,14 @@ class WarrantyCase extends Model
     public const OPEN_PHASES = ['registado', 'cotacao_pedida', 'cotacao_recebida', 'enviada_cliente', 'oc_recebida'];
 
     protected $fillable = [
-        'store_id', 'machine_id', 'technical_request_id', 'cliente', 'descricao', 'observacoes', 'fase', 'fase_desde',
+        'store_id', 'machine_id', 'technical_request_id', 'cliente', 'data_avaria', 'descricao', 'observacoes', 'fase', 'fase_desde',
         'cotacao_pedida_em', 'cotacao_numero', 'cotacao_recebida_em', 'cotacao_path', 'cotacao_nome',
         'enviada_cliente_em', 'enviada_para', 'oc_numero', 'oc_recebida_em', 'oc_path', 'oc_nome',
         'fechado_em', 'motivo_recusa', 'created_by', 'updated_by',
     ];
 
     protected $casts = [
+        'data_avaria' => 'date',
         'fase_desde' => 'date',
         'cotacao_pedida_em' => 'date',
         'cotacao_recebida_em' => 'date',

@@ -96,11 +96,11 @@ class WarrantyCaseController extends Controller
         $case = DB::transaction(function () use ($data, $request) {
             $case = WarrantyCase::create($data + [
                 'fase' => 'registado',
-                'fase_desde' => now()->toDateString(),
+                'fase_desde' => $data['data_avaria'],
                 'created_by' => auth()->id(),
                 'updated_by' => auth()->id(),
             ]);
-            $case->events()->create(['fase' => 'registado', 'data' => now()->toDateString(), 'user_id' => auth()->id()]);
+            $case->events()->create(['fase' => 'registado', 'data' => $data['data_avaria'], 'user_id' => auth()->id()]);
 
             return $case;
         });
@@ -131,9 +131,19 @@ class WarrantyCaseController extends Controller
     /** Corrigir os dados da avaria (loja, máquina, cliente, texto). */
     public function update(Request $request, $id)
     {
-        $case = WarrantyCase::findOrFail($id);
+        $case = WarrantyCase::with('events')->findOrFail($id);
         $data = $this->validateCase($request, $case);
-        $case->update($data + ['updated_by' => auth()->id()]);
+
+        // A data da avaria é o início do processo: não pode ficar depois do passo seguinte já registado
+        $nextStep = $case->events->get(1);
+        if ($nextStep && \Illuminate\Support\Carbon::parse($data['data_avaria'])->gt($nextStep->data)) {
+            throw ValidationException::withMessages(['data_avaria' => __('A data da avaria não pode ser posterior ao passo seguinte (:data).', ['data' => $nextStep->data->format('d/m/Y')])]);
+        }
+
+        DB::transaction(function () use ($case, $data) {
+            $case->update($data + ['updated_by' => auth()->id()] + ($case->fase === 'registado' ? ['fase_desde' => $data['data_avaria']] : []));
+            $case->events->first()?->update(['data' => $data['data_avaria']]);
+        });
         flash(__('Dados atualizados.'))->success();
 
         return back();
@@ -318,6 +328,7 @@ class WarrantyCaseController extends Controller
             'store_id' => ['required', 'exists:stores,id'],
             'machine_id' => ['nullable', Rule::exists('machines', 'id')->where('store_id', $request->input('store_id'))],
             'cliente' => ['required', Rule::in(array_keys(config('warranty.clients')))],
+            'data_avaria' => ['required', 'date', 'before_or_equal:today'],
             'descricao' => ['required', 'string', 'max:5000'],
             'observacoes' => ['nullable', 'string', 'max:5000'],
             'technical_request_id' => ['nullable', 'exists:technical_requests,id'],
@@ -325,6 +336,8 @@ class WarrantyCaseController extends Controller
             'store_id.required' => __('Escolha a loja.'),
             'cliente.required' => __('Escolha o cliente.'),
             'descricao.required' => __('Descreva o problema.'),
+            'data_avaria.required' => __('Indique a data da avaria.'),
+            'data_avaria.before_or_equal' => __('A data da avaria não pode ser no futuro.'),
             'machine_id.exists' => __('Essa máquina não pertence à loja escolhida.'),
         ]);
 

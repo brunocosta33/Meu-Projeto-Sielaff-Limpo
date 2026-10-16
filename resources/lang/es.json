@@ -1488,5 +1488,10 @@
     "{0} hoje|{1} há :count dia|[2,*] há :count dias": "{0} hoy|{1} hace :count día|[2,*] hace :count días",
     "À espera da cotação Sielaff": "Esperando el presupuesto de Sielaff",
     "À espera da ordem de compra": "Esperando la orden de compra",
-    "Último passo desfeito. O processo voltou a: :fase.": "Último paso deshecho. El expediente ha vuelto a: :fase."
+    "Último passo desfeito. O processo voltou a: :fase.": "Último paso deshecho. El expediente ha vuelto a: :fase.",
+    "A data da avaria não pode ser no futuro.": "La fecha de la avería no puede ser futura.",
+    "A data da avaria não pode ser posterior ao passo seguinte (:data).": "La fecha de la avería no puede ser posterior al paso siguiente (:data).",
+    "Avaria": "Avería",
+    "Data da avaria": "Fecha de la avería",
+    "Indique a data da avaria.": "Indique la fecha de la avería."
 }

@@ -2006,5 +2006,10 @@
     "{0} hoje|{1} há :count dia|[2,*] há :count dias": "{0} today|{1} :count day ago|[2,*] :count days ago",
     "À espera da cotação Sielaff": "Waiting for Sielaff quotation",
     "À espera da ordem de compra": "Waiting for purchase order",
-    "Último passo desfeito. O processo voltou a: :fase.": "Last step undone. The case is back at: :fase."
+    "Último passo desfeito. O processo voltou a: :fase.": "Last step undone. The case is back at: :fase.",
+    "A data da avaria não pode ser no futuro.": "The failure date cannot be in the future.",
+    "A data da avaria não pode ser posterior ao passo seguinte (:data).": "The failure date cannot be after the next step (:data).",
+    "Avaria": "Failure",
+    "Data da avaria": "Failure date",
+    "Indique a data da avaria.": "Enter the failure date."
 }

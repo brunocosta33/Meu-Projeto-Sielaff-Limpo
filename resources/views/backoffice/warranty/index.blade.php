@@ -105,7 +105,7 @@
                                     <span class="wc-client wc-client-{{ $case->cliente }}">{{ $case->clientLabel() }}</span>
                                     {{ $case->store->codigo_loja ?? '—' }} — {{ $case->store->nome_loja ?? '—' }}
                                     <small>
-                                        #{{ $case->id }} · {{ $case->created_at->format('d/m/Y') }}
+                                        #{{ $case->id }} · {{ __('Avaria') }} {{ optional($case->data_avaria)->format('d/m/Y') }}
                                         @if($case->machine) · <i class="fa fa-hashtag"></i>{{ $case->machine->serial_number }}@endif
                                     </small>
                                 </td>

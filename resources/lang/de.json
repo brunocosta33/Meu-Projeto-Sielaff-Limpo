@@ -2082,5 +2082,10 @@
   "{0} hoje|{1} há :count dia|[2,*] há :count dias": "{0} heute|{1} vor :count Tag|[2,*] vor :count Tagen",
   "À espera da cotação Sielaff": "Warten auf Sielaff-Angebot",
   "À espera da ordem de compra": "Warten auf Bestellung",
-  "Último passo desfeito. O processo voltou a: :fase.": "Letzter Schritt rückgängig gemacht. Der Vorgang ist zurück bei: :fase."
+  "Último passo desfeito. O processo voltou a: :fase.": "Letzter Schritt rückgängig gemacht. Der Vorgang ist zurück bei: :fase.",
+  "A data da avaria não pode ser no futuro.": "Das Schadensdatum darf nicht in der Zukunft liegen.",
+  "A data da avaria não pode ser posterior ao passo seguinte (:data).": "Das Schadensdatum darf nicht nach dem nächsten Schritt liegen (:data).",
+  "Avaria": "Schaden",
+  "Data da avaria": "Schadensdatum",
+  "Indique a data da avaria.": "Geben Sie das Schadensdatum an."
 }

@@ -133,6 +133,7 @@
                     <div class="alert alert-warning py-2 small mb-3"><strong>{{ __('Observações') }}:</strong> {{ $case->observacoes }}</div>
                 @endif
                 <dl class="wc-facts mb-0">
+                    <div><dt>{{ __('Data da avaria') }}</dt><dd>{{ optional($case->data_avaria)->format('d/m/Y') ?? '—' }}</dd></div>
                     <div><dt>{{ __('Máquina') }}</dt><dd>{{ $case->machine ? trim($case->machine->serial_number . ' ' . ($case->machine->descricao ? '— ' . $case->machine->descricao : '')) : '—' }}</dd></div>
                     <div><dt>{{ __('Criado por') }}</dt><dd>{{ $case->creator->name ?? '—' }} · {{ $case->created_at->format('d/m/Y') }}</dd></div>
                     @if($case->technicalRequest)
@@ -333,9 +334,15 @@
                         </select>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="small font-weight-bold mb-1">{{ __('Máquina') }}</label>
-                    <select name="machine_id" id="wc-edit-machine" class="form-control" data-selected="{{ $case->machine_id }}"><option value="">—</option></select>
+                <div class="form-row">
+                    <div class="form-group col-md-4">
+                        <label class="small font-weight-bold mb-1">{{ __('Data da avaria') }}</label>
+                        <input type="date" name="data_avaria" class="form-control" value="{{ optional($case->data_avaria)->toDateString() }}" max="{{ now()->toDateString() }}" required>
+                    </div>
+                    <div class="form-group col-md-8">
+                        <label class="small font-weight-bold mb-1">{{ __('Máquina') }}</label>
+                        <select name="machine_id" id="wc-edit-machine" class="form-control" data-selected="{{ $case->machine_id }}"><option value="">—</option></select>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label class="small font-weight-bold mb-1">{{ __('Problema') }}</label>

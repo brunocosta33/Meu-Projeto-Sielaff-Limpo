@@ -20,7 +20,7 @@ class WarrantyCasesExport implements FromCollection, WithHeadings, WithStyles
 
         return $this->query->with(['store', 'machine'])->orderBy('created_at')->get()->map(fn (WarrantyCase $c) => [
             $c->id,
-            $c->created_at?->format('d/m/Y'),
+            $date($c->data_avaria),
             $c->clientLabel(),
             trim(($c->store->codigo_loja ?? '') . ' - ' . ($c->store->nome_loja ?? ''), ' -'),
             $c->machine->serial_number ?? '',
@@ -40,7 +40,7 @@ class WarrantyCasesExport implements FromCollection, WithHeadings, WithStyles
     public function headings(): array
     {
         return [
-            __('Nº'), __('Criado em'), __('Cliente'), __('Loja'), __('Nº Série'), __('Problema'), __('Fase'),
+            __('Nº'), __('Data da avaria'), __('Cliente'), __('Loja'), __('Nº Série'), __('Problema'), __('Fase'),
             __('Cotação pedida'), __('Nº cotação'), __('Cotação recebida'), __('Enviada ao cliente'),
             __('Nº ordem de compra'), __('Ordem de compra recebida'), __('Fechado em'), __('Motivo da recusa'),
         ];
