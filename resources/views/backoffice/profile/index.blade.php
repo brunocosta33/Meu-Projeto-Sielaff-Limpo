@@ -21,16 +21,16 @@
                     <div class="row">
                         <div class="col mt-4">
                             <dl class="row">
-                                <dt class="col-3">Nome</dt>
+                                <dt class="col-3">{{ __('Nome') }}</dt>
                                 <dd class="col-9">{{$user->name}}</dd>
-                                <dt class="col-3">Email</dt>
+                                <dt class="col-3">{{ __('Email') }}</dt>
                                 <dd class="col-9">{{$user->email}}</dd>
                             </dl>
                         </div>
                     </div>
                     <hr>
                     <div class="ml-4">
-                        <a href="{{route('dashboard.profile.change-password')}}" class="btn btn-danger">Mudar Password</a>                      
+                        <a href="{{route('dashboard.profile.change-password')}}" class="btn btn-danger">{{ __('Mudar Password') }}</a>                      
                     </div>
                 </div>
             </div>

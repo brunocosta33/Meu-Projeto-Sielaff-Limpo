@@ -31,7 +31,7 @@
                         <div class="row">
                             <div class="col-6">
                                 <div class="form-group">
-                                    {!! Form::label('img-tag', 'Logo') !!}    
+                                    {!! Form::label('img-tag', __('Logo')) !!}    
                                     <ul id="media-list" class="clearfix">
                                         @if(!empty($logo))
                                             <li id="imgtmp" value="{{ $logo->id }}">
@@ -51,7 +51,7 @@
                             </div>
                             <div class="col-6">
                                 <div class="form-group">
-                                    {!! Form::label('img-tag', 'Background') !!}
+                                    {!! Form::label('img-tag', __('Background')) !!}
                                 	<ul id="media-list" class="clearfix-mobile">
 										@if(!empty($bg))
 											<li id="imgtmp-mobile" value="{{ $bg->id }}">
@@ -71,27 +71,27 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            {!! Form::label('text_about_pt', 'About Us PT') !!}
+                            {!! Form::label('text_about_pt', __('About Us PT')) !!}
                             {!! Form::textarea('text_about_pt',  $configurations->text_about_pt, ['class' => 'form-control']) !!}
                         </div>
                         <div class="form-group">
-                            {!! Form::label('text_about_en', 'About Us EN') !!}
+                            {!! Form::label('text_about_en', __('About Us EN')) !!}
                             {!! Form::textarea('text_about_en',  $configurations->text_about_en, ['class' => 'form-control']) !!}
                         </div>
                         <div class="form-group">
-                            {!! Form::label('text_termos_pt', 'Texto Termos e Condições PT') !!}
+                            {!! Form::label('text_termos_pt', __('Texto Termos e Condições PT')) !!}
                             {!! Form::textarea('text_termos_pt',  $configurations->text_termos_pt, ['class' => 'form-control']) !!}
                         </div>
                         <div class="form-group">
-                            {!! Form::label('text_termos_en', 'Texto Termos e Condições EN') !!}
+                            {!! Form::label('text_termos_en', __('Texto Termos e Condições EN')) !!}
                             {!! Form::textarea('text_termos_en',  $configurations->text_termos_en, ['class' => 'form-control']) !!}
                         </div>
                         <div class="form-group">
-                        {!! Form::label('text_rgpd_pt', 'Texto Rgpd e Politica de Privacidade PT') !!}
+                        {!! Form::label('text_rgpd_pt', __('Texto Rgpd e Politica de Privacidade PT')) !!}
                         {!! Form::textarea('text_rgpd_pt',  $configurations->text_rgpd_pt, ['class' => 'form-control']) !!}
                         </div>
                         <div class="form-group">
-                            {!! Form::label('text_rgpd_en', 'Texto Rgpd e Politica de Privacidade EN') !!}
+                            {!! Form::label('text_rgpd_en', __('Texto Rgpd e Politica de Privacidade EN')) !!}
                             {!! Form::textarea('text_rgpd_en',  $configurations->text_rgpd_en, ['class' => 'form-control']) !!}
                         </div>                      
                             <div style="display:flex; justify-content: flex-end">

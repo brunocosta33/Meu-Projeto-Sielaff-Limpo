@@ -98,7 +98,7 @@ class HrVacationController extends Controller
             'data_fim' => ['required', 'date', 'after_or_equal:data_inicio'],
             'observacoes' => ['nullable', 'string', 'max:1000'],
         ], [
-            'data_fim.after_or_equal' => 'A data de fim tem de ser igual ou posterior à data de início.',
+            'data_fim.after_or_equal' => __('A data de fim tem de ser igual ou posterior à data de início.'),
         ]);
 
         $staff = HrStaff::with('user')->findOrFail($data['hr_staff_id']);
@@ -107,26 +107,26 @@ class HrVacationController extends Controller
         $days = $this->workingDays->count($from, $to);
 
         if ($days === 0) {
-            throw ValidationException::withMessages(['data_inicio' => 'O período escolhido não tem dias úteis (só fins de semana ou feriados).']);
+            throw ValidationException::withMessages(['data_inicio' => __('O período escolhido não tem dias úteis (só fins de semana ou feriados).')]);
         }
 
         $overlap = HrVacation::active()->where('hr_staff_id', $staff->id)->overlapping($from, $to)->first();
         if ($overlap) {
             throw ValidationException::withMessages([
-                'data_inicio' => $staff->user->name . ' já tem férias marcadas de ' . $overlap->data_inicio->format('d/m') . ' a ' . $overlap->data_fim->format('d/m') . ' que se sobrepõem a este período.',
+                'data_inicio' => __(':nome já tem férias marcadas de :inicio a :fim que se sobrepõem a este período.', ['nome' => $staff->user->name, 'inicio' => $overlap->data_inicio->format('d/m'), 'fim' => $overlap->data_fim->format('d/m')]),
             ]);
         }
 
         $absence = HrAbsence::where('hr_staff_id', $staff->id)->overlapping($from, $to)->first();
         if ($absence) {
             throw ValidationException::withMessages([
-                'data_inicio' => $staff->user->name . ' tem uma falta registada a ' . $absence->data_inicio->format('d/m') . ' nesse período.',
+                'data_inicio' => __(':nome tem uma falta registada a :data nesse período.', ['nome' => $staff->user->name, 'data' => $absence->data_inicio->format('d/m')]),
             ]);
         }
 
         $approveNow = $request->boolean('aprovar');
         if ($approveNow && ($error = $this->approvalError())) {
-            flash($error . ' As férias ficaram pendentes.')->warning();
+            flash($error . ' ' . __('As férias ficaram pendentes.'))->warning();
             $approveNow = false;
         }
         HrVacation::create($data + [
@@ -140,11 +140,13 @@ class HrVacationController extends Controller
         foreach (range($from->year, $to->year) as $year) {
             $balance = $this->balances->forYear($staff, $year);
             if ($balance['disponiveis'] < 0) {
-                flash('Atenção: ' . $staff->user->name . ' fica com ' . $balance['disponiveis'] . ' dias de férias em ' . $year . ' (excede o total de ' . $balance['total'] . ').')->warning();
+                flash(__('Atenção: :nome fica com :dias dias de férias em :ano (excede o total de :total).', ['nome' => $staff->user->name, 'dias' => $balance['disponiveis'], 'ano' => $year, 'total' => $balance['total']]))->warning();
             }
         }
 
-        flash('Férias de ' . $staff->user->name . ' marcadas: ' . $days . ' dias úteis' . ($approveNow ? ' (aprovadas).' : ' (a aguardar aprovação).'))->success();
+        flash($approveNow
+            ? __('Férias de :nome marcadas: :dias dias úteis (aprovadas).', ['nome' => $staff->user->name, 'dias' => $days])
+            : __('Férias de :nome marcadas: :dias dias úteis (a aguardar aprovação).', ['nome' => $staff->user->name, 'dias' => $days]))->success();
 
         return redirect()->route('backoffice.hr.vacations.index', ['ano' => $from->year]);
     }
@@ -153,7 +155,7 @@ class HrVacationController extends Controller
     private function approvalError(): ?string
     {
         if (!HrStaff::canApproveVacations(auth()->user())) {
-            return 'Só quem tem a função ' . $this->approverNames() . ' pode aprovar ou rejeitar férias.';
+            return __('Só quem tem a função :funcoes pode aprovar ou rejeitar férias.', ['funcoes' => $this->approverNames()]);
         }
 
         return null;
@@ -161,7 +163,7 @@ class HrVacationController extends Controller
 
     private function approverNames(): string
     {
-        return implode(' ou ', array_map(fn ($f) => config('hr.functions.' . $f), config('hr.vacation_approver_functions', [])));
+        return implode(' ' . __('ou') . ' ', array_map(fn ($f) => __(config('hr.functions.' . $f)), config('hr.vacation_approver_functions', [])));
     }
 
     /** Faltas do ano por situação: dias úteis e horas (faltas de parte do dia). */
@@ -193,7 +195,7 @@ class HrVacationController extends Controller
 
         $vacation->update(['estado' => 'aprovado', 'motivo_rejeicao' => null, 'decided_by' => auth()->id(), 'decided_at' => now()]);
 
-        flash('Férias aprovadas.')->success();
+        flash(__('Férias aprovadas.'))->success();
         return back();
     }
 
@@ -212,7 +214,7 @@ class HrVacationController extends Controller
             'decided_at' => now(),
         ]);
 
-        flash('Férias rejeitadas.')->success();
+        flash(__('Férias rejeitadas.'))->success();
         return back();
     }
 
@@ -220,7 +222,7 @@ class HrVacationController extends Controller
     {
         HrVacation::findOrFail($id)->delete();
 
-        flash('Marcação de férias apagada.')->success();
+        flash(__('Marcação de férias apagada.'))->success();
         return back();
     }
 
@@ -238,7 +240,7 @@ class HrVacationController extends Controller
             ['dias_direito' => $data['dias_direito'], 'dias_transitados' => $data['dias_transitados']]
         );
 
-        flash('Dias de férias de ' . $staff->user->name . ' em ' . $data['ano'] . ' atualizados.')->success();
+        flash(__('Dias de férias de :nome em :ano atualizados.', ['nome' => $staff->user->name, 'ano' => $data['ano']]))->success();
         return back();
     }
 }

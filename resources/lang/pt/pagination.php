@@ -1,2 +1,6 @@
 <?php
-return ["next" => "Anterior &raquo;", "previous" => "&laquo; Próximo"];
+
+return [
+    'next' => 'Próximo &raquo;',
+    'previous' => '&laquo; Anterior',
+];

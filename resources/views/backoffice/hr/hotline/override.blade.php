@@ -1,6 +1,6 @@
 @extends('layouts.backoffice_master')
 
-@php(\Carbon\Carbon::setLocale('pt'))
+@php(\Carbon\Carbon::setLocale(app()->getLocale()))
 
 @section('head-meta')
     <title>{{ config('app.name') }} - {{ __('Substituição de Turno') }}</title>
@@ -43,7 +43,7 @@
                         <label>{{ __('Motivo') }}</label>
                         <select name="motivo" id="motivo" class="form-control" required>
                             @foreach(config('hr.override_reasons') as $key => $label)
-                                <option value="{{ $key }}" @selected(old('motivo', $override?->motivo) === $key)>{{ $label }}</option>
+                                <option value="{{ $key }}" @selected(old('motivo', $override?->motivo) === $key)>{{ __($label) }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -92,7 +92,7 @@
 
                 @if($override)
                     <form method="POST" action="{{ route('backoffice.hr.hotline.override.delete', $override->id) }}" class="mt-3"
-                          onsubmit="return confirm('Remover a substituição e repor a rotação normal neste dia?')">
+                          onsubmit="return confirm({{ json_encode(__('Remover a substituição e repor a rotação normal neste dia?')) }})">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-outline-danger btn-sm"><i class="fa fa-undo"></i> {{ __('Repor rotação normal') }}</button>

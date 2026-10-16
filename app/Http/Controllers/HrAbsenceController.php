@@ -33,7 +33,7 @@ class HrAbsenceController extends Controller
         $absence->save();
         $this->storeDocument($request, $absence);
 
-        flash('Falta de ' . $staff->user->name . ' registada (' . $absence->duracao . ', ' . mb_strtolower($absence->situacao_label) . ').')->success();
+        flash(__('Falta de :nome registada (:duracao, :situacao).', ['nome' => $staff->user->name, 'duracao' => $absence->duracao, 'situacao' => mb_strtolower($absence->situacao_label)]))->success();
 
         return redirect()->route('backoffice.hr.vacations.index', ['ano' => $absence->data_inicio->year]);
     }
@@ -61,7 +61,7 @@ class HrAbsenceController extends Controller
         $absence->save();
         $this->storeDocument($request, $absence);
 
-        flash('Falta atualizada.')->success();
+        flash(__('Falta atualizada.'))->success();
 
         return redirect()->route('backoffice.hr.vacations.index', ['ano' => $absence->data_inicio->year]);
     }
@@ -73,14 +73,14 @@ class HrAbsenceController extends Controller
         $situacao = $request->validate(['situacao' => ['required', Rule::in(['justificada', 'injustificada'])]])['situacao'];
 
         if ($situacao === 'justificada' && $absence->motivo === 'sem_motivo') {
-            flash('Para justificar, edite a falta e escolha o motivo.')->warning();
+            flash(__('Para justificar, edite a falta e escolha o motivo.'))->warning();
             return back();
         }
 
         $this->applyDecision($absence, $situacao);
         $absence->save();
 
-        flash('Falta marcada como ' . mb_strtolower($absence->situacao_label) . '.')->success();
+        flash(__('Falta marcada como :situacao.', ['situacao' => mb_strtolower($absence->situacao_label)]))->success();
         return back();
     }
 
@@ -92,7 +92,7 @@ class HrAbsenceController extends Controller
         }
         $absence->delete();
 
-        flash('Falta apagada.')->success();
+        flash(__('Falta apagada.'))->success();
         return back();
     }
 
@@ -114,7 +114,7 @@ class HrAbsenceController extends Controller
             $absence->update(['documento_path' => null, 'documento_nome' => null]);
         }
 
-        flash('Comprovativo removido.')->success();
+        flash(__('Comprovativo removido.'))->success();
         return back();
     }
 
@@ -141,15 +141,15 @@ class HrAbsenceController extends Controller
 
                 $event = $showReason
                     ? [
-                        'title' => 'Falta – ' . $name,
+                        'title' => __('Falta') . ' – ' . $name,
                         'color' => $a->situacao_color,
                         'description' => $a->motivo_label . ' · ' . $a->situacao_label . ' · ' . $a->duracao
-                            . ($a->situacao === 'justificada' && !$a->documento_path ? ' · sem comprovativo' : ''),
+                            . ($a->situacao === 'justificada' && !$a->documento_path ? ' · ' . __('sem comprovativo') : ''),
                     ]
                     : [
-                        'title' => 'Ausente – ' . $name,
+                        'title' => __('Ausente') . ' – ' . $name,
                         'color' => '#78909c',
-                        'description' => 'Ausente · ' . $a->duracao,
+                        'description' => __('Ausente') . ' · ' . $a->duracao,
                     ];
                 $event += [
                     'url' => $canEdit ? route('backoffice.hr.absences.edit', $a->id) : null,
@@ -175,13 +175,14 @@ class HrAbsenceController extends Controller
             ->overlapping($from->toDateString(), $to->toDateString())
             ->get()
             ->map(fn (HrVacation $v) => [
-                'title' => 'Férias – ' . ($v->staff->user->name ?? '—'),
+                'title' => __('Férias') . ' – ' . ($v->staff->user->name ?? '—'),
                 'color' => '#0288d1',
                 'start' => $v->data_inicio->toDateString(),
                 'end' => $v->data_fim->copy()->addDay()->toDateString(),
                 'allDay' => true,
                 'ausencia' => true,
-                'description' => 'Férias · ' . $v->dias_uteis . ' ' . ($v->dias_uteis === 1 ? 'dia útil' : 'dias úteis'),
+                'ferias' => true,
+                'description' => __('Férias') . ' · ' . $v->dias_uteis . ' ' . ($v->dias_uteis === 1 ? __('dia útil') : __('dias úteis')),
             ]);
 
         return response()->json($absences->concat($vacations)->values());
@@ -200,13 +201,13 @@ class HrAbsenceController extends Controller
             'observacoes' => ['nullable', 'string', 'max:2000'],
             'documento' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,heic,doc,docx', 'max:10240'],
         ], [
-            'data_fim.after_or_equal' => 'A data de fim tem de ser igual ou posterior à data de início.',
-            'hora_fim.after' => 'A hora de fim tem de ser depois da hora de início.',
-            'documento.max' => 'O comprovativo não pode ter mais de 10 MB.',
+            'data_fim.after_or_equal' => __('A data de fim tem de ser igual ou posterior à data de início.'),
+            'hora_fim.after' => __('A hora de fim tem de ser depois da hora de início.'),
+            'documento.max' => __('O comprovativo não pode ter mais de 10 MB.'),
         ]);
 
         if ($data['situacao'] === 'justificada' && $data['motivo'] === 'sem_motivo') {
-            throw ValidationException::withMessages(['motivo' => 'Para marcar como justificada, escolha o motivo da falta.']);
+            throw ValidationException::withMessages(['motivo' => __('Para marcar como justificada, escolha o motivo da falta.')]);
         }
 
         $from = Carbon::parse($data['data_inicio']);
@@ -215,7 +216,7 @@ class HrAbsenceController extends Controller
         // Falta de parte do dia: só num dia, conta horas em vez de dias
         if (!empty($data['hora_inicio'])) {
             if (!$from->isSameDay($to)) {
-                throw ValidationException::withMessages(['hora_inicio' => 'Uma falta de algumas horas tem de ser num único dia.']);
+                throw ValidationException::withMessages(['hora_inicio' => __('Uma falta de algumas horas tem de ser num único dia.')]);
             }
             $data['dias_uteis'] = 0;
             $data['horas'] = round(Carbon::parse($data['hora_inicio'])->diffInMinutes(Carbon::parse($data['hora_fim'])) / 60, 2);
@@ -223,7 +224,7 @@ class HrAbsenceController extends Controller
             $data['hora_inicio'] = $data['hora_fim'] = $data['horas'] = null;
             $data['dias_uteis'] = $this->workingDays->count($from, $to);
             if ($data['dias_uteis'] === 0) {
-                throw ValidationException::withMessages(['data_inicio' => 'O período escolhido não tem dias úteis (só fins de semana ou feriados).']);
+                throw ValidationException::withMessages(['data_inicio' => __('O período escolhido não tem dias úteis (só fins de semana ou feriados).')]);
             }
         }
 
@@ -243,14 +244,14 @@ class HrAbsenceController extends Controller
             ->first();
         if ($other) {
             throw ValidationException::withMessages([
-                'data_inicio' => $staff->user->name . ' já tem uma falta registada de ' . $other->data_inicio->format('d/m') . ' a ' . $other->data_fim->format('d/m') . '.',
+                'data_inicio' => __(':nome já tem uma falta registada de :inicio a :fim.', ['nome' => $staff->user->name, 'inicio' => $other->data_inicio->format('d/m'), 'fim' => $other->data_fim->format('d/m')]),
             ]);
         }
 
         $vacation = HrVacation::active()->where('hr_staff_id', $staff->id)->overlapping($from, $to)->first();
         if ($vacation) {
             throw ValidationException::withMessages([
-                'data_inicio' => $staff->user->name . ' tem férias marcadas de ' . $vacation->data_inicio->format('d/m') . ' a ' . $vacation->data_fim->format('d/m') . ' nesse período.',
+                'data_inicio' => __(':nome tem férias marcadas de :inicio a :fim nesse período.', ['nome' => $staff->user->name, 'inicio' => $vacation->data_inicio->format('d/m'), 'fim' => $vacation->data_fim->format('d/m')]),
             ]);
         }
     }

@@ -656,7 +656,7 @@
                                             </td>
                                             <td data-label="{{ __('Região') }}">
                                                 @if($technicalRequest->zona)
-                                                    <span class="open-zone-pill zone-{{ $technicalRequest->zona }}">{{ ucfirst($technicalRequest->zona) }}</span>
+                                                    <span class="open-zone-pill zone-{{ $technicalRequest->zona }}">{{ $zones[$technicalRequest->zona] ?? ucfirst($technicalRequest->zona) }}</span>
                                                 @else
                                                     -
                                                 @endif
@@ -670,7 +670,7 @@
                                             <td class="open-col-priority" data-label="{{ __('Prioridade') }}">
                                                 @if($technicalRequest->prioridade)
                                                     <span class="open-priority-badge priority-{{ $technicalRequest->prioridade }}">
-                                                        {{ ucfirst($technicalRequest->prioridade) }}
+                                                        {{ $priorities[$technicalRequest->prioridade] ?? ucfirst($technicalRequest->prioridade) }}
                                                     </span>
                                                 @else
                                                     -

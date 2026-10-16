@@ -31,7 +31,7 @@
                         <div class="row"  style="display: flex">
                             <div class="col-6">
                                 <div class="form-group">
-                                    {!! Form::label('img-tag', 'Logo') !!}
+                                    {!! Form::label('img-tag', __('Logo')) !!}
                                     <ul id="media-list" class="clearfix">
                                         @if(!empty($logo))
                                             <li id="imgtmp" value="{{ $logo->id }}">
@@ -50,7 +50,7 @@
                             </div>
                             <div class="col-6">
                                 <div class="form-group">
-                                    {!! Form::label('img-tag', 'Background') !!}
+                                    {!! Form::label('img-tag', __('Background')) !!}
                                 	<ul id="media-list" class="clearfix-mobile">
 										@if(!empty($bg))
 											<li id="imgtmp-mobile" value="{{ $bg->id }}">

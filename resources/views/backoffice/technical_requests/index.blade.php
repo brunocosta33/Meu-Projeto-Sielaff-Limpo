@@ -1748,7 +1748,7 @@
                             @if($canManageAll)
                                 <div class="col-md-6 col-xl-3 mb-3 hotline-mobile-secondary-filter">
                                     <label for="assigned_technician_id">{{ __('Técnico') }}</label>
-                                    <select name="assigned_technician_id" id="assigned_technician_id" class="form-control selectpicker" data-live-search="true" title="{{ __('Todos') }}">
+                                    <select name="assigned_technician_id" id="assigned_technician_id" class="form-control selectpicker" data-live-search="true" data-none-results-text="{{ __('Sem resultados para :term', ['term' => '{0}']) }}" title="{{ __('Todos') }}">
                                         <option value="">{{ __('Todos') }}</option>
                                         <option value="unassigned" {{ request('assigned_technician_id') === 'unassigned' ? 'selected' : '' }}>{{ __('Por atribuir') }}</option>
                                         @foreach($technicians as $technician)
@@ -1765,7 +1765,7 @@
                             </div>
                             <div class="col-md-6 col-xl-3 mb-3 hotline-mobile-secondary-filter">
                                 <label for="estado">{{ __('Estado') }}</label>
-                                <select name="estado[]" id="estado" class="form-control selectpicker" multiple data-actions-box="true" data-selected-text-format="count > 2" title="{{ __('Selecionar estados') }}">
+                                <select name="estado[]" id="estado" class="form-control selectpicker" multiple data-actions-box="true" data-selected-text-format="count > 2" data-select-all-text="{{ __('Selecionar todos') }}" data-deselect-all-text="{{ __('Desmarcar todos') }}" data-count-selected-text="{{ __(':count selecionados', ['count' => '{0}']) }}" title="{{ __('Selecionar estados') }}">
                                     @foreach($statuses as $value => $label)
                                         <option value="{{ $value }}" {{ in_array($value, (array) request('estado')) ? 'selected' : '' }}>
                                             {{ __($label) }}
@@ -1798,7 +1798,7 @@
                             <span class="hotline-filter-chip"><i class="fa fa-hashtag"></i> {{ request('serial_number') }}</span>
                         @endif
                         @if(request('prioridade'))
-                            <span class="hotline-filter-chip"><i class="fa fa-flag"></i> {{ ucfirst(request('prioridade')) }}</span>
+                            <span class="hotline-filter-chip"><i class="fa fa-flag"></i> {{ $priorities[request('prioridade')] ?? ucfirst(request('prioridade')) }}</span>
                         @endif
                         @if(request('zona'))
                             <span class="hotline-filter-chip"><i class="fa fa-map-marker-alt"></i> {{ $zones[request('zona')] ?? request('zona') }}</span>
@@ -1828,7 +1828,7 @@
                                         </div>
                                         @if($request->zona)
                                             <div class="hotline-zone-line">
-                                                <span class="hotline-zone-badge zone-{{ $request->zona }}">{{ ucfirst($request->zona) }}</span>
+                                                <span class="hotline-zone-badge zone-{{ $request->zona }}">{{ $zones[$request->zona] ?? ucfirst($request->zona) }}</span>
                                             </div>
                                         @endif
                                         @if(($request->store->morada ?? null) || ($request->store->cidade ?? null) || ($request->store->codigo_postal ?? null))
@@ -1857,7 +1857,7 @@
                                             {{ $request->assignedPersonTypeLabel() }}: {{ $request->assignedPersonLabel() }}
                                         </span>
                                     </div>
-                                    <div class="hotline-snippet">{{ Str::limit($request->descricao_problema ?: 'Sem descrição.', 180) }}</div>
+                                    <div class="hotline-snippet">{{ Str::limit($request->descricao_problema ?: __('Sem descrição.'), 180) }}</div>
                                     @if($request->files->count())
                                         <div class="hotline-files-preview">
                                             <span class="hotline-files-label">
@@ -1901,7 +1901,7 @@
                                             @case('aguarda_peca') bg-danger text-white @break
                                             @default bg-light
                                         @endswitch">
-                                        {{ ucfirst(str_replace('_', ' ', $request->estado)) }}
+                                        {{ $statuses[$request->estado] ?? ucfirst(str_replace('_', ' ', $request->estado)) }}
                                     </span>
                                     <div class="hotline-section-label">{{ __('Prioridade') }}</div>
                                     <span class="badge 
@@ -1911,7 +1911,7 @@
                                             @case('alta') bg-danger text-white @break
                                             @default bg-light
                                         @endswitch">
-                                        {{ ucfirst($request->prioridade) }}
+                                        {{ $priorities[$request->prioridade] ?? ucfirst($request->prioridade) }}
                                     </span>
                                     @if($request->observacoes)
                                         <div class="hotline-note-highlight">

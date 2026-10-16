@@ -10,7 +10,7 @@ class LanguageController extends Controller
 {
     public function languageSwitch(Request $request)
     {
-        $supportedLocales = ['pt', 'en', 'de'];
+        $supportedLocales = ['pt', 'en', 'de', 'es'];
         $language = strtolower((string) $request->input('language', config('app.locale')));
 
         if (! in_array($language, $supportedLocales, true)) {

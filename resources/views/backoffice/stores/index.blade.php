@@ -514,12 +514,12 @@
                                     @if($canManageStores ?? true)
                                         <td class="text-right">
                                             <div class="stores-actions">
-                                                <a href="{{ route('backoffice.stores.edit', $store->id) }}" class="btn btn-sm btn-outline-primary" title="Editar">
+                                                <a href="{{ route('backoffice.stores.edit', $store->id) }}" class="btn btn-sm btn-outline-primary" title="{{ __('Editar') }}">
                                                     <i class="fa fa-edit"></i>
                                                 </a>
                                                 <a href="{{ route('backoffice.stores.delete', $store->id) }}"
-                                                   onclick="return confirm('Tem a certeza que deseja apagar esta loja?')"
-                                                   class="btn btn-sm btn-outline-danger" title="Apagar">
+                                                   onclick="return confirm(@js(__('Tem a certeza que deseja apagar esta loja?')))"
+                                                   class="btn btn-sm btn-outline-danger" title="{{ __('Apagar') }}">
                                                     <i class="fa fa-trash"></i>
                                                 </a>
                                             </div>

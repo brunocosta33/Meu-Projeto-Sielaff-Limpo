@@ -2,7 +2,7 @@
 
 @section('head-meta')
 
-    <title>{{ str_replace('.', ' ', config('app.name')) }} - Email de Boas-Vindas</title>
+    <title>{{ str_replace('.', ' ', config('app.name')) }} - {{ __('Email de Boas-Vindas') }}</title>
     <link rel="stylesheet" href="{{URL::asset('css/style.css')}}">
 
 @endsection
@@ -21,7 +21,7 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-5">
-                        <h5 class="card-title" style="margin-bottom: 30px;">Definir Email de Boas-Vindas</h5>
+                        <h5 class="card-title" style="margin-bottom: 30px;">{{ __('Definir Email de Boas-Vindas') }}</h5>
                     </div>
                 </div>
 
@@ -30,14 +30,14 @@
                         {!! Form::open(['route' => ['backoffice.returnText.store']]) !!}
                         {{ csrf_field() }}
                         <div class="form-group">
-                            {!! Form::label('return_text', 'Email PT') !!}
+                            {!! Form::label('return_text', __('Email PT')) !!}
                             <div class="textwrapper-evaluation-text-area">
                                 <textarea name="return_text" id="return_text" class="evaluation-text-area" cols="10" rows="5"> {!! $text->first() ? $text[0]->response_text : '' !!}</textarea>
                             </div>
                         </div>
                         <div class="row" style="height: 50px;"></div>
                         <div class="form-group">
-                            {!! Form::label('return_text_en', 'Email EN') !!}
+                            {!! Form::label('return_text_en', __('Email EN')) !!}
                             <div class="textwrapper-evaluation-text-area">
                                 <textarea name="return_text_en" id="return_text_en" class="evaluation-text-area" cols="10" rows="5"> {!! $text->first() ? $text[0]->response_text_en : '' !!}</textarea>
                             </div>
@@ -45,9 +45,9 @@
                         <div>
                             <a class="btn btn-outline-secondary" href="{!! URL::previous() !!}">
                                 <span class="fa fa-arrow-left"></span>
-                                &nbsp; Voltar
+                                &nbsp; {{ __('Voltar') }}
                             </a>
-                            {!! Form::button('<i class="fa fa-save"></i> Gravar', array('type' => 'submit', 'class' => 'btn btn-outline-secondary')) !!}
+                            {!! Form::button('<i class="fa fa-save"></i> ' . __('Gravar'), array('type' => 'submit', 'class' => 'btn btn-outline-secondary')) !!}
                             {!! Form::close() !!}
                         </div>
                     </div>

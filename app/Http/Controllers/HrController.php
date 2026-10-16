@@ -44,7 +44,7 @@ class HrController extends Controller
     {
         $this->authorizeStaff();
         HrStaff::create($this->validateStaff($request));
-        flash('Colaborador adicionado com sucesso!')->success();
+        flash(__('Colaborador adicionado com sucesso!'))->success();
         return redirect()->route('backoffice.hr.staff.index');
     }
 
@@ -60,7 +60,7 @@ class HrController extends Controller
         $this->authorizeStaff();
         $member = HrStaff::findOrFail($id);
         $member->update($this->validateStaff($request, $member));
-        flash('Colaborador atualizado com sucesso!')->success();
+        flash(__('Colaborador atualizado com sucesso!'))->success();
         return redirect()->route('backoffice.hr.staff.index');
     }
 
@@ -68,13 +68,13 @@ class HrController extends Controller
     {
         $this->authorizeStaff();
         HrStaff::findOrFail($id)->delete();
-        flash('Colaborador removido com sucesso!')->success();
+        flash(__('Colaborador removido com sucesso!'))->success();
         return redirect()->route('backoffice.hr.staff.index');
     }
 
     private function authorizeStaff(): void
     {
-        abort_unless(HrStaff::canManageStaff(auth()->user()), 403, 'Só o Coordenador e o Country Manager podem ver os Colaboradores.');
+        abort_unless(HrStaff::canManageStaff(auth()->user()), 403, __('Só o Coordenador e o Country Manager podem ver os Colaboradores.'));
     }
 
     private function validateStaff(Request $request, ?HrStaff $member = null): array
@@ -85,13 +85,13 @@ class HrController extends Controller
             'rotation_group' => ['nullable', 'required_if:funcao,hotliner', Rule::in(['A', 'B'])],
             'zona' => ['nullable', Rule::in(array_keys(config('hr.zones')))],
         ], [
-            'funcao.required' => 'Escolha a função do colaborador.',
-            'rotation_group.required_if' => 'Escolha o grupo de rotação do hotliner.',
+            'funcao.required' => __('Escolha a função do colaborador.'),
+            'rotation_group.required_if' => __('Escolha o grupo de rotação do hotliner.'),
         ]);
 
         // Técnico no piquete: precisa de grupo (sábado A/B) e zona (Norte/Sul)
         if ($data['funcao'] === 'tecnico' && !empty($data['rotation_group']) && empty($data['zona'])) {
-            throw ValidationException::withMessages(['zona' => 'Escolha a zona (Norte ou Sul) do técnico de piquete.']);
+            throw ValidationException::withMessages(['zona' => __('Escolha a zona (Norte ou Sul) do técnico de piquete.')]);
         }
 
         $data['ativo'] = $request->boolean('ativo');
@@ -135,7 +135,7 @@ class HrController extends Controller
         $legend = $hotliners->map(fn ($s) => [
             'name' => $s->user->name,
             'group' => $s->rotation_group,
-            'zona' => config('hr.zones.' . $s->zona),
+            'zona' => $s->zona ? __(config('hr.zones.' . $s->zona)) : null,
             'color' => $colors[$s->id],
         ]);
 
@@ -211,6 +211,8 @@ class HrController extends Controller
             'classNames' => $s->override ? ['fc-duty-override'] : [],
             'url' => $canEdit ? route('backoffice.hr.hotline.override.create', ['staff' => $s->staff->id, 'data' => $s->date->toDateString()]) : null,
             'funcao' => $s->funcao,
+            'escala' => $s->kind,
+            'semSubstituto' => $s->worker_id === null,
             'nome' => $s->name . ($s->zona ? ' · ' . $s->zona : ''),
             'horario' => $s->hours,
             'substituicao' => $noteOf($s),
@@ -226,8 +228,8 @@ class HrController extends Controller
             'staff' => ['required', 'exists:hr_staff,id'],
             'data' => ['required', 'date'],
         ], [
-            'staff.required' => 'Escolha de quem é o turno a trocar.',
-            'data.required' => 'Escolha o dia.',
+            'staff.required' => __('Escolha de quem é o turno a trocar.'),
+            'data.required' => __('Escolha o dia.'),
         ]);
 
         $staff = HrStaff::with('user')->findOrFail($request->staff);
@@ -235,7 +237,7 @@ class HrController extends Controller
         $shift = $this->rotation->scheduledShift($staff, $date);
 
         if (!$shift) {
-            flash($staff->user->name . ' não tem turno a ' . $date->format('d/m/Y') . ', não há nada para trocar nesse dia.')->warning();
+            flash(__(':nome não tem turno a :data, não há nada para trocar nesse dia.', ['nome' => $staff->user->name, 'data' => $date->format('d/m/Y')]))->warning();
             return $this->scheduleRedirect($staff, $date);
         }
 
@@ -264,7 +266,7 @@ class HrController extends Controller
             'observacoes' => ['nullable', 'string'],
             'devolucao_data' => ['nullable', 'date', 'different:data'],
         ], [
-            'devolucao_data.different' => 'O dia de devolução tem de ser diferente do dia trocado.',
+            'devolucao_data.different' => __('O dia de devolução tem de ser diferente do dia trocado.'),
         ]);
 
         $staff = HrStaff::with('user')->findOrFail($data['hr_staff_id']);
@@ -277,11 +279,11 @@ class HrController extends Controller
         if ($returnDate) {
             $returnStaff = $this->sameScheduleStaff($staff)->firstWhere('user_id', (int) ($data['substitute_user_id'] ?? 0));
             if (!$returnStaff) {
-                throw ValidationException::withMessages(['devolucao_data' => 'A devolução só é possível quando a troca é feita com um colega da mesma escala.']);
+                throw ValidationException::withMessages(['devolucao_data' => __('A devolução só é possível quando a troca é feita com um colega da mesma escala.')]);
             }
             if (!$this->rotation->scheduledShift($returnStaff, $returnDate)) {
                 throw ValidationException::withMessages([
-                    'devolucao_data' => $returnStaff->user->name . ' está de folga a ' . $returnDate->format('d/m/Y') . ', escolha um dia em que tenha turno.',
+                    'devolucao_data' => __(':nome está de folga a :data, escolha um dia em que tenha turno.', ['nome' => $returnStaff->user->name, 'data' => $returnDate->format('d/m/Y')]),
                 ]);
             }
         }
@@ -303,11 +305,13 @@ class HrController extends Controller
                     'created_by' => auth()->id(),
                 ]
             );
-            flash('Troca gravada: ' . $returnStaff->user->name . ' faz o dia ' . $date->format('d/m')
-                . ' e ' . $staff->user->name . ' faz o dia ' . $returnDate->format('d/m') . '.')->success();
+            flash(__('Troca gravada: :nome faz o dia :data e :outro faz o dia :devolucao.', [
+                'nome' => $returnStaff->user->name, 'data' => $date->format('d/m'),
+                'outro' => $staff->user->name, 'devolucao' => $returnDate->format('d/m'),
+            ]))->success();
         } else {
             $this->warnIfSubstituteBusy($data['substitute_user_id'] ?? null, $date, $staff);
-            flash('Substituição gravada com sucesso!')->success();
+            flash(__('Substituição gravada com sucesso!'))->success();
         }
 
         return $this->scheduleRedirect($staff, $date);
@@ -318,7 +322,7 @@ class HrController extends Controller
         $override = HrShiftOverride::with('staff')->findOrFail($id);
         $override->delete();
 
-        flash('Substituição removida. O dia volta à rotação normal.')->success();
+        flash(__('Substituição removida. O dia volta à rotação normal.'))->success();
         return $this->scheduleRedirect($override->staff, $override->data);
     }
 
@@ -350,7 +354,7 @@ class HrController extends Controller
         $ownOverride = HrShiftOverride::where('hr_staff_id', $other->id)->whereDate('data', $date)->exists();
 
         if ($ownShift && !$ownOverride) {
-            flash('Atenção: o substituto já tem turno próprio nesse dia (' . HotlineRotation::formatHours($ownShift) . ').')->warning();
+            flash(__('Atenção: o substituto já tem turno próprio nesse dia (:horas).', ['horas' => HotlineRotation::formatHours($ownShift)]))->warning();
         }
     }
 }

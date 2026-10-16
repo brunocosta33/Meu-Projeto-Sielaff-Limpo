@@ -39,7 +39,7 @@
                                     <i class="fas fa-tasks me-2 text-primary"></i>{{ $task->title }}
                                     @if($task->schedules && $task->schedules->count() > 0)
                                         <span class="badge ms-4 px-3 py-2" style="background: #ff9800; color: #fff; font-weight: bold; font-size: 1em; letter-spacing: 0.5px; vertical-align: middle; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
-                                            <i class="fas fa-calendar-check me-1"></i> Agendada
+                                            <i class="fas fa-calendar-check me-1"></i> {{ __('Agendada') }}
                                         </span>
                                     @endif
                                 </span>
@@ -49,18 +49,18 @@
                                     <a href="{{ route('backoffice.tasks.edit', $task->id) }}"
                                        class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm"
                                        title="{{ __('Editar') }}">
-                                        <i class="fas fa-pencil-alt"></i> Editar
+                                        <i class="fas fa-pencil-alt"></i> {{ __('Editar') }}
                                     </a>
                                     <form method="POST"
                                           action="{{ route('backoffice.tasks.destroy', $task->id) }}"
                                           style="display:inline"
-                                          onsubmit="return confirm('Tem a certeza que quer apagar esta tarefa?');">
+                                          onsubmit="return confirm(@js(__('Tem a certeza que quer apagar esta tarefa?')));">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit"
                                                 class="btn btn-outline-danger btn-sm rounded-pill px-3 shadow-sm"
                                                 title="{{ __('Apagar') }}">
-                                            <i class="fas fa-trash-alt"></i> Apagar
+                                            <i class="fas fa-trash-alt"></i> {{ __('Apagar') }}
                                         </button>
                                     </form>
                                 </div>

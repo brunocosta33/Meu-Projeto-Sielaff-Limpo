@@ -51,7 +51,7 @@
                     </div>
                 <div class="col-3 form-group flex-fill">
                     <label class="mb-2"><strong>{{ __('Prioridade') }}</strong></label>
-                    <span class="detalhe-badge prioridade-{{ strtolower($schedule->prioridade) }}">{{ $schedule->prioridade }}</span>
+                    <span class="detalhe-badge prioridade-{{ strtolower($schedule->prioridade) }}">{{ __($schedule->prioridade) }}</span>
                 </div>
                 <div class="col-3 form-group flex-fill">
                     <label class="mb-2"><strong>{{ __('Tarefa Grupo') }}</strong></label>
@@ -61,7 +61,7 @@
             <div class="d-flex flex-wrap gap-2 text-center mb-3">
                 <div class="col-4 form-group flex-fill">
                     <label class="mb-2"><strong>{{ __('Estado da Tarefa') }}</strong></label>
-                    <span class="detalhe-badge estado-{{ strtolower($pivot->estado ?? 'pendente') }}">{{ $pivot->estado ?? '-' }}</span>
+                    <span class="detalhe-badge estado-{{ strtolower($pivot->estado ?? 'pendente') }}">{{ $pivot->estado ? __($pivot->estado) : '-' }}</span>
                 </div>
                 <div class="col-4 form-group flex-fill">
                     <label class="mb-2"><strong>{{ __('Data Conclusão') }}</strong></label>
@@ -90,7 +90,7 @@
             <div class="col-md-7 col-lg-6">
                 <div class="form-group my-4">
                 <label class="mb-2"><strong>{{ __('Prioridade') }}</strong></label>
-                    <input type="text" class="form-control" value="{{ $schedule->prioridade }}" readonly>
+                    <input type="text" class="form-control" value="{{ __($schedule->prioridade) }}" readonly>
                 </div>
                 <div class="form-group my-4">
                 <label class="mb-2"><strong>{{ __('Tarefa') }}</strong></label>

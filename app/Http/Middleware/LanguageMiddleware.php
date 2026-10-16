@@ -16,7 +16,7 @@ class LanguageMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $supportedLocales = ['pt', 'en', 'de', 'fr'];
+        $supportedLocales = ['pt', 'en', 'de', 'es', 'fr'];
         $language = session('language', session('locale', config('app.locale')));
 
         if (! in_array($language, $supportedLocales, true)) {

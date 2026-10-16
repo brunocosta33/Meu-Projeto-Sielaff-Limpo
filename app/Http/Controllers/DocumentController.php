@@ -63,9 +63,9 @@ class DocumentController extends Controller
             'titulos' => ['array'],
             'titulos.*' => ['nullable', 'string', 'max:255'],
         ] + $this->metadataRules(), [
-            'files.required' => 'Escolha pelo menos um PDF.',
-            'files.*.mimes' => 'Só são aceites ficheiros PDF.',
-            'files.*.max' => 'Cada ficheiro pode ter no máximo ' . round($maxKb / 1024) . ' MB.',
+            'files.required' => __('Escolha pelo menos um PDF.'),
+            'files.*.mimes' => __('Só são aceites ficheiros PDF.'),
+            'files.*.max' => __('Cada ficheiro pode ter no máximo :mb MB.', ['mb' => round($maxKb / 1024)]),
         ]);
 
         $meta = $this->metadata($request);
@@ -82,7 +82,7 @@ class DocumentController extends Controller
         }
 
         $count = count($request->file('files'));
-        flash($count === 1 ? 'Documento adicionado.' : $count . ' documentos adicionados.')->success();
+        flash($count === 1 ? __('Documento adicionado.') : __(':total documentos adicionados.', ['total' => $count]))->success();
 
         return redirect()->route('backoffice.documents.index');
     }
@@ -107,7 +107,7 @@ class DocumentController extends Controller
             'titulo' => ['required', 'string', 'max:255'],
             'file' => ['nullable', 'file', 'mimes:pdf', 'max:' . config('documents.max_size_kb')],
         ] + $this->metadataRules(), [
-            'file.mimes' => 'Só são aceites ficheiros PDF.',
+            'file.mimes' => __('Só são aceites ficheiros PDF.'),
         ]);
 
         $document->fill($this->metadata($request) + ['titulo' => $request->titulo]);
@@ -123,7 +123,7 @@ class DocumentController extends Controller
         }
 
         $document->save();
-        flash('Documento atualizado.')->success();
+        flash(__('Documento atualizado.'))->success();
 
         return redirect()->route('backoffice.documents.index');
     }
@@ -135,7 +135,7 @@ class DocumentController extends Controller
         Storage::disk(self::DISK)->delete($document->file_path);
         $document->delete();
 
-        flash('Documento apagado.')->success();
+        flash(__('Documento apagado.'))->success();
         return back();
     }
 
@@ -191,7 +191,7 @@ class DocumentController extends Controller
 
         $documents = $query->orderBy('tipo')->orderBy('titulo')->get();
         if ($documents->isEmpty()) {
-            flash('Não há documentos para exportar.')->warning();
+            flash(__('Não há documentos para exportar.'))->warning();
             return back();
         }
 
@@ -237,7 +237,7 @@ class DocumentController extends Controller
             ]);
         }
 
-        flash('Acessos à documentação atualizados.')->success();
+        flash(__('Acessos à documentação atualizados.'))->success();
         return back();
     }
 
@@ -311,7 +311,7 @@ class DocumentController extends Controller
     private function findWithFile($id): Document
     {
         $document = Document::findOrFail($id);
-        abort_unless(Storage::disk(self::DISK)->exists($document->file_path), 404, 'Ficheiro não encontrado.');
+        abort_unless(Storage::disk(self::DISK)->exists($document->file_path), 404, __('Ficheiro não encontrado.'));
 
         return $document;
     }
@@ -323,6 +323,6 @@ class DocumentController extends Controller
 
     private function authorizeView(): void
     {
-        abort_unless(DocumentAccess::canView(auth()->user()), 403, 'Não tem acesso à documentação.');
+        abort_unless(DocumentAccess::canView(auth()->user()), 403, __('Não tem acesso à documentação.'));
     }
 }

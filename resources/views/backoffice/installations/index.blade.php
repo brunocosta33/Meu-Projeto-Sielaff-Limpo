@@ -542,10 +542,10 @@
                                                 {{ ucfirst($date->translatedFormat('l')) }} | CW{{ $weekNumber }}
                                             </div>
                                         </td>
-                                        <td data-label="{{ __('Serviço') }}">{{ $installation->tipo_servico }}</td>
+                                        <td data-label="{{ __('Serviço') }}">{{ __($installation->tipo_servico) }}</td>
                                         <td data-label="{{ __('Estado') }}">
                                             <span class="installation-status {{ $statusClass }}">
-                                                {{ $installation->status }}
+                                                {{ __($installation->status) }}
                                             </span>
                                             @if (!empty($installation->observacoes))
                                                 <div class="mt-2">
@@ -577,7 +577,7 @@
                                                     <i class="fa fa-edit"></i>
                                                 </a>
                                                 <a href="{{ route('backoffice.installations.delete', $installation->id) }}"
-                                                   onclick="return confirm('{{ __('Tem a certeza que deseja apagar esta instalação?') }}')"
+                                                   onclick="return confirm(@js(__('Tem a certeza que deseja apagar esta instalação?')))"
                                                    class="installation-action-btn danger" title="{{ __('Apagar') }}" aria-label="{{ __('Apagar') }}">
                                                     <i class="fa fa-trash"></i>
                                                 </a>

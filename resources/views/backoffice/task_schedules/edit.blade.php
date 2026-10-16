@@ -63,12 +63,12 @@
         <div class="col-md-7 col-lg-6">
             @if($schedule->repetir)
             <div class="alert alert-info mb-3">
-                <strong>Esta tarefa é recorrente.</strong><br>
+                <strong>{{ __('Esta tarefa é recorrente.') }}</strong><br>
                 <label class="mt-2">
-                    <input type="radio" name="edit_mode" value="apenas_esta" checked> Editar apenas esta ocorrência
+                    <input type="radio" name="edit_mode" value="apenas_esta" checked> {{ __('Editar apenas esta ocorrência') }}
                 </label>
                 <label class="ms-3">
-                    <input type="radio" name="edit_mode" value="todas_futuras"> Editar esta e todas as futuras
+                    <input type="radio" name="edit_mode" value="todas_futuras"> {{ __('Editar esta e todas as futuras') }}
                 </label>
             </div>
             @endif

@@ -1,6 +1,8 @@
 @extends('layouts.backoffice_master')
 
-@php(\Carbon\Carbon::setLocale('pt'))
+@php(\Carbon\Carbon::setLocale(app()->getLocale()))
+@php($absInitial = mb_strtoupper(mb_substr(__('Falta'), 0, 1)))
+@php($weekdayInitials = collect(range(0, 6))->map(fn ($i) => mb_strtoupper(mb_substr(\Carbon\Carbon::create(2024, 1, 1)->addDays($i)->translatedFormat('D'), 0, 1)))->all())
 @php($canEdit = $canEdit ?? true)
 
 @section('head-meta')
@@ -93,7 +95,7 @@
                     @endforeach
                     <span><i class="is-pending"></i>{{ __('Férias pendentes') }}</span>
                     @foreach(\App\Models\HrAbsence::STATES as $state)
-                        <span><b class="abs-swatch" style="--abs-color: {{ $state['color'] }}; --abs-bg: {{ $state['bg'] }}"><span class="abs-tag">F</span></b>{{ __('Falta') }} {{ mb_strtolower($state['label']) }}</span>
+                        <span><b class="abs-swatch" style="--abs-color: {{ $state['color'] }}; --abs-bg: {{ $state['bg'] }}"><span class="abs-tag">{{ $absInitial }}</span></b>{{ __('Falta') }} {{ mb_strtolower(__($state['label'])) }}</span>
                     @endforeach
                     <span><i style="background:#fde2e1"></i>{{ __('Feriado') }}</span>
                     <span><i style="background:#eceff4"></i>{{ __('Fim de semana') }}</span>
@@ -107,7 +109,7 @@
                             <h6>{{ $first->translatedFormat('F') }}</h6>
                             <table>
                                 <thead>
-                                    <tr>@foreach(['S', 'T', 'Q', 'Q', 'S', 'S', 'D'] as $wd)<th>{{ $wd }}</th>@endforeach</tr>
+                                    <tr>@foreach($weekdayInitials as $wd)<th>{{ $wd }}</th>@endforeach</tr>
                                 </thead>
                                 <tbody>
                                     <tr>
@@ -117,8 +119,8 @@
                                             @php($key = $date->toDateString())
                                             @php($dayVacations = $days[$key] ?? [])
                                             @php($dayAbsences = $absenceDays[$key] ?? [])
-                                            @php($title = collect($dayVacations)->map(fn ($v) => 'Férias: ' . $v->staff->user->name . ($v->estado === 'pendente' ? ' (pendente)' : ''))
-                                                ->merge(collect($dayAbsences)->map(fn ($a) => 'Falta: ' . $a->staff->user->name . ' – ' . $a->motivo_label . ' (' . mb_strtolower($a->situacao_label) . ')' . ($a->isPartial() ? ' ' . $a->duracao : '')))
+                                            @php($title = collect($dayVacations)->map(fn ($v) => __('Férias') . ': ' . $v->staff->user->name . ($v->estado === 'pendente' ? ' (' . __('pendente') . ')' : ''))
+                                                ->merge(collect($dayAbsences)->map(fn ($a) => __('Falta') . ': ' . $a->staff->user->name . ' – ' . $a->motivo_label . ' (' . mb_strtolower($a->situacao_label) . ')' . ($a->isPartial() ? ' ' . $a->duracao : '')))
                                                 ->prepend($holidays[$key] ?? null)->filter()->implode("\n"))
                                             @php($worstAbsence = collect($dayAbsences)->sortByDesc(fn ($a) => \App\Models\HrAbsence::STATES[$a->situacao]['priority'] ?? 0)->first())
                                             @php($absState = $worstAbsence ? \App\Models\HrAbsence::STATES[$worstAbsence->situacao] : null)
@@ -127,7 +129,7 @@
                                                 data-date="{{ $key }}" title="{{ $title }}">
                                                 {{ $d }}
                                                 @if($absState)
-                                                    <span class="abs-tag">F{{ count($dayAbsences) > 1 ? count($dayAbsences) : '' }}</span>
+                                                    <span class="abs-tag">{{ $absInitial }}{{ count($dayAbsences) > 1 ? count($dayAbsences) : '' }}</span>
                                                 @endif
                                                 @if($dayVacations)
                                                     <div class="vac-bars">
@@ -208,7 +210,7 @@
                             <label class="small mb-1">{{ __('Motivo') }}</label>
                             <select name="motivo" class="form-control" required>
                                 @foreach(config('hr.absence_reasons') as $key => $label)
-                                    <option value="{{ $key }}" @selected(old('motivo', 'sem_motivo') === $key)>{{ $label }}</option>
+                                    <option value="{{ $key }}" @selected(old('motivo', 'sem_motivo') === $key)>{{ __($label) }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -216,7 +218,7 @@
                             <label class="small mb-1">{{ __('Situação') }}</label>
                             <select name="situacao" class="form-control" required>
                                 @foreach(\App\Models\HrAbsence::STATES as $key => $state)
-                                    <option value="{{ $key }}" @selected(old('situacao', 'aguarda') === $key)>{{ $state['label'] }}</option>
+                                    <option value="{{ $key }}" @selected(old('situacao', 'aguarda') === $key)>{{ __($state['label']) }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -275,7 +277,7 @@
                     @foreach($summary as $row)
                         <tr>
                             <td class="align-middle"><span class="vac-dot" style="--vac-color: {{ $row['color'] }}"></span>{{ $row['staff']->user->name }}
-                                @if($row['staff']->funcao_label)<span class="badge text-white ml-1" style="background: {{ $row['staff']->funcao_color }}">{{ $row['staff']->funcao_label }}</span>@endif
+                                @if($row['staff']->funcao_label)<span class="badge text-white ml-1" style="background: {{ $row['staff']->funcao_color }}">{{ __($row['staff']->funcao_label) }}</span>@endif
                             </td>
                             @if(!$canEdit)
                             <td class="align-middle">{{ $row['direito'] }}</td>
@@ -361,7 +363,7 @@
                                 <td>{{ $v->dias_uteis }}</td>
                                 <td>
                                     <span class="badge {{ ['pendente' => 'badge-warning', 'aprovado' => 'badge-success', 'rejeitado' => 'badge-secondary'][$v->estado] ?? 'badge-light' }}">
-                                        {{ \App\Models\HrVacation::STATES[$v->estado] ?? $v->estado }}
+                                        {{ __(\App\Models\HrVacation::STATES[$v->estado] ?? $v->estado) }}
                                     </span>
                                 </td>
                                 <td class="small">{{ $v->creator->name ?? '—' }}<br><span class="text-muted">{{ $v->created_at->format('d/m/Y') }}</span></td>
@@ -385,7 +387,7 @@
                                     @endif
                                     @if($canApprove && $v->estado !== 'rejeitado')
                                         <form method="POST" action="{{ route('backoffice.hr.vacations.reject', $v->id) }}" class="d-inline"
-                                              onsubmit="var m = prompt('Motivo da rejeição (opcional):'); if (m === null) return false; this.motivo_rejeicao.value = m; return true;">
+                                              onsubmit="var m = prompt({{ json_encode(__('Motivo da rejeição (opcional):')) }}); if (m === null) return false; this.motivo_rejeicao.value = m; return true;">
                                             @csrf
                                             <input type="hidden" name="motivo_rejeicao">
                                             <button class="btn btn-sm btn-outline-warning" title="{{ __('Rejeitar') }}"><i class="fa fa-times"></i></button>
@@ -393,7 +395,7 @@
                                     @endif
                                     @if($canEdit)
                                     <form method="POST" action="{{ route('backoffice.hr.vacations.destroy', $v->id) }}" class="d-inline"
-                                          onsubmit="return confirm('Apagar esta marcação de férias?')">
+                                          onsubmit="return confirm({{ json_encode(__('Apagar esta marcação de férias?')) }})">
                                         @csrf
                                         @method('DELETE')
                                         <button class="btn btn-sm btn-outline-danger" title="{{ __('Apagar') }}"><i class="fa fa-trash"></i></button>
@@ -464,7 +466,7 @@
                                     @endif
                                     @if($a->situacao !== 'injustificada')
                                         <form method="POST" action="{{ route('backoffice.hr.absences.decide', $a->id) }}" class="d-inline"
-                                              onsubmit="return confirm('Marcar esta falta como injustificada?')">
+                                              onsubmit="return confirm({{ json_encode(__('Marcar esta falta como injustificada?')) }})">
                                             @csrf
                                             <input type="hidden" name="situacao" value="injustificada">
                                             <button class="btn btn-sm btn-outline-danger" title="{{ __('Marcar como injustificada') }}"><i class="fa fa-times"></i></button>
@@ -472,7 +474,7 @@
                                     @endif
                                     <a href="{{ route('backoffice.hr.absences.edit', $a->id) }}" class="btn btn-sm btn-outline-secondary" title="{{ __('Editar / anexar comprovativo') }}"><i class="fa fa-edit"></i></a>
                                     <form method="POST" action="{{ route('backoffice.hr.absences.destroy', $a->id) }}" class="d-inline"
-                                          onsubmit="return confirm('Apagar esta falta?')">
+                                          onsubmit="return confirm({{ json_encode(__('Apagar esta falta?')) }})">
                                         @csrf
                                         @method('DELETE')
                                         <button class="btn btn-sm btn-outline-danger" title="{{ __('Apagar') }}"><i class="fa fa-trash"></i></button>

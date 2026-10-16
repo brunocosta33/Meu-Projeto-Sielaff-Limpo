@@ -65,6 +65,6 @@ class RestrictTechnicianAccess
             return $next($request);
         }
 
-        abort(403, 'Não tem acesso a esta área.');
+        abort(403, __('Não tem acesso a esta área.'));
     }
 }

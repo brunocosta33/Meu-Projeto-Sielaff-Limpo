@@ -17,12 +17,12 @@ class TaskScheduleController extends Controller
         $ocorrencia = \App\Models\TaskScheduleOccurrence::findOrFail($id);
         // Garante que só o próprio usuário pode concluir sua ocorrência
         if ($ocorrencia->user_id !== $user->id) {
-            abort(403, 'Não autorizado.');
+            abort(403, __('Não autorizado.'));
         }
         $ocorrencia->estado = $request->input('estado', 'Concluída');
         $ocorrencia->data_conclusao = $ocorrencia->estado === 'Concluída' ? now() : null;
         $ocorrencia->save();
-        return redirect()->route('backoffice.task_schedules.minhas')->with('success', 'Ocorrência marcada como concluída.');
+        return redirect()->route('backoffice.task_schedules.minhas')->with('success', __('Ocorrência marcada como concluída.'));
     }
     public function index(Request $request)
     {
@@ -97,39 +97,39 @@ class TaskScheduleController extends Controller
             'time' => ['required_if:repetir,1', 'nullable'],
             'period' => ['required_if:repetir,1', 'nullable', Rule::in(['day', 'week', 'month', 'year'])],
         ], [
-            'task_id.required' => 'Selecione uma tarefa.',
-            'task_id.exists' => 'A tarefa selecionada não é válida.',
-            'prioridade.required' => 'Selecione a prioridade.',
-            'prioridade.in' => 'A prioridade selecionada não é válida.',
-            'user_ids.required' => 'Selecione pelo menos um colaborador.',
-            'user_ids.array' => 'Selecione pelo menos um colaborador.',
-            'user_ids.min' => 'Selecione pelo menos um colaborador.',
-            'user_ids.*.exists' => 'Um dos colaboradores selecionados não é válido.',
-            'data_limite.required_if' => 'Preencha a data limite.',
-            'data_limite.date' => 'A data limite não é válida.',
-            'data_limite.after_or_equal' => 'A data limite não pode ser anterior a hoje.',
-            'hora_limite.required_if' => 'Preencha a hora limite.',
-            'initial_date.required_if' => 'Preencha a data de início.',
-            'initial_date.date' => 'A data de início não é válida.',
-            'initial_date.after_or_equal' => 'A data de início não pode ser anterior a hoje.',
-            'final_date.required_if' => 'Preencha a data de fim.',
-            'final_date.date' => 'A data de fim não é válida.',
-            'final_date.after_or_equal' => 'A data de fim não pode ser anterior à data de início.',
-            'time.required_if' => 'Preencha a hora da repetição.',
-            'period.required_if' => 'Selecione a repetição.',
-            'period.in' => 'A repetição selecionada não é válida.',
-            'description.max' => 'A descrição não pode ter mais de 255 caracteres.',
+            'task_id.required' => __('Selecione uma tarefa.'),
+            'task_id.exists' => __('A tarefa selecionada não é válida.'),
+            'prioridade.required' => __('Selecione a prioridade.'),
+            'prioridade.in' => __('A prioridade selecionada não é válida.'),
+            'user_ids.required' => __('Selecione pelo menos um colaborador.'),
+            'user_ids.array' => __('Selecione pelo menos um colaborador.'),
+            'user_ids.min' => __('Selecione pelo menos um colaborador.'),
+            'user_ids.*.exists' => __('Um dos colaboradores selecionados não é válido.'),
+            'data_limite.required_if' => __('Preencha a data limite.'),
+            'data_limite.date' => __('A data limite não é válida.'),
+            'data_limite.after_or_equal' => __('A data limite não pode ser anterior a hoje.'),
+            'hora_limite.required_if' => __('Preencha a hora limite.'),
+            'initial_date.required_if' => __('Preencha a data de início.'),
+            'initial_date.date' => __('A data de início não é válida.'),
+            'initial_date.after_or_equal' => __('A data de início não pode ser anterior a hoje.'),
+            'final_date.required_if' => __('Preencha a data de fim.'),
+            'final_date.date' => __('A data de fim não é válida.'),
+            'final_date.after_or_equal' => __('A data de fim não pode ser anterior à data de início.'),
+            'time.required_if' => __('Preencha a hora da repetição.'),
+            'period.required_if' => __('Selecione a repetição.'),
+            'period.in' => __('A repetição selecionada não é válida.'),
+            'description.max' => __('A descrição não pode ter mais de 255 caracteres.'),
         ], [
-            'task_id' => 'tarefa',
-            'prioridade' => 'prioridade',
-            'user_ids' => 'colaboradores',
-            'data_limite' => 'data limite',
-            'hora_limite' => 'hora limite',
-            'initial_date' => 'data de início',
-            'final_date' => 'data de fim',
-            'time' => 'hora da repetição',
-            'period' => 'repetição',
-            'description' => 'descrição',
+            'task_id' => __('tarefa'),
+            'prioridade' => __('prioridade'),
+            'user_ids' => __('colaboradores'),
+            'data_limite' => __('data limite'),
+            'hora_limite' => __('hora limite'),
+            'initial_date' => __('data de início'),
+            'final_date' => __('data de fim'),
+            'time' => __('hora da repetição'),
+            'period' => __('repetição'),
+            'description' => __('descrição'),
         ]);
 
         $isRepetir = (int) $request->input('repetir', 0);
@@ -161,9 +161,9 @@ class TaskScheduleController extends Controller
             $schedule = TaskSchedule::create($data);
             $schedule->users()->sync($request->user_ids);
 
-            return redirect()->route('backoffice.task_schedules.index')->with('success', 'Agendamento criado com sucesso.');
+            return redirect()->route('backoffice.task_schedules.index')->with('success', __('Agendamento criado com sucesso.'));
         } catch (\Exception $e) {
-            return back()->with('error', 'Erro ao gravar agendamento: ' . $e->getMessage());
+            return back()->with('error', __('Erro ao gravar agendamento: :erro', ['erro' => $e->getMessage()]));
         }
     }
 
@@ -190,27 +190,27 @@ class TaskScheduleController extends Controller
             'time' => [$isRepetir ? 'required' : 'nullable'],
             'period' => [$isRepetir ? 'required' : 'nullable', Rule::in(['day', 'week', 'month', 'year'])],
         ], [
-            'task_id.required' => 'Selecione uma tarefa.',
-            'task_id.exists' => 'A tarefa selecionada não é válida.',
-            'prioridade.required' => 'Selecione a prioridade.',
-            'prioridade.in' => 'A prioridade selecionada não é válida.',
-            'user_ids.required' => 'Selecione pelo menos um colaborador.',
-            'user_ids.array' => 'Selecione pelo menos um colaborador.',
-            'user_ids.min' => 'Selecione pelo menos um colaborador.',
-            'user_ids.*.exists' => 'Um dos colaboradores selecionados não é válido.',
-            'data_limite.required' => 'Preencha a data limite.',
-            'data_limite.date' => 'A data limite não é válida.',
-            'data_limite.after_or_equal' => 'A data limite não pode ser anterior a hoje.',
-            'hora_limite.required' => 'Preencha a hora limite.',
-            'initial_date.required' => 'Preencha a data de início.',
-            'initial_date.date' => 'A data de início não é válida.',
-            'initial_date.after_or_equal' => 'A data de início não pode ser anterior a hoje.',
-            'final_date.required' => 'Preencha a data de fim.',
-            'final_date.date' => 'A data de fim não é válida.',
-            'final_date.after_or_equal' => 'A data de fim não pode ser anterior à data de início.',
-            'time.required' => 'Preencha a hora da repetição.',
-            'period.required' => 'Selecione a repetição.',
-            'period.in' => 'A repetição selecionada não é válida.',
+            'task_id.required' => __('Selecione uma tarefa.'),
+            'task_id.exists' => __('A tarefa selecionada não é válida.'),
+            'prioridade.required' => __('Selecione a prioridade.'),
+            'prioridade.in' => __('A prioridade selecionada não é válida.'),
+            'user_ids.required' => __('Selecione pelo menos um colaborador.'),
+            'user_ids.array' => __('Selecione pelo menos um colaborador.'),
+            'user_ids.min' => __('Selecione pelo menos um colaborador.'),
+            'user_ids.*.exists' => __('Um dos colaboradores selecionados não é válido.'),
+            'data_limite.required' => __('Preencha a data limite.'),
+            'data_limite.date' => __('A data limite não é válida.'),
+            'data_limite.after_or_equal' => __('A data limite não pode ser anterior a hoje.'),
+            'hora_limite.required' => __('Preencha a hora limite.'),
+            'initial_date.required' => __('Preencha a data de início.'),
+            'initial_date.date' => __('A data de início não é válida.'),
+            'initial_date.after_or_equal' => __('A data de início não pode ser anterior a hoje.'),
+            'final_date.required' => __('Preencha a data de fim.'),
+            'final_date.date' => __('A data de fim não é válida.'),
+            'final_date.after_or_equal' => __('A data de fim não pode ser anterior à data de início.'),
+            'time.required' => __('Preencha a hora da repetição.'),
+            'period.required' => __('Selecione a repetição.'),
+            'period.in' => __('A repetição selecionada não é válida.'),
         ]);
 
         $payload = [
@@ -243,7 +243,7 @@ class TaskScheduleController extends Controller
             $schedule->users()->sync($request->user_ids);
         }
 
-        return redirect()->route('backoffice.task_schedules.index')->with('success', 'Agendamento atualizado com sucesso.');
+        return redirect()->route('backoffice.task_schedules.index')->with('success', __('Agendamento atualizado com sucesso.'));
     }
 
     public function edit($id)
@@ -279,7 +279,7 @@ class TaskScheduleController extends Controller
                 $task->delete();
             }
         }
-        return redirect()->route('backoffice.task_schedules.index')->with('success', 'Agendamento removido com sucesso.');
+        return redirect()->route('backoffice.task_schedules.index')->with('success', __('Agendamento removido com sucesso.'));
     }
 
     public function minhasTarefas()
@@ -322,7 +322,7 @@ class TaskScheduleController extends Controller
         $pivot = $schedule->users->firstWhere('id', $user->id)?->pivot;
 
         if (!$pivot) {
-            abort(403, 'Não tem acesso a esta tarefa.');
+            abort(403, __('Não tem acesso a esta tarefa.'));
         }
 
         return view('backoffice.task_schedules.show_minhas', compact('schedule', 'pivot'));
@@ -334,7 +334,7 @@ class TaskScheduleController extends Controller
         $schedule = TaskSchedule::findOrFail($id);
 
         if (!$schedule->users->contains($user->id)) {
-            abort(403, 'Não autorizado.');
+            abort(403, __('Não autorizado.'));
         }
 
         $request->validate([
@@ -368,7 +368,7 @@ class TaskScheduleController extends Controller
             ]);
         }
 
-        return redirect()->route('backoffice.task_schedules.minhas')->with('success', 'Tarefa atualizada com sucesso.');
+        return redirect()->route('backoffice.task_schedules.minhas')->with('success', __('Tarefa atualizada com sucesso.'));
     }
 
     // Marca todas as ocorrências futuras como concluídas para o usuário logado
@@ -379,7 +379,7 @@ class TaskScheduleController extends Controller
 
         // Só permite se for tarefa recorrente
         if (!$schedule->repetir) {
-            return redirect()->back()->with('error', 'A tarefa não é recorrente.');
+            return redirect()->back()->with('error', __('A tarefa não é recorrente.'));
         }
 
         // Marca o pivot do usuário como concluído
@@ -388,7 +388,7 @@ class TaskScheduleController extends Controller
             'data_conclusao' => now(),
         ]);
 
-        return redirect()->route('backoffice.task_schedules.minhas')->with('success', 'Todas as ocorrências futuras foram marcadas como concluídas.');
+        return redirect()->route('backoffice.task_schedules.minhas')->with('success', __('Todas as ocorrências futuras foram marcadas como concluídas.'));
     }
 
     private function isTechnician(): bool

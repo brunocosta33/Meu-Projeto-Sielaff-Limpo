@@ -70,7 +70,7 @@
     #calendar-agendamentos .fc-bg-event.fc-holiday-bg { background: #ffe1e1 !important; opacity: 1 !important; box-shadow: inset 0 3px 0 #d32f2f; }
     #calendar-agendamentos .fc-daygrid-day.is-holiday .fc-daygrid-day-number { color: #b71c1c; font-weight: 800; }
     #calendar-agendamentos .fc-daygrid-day.is-holiday .fc-daygrid-day-frame { position: relative; }
-    #calendar-agendamentos .fc-daygrid-day.is-holiday .fc-daygrid-day-frame::before { content: 'Feriado'; display: inline-block !important; white-space: nowrap; clear: none; position: absolute; top: 9px; left: 7px; z-index: 5; font-size: .66rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #fff; background: #d32f2f; border-radius: 999px; padding: 3px 9px; line-height: 1.2; box-shadow: 0 1px 3px rgba(183, 28, 28, .35); }
+    #calendar-agendamentos .fc-daygrid-day.is-holiday .fc-daygrid-day-frame::before { content: '{!! str_replace("'", "\\'", __('Feriado')) !!}'; display: inline-block !important; white-space: nowrap; clear: none; position: absolute; top: 9px; left: 7px; z-index: 5; font-size: .66rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #fff; background: #d32f2f; border-radius: 999px; padding: 3px 9px; line-height: 1.2; box-shadow: 0 1px 3px rgba(183, 28, 28, .35); }
 
     /* Legenda por baixo do calendário */
     .cal-legend { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem 1.1rem; margin: 14px 18px 0; padding: 10px 14px; background: #f4f7fb; border-radius: 12px; font-size: .8rem; color: #3c4b5f; }
@@ -98,6 +98,13 @@
         var calendarEl = document.getElementById('calendar-agendamentos');
         if(calendarEl) {
             var events = @json($taskEvents ?? []);
+            var T = {{ \Illuminate\Support\Js::from([
+                'escala' => __('Escala'), 'ferias' => __('Férias'), 'ausente' => __('Ausente / falta'), 'feriado' => __('Feriado'),
+                'troca' => __('Troca / substituição'), 'semSubstituto' => __('Sem substituto'),
+                'prioridade' => __('Prioridade:'), 'recorrencia' => __('Recorrência:'),
+            ]) }};
+            var isPiquete = function (p) { return p.escala ? p.escala === 'piquete' : /piquete/i.test(p.funcao || ''); };
+            var isVacation = function (e) { return e.extendedProps.ferias || /^Férias/.test(e.title); };
             var esc = function (t) { var d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML; };
             var initials = function (name) {
                 var parts = (name || '').split(' · ')[0].trim().split(/\s+/);
@@ -107,9 +114,9 @@
                 initialView: 'dayGridMonth',
                 locale: @json(app()->getLocale()),
                 firstDay: 1, // semana de segunda a domingo
-                buttonText: { today: 'Hoje', month: 'Mês', week: 'Semana', day: 'Dia', list: 'Lista' },
-                allDayText: 'Dia todo',
-                moreLinkText: 'mais',
+                buttonText: { today: @json(__('Hoje')), month: @json(__('Mês')), week: @json(__('Semana')), day: @json(__('Dia')), list: @json(__('Lista')) },
+                allDayText: @json(__('Dia todo')),
+                moreLinkText: @json(__('mais')),
                 height: 'auto',
                 headerToolbar: {
                     left: 'prev,next today',
@@ -131,16 +138,17 @@
             // Ordem dentro de cada dia: hotliners, piquete, feriado, férias/ausências, tarefas
             eventDataTransform: function (data) {
                 var f = data.funcao || (data.extendedProps && data.extendedProps.funcao) || '';
-                data.ordem = /hotliner/i.test(f) ? 0 : (/piquete/i.test(f) ? 1 : (data.feriado ? 2 : (data.ausencia ? 3 : 4)));
+                var esc2 = data.escala || (data.extendedProps && data.extendedProps.escala) || '';
+                data.ordem = f ? (esc2 === 'piquete' || (!esc2 && /piquete/i.test(f)) ? 1 : 0) : (data.feriado ? 2 : (data.ausencia ? 3 : 4));
                 return data;
             },
             eventOrder: 'ordem,start,-duration,title',
             eventContent: function (arg) {
                 var e = arg.event, p = e.extendedProps;
                 if (p.funcao) {
-                    var piquete = /piquete/i.test(p.funcao);
+                    var piquete = isPiquete(p);
                     var parts = (p.nome || '').split(' · ');
-                    var uncovered = /sem substituto/i.test(p.nome || '');
+                    var uncovered = !!p.semSubstituto;
                     return { html:
                         '<div class="fc-duty-chip' + (p.substituicao ? ' is-override' : '') + (uncovered ? ' is-uncovered' : '') + '" style="--duty:' + e.backgroundColor + '">' +
                             '<span class="fc-duty-avatar">' + (uncovered ? '!' : esc(initials(parts[0]).toUpperCase())) + '</span>' +
@@ -154,7 +162,7 @@
                         '</div>' };
                 }
                 if (p.ausencia || p.feriado) {
-                    var icon = p.feriado ? 'fa-flag' : (/^Férias/.test(e.title) ? 'fa-umbrella-beach' : 'fa-user-clock');
+                    var icon = p.feriado ? 'fa-flag' : (isVacation(e) ? 'fa-umbrella-beach' : 'fa-user-clock');
                     return { html: '<div class="fc-pill" style="--pill:' + e.backgroundColor + '"><i class="fas ' + icon + '"></i><span>' + esc(e.title) + '</span></div>' };
                 }
                 return true;
@@ -175,28 +183,28 @@
                     var p = e.extendedProps;
                     if (p.funcao) {
                         var name = (p.nome || '').split(' · ')[0];
-                        if (/sem substituto/i.test(name)) { hasUncovered = true; }
-                        else if (!people[name]) { people[name] = { color: e.backgroundColor, piquete: /piquete/i.test(p.funcao) }; }
+                        if (p.semSubstituto) { hasUncovered = true; }
+                        else if (!people[name]) { people[name] = { color: e.backgroundColor, piquete: isPiquete(p) }; }
                         if (p.substituicao) hasSwap = true;
                     } else if (p.feriado) { hasHoliday = true; }
-                    else if (p.ausencia) { if (/^Férias/.test(e.title)) hasVacation = true; else hasAbsent = true; }
+                    else if (p.ausencia) { if (isVacation(e)) hasVacation = true; else hasAbsent = true; }
                 });
                 var names = Object.keys(people).sort(function (a, b) { return (people[a].piquete - people[b].piquete) || a.localeCompare(b); });
                 if (!names.length && !hasHoliday && !hasVacation && !hasAbsent) { box.innerHTML = ''; return; }
                 var html = '';
                 if (names.length) {
-                    html += '<span class="lg-title">Escala</span>';
+                    html += '<span class="lg-title">' + esc(T.escala) + '</span>';
                     names.forEach(function (n) {
                         html += '<span class="lg-item"><span class="lg-dot" style="--c:' + people[n].color + '">' + esc(initials(n).toUpperCase()) + '</span>' +
                                 esc(n) + (people[n].piquete ? ' <i class="fas fa-tools" style="color:' + people[n].color + '"></i>' : '') + '</span>';
                     });
                     html += '<span class="lg-sep"></span>';
                 }
-                if (hasVacation) html += '<span class="lg-item"><span class="lg-pill" style="--c:#0288d1"></span>Férias</span>';
-                if (hasAbsent) html += '<span class="lg-item"><span class="lg-pill" style="--c:#78909c"></span>Ausente / falta</span>';
-                if (hasHoliday) html += '<span class="lg-item"><span class="lg-pill" style="--c:#d32f2f"></span>Feriado</span>';
-                if (hasSwap) html += '<span class="lg-item"><span class="lg-swap"></span>Troca / substituição</span>';
-                if (hasUncovered) html += '<span class="lg-item"><span class="lg-dot" style="--c:#c62828">!</span>Sem substituto</span>';
+                if (hasVacation) html += '<span class="lg-item"><span class="lg-pill" style="--c:#0288d1"></span>' + esc(T.ferias) + '</span>';
+                if (hasAbsent) html += '<span class="lg-item"><span class="lg-pill" style="--c:#78909c"></span>' + esc(T.ausente) + '</span>';
+                if (hasHoliday) html += '<span class="lg-item"><span class="lg-pill" style="--c:#d32f2f"></span>' + esc(T.feriado) + '</span>';
+                if (hasSwap) html += '<span class="lg-item"><span class="lg-swap"></span>' + esc(T.troca) + '</span>';
+                if (hasUncovered) html += '<span class="lg-item"><span class="lg-dot" style="--c:#c62828">!</span>' + esc(T.semSubstituto) + '</span>';
                 box.innerHTML = html;
             },
             eventDidMount: function (info) {
@@ -210,8 +218,8 @@
                 var html = '<strong>' + esc(info.event.title) + '</strong>';
                 if (p.funcao) html += '<span class="muted">' + esc(p.funcao) + '</span><br>';
                 if (p.description) html += esc(p.description);
-                if (p.prioridade) html += '<br><span class="muted">Prioridade:</span> ' + esc(p.prioridade);
-                if (p.recorrencia) html += '<br><span class="muted">Recorrência:</span> ' + esc(p.recorrencia);
+                if (p.prioridade) html += '<br><span class="muted">' + esc(T.prioridade) + '</span> ' + esc(p.prioridade);
+                if (p.recorrencia) html += '<br><span class="muted">' + esc(T.recorrencia) + '</span> ' + esc(p.recorrencia);
                 tip.innerHTML = html;
                 document.body.appendChild(tip);
                 var move = function (ev) { tip.style.left = (ev.pageX + 12) + 'px'; tip.style.top = (ev.pageY + 12) + 'px'; };

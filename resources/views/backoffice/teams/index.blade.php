@@ -39,16 +39,16 @@
                                     <td>{{ $team->email }}</td>
                                     <td>{{ $team->observacoes }}</td>
                                     <td class="text-right">
-                                        <a href="{{ route('backoffice.teams.edit', $team->id) }}" class="ml-2"><i class="fa fa-edit" title="Editar"></i></a>
+                                        <a href="{{ route('backoffice.teams.edit', $team->id) }}" class="ml-2"><i class="fa fa-edit" title="{{ __('Editar') }}"></i></a>
                                         <a href="{{ route('backoffice.teams.delete', $team->id) }}"
-                                           onclick="return confirm('Tem a certeza que deseja apagar esta equipa?')"
+                                           onclick="return confirm(@js(__('Tem a certeza que deseja apagar esta equipa?')))"
                                            class="ml-2 text-danger">
-                                           <i class="fa fa-trash" title="Apagar"></i>
+                                           <i class="fa fa-trash" title="{{ __('Apagar') }}"></i>
                                         </a>
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="4">Nenhuma equipa registada.</td></tr>
+                                <tr><td colspan="4">{{ __('Nenhuma equipa registada.') }}</td></tr>
                             @endforelse
                         </tbody>
                     </table>

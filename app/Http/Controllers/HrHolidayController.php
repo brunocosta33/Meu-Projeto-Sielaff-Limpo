@@ -36,14 +36,14 @@ class HrHolidayController extends Controller
             'data' => ['required', 'date'],
             'nome' => ['required', 'string', 'max:255'],
         ], [
-            'nome.required' => 'Indique o nome do feriado.',
+            'nome.required' => __('Indique o nome do feriado.'),
         ]);
 
         $date = Carbon::parse($data['data']);
         $recorrente = $request->boolean('recorrente');
 
         if (isset($this->workingDays->nationalHolidays($date->year)[$date->toDateString()])) {
-            throw ValidationException::withMessages(['data' => 'Esse dia já é feriado nacional.']);
+            throw ValidationException::withMessages(['data' => __('Esse dia já é feriado nacional.')]);
         }
 
         $exists = HrHoliday::where(fn ($q) => $q
@@ -51,13 +51,15 @@ class HrHolidayController extends Controller
                 ->orWhere(fn ($r) => $r->where('recorrente', true)->whereMonth('data', $date->month)->whereDay('data', $date->day)))
             ->exists();
         if ($exists) {
-            throw ValidationException::withMessages(['data' => 'Já existe um feriado registado nesse dia.']);
+            throw ValidationException::withMessages(['data' => __('Já existe um feriado registado nesse dia.')]);
         }
 
         HrHoliday::create($data + ['recorrente' => $recorrente, 'created_by' => auth()->id()]);
         $updated = $this->recalculateVacations();
 
-        flash('Feriado "' . $data['nome'] . '" adicionado' . ($updated ? '. Foram recalculados os dias de ' . $updated . ' marcação(ões) de férias.' : '.'))->success();
+        flash($updated
+            ? __('Feriado ":nome" adicionado. Foram recalculados os dias de :total marcação(ões) de férias.', ['nome' => $data['nome'], 'total' => $updated])
+            : __('Feriado ":nome" adicionado.', ['nome' => $data['nome']]))->success();
 
         return redirect()->route('backoffice.hr.holidays.index', ['ano' => $date->year]);
     }
@@ -68,7 +70,9 @@ class HrHolidayController extends Controller
         $holiday->delete();
         $updated = $this->recalculateVacations();
 
-        flash('Feriado removido' . ($updated ? '. Foram recalculados os dias de ' . $updated . ' marcação(ões) de férias.' : '.'))->success();
+        flash($updated
+            ? __('Feriado removido. Foram recalculados os dias de :total marcação(ões) de férias.', ['total' => $updated])
+            : __('Feriado removido.'))->success();
 
         return back();
     }
@@ -92,8 +96,8 @@ class HrHolidayController extends Controller
                     'start' => $date,
                     'allDay' => true,
                     'color' => isset($national[$date]) ? '#d32f2f' : '#ad1457',
-                    'feriado' => isset($national[$date]) ? 'Feriado nacional' : 'Feriado da empresa',
-                    'description' => isset($national[$date]) ? 'Feriado nacional' : 'Feriado da empresa',
+                    'feriado' => isset($national[$date]) ? __('Feriado nacional') : __('Feriado da empresa'),
+                    'description' => isset($national[$date]) ? __('Feriado nacional') : __('Feriado da empresa'),
                 ];
             }
         }

@@ -59,7 +59,7 @@
                         <input type="text" name="ip_address" id="ip_address"
                                value="{{ old('ip_address', $machine->ip_address) }}"
                                class="form-control @error('ip_address') is-invalid @enderror"
-                               placeholder="Ex: 192.168.1.100">
+                               placeholder="{{ __('Ex: 192.168.1.100') }}">
                         @error('ip_address')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror

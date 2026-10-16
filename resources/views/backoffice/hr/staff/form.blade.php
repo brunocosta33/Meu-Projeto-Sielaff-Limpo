@@ -41,7 +41,7 @@
                         <select name="funcao" id="funcao" class="form-control" required>
                             <option value="">{{ __('Selecione...') }}</option>
                             @foreach(config('hr.functions') as $key => $label)
-                                <option value="{{ $key }}" @selected(old('funcao', $member->funcao) === $key)>{{ $label }}</option>
+                                <option value="{{ $key }}" @selected(old('funcao', $member->funcao) === $key)>{{ __($label) }}</option>
                             @endforeach
                         </select>
                         <small class="form-text text-muted">{{ __('Os hotliners entram na escala da Hotline; os técnicos podem entrar na escala de piquete.') }}</small>
@@ -67,7 +67,7 @@
                         <select name="zona" class="form-control">
                             <option value="">—</option>
                             @foreach(config('hr.zones') as $key => $label)
-                                <option value="{{ $key }}" @selected(old('zona', $member->zona) === $key)>{{ $label }}</option>
+                                <option value="{{ $key }}" @selected(old('zona', $member->zona) === $key)>{{ __($label) }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -97,7 +97,7 @@
             var f = funcao.value;
             field.style.display = (f === 'hotliner' || f === 'tecnico') ? '' : 'none';
             zona.style.display = f === 'tecnico' ? '' : 'none';
-            label.textContent = f === 'tecnico' ? 'Grupo de piquete (sábados)' : 'Grupo de rotação (Hotliner)';
+            label.textContent = f === 'tecnico' ? @json(__('Grupo de piquete (sábados)')) : @json(__('Grupo de rotação (Hotliner)'));
             document.querySelectorAll('[data-help]').forEach(function (h) { h.style.display = h.dataset.help === f ? '' : 'none'; });
         };
         funcao.addEventListener('change', toggle);

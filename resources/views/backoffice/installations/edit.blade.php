@@ -104,11 +104,11 @@
                                         <span class="fw-semibold">{{ $pdf->file_name }}</span>
                                     </div>
                                     <div class="d-flex gap-2">
-                                        <a href="{{ asset('storage/' . $pdf->file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary">Abrir</a>
+                                        <a href="{{ asset('storage/' . $pdf->file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary">{{ __('Abrir') }}</a>
                                         <form method="POST" action="{{ route('backoffice.installations.pdfs.delete', $pdf->id) }}" style="display:inline;">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('{{ __('Tem a certeza que deseja apagar este ficheiro?') }}')">{{ __('Apagar') }}</button>
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm(@js(__('Tem a certeza que deseja apagar este ficheiro?')))">{{ __('Apagar') }}</button>
                                         </form>
                                     </div>
                                 </li>

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=6">
@@ -42,9 +42,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
         (function () {
-            var pdfUrl = @json(route('backoffice.documents.view', $document->id));
+            var pdfUrl = {{ \Illuminate\Support\Js::from(route('backoffice.documents.view', $document->id)) }};
             var status = document.getElementById('status');
             var pagesEl = document.getElementById('pages');
+            var esc = function (t) { var d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML; };
 
             // "Voltar": regressa à página anterior do site; se não houver, vai para a Documentação
             document.getElementById('back').addEventListener('click', function (e) {
@@ -55,7 +56,7 @@
             });
 
             if (!window.pdfjsLib) {
-                status.innerHTML = 'Não foi possível abrir o visualizador. <a href="' + pdfUrl + '">Abrir o PDF</a>';
+                status.innerHTML = esc(@json(__('Não foi possível abrir o visualizador.'))) + ' <a href="' + pdfUrl + '">' + esc(@json(__('Abrir o PDF'))) + '</a>';
                 return;
             }
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -114,7 +115,7 @@
                     }
                 });
             }).catch(function () {
-                status.innerHTML = 'Não foi possível abrir o documento. <a href="' + pdfUrl + '">Tentar abrir o PDF diretamente</a>';
+                status.innerHTML = esc(@json(__('Não foi possível abrir o documento.'))) + ' <a href="' + pdfUrl + '">' + esc(@json(__('Tentar abrir o PDF diretamente'))) + '</a>';
             });
         })();
     </script>

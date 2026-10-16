@@ -67,7 +67,10 @@ class HrTimeEntry extends Model
 
     public function getTypeAttribute(): array
     {
-        return config('hr.time_entry_types.' . $this->tipo, ['label' => $this->tipo, 'sign' => 1, 'color' => '#6c757d', 'icon' => 'fa-clock']);
+        $type = config('hr.time_entry_types.' . $this->tipo, ['label' => $this->tipo, 'sign' => 1, 'color' => '#6c757d', 'icon' => 'fa-clock']);
+        $type['label'] = __($type['label']);
+
+        return $type;
     }
 
     /** Conta para o saldo de horas? (o piquete é pago em dinheiro e fica fora do saldo) */

@@ -27,8 +27,8 @@ document.addEventListener('DOMContentLoaded', function () {
             '<div class="row align-items-end">' +
                 '<div class="col-md-4">' +
                     '<div class="form-group mb-3">' +
-                        '<label>Número de Série</label>' +
-                        '<input type="text" name="machines[' + index + '][serial_number]" class="form-control" placeholder="Obrigatório se existir máquina">' +
+                        '<label>' + @json(__('Número de Série')) + '</label>' +
+                        '<input type="text" name="machines[' + index + '][serial_number]" class="form-control" placeholder="' + @json(e(__('Obrigatório se existir máquina'))) + '">' +
                     '</div>' +
                 '</div>' +
                 '<div class="col-md-3">' +
@@ -39,8 +39,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 '</div>' +
                 '<div class="col-md-4">' +
                     '<div class="form-group mb-3">' +
-                        '<label>Modelo / Descrição</label>' +
-                        '<input type="text" name="machines[' + index + '][descricao]" class="form-control" placeholder="Ex: Glory, recycler, kiosk...">' +
+                        '<label>' + @json(__('Modelo / Descrição')) + '</label>' +
+                        '<input type="text" name="machines[' + index + '][descricao]" class="form-control" placeholder="' + {{ \Illuminate\Support\Js::from(e(__('Ex: Glory, recycler, kiosk...'))) }} + '">' +
                     '</div>' +
                 '</div>' +
                 '<div class="col-md-1">' +

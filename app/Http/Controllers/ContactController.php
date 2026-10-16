@@ -107,7 +107,7 @@ class ContactController extends Controller
     {
         $c=Contact::find($id);
         if(!$c){
-            return redirect()->route('backoffice.contacts.index')->with('error', 'Contact not found.');
+            return redirect()->route('backoffice.contacts.index')->with('error', __('Contact not found.'));
         }
         $lead=Lead::where('contact_id',$id)->get();
         if($lead){

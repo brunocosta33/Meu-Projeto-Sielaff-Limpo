@@ -291,7 +291,7 @@
                                     {{ __('a partir de') }} <span class="text-primary">{{ \Carbon\Carbon::parse($agendamento->initial_date)->format('d/m/Y') }}</span>
                                 @endif
                                 @if($agendamento->period)
-                                    <span class="badge bg-secondary ms-2">{{ ucfirst($agendamento->period) }}</span>
+                                    <span class="badge bg-secondary ms-2">{{ __(ucfirst($agendamento->period)) }}</span>
                                 @endif
                             </li>
                             @endif
@@ -463,7 +463,7 @@
                                         @case('aguarda_peca') bg-danger text-white @break
                                         @default bg-secondary
                                     @endswitch">
-                                    {{ ucfirst(str_replace('_', ' ', $pedidoPrioritario->estado)) }}
+                                    {{ __(ucfirst(str_replace('_', ' ', $pedidoPrioritario->estado))) }}
                                 </span>
                             </td>
                             <td>
@@ -482,7 +482,7 @@
                                         @case('baixa') bg-info text-white @break
                                         @default bg-secondary
                                     @endswitch">
-                                    {{ ucfirst($pedidoPrioritario->prioridade) }}
+                                    {{ __(ucfirst($pedidoPrioritario->prioridade)) }}
                                 </span>
                                 <div class="small text-muted mt-1">{{ \Carbon\Carbon::parse($pedidoPrioritario->data_pedido)->format('d/m/Y H:i') }}</div>
                             </td>

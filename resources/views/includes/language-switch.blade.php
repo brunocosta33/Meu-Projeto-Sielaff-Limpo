@@ -5,5 +5,6 @@
     <option value="pt" {{app()->getLocale()=== 'pt' ? 'selected': ''}}>{{__('PT')}}</option>
     <option value="en" {{app()->getLocale()=== 'en' ? 'selected': ''}}>{{__('EN')}}</option>
     <option value="de" {{app()->getLocale()=== 'de' ? 'selected': ''}}>{{__('DE')}}</option>
+    <option value="es" {{app()->getLocale()=== 'es' ? 'selected': ''}}>{{__('ES')}}</option>
     </select>
 </form>

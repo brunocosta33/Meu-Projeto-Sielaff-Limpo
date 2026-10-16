@@ -32,7 +32,7 @@
 								<small class="text-danger">{{ $errors->first('name') }}</small>
 							</div>
 							<div class="form-group col-6">
-								<label>Email</label>
+								<label>{{ __('Email') }}</label>
 								<input type="text" name="email" class="form-control {{ $errors->has('email') ? "is-invalid" : "" }}" value="{{ $user->email }}">
 								<small class="text-muted fa-pull-right">{{__('max. 255')}}</small>
 								<small class="text-danger">{{ $errors->first('email') }}</small>

@@ -1,6 +1,6 @@
 @extends('layouts.backoffice_master')
 
-@php(\Carbon\Carbon::setLocale('pt'))
+@php(\Carbon\Carbon::setLocale(app()->getLocale()))
 @php($fmtH = fn ($h, $s = false) => \App\Models\HrTimeEntry::formatHours($h, $s))
 @php($filters = request()->only(['colaborador', 'tipo', 'estado']))
 @php($selfTypes = array_filter($types, fn ($t) => $t['self']))
@@ -137,7 +137,7 @@
                                 <tr>
                                     <td>
                                         <strong>{{ $row->staff->user->name }}</strong>
-                                        @if($row->staff->funcao_label)<span class="badge text-white ml-1" style="background: {{ $row->staff->funcao_color }}">{{ $row->staff->funcao_label }}</span>@endif
+                                        @if($row->staff->funcao_label)<span class="badge text-white ml-1" style="background: {{ $row->staff->funcao_color }}">{{ __($row->staff->funcao_label) }}</span>@endif
                                     </td>
                                     <td>
                                         <span class="tb-balance {{ $row->horas > 0 ? 'pos' : ($row->horas < 0 ? 'neg' : 'zero') }}">{{ $fmtH($row->horas, true) }}</span>
@@ -177,20 +177,20 @@
                     <select name="tipo" id="tb-tipo" class="form-control" required>
                         @if($isManager)
                             <optgroup label="{{ __('Piquete') }}">
-                                <option value="piquete" @selected(old('tipo') === 'piquete')>{{ $types['piquete']['label'] }}</option>
+                                <option value="piquete" @selected(old('tipo') === 'piquete')>{{ __($types['piquete']['label']) }}</option>
                                 <option value="piquete_feito" @selected(old('tipo') === 'piquete_feito')>{{ __('Piquete realizado (acrescentar à mão)') }}</option>
                             </optgroup>
                             <optgroup label="{{ __('A favor do colaborador') }}">
-                                @foreach(['hora_extra', 'reposicao'] as $k)<option value="{{ $k }}" @selected(old('tipo') === $k)>{{ $types[$k]['label'] }}</option>@endforeach
+                                @foreach(['hora_extra', 'reposicao'] as $k)<option value="{{ $k }}" @selected(old('tipo') === $k)>{{ __($types[$k]['label']) }}</option>@endforeach
                             </optgroup>
                             <optgroup label="{{ __('A favor da empresa') }}">
-                                <option value="horas_em_falta" @selected(old('tipo') === 'horas_em_falta')>{{ $types['horas_em_falta']['label'] }}</option>
+                                <option value="horas_em_falta" @selected(old('tipo') === 'horas_em_falta')>{{ __($types['horas_em_falta']['label']) }}</option>
                             </optgroup>
                             <optgroup label="{{ __('Acertos do saldo de horas') }}">
-                                @foreach(['pagamento_horas', 'folga_compensatoria'] as $k)<option value="{{ $k }}" @selected(old('tipo') === $k)>{{ $types[$k]['label'] }}</option>@endforeach
+                                @foreach(['pagamento_horas', 'folga_compensatoria'] as $k)<option value="{{ $k }}" @selected(old('tipo') === $k)>{{ __($types[$k]['label']) }}</option>@endforeach
                             </optgroup>
                         @else
-                            @foreach($selfTypes as $k => $t)<option value="{{ $k }}" @selected(old('tipo') === $k)>{{ $t['self_label'] ?? $t['label'] }}</option>@endforeach
+                            @foreach($selfTypes as $k => $t)<option value="{{ $k }}" @selected(old('tipo') === $k)>{{ __($t['self_label'] ?? $t['label']) }}</option>@endforeach
                         @endif
                     </select>
                     <small class="form-text text-muted" id="tb-help"></small>
@@ -213,7 +213,7 @@
                     </div>
                     <div class="form-group col-6" id="tb-horas-field">
                         <label class="small mb-1" id="tb-horas-label">{{ __('Horas') }}</label>
-                        <input type="text" name="horas" id="tb-horas" class="form-control" value="{{ old('horas') }}" placeholder="ex.: 2,5 ou 2:30" inputmode="decimal">
+                        <input type="text" name="horas" id="tb-horas" class="form-control" value="{{ old('horas') }}" placeholder="{{ __('ex.: 2,5 ou 2:30') }}" inputmode="decimal">
                     </div>
                 </div>
                 {{-- Folga compensatória: escolher o período em vez de horas --}}
@@ -274,7 +274,7 @@
                                     <span class="badge badge-secondary"><i class="fa fa-times"></i> {{ __('Não fez') }}</span>
                                 @endif
                                 @if($slot->decision)
-                                    <form method="POST" action="{{ route('backoffice.hr.timebank.destroy', $slot->decision->id) }}" class="d-inline" onsubmit="return confirm('Desfazer esta decisão? O piquete volta a ficar por confirmar.')">
+                                    <form method="POST" action="{{ route('backoffice.hr.timebank.destroy', $slot->decision->id) }}" class="d-inline" onsubmit="return confirm({{ json_encode(__('Desfazer esta decisão? O piquete volta a ficar por confirmar.')) }})">
                                         @csrf
                                         @method('DELETE')
                                         <button class="btn btn-sm btn-link px-1" title="{{ __('Desfazer') }}"><i class="fa fa-undo"></i></button>
@@ -291,7 +291,7 @@
                                             @endforeach
                                         </select>
                                         <button name="acao" value="confirmar" class="btn btn-sm btn-success" title="{{ __('Confirmar') }}"><i class="fa fa-check"></i> {{ __('Confirmar') }}</button>
-                                        <button name="acao" value="recusar" class="btn btn-sm btn-outline-secondary" title="{{ __('Não fez') }}" onclick="return confirm('Marcar este piquete como não feito?')"><i class="fa fa-times"></i></button>
+                                        <button name="acao" value="recusar" class="btn btn-sm btn-outline-secondary" title="{{ __('Não fez') }}" onclick="return confirm({{ json_encode(__('Marcar este piquete como não feito?')) }})"><i class="fa fa-times"></i></button>
                                     </form>
                                 @endif
                             </td>
@@ -318,11 +318,11 @@
             @endif
             <select name="tipo" class="form-control form-control-sm" onchange="this.form.submit()">
                 <option value="">{{ __('Todos os tipos') }}</option>
-                @foreach($types as $k => $t)<option value="{{ $k }}" @selected(request('tipo') === $k)>{{ $t['label'] }}</option>@endforeach
+                @foreach($types as $k => $t)<option value="{{ $k }}" @selected(request('tipo') === $k)>{{ __($t['label']) }}</option>@endforeach
             </select>
             <select name="estado" class="form-control form-control-sm" onchange="this.form.submit()">
                 <option value="">{{ __('Todos os estados') }}</option>
-                @foreach(\App\Models\HrTimeEntry::STATES as $k => $st)<option value="{{ $k }}" @selected(request('estado') === $k)>{{ $st['label'] }}</option>@endforeach
+                @foreach(\App\Models\HrTimeEntry::STATES as $k => $st)<option value="{{ $k }}" @selected(request('estado') === $k)>{{ __($st['label']) }}</option>@endforeach
             </select>
         </form>
     </div>
@@ -386,7 +386,7 @@
                                                     <i class="fas {{ $f->isImage() ? 'fa-image' : 'fa-file-pdf' }}"></i> {{ \Illuminate\Support\Str::limit($f->nome, 18) }}
                                                 </a>
                                                 @if($isManager || $f->uploaded_by === auth()->id())
-                                                    <form method="POST" action="{{ route('backoffice.hr.timebank.files.delete', $f->id) }}" class="d-inline" onsubmit="return confirm('Remover este comprovativo?')">
+                                                    <form method="POST" action="{{ route('backoffice.hr.timebank.files.delete', $f->id) }}" class="d-inline" onsubmit="return confirm({{ json_encode(__('Remover este comprovativo?')) }})">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button class="btn btn-link p-0 tb-file-x" title="{{ __('Remover') }}">&times;</button>
@@ -408,7 +408,7 @@
                                 @if($e->hasProposal() && $e->estado === 'aprovado')
                                     <span class="badge badge-warning">{{ __('Proposta pendente') }}</span>
                                 @else
-                                    <span class="badge {{ \App\Models\HrTimeEntry::STATES[$e->estado]['class'] ?? 'badge-light' }}">{{ \App\Models\HrTimeEntry::STATES[$e->estado]['label'] ?? $e->estado }}</span>
+                                    <span class="badge {{ \App\Models\HrTimeEntry::STATES[$e->estado]['class'] ?? 'badge-light' }}">{{ __(\App\Models\HrTimeEntry::STATES[$e->estado]['label'] ?? $e->estado) }}</span>
                                 @endif
                                 @if($e->decided_at && $e->decided_by !== $e->created_by)<div class="tb-note">{{ __('por') }} {{ $e->decider->name ?? '' }}</div>@endif
                             </td>
@@ -426,7 +426,7 @@
                                             <button class="btn btn-sm btn-outline-warning" title="{{ __('Rejeitar') }}"><i class="fa fa-times"></i></button>
                                         </form>
                                     @endif
-                                    <form method="POST" action="{{ route('backoffice.hr.timebank.destroy', $e->id) }}" class="d-inline" onsubmit="return confirm('Apagar este movimento?')">
+                                    <form method="POST" action="{{ route('backoffice.hr.timebank.destroy', $e->id) }}" class="d-inline" onsubmit="return confirm({{ json_encode(__('Apagar este movimento?')) }})">
                                         @csrf
                                         @method('DELETE')
                                         <button class="btn btn-sm btn-link text-danger" title="{{ __('Apagar') }}"><i class="fa fa-trash"></i></button>
@@ -447,15 +447,15 @@
     document.addEventListener('DOMContentLoaded', function () {
         var types = @json($types);
         var help = {
-            piquete: @json($isManager
-                ? 'Horas trabalhadas em clientes durante um sábado de piquete. São pagas em dinheiro e não contam para o saldo de horas. (Os piquetes feitos contam-se sozinhos a partir da escala.)'
-                : 'Indique o sábado de piquete e as horas que trabalhou em clientes (pagas em dinheiro, não contam para o saldo). Junte fotografias para validar.'),
-            hora_extra: 'Horas trabalhadas além do horário. Ficam no saldo para pagar ou gozar.',
-            reposicao: 'Horas que o colaborador repôs (reduz o que deve à empresa).',
-            horas_em_falta: 'O colaborador trabalhou menos e fica a dever estas horas.',
-            pagamento_horas: 'Horas pagas: saem do saldo do colaborador.',
-            piquete_feito: 'Piquete que não está na escala (ex.: troca não registada). Os da escala confirmam-se no cartão "Piquetes a confirmar".',
-            folga_compensatoria: 'Dia ou meio dia de descanso para compensar horas extra: sai do saldo do colaborador.'
+            piquete: {{ \Illuminate\Support\Js::from($isManager
+                ? __('Horas trabalhadas em clientes durante um sábado de piquete. São pagas em dinheiro e não contam para o saldo de horas. (Os piquetes feitos contam-se sozinhos a partir da escala.)')
+                : __('Indique o sábado de piquete e as horas que trabalhou em clientes (pagas em dinheiro, não contam para o saldo). Junte fotografias para validar.')) }},
+            hora_extra: @json(__('Horas trabalhadas além do horário. Ficam no saldo para pagar ou gozar.')),
+            reposicao: @json(__('Horas que o colaborador repôs (reduz o que deve à empresa).')),
+            horas_em_falta: @json(__('O colaborador trabalhou menos e fica a dever estas horas.')),
+            pagamento_horas: @json(__('Horas pagas: saem do saldo do colaborador.')),
+            piquete_feito: @json(__('Piquete que não está na escala (ex.: troca não registada). Os da escala confirmam-se no cartão "Piquetes a confirmar".')),
+            folga_compensatoria: @json(__('Dia ou meio dia de descanso para compensar horas extra: sai do saldo do colaborador.'))
         };
         var tipo = document.getElementById('tb-tipo');
         if (!tipo) return;
@@ -476,7 +476,7 @@
         var sync = function () {
             var folga = tipo.value === 'folga_compensatoria';
             var noHours = tipo.value === 'piquete_feito';
-            horasLabel.textContent = tipo.value === 'piquete' ? 'Trabalho suplementar (h)' : 'Horas';
+            horasLabel.textContent = tipo.value === 'piquete' ? @json(__('Trabalho suplementar (h)')) : @json(__('Horas'));
             helpEl.textContent = help[tipo.value] || '';
             folgaField.style.display = folga ? '' : 'none';
             horasField.style.visibility = noHours ? 'hidden' : 'visible';

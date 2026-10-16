@@ -164,21 +164,22 @@ class HotlineRotation
                     'start' => $start,
                     'end' => $end,
                     'hours' => self::formatHours($cell['shift']),
-                    'funcao' => self::kindOf($cell['staff']) === 'piquete' ? config('hr.piquete.label') : 'Hotliner',
-                    'zona' => config('hr.zones.' . $cell['staff']->zona),
+                    'kind' => self::kindOf($cell['staff']),
+                    'funcao' => self::kindOf($cell['staff']) === 'piquete' ? __(config('hr.piquete.label')) : __('Hotliner'),
+                    'zona' => $cell['staff']->zona ? __(config('hr.zones.' . $cell['staff']->zona)) : null,
                     'staff' => $cell['staff'],
-                    'name' => $cell['worker']->name ?? 'Sem substituto',
+                    'name' => $cell['worker']->name ?? __('Sem substituto'),
                     'worker_id' => $cell['worker']->id ?? null,
                     'override' => $override,
                     'override_note' => $override
-                        ? 'Substitui ' . $cell['staff']->user->name . ' (' . ($reasons[$override->motivo] ?? $override->motivo) . ')'
-                        : ($onVacation ? $cell['staff']->user->name . ' está de férias'
-                            : ($absent ? $cell['staff']->user->name . ' faltou (' . $cell['absence']->motivo_label . ')' : null)),
+                        ? __('Substitui :nome (:motivo)', ['nome' => $cell['staff']->user->name, 'motivo' => __($reasons[$override->motivo] ?? $override->motivo)])
+                        : ($onVacation ? __(':nome está de férias', ['nome' => $cell['staff']->user->name])
+                            : ($absent ? __(':nome faltou (:motivo)', ['nome' => $cell['staff']->user->name, 'motivo' => $cell['absence']->motivo_label]) : null)),
                     // Versão sem o motivo real, para quem não é gestão de RH (férias e trocas ficam visíveis)
                     'public_note' => $override
-                        ? 'Substitui ' . $cell['staff']->user->name . ' (' . self::publicReason($override->motivo) . ')'
-                        : ($onVacation ? $cell['staff']->user->name . ' está de férias'
-                            : ($absent ? $cell['staff']->user->name . ' ausente' : null)),
+                        ? __('Substitui :nome (:motivo)', ['nome' => $cell['staff']->user->name, 'motivo' => self::publicReason($override->motivo)])
+                        : ($onVacation ? __(':nome está de férias', ['nome' => $cell['staff']->user->name])
+                            : ($absent ? __(':nome ausente', ['nome' => $cell['staff']->user->name]) : null)),
                     'uncovered' => $uncovered,
                     'color' => $uncovered ? self::UNCOVERED_COLOR : $colors[$cell['staff']->id],
                 ]);
@@ -192,9 +193,9 @@ class HotlineRotation
     public static function publicReason(string $motivo): string
     {
         return match ($motivo) {
-            'ferias' => 'Férias',
-            'troca' => 'Troca',
-            default => 'Ausente',
+            'ferias' => __('Férias'),
+            'troca' => __('Troca'),
+            default => __('Ausente'),
         };
     }
 
@@ -215,7 +216,7 @@ class HotlineRotation
     public static function formatHours(?array $shift): string
     {
         if (!$shift) {
-            return 'Folga';
+            return __('Folga');
         }
 
         $nextDay = $shift['fim'] <= $shift['inicio'] ? ' (+1)' : '';

@@ -4,8 +4,8 @@
     <title>{{ config('app.name') }} - {{ __('Documentação') }}</title>
 @endsection
 
-@php($types = config('documents.types'))
-@php($languages = config('documents.languages'))
+@php($types = collect(config('documents.types'))->map(fn ($t) => ['label' => __($t['label'])] + $t)->all())
+@php($languages = array_map(fn ($l) => __($l), config('documents.languages')))
 @php($filters = request()->only(['q', 'tipo', 'modelo']))
 @php($familyIcons = ['SiCompact' => 'fa-cube', 'SiVario' => 'fa-cubes', 'Outros' => 'fa-ellipsis-h'])
 
@@ -155,7 +155,7 @@
                             @php($perm = $permissions[$key] ?? null)
                             <tr>
                                 <td>
-                                    <span class="badge text-white" style="background: {{ config('hr.function_colors.' . $key, '#6c757d') }}; font-size: .85rem">{{ $label }}</span>
+                                    <span class="badge text-white" style="background: {{ config('hr.function_colors.' . $key, '#6c757d') }}; font-size: .85rem">{{ __($label) }}</span>
                                     @if($isOwner)<small class="text-muted ml-1">{{ __('acesso total (fixo)') }}</small>@endif
                                 </td>
                                 <td class="text-center"><input type="checkbox" name="ver[{{ $key }}]" value="1" class="doc-perm-view" data-funcao="{{ $key }}" @checked($isOwner || $perm?->pode_ver) @disabled($isOwner)></td>
@@ -207,7 +207,7 @@
                     <div class="model-groups mb-2">
                         @foreach(collect($modelGroups)->except('Outros') as $family => $list)
                             <div class="model-group">
-                                <div class="gtitle"><i class="fas {{ $familyIcons[$family] ?? 'fa-cube' }}"></i> {{ $family }}</div>
+                                <div class="gtitle"><i class="fas {{ $familyIcons[$family] ?? 'fa-cube' }}"></i> {{ __($family) }}</div>
                                 @foreach($list as $model)
                                     <label class="model-pick"><input type="checkbox" name="modelos[]" value="{{ $model }}" class="model-input" @checked(in_array($model, $oldModels))> {{ $model }}</label>
                                 @endforeach
@@ -259,7 +259,7 @@
                 <span class="ico"><i class="fas fa-th-large"></i></span> {{ __('Todos os modelos') }}
             </a>
             @foreach($modelGroups as $family => $list)
-                <div class="family"><i class="fas {{ $familyIcons[$family] ?? 'fa-cube' }}"></i> {{ $family }}</div>
+                <div class="family"><i class="fas {{ $familyIcons[$family] ?? 'fa-cube' }}"></i> {{ __($family) }}</div>
                 @foreach($list as $model)
                     <a href="{{ route('backoffice.documents.index', ['modelo' => $model] + $filters) }}" class="doc-nav is-model {{ request('modelo') === $model ? 'is-active' : '' }}" style="--c: #1f6fd1">
                         <span class="dot"></span> {{ $model }} <span class="count">{{ $modelCounts[$model] ?? 0 }}</span>
@@ -349,7 +349,7 @@
                             <a href="{{ route('backoffice.documents.download', $doc->id) }}" class="btn btn-sm btn-outline-secondary" title="{{ __('Descarregar') }}"><i class="fa fa-download"></i></a>
                             @if($canManage)
                                 <a href="{{ route('backoffice.documents.edit', $doc->id) }}" class="btn btn-sm btn-link text-secondary ml-auto px-1" title="{{ __('Editar') }}"><i class="fa fa-edit"></i></a>
-                                <form method="POST" action="{{ route('backoffice.documents.destroy', $doc->id) }}" class="d-inline" onsubmit="return confirm('Apagar este documento?')">
+                                <form method="POST" action="{{ route('backoffice.documents.destroy', $doc->id) }}" class="d-inline" onsubmit="return confirm({{ json_encode(__('Apagar este documento?')) }})">
                                     @csrf
                                     @method('DELETE')
                                     <button class="btn btn-sm btn-link text-danger px-1" title="{{ __('Apagar') }}"><i class="fa fa-trash"></i></button>
@@ -432,6 +432,7 @@
         var submit = document.getElementById('doc-submit');
         var maxBytes = {{ config('documents.max_size_kb') }} * 1024;
         var files = [];
+        var T = {{ \Illuminate\Support\Js::from(['titulo' => __('Título'), 'grande' => __('(demasiado grande)'), 'remover' => __('Remover')]) }};
 
         function titleFrom(name) {
             var t = name.replace(/\.pdf$/i, '').replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim();
@@ -450,9 +451,9 @@
                 var row = document.createElement('div');
                 row.className = 'doc-file-row';
                 row.innerHTML = '<i class="fas fa-file-pdf"></i>' +
-                    '<input type="text" name="titulos[]" class="form-control form-control-sm" value="' + esc(f.title) + '" title="Título">' +
-                    '<small class="' + (tooBig ? 'text-danger font-weight-bold' : '') + '">' + size(f.file.size) + (tooBig ? ' (demasiado grande)' : '') + '</small>' +
-                    '<button type="button" class="btn btn-sm btn-link text-danger p-0" title="Remover"><i class="fa fa-times"></i></button>';
+                    '<input type="text" name="titulos[]" class="form-control form-control-sm" value="' + esc(f.title) + '" title="' + esc(T.titulo) + '">' +
+                    '<small class="' + (tooBig ? 'text-danger font-weight-bold' : '') + '">' + size(f.file.size) + (tooBig ? ' ' + esc(T.grande) : '') + '</small>' +
+                    '<button type="button" class="btn btn-sm btn-link text-danger p-0" title="' + esc(T.remover) + '"><i class="fa fa-times"></i></button>';
                 row.querySelector('input').addEventListener('input', function (e) { f.title = e.target.value; });
                 row.querySelector('button').addEventListener('click', function () { files.splice(i, 1); sync(); });
                 list.appendChild(row);

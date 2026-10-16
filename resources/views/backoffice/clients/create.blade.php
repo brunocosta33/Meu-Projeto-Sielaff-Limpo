@@ -2,7 +2,7 @@
 
 @section('head-meta')
 
-    <title>{{ str_replace('.', ' ', config('app.name')) }} - Dados do Contacto</title>
+    <title>{{ str_replace('.', ' ', config('app.name')) }} - {{ __('Dados do Contacto') }}</title>
     <link rel="stylesheet" href="{{URL::asset('css/style.css')}}">
 
 @endsection
@@ -21,7 +21,7 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-5">
-                        <h5 class="card-title" style="margin-bottom: 30px;">Dados do Contacto</h5>
+                        <h5 class="card-title" style="margin-bottom: 30px;">{{ __('Dados do Contacto') }}</h5>
                     </div>
                 </div>
                 <div>
@@ -38,9 +38,9 @@
                         <div>
                             <a class="btn btn-outline-secondary" href="{!! URL::previous() !!}">
                                 <span class="fa fa-arrow-left"></span>
-                                &nbsp; Voltar
+                                &nbsp; {{ __('Voltar') }}
                             </a>
-                            {!! Form::button('<i class="fa fa-save"></i> Gravar', array('type' => 'submit', 'class' => 'btn btn-outline-secondary')) !!}
+                            {!! Form::button('<i class="fa fa-save"></i> ' . __('Gravar'), array('type' => 'submit', 'class' => 'btn btn-outline-secondary')) !!}
                             {!! Form::close() !!}
                         </div>
                     </div>

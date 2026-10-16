@@ -64,12 +64,12 @@ class HrAbsence extends Model
 
     public function getMotivoLabelAttribute(): string
     {
-        return config('hr.absence_reasons.' . $this->motivo, $this->motivo);
+        return __(config('hr.absence_reasons.' . $this->motivo, $this->motivo));
     }
 
     public function getSituacaoLabelAttribute(): string
     {
-        return self::STATES[$this->situacao]['label'] ?? $this->situacao;
+        return __(self::STATES[$this->situacao]['label'] ?? $this->situacao);
     }
 
     public function getSituacaoColorAttribute(): string
@@ -93,6 +93,6 @@ class HrAbsence extends Model
                 . ' (' . rtrim(rtrim(number_format($this->horas, 2, ',', ''), '0'), ',') . ' h)';
         }
 
-        return $this->dias_uteis . ' ' . ($this->dias_uteis === 1 ? 'dia útil' : 'dias úteis');
+        return $this->dias_uteis . ' ' . ($this->dias_uteis === 1 ? __('dia útil') : __('dias úteis'));
     }
 }

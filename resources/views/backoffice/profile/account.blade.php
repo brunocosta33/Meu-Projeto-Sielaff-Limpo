@@ -40,7 +40,7 @@
                                                 <option value="pt">pt</option>
                                             @endif
                                         </select>
-                                        <noscript><input type="submit" value="Submit"></noscript>
+                                        <noscript><input type="submit" value="{{ __('Submit') }}"></noscript>
                                     </form>
                                 </dd>
                             </dl>

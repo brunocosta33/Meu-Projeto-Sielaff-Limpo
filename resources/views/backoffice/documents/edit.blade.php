@@ -56,7 +56,7 @@
                             @foreach(config('documents.types') as $key => $type)
                                 <label class="type-tile" style="--c: {{ $type['color'] }}">
                                     <input type="radio" name="tipo" value="{{ $key }}" @checked(old('tipo', $document->tipo) === $key)>
-                                    <span class="box"><i class="fas {{ $type['icon'] }}"></i>{{ $type['label'] }}</span>
+                                    <span class="box"><i class="fas {{ $type['icon'] }}"></i>{{ __($type['label']) }}</span>
                                 </label>
                             @endforeach
                         </div>
@@ -67,7 +67,7 @@
                         <div class="model-groups mb-2">
                             @foreach($modelGroups as $family => $list)
                                 <div class="model-group">
-                                    <div class="gtitle">{{ $family }}</div>
+                                    <div class="gtitle">{{ __($family) }}</div>
                                     @foreach($list as $model)
                                         <label class="model-pick"><input type="checkbox" name="modelos[]" value="{{ $model }}" @checked(in_array($model, old('modelos', $document->modelos ?? [])))> {{ $model }}</label>
                                     @endforeach
@@ -83,7 +83,7 @@
                             <select name="idioma" class="form-control">
                                 <option value="">—</option>
                                 @foreach(config('documents.languages') as $key => $label)
-                                    <option value="{{ $key }}" @selected(old('idioma', $document->idioma) === $key)>{{ $label }}</option>
+                                    <option value="{{ $key }}" @selected(old('idioma', $document->idioma) === $key)>{{ __($label) }}</option>
                                 @endforeach
                             </select>
                         </div>

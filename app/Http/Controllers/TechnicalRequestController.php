@@ -17,32 +17,37 @@ use App\Support\RegionResolver;
 
 class TechnicalRequestController extends Controller
 {
-    private const ZONES = [
+    public const ZONES = [
         'norte' => 'Norte',
         'centro' => 'Centro',
         'sul' => 'Sul',
     ];
 
-    private const SERVICE_TYPES = [
+    public const SERVICE_TYPES = [
         'software' => 'Software',
         'reparacao' => 'Assistência/Reparação',
         'manutencao' => 'Manutenção',
         'pre_visita' => 'Pré-Visita',
     ];
 
-    private const PRIORITIES = [
+    public const PRIORITIES = [
         'baixa' => 'Baixa',
         'media' => 'Média',
         'alta' => 'Alta',
     ];
 
-    private const STATUSES = [
+    public const STATUSES = [
         'pendente' => 'Pendente',
         'agendado' => 'Agendado',
         'concluido' => 'Concluído',
         'cancelado' => 'Cancelado',
         'aguarda_peca' => 'Aguarda Peça',
     ];
+
+    private static function translatedLabels(array $labels): array
+    {
+        return array_map(fn ($label) => __($label), $labels);
+    }
 
     public function index(Request $request)
     {
@@ -137,10 +142,10 @@ class TechnicalRequestController extends Controller
         return view('backoffice.technical_requests.index', [
             'requests' => $requests,
             'stats' => $stats,
-            'serviceTypes' => self::SERVICE_TYPES,
-            'priorities' => self::PRIORITIES,
-            'statuses' => self::STATUSES,
-            'zones' => self::ZONES,
+            'serviceTypes' => self::translatedLabels(self::SERVICE_TYPES),
+            'priorities' => self::translatedLabels(self::PRIORITIES),
+            'statuses' => self::translatedLabels(self::STATUSES),
+            'zones' => self::translatedLabels(self::ZONES),
             'technicians' => $technicians,
             'canManageAll' => $isAdmin,
         ]);
@@ -157,10 +162,10 @@ class TechnicalRequestController extends Controller
 
         return view('backoffice.technical_requests.create', [
             'stores' => $stores,
-            'serviceTypes' => self::SERVICE_TYPES,
-            'priorities' => self::PRIORITIES,
-            'statuses' => self::STATUSES,
-            'zones' => self::ZONES,
+            'serviceTypes' => self::translatedLabels(self::SERVICE_TYPES),
+            'priorities' => self::translatedLabels(self::PRIORITIES),
+            'statuses' => self::translatedLabels(self::STATUSES),
+            'zones' => self::translatedLabels(self::ZONES),
             'technicians' => $this->getAssignableTechnicians(),
             'canManageAll' => true,
             'openRequestsByStore' => $this->openRequestsByStore(),
@@ -182,7 +187,7 @@ class TechnicalRequestController extends Controller
         $this->storeFiles($request, $technicalRequest);
 
         return redirect()->route('backoffice.technical_requests.index')
-            ->with('success', 'Pedido criado com sucesso!');
+            ->with('success', __('Pedido criado com sucesso!'));
     }
 
     public function show($id)
@@ -204,6 +209,9 @@ class TechnicalRequestController extends Controller
         return view('backoffice.technical_requests.show', [
             'request' => $request,
             'canManageAll' => $this->isAdmin(),
+            'statuses' => self::translatedLabels(self::STATUSES),
+            'priorities' => self::translatedLabels(self::PRIORITIES),
+            'serviceTypes' => self::translatedLabels(self::SERVICE_TYPES),
         ]);
     }
 
@@ -220,10 +228,10 @@ class TechnicalRequestController extends Controller
         return view('backoffice.technical_requests.edit', [
             'technicalRequest' => $technicalRequest,
             'stores' => $stores,
-            'serviceTypes' => self::SERVICE_TYPES,
-            'priorities' => self::PRIORITIES,
-            'statuses' => self::STATUSES,
-            'zones' => self::ZONES,
+            'serviceTypes' => self::translatedLabels(self::SERVICE_TYPES),
+            'priorities' => self::translatedLabels(self::PRIORITIES),
+            'statuses' => self::translatedLabels(self::STATUSES),
+            'zones' => self::translatedLabels(self::ZONES),
             'technicians' => $this->getAssignableTechnicians(),
             'canManageAll' => $this->isAdmin(),
             'openRequestsByStore' => $this->openRequestsByStore($technicalRequest->id),
@@ -278,7 +286,7 @@ class TechnicalRequestController extends Controller
         return ($returnUrl
                 ? redirect()->to($returnUrl)
                 : redirect()->route('backoffice.technical_requests.index'))
-            ->with('success', 'Pedido atualizado com sucesso!');
+            ->with('success', __('Pedido atualizado com sucesso!'));
     }
 
     public function deleteFile(Request $request, TechnicalRequestFile $file)
@@ -292,7 +300,7 @@ class TechnicalRequestController extends Controller
         $returnUrl = $this->technicalRequestReturnUrl($request);
 
         return ($returnUrl ? redirect()->to($returnUrl) : back())
-            ->with('success', 'Ficheiro apagado com sucesso!');
+            ->with('success', __('Ficheiro apagado com sucesso!'));
     }
 
     public function delete(Request $request, $id)
@@ -307,7 +315,7 @@ class TechnicalRequestController extends Controller
 
         return redirect()
             ->route('backoffice.technical_requests.index', $queryParams)
-            ->with('success', 'Pedido apagado com sucesso!');
+            ->with('success', __('Pedido apagado com sucesso!'));
     }
 
 
@@ -364,7 +372,7 @@ class TechnicalRequestController extends Controller
         $unassignedRequests = $requests->whereNull('assigned_technician_id');
         $unassignedStats = [
             'technician' => null,
-            'label' => 'Por atribuir',
+            'label' => __('Por atribuir'),
             'email' => null,
             'total' => $unassignedRequests->count(),
             'states' => collect($statuses)->mapWithKeys(function ($status) use ($unassignedRequests) {
@@ -385,7 +393,9 @@ class TechnicalRequestController extends Controller
         return view('backoffice.technical_requests.technicians', [
             'technicianStats' => $technicianStats,
             'unassignedStats' => $unassignedStats,
-            'statuses' => self::STATUSES,
+            'statuses' => self::translatedLabels(self::STATUSES),
+            'priorities' => self::translatedLabels(self::PRIORITIES),
+            'zones' => self::translatedLabels(self::ZONES),
             'summary' => $summary,
         ]);
     }
@@ -417,7 +427,9 @@ class TechnicalRequestController extends Controller
             'requests' => $query->get(),
             'openStats' => $this->openStatusStats($statsQuery),
             'selectedStatus' => $selectedStatus,
-            'statuses' => self::STATUSES,
+            'statuses' => self::translatedLabels(self::STATUSES),
+            'priorities' => self::translatedLabels(self::PRIORITIES),
+            'zones' => self::translatedLabels(self::ZONES),
             'canExport' => true,
             'backRoute' => route('backoffice.technical_requests.technicians', $request->only(['mes', 'data_inicio', 'data_fim'])),
         ]);
@@ -449,7 +461,9 @@ class TechnicalRequestController extends Controller
         return view('backoffice.technical_requests.open_by_technician', [
             'technician' => $technician,
             'requests' => $query->get(),
-            'statuses' => self::STATUSES,
+            'statuses' => self::translatedLabels(self::STATUSES),
+            'priorities' => self::translatedLabels(self::PRIORITIES),
+            'zones' => self::translatedLabels(self::ZONES),
             'canExport' => true,
             'showMobileSummary' => false,
             'pageTitle' => __('Pedidos') . ' - ' . __(self::STATUSES[$estado]),
@@ -484,7 +498,9 @@ class TechnicalRequestController extends Controller
             'requests' => $query->get(),
             'openStats' => $this->openStatusStats($statsQuery),
             'selectedStatus' => $selectedStatus,
-            'statuses' => self::STATUSES,
+            'statuses' => self::translatedLabels(self::STATUSES),
+            'priorities' => self::translatedLabels(self::PRIORITIES),
+            'zones' => self::translatedLabels(self::ZONES),
             'canExport' => false,
             'backRoute' => route('backoffice.technical_requests.index', $request->only(['mes', 'data_inicio', 'data_fim'])),
         ]);
@@ -511,7 +527,9 @@ class TechnicalRequestController extends Controller
 
         return view('backoffice.technical_requests.open_by_technician', [
             'requests' => $query->get(),
-            'statuses' => self::STATUSES,
+            'statuses' => self::translatedLabels(self::STATUSES),
+            'priorities' => self::translatedLabels(self::PRIORITIES),
+            'zones' => self::translatedLabels(self::ZONES),
             'canExport' => false,
             'showMobileSummary' => false,
             'pageTitle' => __('Pedidos fechados'),
@@ -557,7 +575,9 @@ class TechnicalRequestController extends Controller
                 'awaiting_part' => $requests->where('estado', 'aguarda_peca')->count(),
                 'cancelled' => $requests->where('estado', 'cancelado')->count(),
             ],
-            'statuses' => self::STATUSES,
+            'statuses' => self::translatedLabels(self::STATUSES),
+            'priorities' => self::translatedLabels(self::PRIORITIES),
+            'zones' => self::translatedLabels(self::ZONES),
             'includeUnassigned' => $includeUnassigned,
             'technicians' => $includeUnassigned ? $this->getAssignableTechnicians() : collect(),
             'backRoute' => $includeUnassigned
@@ -580,7 +600,7 @@ class TechnicalRequestController extends Controller
             'updated_by' => auth()->id(),
         ]);
 
-        return back()->with('success', 'Técnico do pedido atualizado com sucesso!');
+        return back()->with('success', __('Técnico do pedido atualizado com sucesso!'));
     }
 
     public function exportByTechnician($id)
@@ -724,11 +744,11 @@ class TechnicalRequestController extends Controller
                 return $requests->map(function (TechnicalRequest $request) {
                     return [
                         'id' => $request->id,
-                        'estado' => self::STATUSES[$request->estado] ?? ucfirst(str_replace('_', ' ', $request->estado)),
-                        'prioridade' => ucfirst($request->prioridade ?? ''),
+                        'estado' => isset(self::STATUSES[$request->estado]) ? __(self::STATUSES[$request->estado]) : ucfirst(str_replace('_', ' ', $request->estado)),
+                        'prioridade' => isset(self::PRIORITIES[$request->prioridade]) ? __(self::PRIORITIES[$request->prioridade]) : ucfirst($request->prioridade ?? ''),
                         'tecnico' => $request->assignedPersonLabel(),
                         'data_pedido' => $request->data_pedido ? Carbon::parse($request->data_pedido)->format('d/m/Y') : '-',
-                        'descricao' => str($request->descricao_problema ?: 'Sem descrição.')->limit(90)->value(),
+                        'descricao' => str($request->descricao_problema ?: __('Sem descrição.'))->limit(90)->value(),
                         'url' => route('backoffice.technical_requests.show', $request->id),
                     ];
                 })->values();

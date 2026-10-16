@@ -36,7 +36,7 @@ class SupplierController extends Controller
         $suppliers->morada = $request->input('morada');
         $suppliers->save();
 
-        flash('Supplier criado com sucesso!')->success();
+        flash(__('Supplier criado com sucesso!'))->success();
         return redirect()->route('backoffice.suppliers.index');
     }
 
@@ -57,14 +57,14 @@ class SupplierController extends Controller
         $suppliers->updated_at = now();
         $suppliers->save();
 
-        flash('Supplier atualizado com sucesso!')->success();
+        flash(__('Supplier atualizado com sucesso!'))->success();
         return redirect()->route('backoffice.suppliers.index');
     }
 
     public function delete($id)
     {
         DB::table('suppliers')->where('id', $id)->update(['deleted_at' => now()]);
-        flash('Supplier apagado com sucesso!')->success();
+        flash(__('Supplier apagado com sucesso!'))->success();
         return redirect()->route('backoffice.suppliers.index');
     }
     

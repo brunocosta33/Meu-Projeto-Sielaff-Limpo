@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Http\Controllers\TechnicalRequestController;
 use App\Models\TechnicalRequest;
 use App\Models\User;
 use Illuminate\Support\Carbon;
@@ -118,18 +119,18 @@ class TechnicalRequestsExport implements FromCollection, WithHeadings, WithStyle
             ->map(function ($req) {
                 $storeLabel = $req->store
                     ? trim(($req->store->codigo_loja ?: '-') . ' - ' . ($req->store->nome_loja ?: '-'))
-                    : 'Sem loja associada';
+                    : __('Sem loja associada');
 
                 return [
                     'Insígnia'         => $req->store?->insignia ? ucfirst($req->store->insignia) : '',
                     'Loja'             => $storeLabel,
                     'Responsável atribuído' => $req->assignedPersonLabel(),
-                    'Estado'           => ucfirst($req->estado),
+                    'Estado'           => __(TechnicalRequestController::STATUSES[$req->estado] ?? ucfirst((string) $req->estado)),
                     'Origem'           => $req->origem,
-                    'Tipo de Serviço'  => $req->tipo_servico,
-                    'Zona'             => $req->zona ? ucfirst($req->zona) : '',
+                    'Tipo de Serviço'  => $req->tipo_servico ? __(TechnicalRequestController::SERVICE_TYPES[$req->tipo_servico] ?? $req->tipo_servico) : '',
+                    'Zona'             => $req->zona ? __(TechnicalRequestController::ZONES[$req->zona] ?? ucfirst($req->zona)) : '',
                     'Descrição'        => $req->descricao_problema,
-                    'Prioridade'       => ucfirst($req->prioridade),
+                    'Prioridade'       => __(TechnicalRequestController::PRIORITIES[$req->prioridade] ?? ucfirst((string) $req->prioridade)),
                     'Data Pedido'      => $req->data_pedido ? Carbon::parse($req->data_pedido)->format('d/m/Y') : '',
                     'Data Agendamento' => $req->data_agendamento ? Carbon::parse($req->data_agendamento)->format('d/m/Y H:i') : '',
                     'Data Resolução'   => $req->data_resolucao ? Carbon::parse($req->data_resolucao)->format('d/m/Y H:i') : '',
@@ -141,19 +142,19 @@ class TechnicalRequestsExport implements FromCollection, WithHeadings, WithStyle
     public function headings(): array
     {
         return [
-            'Insígnia',
-            'Loja',
-            'Responsável atribuído',
-            'Estado',
-            'Origem',
-            'Tipo de Serviço',
-            'Zona',
-            'Descrição',
-            'Prioridade',
-            'Data Pedido',
-            'Data Agendamento',
-            'Data Resolução',
-            'Observações',
+            __('Insígnia'),
+            __('Loja'),
+            __('Responsável atribuído'),
+            __('Estado'),
+            __('Origem'),
+            __('Tipo de Serviço'),
+            __('Zona'),
+            __('Descrição'),
+            __('Prioridade'),
+            __('Data Pedido'),
+            __('Data Agendamento'),
+            __('Data Resolução'),
+            __('Observações'),
         ];
     }
 

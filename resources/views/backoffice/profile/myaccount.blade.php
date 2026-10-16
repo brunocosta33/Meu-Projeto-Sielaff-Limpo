@@ -24,7 +24,7 @@
                     <div class="row">
                         <div class="col mt-4">
                             <dl class="row">
-                                <dt class="col-3">Nome</dt>
+                                <dt class="col-3">{{ __('Nome') }}</dt>
                                 <dd class="col-9">{{$user->name}}</dd>
                                 <dt class="col-3">{{__('Email')}}</dt>
                                 <dd class="col-9">{{$user->email}}</dd>
@@ -49,15 +49,15 @@
                     </div>
                     <div> 
                         <button type="button" class="btn btn-outline-danger" data-toggle="modal" data-target="#exampleModal">
-                            Mudar Password
+                            {{ __('Mudar Password') }}
                         </button>
                     </div>
                         <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
                             <div class="modal-dialog" role="document">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="exampleModalLabel">Mudar Password</h5>
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <h5 class="modal-title" id="exampleModalLabel">{{ __('Mudar Password') }}</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="{{ __('Fechar') }}">
                                         <span aria-hidden="true">&times;</span>
                                     </button>
                                 </div>
@@ -66,30 +66,30 @@
                                         @csrf
                                         @method('PUT')
                                         <div>             
-                                            <label for="current-password" class="control-label">Password Atual</label>
+                                            <label for="current-password" class="control-label">{{ __('Password Atual') }}</label>
                                             <div>
                                                 <div class="form-group">
                                                     <input type="hidden"> 
                                                     <input type="password" class="form-control" id="current" name="current" placeholder="{{ __('Enter your password') }}">
                                                 </div>
                                             </div>
-                                            <label for="password" class="control-label">Nova Password</label>
+                                            <label for="password" class="control-label">{{ __('Nova Password') }}</label>
                                             <div>
                                                 <div class="form-group">
-                                                    <input type="password" class="form-control {{ $errors->has('password') ? "is-invalid" : "" }}" id="password" name="password" placeholder="Digite a nova password">
+                                                    <input type="password" class="form-control {{ $errors->has('password') ? "is-invalid" : "" }}" id="password" name="password" placeholder="{{ __('Digite a nova password') }}">
                                                     <small class="text-danger">{{ $errors->first('password') }}</small>
                                                 </div>
                                             </div>
-                                            <label for="password_confirmation" class="control-label">Confirmação da Password</label>
+                                            <label for="password_confirmation" class="control-label">{{ __('Confirmação da Password') }}</label>
                                             <div>
                                                 <div class="form-group">
-                                                    <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" placeholder="Digite novamente a nova password">
+                                                    <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" placeholder="{{ __('Digite novamente a nova password') }}">
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="float-right">
-                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
-                                            <button type="submit" class="btn btn-danger">Salvar</button>
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('Fechar') }}</button>
+                                            <button type="submit" class="btn btn-danger">{{ __('Salvar') }}</button>
                                         </div>
                                     </form>
                                 </div>

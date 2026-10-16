@@ -69,7 +69,7 @@ class StoreController extends Controller
             $this->syncMachines($store, $data['machines']);
         });
 
-        flash('Loja criada com sucesso!')->success();
+        flash(__('Loja criada com sucesso!'))->success();
         return redirect()->route('backoffice.stores.index');
     }
 
@@ -104,7 +104,7 @@ class StoreController extends Controller
             $this->syncMachines($store, $data['machines']);
         });
 
-        flash('Loja atualizada com sucesso!')->success();
+        flash(__('Loja atualizada com sucesso!'))->success();
         return redirect()->route('backoffice.stores.index');
     }
 
@@ -113,7 +113,7 @@ class StoreController extends Controller
         abort_unless($this->canManageStores(), 403);
 
         Store::where('id', $id)->update(['deleted_at' => now()]);
-        flash('Loja apagada com sucesso!')->success();
+        flash(__('Loja apagada com sucesso!'))->success();
         return redirect()->route('backoffice.stores.index');
     }
 
@@ -189,8 +189,8 @@ class StoreController extends Controller
                 ],
                 'descricao' => 'nullable|string',
             ], [], [
-                'serial_number' => 'máquina ' . ($index + 1) . ' número de série',
-                'ip_address' => 'máquina ' . ($index + 1) . ' IP',
+                'serial_number' => __('máquina :numero número de série', ['numero' => $index + 1]),
+                'ip_address' => __('máquina :numero IP', ['numero' => $index + 1]),
             ])->validate();
         });
 
@@ -235,7 +235,7 @@ class StoreController extends Controller
 
             if ($serialNumber !== '') {
                 if (isset($seenSerialNumbers[$serialNumber])) {
-                    $errors['machines.' . $index . '.serial_number'] = 'O número de série da máquina ' . ($index + 1) . ' está repetido no formulário.';
+                    $errors['machines.' . $index . '.serial_number'] = __('O número de série da máquina :numero está repetido no formulário.', ['numero' => $index + 1]);
                 }
 
                 $seenSerialNumbers[$serialNumber] = true;
@@ -243,7 +243,7 @@ class StoreController extends Controller
 
             if ($ipAddress) {
                 if (isset($seenIpAddresses[$ipAddress])) {
-                    $errors['machines.' . $index . '.ip_address'] = 'O IP da máquina ' . ($index + 1) . ' está repetido no formulário.';
+                    $errors['machines.' . $index . '.ip_address'] = __('O IP da máquina :numero está repetido no formulário.', ['numero' => $index + 1]);
                 }
 
                 $seenIpAddresses[$ipAddress] = true;

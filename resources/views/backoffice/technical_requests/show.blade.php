@@ -543,10 +543,10 @@
                 <div class="technical-request-show-body">
                 @php
                     $tipos = [
-                        'software' => 'Software',
-                        'reparacao' => 'Assistência/Reparação',
-                        'manutencao' => 'Manutenção',
-                        'pre_visita' => 'Pré-Visita',
+                        'software' => __('Software'),
+                        'reparacao' => __('Assistência/Reparação'),
+                        'manutencao' => __('Manutenção'),
+                        'pre_visita' => __('Pré-Visita'),
                     ];
                     $hasEdition = $request->updated_at && $request->created_at && $request->updated_at->ne($request->created_at);
                 @endphp
@@ -658,7 +658,7 @@
                                         @case('alta') bg-danger text-white @break
                                         @default bg-secondary
                                     @endswitch">
-                                    {{ __(ucfirst($request->prioridade)) }}
+                                    {{ $priorities[$request->prioridade] ?? ucfirst($request->prioridade) }}
                                 </span>
                                 </div>
                             </div>
@@ -674,7 +674,7 @@
                                         @case('aguarda_peca') bg-danger text-white @break
                                         @default bg-light
                                     @endswitch">
-                                    {{ __(ucfirst(str_replace('_', ' ', $request->estado))) }}
+                                    {{ $statuses[$request->estado] ?? ucfirst(str_replace('_', ' ', $request->estado)) }}
                                 </span>
                                 </div>
                             </div>

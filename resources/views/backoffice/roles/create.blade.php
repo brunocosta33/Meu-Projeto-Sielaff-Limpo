@@ -46,7 +46,7 @@
                         </div>
                         <div class="form-group">
                             <label>{{__('Permissions')}}</label>
-                            <select class="selectpicker form-control" id="permissions_role" name="permissions_role[]" title={{__('Permissions')}} data-live-search="true" multiple data-actions-box="true">
+                            <select class="selectpicker form-control" id="permissions_role" name="permissions_role[]" title="{{ __('Permissions') }}" data-live-search="true" multiple data-actions-box="true">
                                 @foreach($permissions as $permission)
                                     <option value="{{$permission->id}}">{{$permission->display_name}}</option>
                                 @endforeach

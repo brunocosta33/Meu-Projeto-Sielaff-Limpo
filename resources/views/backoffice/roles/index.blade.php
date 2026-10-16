@@ -17,7 +17,7 @@
 				<div class="card-body">
 					<div class="float-right">
 						<a href="{{ route('backoffice.roles.create') }}" class="collapsed" data-parent="#sidebar">
-							<button type="submit" class="btn btn-outline-secondary" title={{__('Create')}}><span class="fa fa-plus"></span>&nbsp;&nbsp;{{__('Create')}}</button>
+							<button type="submit" class="btn btn-outline-secondary" title="{{ __('Create') }}"><span class="fa fa-plus"></span>&nbsp;&nbsp;{{__('Create')}}</button>
 						</a>
 					</div>
 					<h5 class="card-title">{{__('Roles')}}</h5>
@@ -40,15 +40,15 @@
 										<td>{{ $role->name }}</td>
 										<td>{{ $role->display_name }}</td>										
 										<td class="text-right">
-											<a class="ml-2" href="{{ route('backoffice.roles.edit', $role->id) }}"><i class="fa fa-edit mr-1" title={{__('Edit')}}></i></a>
+											<a class="ml-2" href="{{ route('backoffice.roles.edit', $role->id) }}"><i class="fa fa-edit mr-1" title="{{ __('Edit') }}"></i></a>
 										</td>
 										@if ($role->name != "administrador")
 											<td>
-												<a class="ml-2" href="{{ route('backoffice.roles.delete', $role->id) }}" onclick="return confirm('{{__('Are you sure?')}}')"><i class="fa fa-trash mr-1" title={{__('Delete')}}></i></a>
+												<a class="ml-2" href="{{ route('backoffice.roles.delete', $role->id) }}" onclick="return confirm(@js(__('Are you sure?')))"><i class="fa fa-trash mr-1" title="{{ __('Delete') }}"></i></a>
 											</td>
 												@else
 											<td>
-												<a href=""><i class="text-secondary ml-2 fa fa-trash mr-1" title={{__('Unavailable')}}></i></a>
+												<a href=""><i class="text-secondary ml-2 fa fa-trash mr-1" title="{{ __('Unavailable') }}"></i></a>
 											</td>
 										@endif
 									</tr>

@@ -15,7 +15,7 @@ class SetLocaleMiddleware
      */
     public function handle($request, Closure $next)
     {
-        $supportedLocales = ['pt', 'en', 'de', 'fr'];
+        $supportedLocales = ['pt', 'en', 'de', 'es', 'fr'];
 
         if ($request->has('locale')) {
             $locale = strtolower((string) $request->locale);

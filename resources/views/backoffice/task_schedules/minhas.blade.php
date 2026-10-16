@@ -64,11 +64,11 @@
                             </td>
                             <td class="text-center">
                                 @if(strtolower($schedule->prioridade) === 'baixa')
-                                    <span class="badge px-3 py-2" style="background: #e6f4ea; color: #256029; font-weight: 500;">{{ $schedule->prioridade }}</span>
+                                    <span class="badge px-3 py-2" style="background: #e6f4ea; color: #256029; font-weight: 500;">{{ __($schedule->prioridade) }}</span>
                                 @elseif(strtolower($schedule->prioridade) === 'alta')
-                                    <span class="badge px-3 py-2" style="background: #fdeaea; color: #a4262c; font-weight: 500;">{{ $schedule->prioridade }}</span>
+                                    <span class="badge px-3 py-2" style="background: #fdeaea; color: #a4262c; font-weight: 500;">{{ __($schedule->prioridade) }}</span>
                                 @else
-                                    <span class="badge px-3 py-2" style="background: #f3f3f3; color: #333; font-weight: 500;">{{ $schedule->prioridade }}</span>
+                                    <span class="badge px-3 py-2" style="background: #f3f3f3; color: #333; font-weight: 500;">{{ __($schedule->prioridade) }}</span>
                                 @endif
                             </td>
                             <td class="text-center">{{ $schedule->activa ? __('Sim') : __('Não') }}</td>
@@ -94,7 +94,7 @@
                                     @if($isOverdue && !$isConcluida)
                                         {{ __('Atrasada') }}
                                     @else
-                                        {{ $schedule->pivot->estado ?? 'Pendente' }}
+                                        {{ __($schedule->pivot->estado ?? 'Pendente') }}
                                     @endif
                                 </span>
                             </td>
@@ -102,12 +102,12 @@
                                 @if($isConcluida)
                                     <a href="{{ route('backoffice.task_schedules.minhas.show', $schedule->id) }}"
                                        class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-sm" title="{{ __('Visualizar') }}">
-                                        <i class="fas fa-eye"></i> Visualizar
+                                        <i class="fas fa-eye"></i> {{ __('Visualizar') }}
                                     </a>
                                 @else
                                     <a href="{{ route('backoffice.task_schedules.minhas.show', $schedule->id) }}"
                                        class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm" title="{{ __('Editar') }}">
-                                        <i class="fas fa-edit"></i> Editar
+                                        <i class="fas fa-edit"></i> {{ __('Editar') }}
                                     </a>
                                     {{-- Botão "Concluir todas" removido conforme solicitado --}}
                                 @endif

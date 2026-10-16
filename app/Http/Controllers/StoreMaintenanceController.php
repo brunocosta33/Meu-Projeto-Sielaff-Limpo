@@ -80,12 +80,12 @@ class StoreMaintenanceController extends Controller
             'data_contratada' => ['required', 'date'],
             'observacoes' => ['nullable', 'string', 'max:1000'],
         ], [
-            'store_id.unique' => 'Essa loja já tem manutenção anual registada.',
-            'store_id.required' => 'Escolha a loja.',
+            'store_id.unique' => __('Essa loja já tem manutenção anual registada.'),
+            'store_id.required' => __('Escolha a loja.'),
         ]);
 
         $maintenance = StoreMaintenance::create($data);
-        flash('Manutenção anual da loja ' . $maintenance->store->codigo_loja . ' registada.')->success();
+        flash(__('Manutenção anual da loja :loja registada.', ['loja' => $maintenance->store->codigo_loja]))->success();
 
         return back();
     }
@@ -99,7 +99,7 @@ class StoreMaintenanceController extends Controller
         ]);
 
         $maintenance->update($data);
-        flash('Manutenção da loja ' . $maintenance->store->codigo_loja . ' atualizada.')->success();
+        flash(__('Manutenção da loja :loja atualizada.', ['loja' => $maintenance->store->codigo_loja]))->success();
 
         return back();
     }
@@ -108,7 +108,7 @@ class StoreMaintenanceController extends Controller
     {
         $maintenance = StoreMaintenance::with('store')->findOrFail($id);
         $maintenance->delete();
-        flash('Manutenção anual da loja ' . $maintenance->store->codigo_loja . ' removida (incluindo o histórico).')->success();
+        flash(__('Manutenção anual da loja :loja removida (incluindo o histórico).', ['loja' => $maintenance->store->codigo_loja]))->success();
 
         return back();
     }
@@ -124,7 +124,7 @@ class StoreMaintenanceController extends Controller
             'observacoes' => ['nullable', 'string', 'max:1000'],
             'documento' => self::documentRule(),
         ], [
-            'data_realizada.before_or_equal' => 'A data em que foi feita não pode ser no futuro.',
+            'data_realizada.before_or_equal' => __('A data em que foi feita não pode ser no futuro.'),
         ] + self::documentMessages());
         unset($data['documento']);
 
@@ -137,9 +137,9 @@ class StoreMaintenanceController extends Controller
         [$start, $end] = $maintenance->window((int) $data['ano']);
         $done = Carbon::parse($data['data_realizada']);
         if (!$done->between($start, $end)) {
-            flash('Atenção: a data ' . $done->format('d/m/Y') . ' está fora do prazo (' . $start->format('d/m') . ' a ' . $end->format('d/m') . ').')->warning();
+            flash(__('Atenção: a data :data está fora do prazo (:inicio a :fim).', ['data' => $done->format('d/m/Y'), 'inicio' => $start->format('d/m'), 'fim' => $end->format('d/m')]))->warning();
         }
-        flash('Manutenção ' . $data['ano'] . ' da loja ' . $maintenance->store->codigo_loja . ' marcada como feita.')->success();
+        flash(__('Manutenção :ano da loja :loja marcada como feita.', ['ano' => $data['ano'], 'loja' => $maintenance->store->codigo_loja]))->success();
 
         return back();
     }
@@ -151,7 +151,7 @@ class StoreMaintenanceController extends Controller
             Storage::disk(self::DISK)->delete($record->documento_path);
         }
         $record->delete();
-        flash('Registo removido: a manutenção ' . $record->ano . ' da loja ' . $record->maintenance->store->codigo_loja . ' volta a estar por fazer.')->success();
+        flash(__('Registo removido: a manutenção :ano da loja :loja volta a estar por fazer.', ['ano' => $record->ano, 'loja' => $record->maintenance->store->codigo_loja]))->success();
 
         return back();
     }
@@ -161,11 +161,11 @@ class StoreMaintenanceController extends Controller
     {
         $record = StoreMaintenanceRecord::with('maintenance.store')->findOrFail($recordId);
         $request->validate(['documento' => array_merge(['required'], array_slice(self::documentRule(), 1))], self::documentMessages() + [
-            'documento.required' => 'Escolha o ficheiro da folha de obra.',
+            'documento.required' => __('Escolha o ficheiro da folha de obra.'),
         ]);
 
         $this->storeDocument($request, $record);
-        flash('Folha de obra anexada à manutenção ' . $record->ano . ' da loja ' . $record->maintenance->store->codigo_loja . '.')->success();
+        flash(__('Folha de obra anexada à manutenção :ano da loja :loja.', ['ano' => $record->ano, 'loja' => $record->maintenance->store->codigo_loja]))->success();
 
         return back();
     }
@@ -186,7 +186,7 @@ class StoreMaintenanceController extends Controller
             Storage::disk(self::DISK)->delete($record->documento_path);
             $record->update(['documento_path' => null, 'documento_nome' => null]);
         }
-        flash('Folha de obra removida.')->success();
+        flash(__('Folha de obra removida.'))->success();
 
         return back();
     }
@@ -199,8 +199,8 @@ class StoreMaintenanceController extends Controller
     private static function documentMessages(): array
     {
         return [
-            'documento.mimes' => 'A folha de obra tem de ser PDF, imagem ou Word.',
-            'documento.max' => 'A folha de obra não pode ter mais de 32 MB.',
+            'documento.mimes' => __('A folha de obra tem de ser PDF, imagem ou Word.'),
+            'documento.max' => __('A folha de obra não pode ter mais de 32 MB.'),
         ];
     }
 

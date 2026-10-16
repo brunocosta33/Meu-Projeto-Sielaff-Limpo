@@ -2,7 +2,7 @@
 
 @section('head-meta')
 
-    <title>{{ str_replace('.', ' ', config('app.name')) }} - Dados do Contacto</title>
+    <title>{{ str_replace('.', ' ', config('app.name')) }} - {{ __('Dados do Contacto') }}</title>
     <link rel="stylesheet" href="{{URL::asset('css/style.css')}}">
     <link href="{{ asset('css/summernote.css') }}" rel="stylesheet">
 
@@ -22,48 +22,48 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-5">
-                        <h5 class="card-title" style="margin-bottom: 30px;">Dados do Contacto</h5>
+                        <h5 class="card-title" style="margin-bottom: 30px;">{{ __('Dados do Contacto') }}</h5>
                     </div>
                 </div>
                 <div>
                     <div class="form-group">
-                        <label for="created_at">Data Receção</label>
+                        <label for="created_at">{{ __('Data Receção') }}</label>
                         <div class="form-control">
                             {{date('d-m-Y', strtotime($lead->created_at))}}
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="name">Nome</label>
+                        <label for="name">{{ __('Nome') }}</label>
                         <div class="form-control">
                             {{$lead->name}}
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="name">Assunto</label>
+                        <label for="name">{{ __('Assunto') }}</label>
                         <div class="form-control">
                             {{$lead->type}}
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="relation_id">Nome do Produto Relacionado</label>
+                        <label for="relation_id">{{ __('Nome do Produto Relacionado') }}</label>
                         <div class="form-control">
-                            {{ $lead->product ? $lead->product->name_pt : 'Produto não encontrado' }}
+                            {{ $lead->product ? $lead->product->name_pt : __('Produto não encontrado') }}
                         </div>
                     </div>                             
                     <div class="form-group">
-                        <label for="email">Email</label>
+                        <label for="email">{{ __('Email') }}</label>
                         <div class="form-control">
                             {{$lead->contact->email}}
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="phone">Telefone</label>
+                        <label for="phone">{{ __('Telefone') }}</label>
                         <div class="form-control">
                             {{$lead->contact->telephone}}
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="message">Mensagem</label>
+                        <label for="message">{{ __('Mensagem') }}</label>
                         <div>
                             <div class="textwrapper-evaluation-text-area">
                                 <textarea class="evaluation-text-area" cols="10" rows="8" disabled>{{$lead->message}}</textarea>
@@ -73,7 +73,7 @@
                     <hr>
                     <div class="row" style="margin-top: 30px;">
                         <div class="col-5">
-                            <h5 class="card-title" style="margin-bottom: 30px;">Editar Estado e Resposta</h5>
+                            <h5 class="card-title" style="margin-bottom: 30px;">{{ __('Editar Estado e Resposta') }}</h5>
                         </div>
                     </div>
                     {{--Lead History--}}
@@ -82,8 +82,8 @@
                         {!! Form::open(['route' => ['backoffice.leads.update', $lead->id]]) !!}
                         {{ csrf_field() }}
                             <div class="form-group">
-                                {!! Form::label('state_id', 'Select State:', ['class' => 'control-label']) !!}
-                                {!! Form::select('state_id', $states->pluck('name', 'id'), $lead->state_id, ['class' => 'form-control', 'placeholder' => 'Select a state']) !!}
+                                {!! Form::label('state_id', __('Select State:'), ['class' => 'control-label']) !!}
+                                {!! Form::select('state_id', $states->pluck('name', 'id'), $lead->state_id, ['class' => 'form-control', 'placeholder' => __('Select a state')]) !!}
 
                             </div>
                             <div class="custom-control custom-switch">
@@ -96,7 +96,7 @@
                             </div>
                             <div class="row" style="height: 15px;"></div>
                         <div class="form-group">
-                            {!! Form::label('lead_message', 'Resposta') !!}
+                            {!! Form::label('lead_message', __('Resposta')) !!}
                             <div class="textwrapper-evaluation-text-area">
                                 <textarea name="lead_message" id="lead_message" class="evaluation-text-area" cols="10" rows="5">@if($leadHistory->first()){{$leadHistory[0]->message}}@endif</textarea>
                             </div>
@@ -105,9 +105,9 @@
                         <div>
                             <a class="btn btn-outline-secondary" href="{!! URL::previous() !!}">
                                 <span class="fa fa-arrow-left"></span>
-                                &nbsp; Voltar
+                                &nbsp; {{ __('Voltar') }}
                             </a>
-                            {!! Form::button('<i class="fa fa-save"></i> Gravar', array('type' => 'submit', 'class' => 'btn btn-outline-secondary')) !!}
+                            {!! Form::button('<i class="fa fa-save"></i> ' . __('Gravar'), array('type' => 'submit', 'class' => 'btn btn-outline-secondary')) !!}
                             {!! Form::close() !!}
                         </div>
                     </div>
@@ -123,15 +123,15 @@
     <div class="col">
         <div class="card">
             <div class="card-body">
-            <h5 class="card-title" style="margin-bottom: 30px;">Estado de Resposta</h5>
+            <h5 class="card-title" style="margin-bottom: 30px;">{{ __('Estado de Resposta') }}</h5>
                 <div class="table-responsive">
                     <table class="table table-striped " id="table">
                         <thead>
                         <tr>
                             <th scope="col">Id</th>
-                            <th scope="col">Name</th>
-                            <th scope="col">Data</th>
-                            <th scope="col">Estado</th>
+                            <th scope="col">{{ __('Name') }}</th>
+                            <th scope="col">{{ __('Data') }}</th>
+                            <th scope="col">{{ __('Estado') }}</th>
                             <th scope="col"></th>
                         </tr>
                         </thead>
@@ -144,7 +144,7 @@
                                     <td >{{$lead_hist->state->name}}</td>
                                     <td class="text-right">
                                         <a class="ml-2" href="{{ route('backoffice.leadHistory.show', $lead_hist->id) }}"><i
-                                        class="fa fa-eye mr-1" title={{ __('Show') }}></i></a>
+                                        class="fa fa-eye mr-1" title="{{ __('Show') }}"></i></a>
                                     </td>
                         @endforeach
                         </tbody>
@@ -160,15 +160,15 @@
     <div class="col">
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title" style="margin-bottom: 30px;">Outros Contactos</h5>
+                <h5 class="card-title" style="margin-bottom: 30px;">{{ __('Outros Contactos') }}</h5>
                 <div class="table-responsive">
                     <table class="table table-striped " id="table">
                         <thead>
                         <tr>
                             <th scope="col">Id</th>
-                            <th scope="col">Name</th>
-                            <th scope="col">Data</th>
-                            <th scope="col">Estado</th>
+                            <th scope="col">{{ __('Name') }}</th>
+                            <th scope="col">{{ __('Data') }}</th>
+                            <th scope="col">{{ __('Estado') }}</th>
                             <th scope="col"></th>
                         </tr>
                         </thead>
@@ -182,7 +182,7 @@
                                     <td >{{$relatedLead->state_id}}</td>
                                     <td class="text-right">
                                         <a class="ml-2" href="{{ route('backoffice.leads.show', $relatedLead->id) }}"><i
-                                        class="fa fa-eye mr-1" title={{ __('Show') }}></i></a>
+                                        class="fa fa-eye mr-1" title="{{ __('Show') }}"></i></a>
                                     </td>
                             @endif
                         @endforeach

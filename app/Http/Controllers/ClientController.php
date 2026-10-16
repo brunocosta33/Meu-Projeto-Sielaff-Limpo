@@ -105,7 +105,7 @@ class ClientController extends Controller
         $client = Client::find($id);
 
         if (!$client) {
-            return redirect()->route('backoffice.clients.index')->with('error', 'Client not found.');
+            return redirect()->route('backoffice.clients.index')->with('error', __('Client not found.'));
         }
         for($i=0;$i<count($client->contacts);$i++){
             $leadIds = Lead::where('contact_id', $client->contacts[$i]->id)->pluck('id');
@@ -119,6 +119,6 @@ class ClientController extends Controller
         $client->delete();
 
 
-        return redirect()->route('backoffice.clients.index')->with('success', 'Client and associated contacts deleted successfully.');
+        return redirect()->route('backoffice.clients.index')->with('success', __('Client and associated contacts deleted successfully.'));
     }
 }

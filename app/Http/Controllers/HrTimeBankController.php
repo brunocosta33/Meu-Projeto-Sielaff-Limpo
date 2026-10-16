@@ -98,8 +98,8 @@ class HrTimeBankController extends Controller
             'horas' => ['nullable', 'regex:/^\d{1,3}([.,:]\d{1,2})?$/'],
             'descricao' => ['nullable', 'string', 'max:255'],
         ] + self::fileRules(), [
-            'horas.regex' => 'Indique as horas como 2, 2,5 ou 2:30.',
-            'tipo.in' => 'Não pode registar este tipo de movimento.',
+            'horas.regex' => __('Indique as horas como 2, 2,5 ou 2:30.'),
+            'tipo.in' => __('Não pode registar este tipo de movimento.'),
         ] + self::fileMessages());
 
         $staffId = $isManager ? (int) $data['hr_staff_id'] : HrAccess::staffOf($user)?->id;
@@ -107,7 +107,7 @@ class HrTimeBankController extends Controller
 
         $hours = $this->parseHours($data['horas'] ?? '');
         if ($data['tipo'] !== 'piquete_feito' && $hours <= 0) {
-            throw ValidationException::withMessages(['horas' => 'Indique o número de horas.']);
+            throw ValidationException::withMessages(['horas' => __('Indique o número de horas.')]);
         }
 
         // Piquete acrescentado à mão pela gestão (fora da escala): um por pessoa e dia
@@ -116,7 +116,7 @@ class HrTimeBankController extends Controller
             $duplicate = HrTimeEntry::where('hr_staff_id', $staffId)->where('tipo', 'piquete_feito')
                 ->whereDate('data', $data['data'])->where('estado', 'aprovado')->exists();
             if ($duplicate) {
-                throw ValidationException::withMessages(['data' => 'Esta pessoa já tem um piquete confirmado nesse dia.']);
+                throw ValidationException::withMessages(['data' => __('Esta pessoa já tem um piquete confirmado nesse dia.')]);
             }
         }
 
@@ -126,7 +126,7 @@ class HrTimeBankController extends Controller
             $onPiquete = HrTimeEntry::where('hr_staff_id', $staffId)->where('tipo', 'piquete_feito')->where('estado', 'aprovado')->whereDate('data', $date)->exists()
                 || collect($this->piqueteSlots(app(HotlineRotation::class), $date->copy()->startOfDay(), $date->copy()->startOfDay()))->contains('worker_staff_id', $staffId);
             if (!$onPiquete) {
-                flash('Atenção: esta pessoa não estava de piquete a ' . $date->format('d/m/Y') . ' (nem na escala nem confirmado).')->warning();
+                flash(__('Atenção: esta pessoa não estava de piquete a :data (nem na escala nem confirmado).', ['data' => $date->format('d/m/Y')]))->warning();
             }
         }
 
@@ -137,10 +137,10 @@ class HrTimeBankController extends Controller
             if ($existing) {
                 if ($isManager) {
                     $existing->update(['horas' => $hours, 'horas_propostas' => null] + (!empty($data['descricao']) ? ['descricao' => $data['descricao']] : []));
-                    flash('Trabalho suplementar do piquete de ' . $existing->data->format('d/m') . ' atualizado: ' . HrTimeEntry::formatHours($hours) . '.')->success();
+                    flash(__('Trabalho suplementar do piquete de :data atualizado: :horas.', ['data' => $existing->data->format('d/m'), 'horas' => HrTimeEntry::formatHours($hours)]))->success();
                 } else {
                     $existing->update(['horas_propostas' => $hours]);
-                    flash('Trabalho suplementar enviado: ' . HrTimeEntry::formatHours($hours) . '. Fica pendente até ser aprovado pela gestão de RH.')->success();
+                    flash(__('Trabalho suplementar enviado: :horas. Fica pendente até ser aprovado pela gestão de RH.', ['horas' => HrTimeEntry::formatHours($hours)]))->success();
                 }
                 $this->storeFiles($request, $existing);
 
@@ -161,7 +161,7 @@ class HrTimeBankController extends Controller
         ]);
         $this->storeFiles($request, $entry);
 
-        flash($isManager ? 'Movimento registado.' : 'Horas enviadas para aprovação. Contam para o saldo depois de aprovadas pela gestão de RH.')->success();
+        flash($isManager ? __('Movimento registado.') : __('Horas enviadas para aprovação. Contam para o saldo depois de aprovadas pela gestão de RH.'))->success();
 
         return redirect()->route('backoffice.hr.timebank.index', ['mes' => Carbon::parse($data['data'])->format('Y-m')]);
     }
@@ -173,17 +173,17 @@ class HrTimeBankController extends Controller
         $data = $request->validate([
             'horas' => ['nullable', 'regex:/^\d{1,3}([.,:]\d{1,2})?$/'],
             'descricao' => ['nullable', 'string', 'max:255'],
-        ], ['horas.regex' => 'Indique as horas como 2, 2,5 ou 2:30.']);
+        ], ['horas.regex' => __('Indique as horas como 2, 2,5 ou 2:30.')]);
 
         $hours = $this->parseHours($data['horas'] ?? '');
         if ($entry->tipo !== 'piquete' && $hours <= 0) {
-            throw ValidationException::withMessages(['horas' => 'Indique o número de horas.']);
+            throw ValidationException::withMessages(['horas' => __('Indique o número de horas.')]);
         }
 
         $entry->update(['horas' => $hours] + ($request->has('descricao') ? ['descricao' => $data['descricao']] : []));
         flash($entry->tipo === 'piquete'
-            ? 'Trabalho suplementar do piquete de ' . $entry->data->format('d/m') . ': ' . HrTimeEntry::formatHours($hours) . '.'
-            : 'Movimento atualizado.')->success();
+            ? __('Trabalho suplementar do piquete de :data: :horas.', ['data' => $entry->data->format('d/m'), 'horas' => HrTimeEntry::formatHours($hours)])
+            : __('Movimento atualizado.'))->success();
 
         return back();
     }
@@ -197,14 +197,14 @@ class HrTimeBankController extends Controller
         if ($entry->hasProposal() && $entry->estado === 'aprovado') {
             $entry->update(($estado === 'aprovado' ? ['horas' => $entry->horas_propostas] : [])
                 + ['horas_propostas' => null, 'decided_by' => auth()->id(), 'decided_at' => now()]);
-            flash($estado === 'aprovado' ? 'Trabalho suplementar aprovado.' : 'Trabalho suplementar rejeitado.')->success();
+            flash($estado === 'aprovado' ? __('Trabalho suplementar aprovado.') : __('Trabalho suplementar rejeitado.'))->success();
 
             return back();
         }
 
         $entry->update(['estado' => $estado, 'horas_propostas' => null, 'decided_by' => auth()->id(), 'decided_at' => now()]);
 
-        flash($estado === 'aprovado' ? 'Movimento aprovado.' : 'Movimento rejeitado.')->success();
+        flash($estado === 'aprovado' ? __('Movimento aprovado.') : __('Movimento rejeitado.'))->success();
 
         return back();
     }
@@ -216,7 +216,7 @@ class HrTimeBankController extends Controller
             Storage::disk(self::DISK)->delete($file->path);
         }
         $entry->delete();
-        flash('Movimento apagado.')->success();
+        flash(__('Movimento apagado.'))->success();
 
         return back();
     }
@@ -264,7 +264,7 @@ class HrTimeBankController extends Controller
             'slot_staff_id' => ['required', 'exists:hr_staff,id'],
             'hr_staff_id' => ['nullable', 'required_if:acao,confirmar', 'exists:hr_staff,id'],
             'acao' => ['required', Rule::in(['confirmar', 'recusar'])],
-        ], ['hr_staff_id.required_if' => 'Escolha quem fez o piquete.']);
+        ], ['hr_staff_id.required_if' => __('Escolha quem fez o piquete.')]);
 
         $date = Carbon::parse($data['data']);
         $slotStaff = HrStaff::with('user')->findOrFail($data['slot_staff_id']);
@@ -288,8 +288,8 @@ class HrTimeBankController extends Controller
         );
 
         flash($confirm
-            ? 'Piquete de ' . $date->format('d/m') . ' confirmado: ' . $worker->user->name . '.'
-            : 'Piquete de ' . $date->format('d/m') . ' marcado como não feito.')->success();
+            ? __('Piquete de :data confirmado: :nome.', ['data' => $date->format('d/m'), 'nome' => $worker->user->name])
+            : __('Piquete de :data marcado como não feito.', ['data' => $date->format('d/m')]))->success();
 
         return back();
     }
@@ -310,7 +310,7 @@ class HrTimeBankController extends Controller
         return response()->streamDownload(function () use ($entries) {
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF"); // BOM para o Excel reconhecer acentos
-            fputcsv($out, ['Colaborador', 'Data', 'Tipo', 'Piquete (a pagar)', 'Trabalho suplementar em piquete (h, a pagar)', 'Saldo de horas (+/−)', 'Descrição'], ';');
+            fputcsv($out, [__('Colaborador'), __('Data'), __('Tipo'), __('Piquete (a pagar)'), __('Trabalho suplementar em piquete (h, a pagar)'), __('Saldo de horas (+/−)'), __('Descrição')], ';');
             foreach ($entries as $e) {
                 $isPiquete = !$e->countsInBalance();
                 fputcsv($out, [
@@ -333,11 +333,11 @@ class HrTimeBankController extends Controller
         $entry = HrTimeEntry::findOrFail($id);
         $this->authorizeEntry($entry);
         $request->validate(['anexos' => ['required', 'array', 'max:10'], 'anexos.*' => self::fileRules()['anexos.*']], self::fileMessages() + [
-            'anexos.required' => 'Escolha pelo menos uma fotografia ou documento.',
+            'anexos.required' => __('Escolha pelo menos uma fotografia ou documento.'),
         ]);
 
         $n = $this->storeFiles($request, $entry);
-        flash($n === 1 ? 'Comprovativo anexado.' : $n . ' comprovativos anexados.')->success();
+        flash($n === 1 ? __('Comprovativo anexado.') : __(':total comprovativos anexados.', ['total' => $n]))->success();
 
         return back();
     }
@@ -357,7 +357,7 @@ class HrTimeBankController extends Controller
         abort_unless(HrAccess::isManager(auth()->user()) || $file->uploaded_by === auth()->id(), 403);
         Storage::disk(self::DISK)->delete($file->path);
         $file->delete();
-        flash('Comprovativo removido.')->success();
+        flash(__('Comprovativo removido.'))->success();
 
         return back();
     }
@@ -378,9 +378,9 @@ class HrTimeBankController extends Controller
     private static function fileMessages(): array
     {
         return [
-            'anexos.max' => 'No máximo 10 comprovativos de cada vez.',
-            'anexos.*.mimes' => 'Os comprovativos têm de ser fotografias (JPG, PNG, HEIC) ou PDF.',
-            'anexos.*.max' => 'Cada comprovativo pode ter no máximo 32 MB.',
+            'anexos.max' => __('No máximo 10 comprovativos de cada vez.'),
+            'anexos.*.mimes' => __('Os comprovativos têm de ser fotografias (JPG, PNG, HEIC) ou PDF.'),
+            'anexos.*.max' => __('Cada comprovativo pode ter no máximo 32 MB.'),
         ];
     }
 

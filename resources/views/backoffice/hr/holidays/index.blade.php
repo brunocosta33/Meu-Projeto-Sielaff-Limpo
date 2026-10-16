@@ -1,6 +1,6 @@
 @extends('layouts.backoffice_master')
 
-@php(\Carbon\Carbon::setLocale('pt'))
+@php(\Carbon\Carbon::setLocale(app()->getLocale()))
 
 @section('head-meta')
     <title>{{ config('app.name') }} - {{ __('Feriados') }} {{ $year }}</title>
@@ -66,7 +66,7 @@
                                     <td class="text-right">
                                         @if($canEdit)
                                         <form method="POST" action="{{ route('backoffice.hr.holidays.destroy', $h->id) }}" class="d-inline"
-                                              onsubmit="return confirm('Remover este feriado?{{ $h->recorrente ? ' Será removido de todos os anos.' : '' }} As férias marcadas serão recalculadas.')">
+                                              onsubmit="return confirm({{ json_encode($h->recorrente ? __('Remover este feriado? Será removido de todos os anos. As férias marcadas serão recalculadas.') : __('Remover este feriado? As férias marcadas serão recalculadas.')) }})">
                                             @csrf
                                             @method('DELETE')
                                             <button class="btn btn-link btn-sm text-danger p-0"><i class="fa fa-trash"></i></button>

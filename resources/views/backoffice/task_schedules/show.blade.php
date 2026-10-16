@@ -32,7 +32,7 @@
                             <tr>
                                 <td>{{ $schedule->task->title }}</td>
                                 <td>
-                                    <span class="detalhe-badge prioridade-{{ strtolower($schedule->prioridade) }}">{{ $schedule->prioridade }}</span>
+                                    <span class="detalhe-badge prioridade-{{ strtolower($schedule->prioridade) }}">{{ __($schedule->prioridade) }}</span>
                                 </td>
                                 <td style="text-align: center;">
                                     <span class="detalhe-badge {{ $schedule->activa ? 'sim' : 'nao' }}">{{ $schedule->activa ? __('Sim') : __('Não') }}</span>
@@ -43,7 +43,7 @@
                                 <td style="text-align: center;">{{ $schedule->display_date ? \Carbon\Carbon::parse($schedule->display_date)->format('d/m/Y') : '-' }}</td>
                                 <td style="text-align: center;">{{ $schedule->display_time ? \Carbon\Carbon::parse($schedule->display_time)->format('H:i') : '-' }}</td>
                                 <td style="text-align: center;">
-                                    <span class="detalhe-badge estado-{{ strtolower($schedule->estado ?? 'pendente') }}">{{ $schedule->estado ?? 'Pendente' }}</span>
+                                    <span class="detalhe-badge estado-{{ strtolower($schedule->estado ?? 'pendente') }}">{{ __($schedule->estado ?? 'Pendente') }}</span>
                                 </td>
                             </tr>
                         </tbody>
@@ -66,7 +66,7 @@
                                     <td>{{ $user->name }}</td>
                                     <td>
                                         <span class="detalhe-badge estado-{{ strtolower($user->pivot->estado ?? 'pendente') }}">
-                                            {{ $user->pivot->estado ?? __('Pendente') }}
+                                            {{ __($user->pivot->estado ?? 'Pendente') }}
                                         </span>
                                         @if($user->pivot->data_conclusao)
                                             <br><small class="text-muted">{{ \Carbon\Carbon::parse($user->pivot->data_conclusao)->format('d/m/Y - H:i') }}</small>

@@ -64,7 +64,7 @@
                             <label>{{ __('Motivo') }}</label>
                             <select name="motivo" class="form-control" required>
                                 @foreach(config('hr.absence_reasons') as $key => $label)
-                                    <option value="{{ $key }}" @selected(old('motivo', $absence->motivo) === $key)>{{ $label }}</option>
+                                    <option value="{{ $key }}" @selected(old('motivo', $absence->motivo) === $key)>{{ __($label) }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -72,7 +72,7 @@
                             <label>{{ __('Situação') }}</label>
                             <select name="situacao" class="form-control" required>
                                 @foreach(\App\Models\HrAbsence::STATES as $key => $state)
-                                    <option value="{{ $key }}" @selected(old('situacao', $absence->situacao) === $key)>{{ $state['label'] }}</option>
+                                    <option value="{{ $key }}" @selected(old('situacao', $absence->situacao) === $key)>{{ __($state['label']) }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -83,7 +83,7 @@
                         @if($absence->documento_path)
                             <div class="mb-2">
                                 <a href="{{ route('backoffice.hr.absences.document', $absence->id) }}" target="_blank"><i class="fa fa-paperclip"></i> {{ $absence->documento_nome }}</a>
-                                <button type="submit" form="delete-document" class="btn btn-link btn-sm text-danger" onclick="return confirm('Remover o comprovativo?')">
+                                <button type="submit" form="delete-document" class="btn btn-link btn-sm text-danger" onclick="return confirm({{ json_encode(__('Remover o comprovativo?')) }})">
                                     <i class="fa fa-trash"></i> {{ __('Remover') }}
                                 </button>
                             </div>

@@ -21,7 +21,7 @@ class TeamController extends Controller
     public function store(Request $request)
     {
         Team::create($request->all());
-        flash('Equipa criada com sucesso!')->success();
+        flash(__('Equipa criada com sucesso!'))->success();
         return redirect()->route('backoffice.teams.index');
     }
 
@@ -35,7 +35,7 @@ class TeamController extends Controller
     {
         $team = Team::findOrFail($id);
         $team->update($request->all());
-        flash('Equipa atualizada com sucesso!')->success();
+        flash(__('Equipa atualizada com sucesso!'))->success();
         return redirect()->route('backoffice.teams.index');
     }
 
@@ -43,7 +43,7 @@ class TeamController extends Controller
     {
         $team = Team::findOrFail($id);
         $team->delete();
-        flash('Equipa removida com sucesso!')->success();
+        flash(__('Equipa removida com sucesso!'))->success();
         return redirect()->route('backoffice.teams.index');
     }
 }

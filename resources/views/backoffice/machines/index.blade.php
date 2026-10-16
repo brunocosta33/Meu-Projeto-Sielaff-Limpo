@@ -30,7 +30,7 @@
                             <label for="codigo_loja" class="form-label">{{ __('Código da Loja') }}</label>
                             <input type="text" name="codigo_loja" id="codigo_loja"
                                 value="{{ request('codigo_loja') }}"
-                                class="form-control" placeholder="Ex: 123">
+                                class="form-control" placeholder="{{ __('Ex: 123') }}">
                         </div>
 
                         {{-- Nome da Loja --}}
@@ -38,7 +38,7 @@
                             <label for="nome_loja" class="form-label">{{ __('Nome da Loja') }}</label>
                             <input type="text" name="nome_loja" id="nome_loja"
                                 value="{{ request('nome_loja') }}"
-                                class="form-control" placeholder="Ex: Loja Central">
+                                class="form-control" placeholder="{{ __('Ex: Loja Central') }}">
                         </div>
 
                         {{-- Número de Série --}}
@@ -46,7 +46,7 @@
                             <label for="serial_number" class="form-label">{{ __('Número de Série') }}</label>
                             <input type="text" name="serial_number" id="serial_number"
                                 value="{{ request('serial_number') }}"
-                                class="form-control" placeholder="Ex: SN12345">
+                                class="form-control" placeholder="{{ __('Ex: SN12345') }}">
                         </div>
 
                         {{-- Botões --}}
@@ -101,7 +101,7 @@
                                         <i class="fa fa-network-wired"></i> {{ $m->ip_address }}
                                     </span>
                                     @else
-                                    <span class="text-muted"><i class="fa fa-minus-circle"></i> Sem IP</span>
+                                    <span class="text-muted"><i class="fa fa-minus-circle"></i> {{ __('Sem IP') }}</span>
                                     @endif
                                 </td>
 
@@ -113,18 +113,18 @@
                                 <td class="text-right">
                                     <div class="d-flex justify-content-end">
                                         <a href="{{ route('backoffice.machines.history', $m->id) }}"
-                                            class="btn btn-sm btn-outline-info mr-2" title="Histórico">
+                                            class="btn btn-sm btn-outline-info mr-2" title="{{ __('Histórico') }}">
                                             <i class="fa fa-history"></i>
                                         </a>
                                         <a href="{{ route('backoffice.machines.edit', $m->id) }}"
-                                            class="btn btn-sm btn-outline-primary mr-2" title="Editar">
+                                            class="btn btn-sm btn-outline-primary mr-2" title="{{ __('Editar') }}">
                                             <i class="fa fa-edit"></i>
                                         </a>
                                         <form action="{{ route('backoffice.machines.destroy', $m->id) }}" method="POST">
                                             @csrf @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-outline-danger"
-                                                onclick="return confirm('Tem a certeza que deseja apagar esta máquina?')"
-                                                title="Apagar">
+                                                onclick="return confirm(@js(__('Tem a certeza que deseja apagar esta máquina?')))"
+                                                title="{{ __('Apagar') }}">
                                                 <i class="fa fa-trash"></i>
                                             </button>
                                         </form>
@@ -135,7 +135,7 @@
                             @empty
                             <tr>
                                 <td colspan="5" class="text-center text-muted">
-                                    <i class="fa fa-info-circle"></i> Nenhuma máquina registada.
+                                    <i class="fa fa-info-circle"></i> {{ __('Nenhuma máquina registada.') }}
                                 </td>
                             </tr>
                             @endforelse

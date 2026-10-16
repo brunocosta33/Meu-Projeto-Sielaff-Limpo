@@ -232,7 +232,7 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="font-weight-bold d-block">{{ __('Prioridade') }}</label>
-                                    <div class="text-muted">{{ ucfirst($technicalRequest->prioridade ?? '—') }}</div>
+                                    <div class="text-muted">{{ $priorities[$technicalRequest->prioridade ?? ''] ?? ucfirst($technicalRequest->prioridade ?? '—') }}</div>
                                 </div>
                             </div>
                         @endif

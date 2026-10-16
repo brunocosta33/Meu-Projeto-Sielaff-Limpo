@@ -17,7 +17,7 @@
 				<div class="card-body">
 					<div class="float-right">
 						<a href="{{ route('dashboard.users.create') }}" class="collapsed" data-parent="#sidebar">
-							<button type="submit" class="btn btn-outline-secondary" title={{__('Create')}}><span class="fa fa-plus"></span>&nbsp;&nbsp;{{ __('Create') }}</button>
+							<button type="submit" class="btn btn-outline-secondary" title="{{ __('Create') }}"><span class="fa fa-plus"></span>&nbsp;&nbsp;{{ __('Create') }}</button>
 						</a>
 					</div>
 					<h5 class="card-title">{{__('Users')}}</h5>
@@ -28,7 +28,7 @@
 								<tr>
 									<th class="text-center" style="width: 5%">ID</th>
 									<th class="text-left" style="width: 30%">{{__('Name')}}</th>
-									<th class="text-center" style="width: 40%">Email</th>
+									<th class="text-center" style="width: 40%">{{ __('Email') }}</th>
 									<th class="text-center" style="width: 15%">{{__('Active')}}</th>
 									<th class="text-center" style="width: 10%"></th>
 								</tr>
@@ -41,12 +41,12 @@
 										<td class="text-center">{{ $user->email }}</td>
 										<td class="text-center">@if($user->is_active == 1) {{__('Yes')}} @else {{__('No')}} @endif</td>										
 										<td>
-											<a class="ml-2" href="{{ route('dashboard.users.pass', $user->id) }}"><i class="fa fa-key mr-1" title="Password"></i></a>
-											<a class="ml-2" href="{{ route('dashboard.users.edit', $user->id) }}"><i class="fa fa-edit mr-1" title={{__('Edit')}}></i></a>
+											<a class="ml-2" href="{{ route('dashboard.users.pass', $user->id) }}"><i class="fa fa-key mr-1" title="{{ __('Password') }}"></i></a>
+											<a class="ml-2" href="{{ route('dashboard.users.edit', $user->id) }}"><i class="fa fa-edit mr-1" title="{{ __('Edit') }}"></i></a>
 											@if ($user->id != auth()->user()->id)
-												<a class="ml-2" href="{{ route('dashboard.users.destroy', $user->id) }}" onclick="return confirm('{{__('Are you sure?')}}')"><i class="fa fa-trash mr-1" title={{__('Delete')}}></i></a>
+												<a class="ml-2" href="{{ route('dashboard.users.destroy', $user->id) }}" onclick="return confirm(@js(__('Are you sure?')))"><i class="fa fa-trash mr-1" title="{{ __('Delete') }}"></i></a>
 											@else
-												<a href=""><i class="text-secondary ml-2 fa fa-trash mr-1" title={{__('Unavailable')}}></i></a>
+												<a href=""><i class="text-secondary ml-2 fa fa-trash mr-1" title="{{ __('Unavailable') }}"></i></a>
 											@endif
 										</td>
 									</tr>

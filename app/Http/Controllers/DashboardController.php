@@ -112,7 +112,7 @@ class DashboardController extends Controller
                     default => '#1976d2',
                 };
                 $hora = $agendamento->hora_limite ? (is_string($agendamento->hora_limite) ? $agendamento->hora_limite : $agendamento->hora_limite->format('H:i')) : null;
-                $title = $agendamento->task->title ?? 'Tarefa';
+                $title = $agendamento->task->title ?? __('Tarefa');
                 if ($hora) {
                     $title .= ' (' . $hora . ')';
                 }

@@ -163,11 +163,11 @@
                         </td>
                         <td class="text-center">
                             @if(strtolower($schedule->prioridade) === 'baixa')
-                                <span class="badge px-3 py-2" style="background: #e6f4ea; color: #256029; font-weight: 500;">{{ $schedule->prioridade }}</span>
+                                <span class="badge px-3 py-2" style="background: #e6f4ea; color: #256029; font-weight: 500;">{{ __($schedule->prioridade) }}</span>
                             @elseif(strtolower($schedule->prioridade) === 'alta')
-                                <span class="badge px-3 py-2" style="background: #fdeaea; color: #a4262c; font-weight: 500;">{{ $schedule->prioridade }}</span>
+                                <span class="badge px-3 py-2" style="background: #fdeaea; color: #a4262c; font-weight: 500;">{{ __($schedule->prioridade) }}</span>
                             @else
-                                <span class="badge px-3 py-2" style="background: #f3f3f3; color: #333; font-weight: 500;">{{ $schedule->prioridade }}</span>
+                                <span class="badge px-3 py-2" style="background: #f3f3f3; color: #333; font-weight: 500;">{{ __($schedule->prioridade) }}</span>
                             @endif
                         </td>
                         <td class="text-center">
@@ -199,7 +199,7 @@
                                     @endforeach
                                 </div>
                             @else
-                                <span class="task-schedule-user-empty">Sem utilizadores atribuídos</span>
+                                <span class="task-schedule-user-empty">{{ __('Sem utilizadores atribuídos') }}</span>
                             @endif
                         </td>
                         <td class="text-center">
@@ -210,7 +210,7 @@
                                 $isConcluida = $totalUsers > 0 && $concluidas === $totalUsers;
                                 $estadoBg = $isConcluida ? '#e6f4ea' : '#fffbe6';
                                 $estadoColor = $isConcluida ? '#256029' : '#a67c00';
-                                $estadoLabel = $totalUsers === 0 ? ($schedule->estado ?? 'Pendente') : ($isConcluida ? 'Concluída' : ($concluidas > 0 ? "$concluidas/$totalUsers Concluídas" : ($users->first()->pivot->estado ?? 'Pendente')));
+                                $estadoLabel = $totalUsers === 0 ? __($schedule->estado ?? 'Pendente') : ($isConcluida ? __('Concluída') : ($concluidas > 0 ? __(':concluidas/:total Concluídas', ['concluidas' => $concluidas, 'total' => $totalUsers]) : __($users->first()->pivot->estado ?? 'Pendente')));
                             @endphp
                             <span class="badge px-3 py-2" {!! 'style="background: '.$estadoBg.'; color: '.$estadoColor.'; font-weight: 500;"' !!}>
                                 @if($isConcluida)
@@ -227,7 +227,7 @@
                                 <a href="{{ route('backoffice.task_schedules.edit', $schedule->id) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-2 py-1 shadow-sm" title="{{ __('Editar') }}">
                                     <i class="fas fa-pencil-alt"></i>
                                 </a>
-                                <form action="{{ route('backoffice.task_schedules.destroy', $schedule->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Tem certeza que deseja apagar este agendamento?')" style="display:inline;">
+                                <form action="{{ route('backoffice.task_schedules.destroy', $schedule->id) }}" method="POST" class="d-inline" onsubmit="return confirm(@js(__('Tem certeza que deseja apagar este agendamento?')))" style="display:inline;">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-2 py-1 shadow-sm" title="{{ __('Apagar') }}">

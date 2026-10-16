@@ -26,7 +26,7 @@
 				<div class="card-body">
 					<div class="float-right">
 						<a href="{{ route('backoffice.permissions.create') }}" class="collapsed" data-parent="#sidebar">
-							<button type="submit" class="btn btn-outline-secondary" title={{__('Create')}}><span class="fa fa-plus"></span>&nbsp;&nbsp;{{__('Create')}}</button>
+							<button type="submit" class="btn btn-outline-secondary" title="{{ __('Create') }}"><span class="fa fa-plus"></span>&nbsp;&nbsp;{{__('Create')}}</button>
 						</a>
 					</div>
 					<h5 class="card-title">{{__('Permissions')}}</h5>
@@ -48,8 +48,8 @@
 										<td>{{ $permission->name }}</td>
 										<td>{{ $permission->display_name }}</td>										
 										<td class="text-right">
-											<a class="ml-2" href="{{ route('backoffice.permissions.edit', $permission->id) }}"><i class="fa fa-edit mr-1" title={{__('Edit')}}></i></a>
-											<a class="ml-2" href="{{ route('backoffice.permissions.delete', $permission->id) }}" onclick="return confirm('{{__('Are you sure?')}}')"><i class="fa fa-trash mr-1" title={{__('Delete')}}></i></a>
+											<a class="ml-2" href="{{ route('backoffice.permissions.edit', $permission->id) }}"><i class="fa fa-edit mr-1" title="{{ __('Edit') }}"></i></a>
+											<a class="ml-2" href="{{ route('backoffice.permissions.delete', $permission->id) }}" onclick="return confirm(@js(__('Are you sure?')))"><i class="fa fa-trash mr-1" title="{{ __('Delete') }}"></i></a>
 										</td>
 									</tr>
 								@empty

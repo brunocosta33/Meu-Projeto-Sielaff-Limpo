@@ -1,6 +1,6 @@
 @extends('layouts.backoffice_master')
 
-@php(\Carbon\Carbon::setLocale('pt'))
+@php(\Carbon\Carbon::setLocale(app()->getLocale()))
 @php($isPiquete = ($kind ?? 'hotline') === 'piquete')
 @php($pageTitle = $isPiquete ? __('Escala Piquete') : __('Escala Hotline'))
 @php($canEdit = $canEdit ?? true)
@@ -78,7 +78,7 @@
                             <label class="small mb-1">{{ __('Turno de') }}</label>
                             <select name="staff" class="form-control form-control-sm" required>
                                 @foreach($hotliners as $staff)
-                                    <option value="{{ $staff->id }}">{{ $staff->user->name }}{{ $staff->zona ? ' · ' . config('hr.zones.' . $staff->zona) : '' }}</option>
+                                    <option value="{{ $staff->id }}">{{ $staff->user->name }}{{ $staff->zona ? ' · ' . __(config('hr.zones.' . $staff->zona)) : '' }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -123,7 +123,7 @@
                                         <td class="text-nowrap">{{ ucfirst($o->data->translatedFormat('D d/m/Y')) }}</td>
                                         <td>{{ $o->staff->user->name ?? '—' }}</td>
                                         <td>{!! $o->substitute ? e($o->substitute->name) : '<span class="text-danger">' . e(__('Sem substituto')) . '</span>' !!}</td>
-                                        <td>{{ config('hr.override_reasons.' . $o->motivo) }}</td>
+                                        <td>{{ __(config('hr.override_reasons.' . $o->motivo, $o->motivo)) }}</td>
                                         <td class="small text-muted">{{ $o->observacoes }}</td>
                                         <td class="text-right">
                                             @if($canEdit)<a href="{{ route('backoffice.hr.hotline.override.create', ['staff' => $o->hr_staff_id, 'data' => $o->data->toDateString()]) }}"><i class="fa fa-edit" title="{{ __('Editar') }}"></i></a>@endif
@@ -150,15 +150,16 @@
         var calendar = new FullCalendar.Calendar(el, {
             initialView: 'dayGridMonth',
             initialDate: @json($month->toDateString()),
-            locale: 'pt',
+            locale: @json(app()->getLocale()),
             firstDay: 1,
             height: 'auto',
             nextDayThreshold: '09:00',
             headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,listMonth' },
-            buttonText: { today: 'Hoje', month: 'Mês', week: 'Semana', list: 'Lista' },
+            buttonText: { today: @json(__('Hoje')), month: @json(__('Mês')), week: @json(__('Semana')), list: @json(__('Lista')) },
+            allDayText: @json(__('Dia todo')),
             slotMinTime: '00:00:00',
             eventSources: [
-                { url: @json(route('backoffice.hr.calendar.events', ['tipo' => $kind ?? 'hotline'])), display: 'block', className: 'fc-duty-event' },
+                { url: {{ \Illuminate\Support\Js::from(route('backoffice.hr.calendar.events', ['tipo' => $kind ?? 'hotline'])) }}, display: 'block', className: 'fc-duty-event' },
                 { url: @json(route('backoffice.hr.holidays.events')) }
             ],
             eventContent: function (arg) {

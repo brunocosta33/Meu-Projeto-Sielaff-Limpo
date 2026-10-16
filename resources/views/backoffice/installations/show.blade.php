@@ -40,7 +40,7 @@
                                         <form method="POST" action="{{ route('backoffice.installations.pdfs.delete', $pdf->id) }}" style="display:inline;">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('{{ __('Tem a certeza que deseja apagar este ficheiro?') }}')">{{ __('Apagar') }}</button>
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm(@js(__('Tem a certeza que deseja apagar este ficheiro?')))">{{ __('Apagar') }}</button>
                                         </form>
                                     </div>
                                 </li>

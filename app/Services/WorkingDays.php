@@ -41,19 +41,19 @@ class WorkingDays
         $easter = $this->easter($year);
 
         $holidays = [
-            "$year-01-01" => 'Ano Novo',
-            $easter->copy()->subDays(2)->toDateString() => 'Sexta-feira Santa',
-            $easter->toDateString() => 'Páscoa',
-            "$year-04-25" => 'Dia da Liberdade',
-            "$year-05-01" => 'Dia do Trabalhador',
-            $easter->copy()->addDays(60)->toDateString() => 'Corpo de Deus',
-            "$year-06-10" => 'Dia de Portugal',
-            "$year-08-15" => 'Assunção de Nossa Senhora',
-            "$year-10-05" => 'Implantação da República',
-            "$year-11-01" => 'Dia de Todos os Santos',
-            "$year-12-01" => 'Restauração da Independência',
-            "$year-12-08" => 'Imaculada Conceição',
-            "$year-12-25" => 'Natal',
+            "$year-01-01" => __('Ano Novo'),
+            $easter->copy()->subDays(2)->toDateString() => __('Sexta-feira Santa'),
+            $easter->toDateString() => __('Páscoa'),
+            "$year-04-25" => __('Dia da Liberdade'),
+            "$year-05-01" => __('Dia do Trabalhador'),
+            $easter->copy()->addDays(60)->toDateString() => __('Corpo de Deus'),
+            "$year-06-10" => __('Dia de Portugal'),
+            "$year-08-15" => __('Assunção de Nossa Senhora'),
+            "$year-10-05" => __('Implantação da República'),
+            "$year-11-01" => __('Dia de Todos os Santos'),
+            "$year-12-01" => __('Restauração da Independência'),
+            "$year-12-08" => __('Imaculada Conceição'),
+            "$year-12-25" => __('Natal'),
         ];
 
         ksort($holidays);

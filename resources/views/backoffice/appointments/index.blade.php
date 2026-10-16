@@ -571,7 +571,7 @@
                                                         <i class="fa fa-edit"></i>
                                                     </a>
                                                     <a href="{{ route('backoffice.appointments.delete', $appointment->id) }}"
-                                                       onclick="return confirm('{{ __('Tem a certeza que deseja apagar este agendamento?') }}')"
+                                                       onclick="return confirm(@js(__('Tem a certeza que deseja apagar este agendamento?')))"
                                                        class="logistics-action-btn danger" title="{{ __('Apagar') }}" aria-label="{{ __('Apagar') }}">
                                                         <i class="fa fa-trash"></i>
                                                     </a>

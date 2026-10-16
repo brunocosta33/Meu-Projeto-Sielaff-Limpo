@@ -65,7 +65,7 @@
                 @endif
                 @yield('content')
                 <footer class="text-center text-muted small py-3">
-                    Desenvolvido por Bruno Costa &middot; &copy; 2026 Todos os direitos reservados.
+                    {{ __('Desenvolvido por :name', ['name' => 'Bruno Costa']) }} &middot; &copy; 2026 {{ __('Todos os direitos reservados.') }}
                 </footer>
             </main>
         </div>

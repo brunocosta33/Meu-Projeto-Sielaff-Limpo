@@ -17,13 +17,13 @@ class TaskController extends Controller
     public function show(Task $task)
     {
         return redirect()->route('backoffice.task_schedules.minhas')
-            ->with('info', 'A página antiga de "Minhas Tarefas" foi unificada na lista de agendamentos.');
+            ->with('info', __('A página antiga de "Minhas Tarefas" foi unificada na lista de agendamentos.'));
     }
 
     public function updateStatus(Request $request, Task $task)
     {
         return redirect()->route('backoffice.task_schedules.minhas')
-            ->with('info', 'Atualize o estado da tarefa através da página "Minhas Tarefas".');
+            ->with('info', __('Atualize o estado da tarefa através da página "Minhas Tarefas".'));
     }
 
     public function update(Request $request, $id)
@@ -41,7 +41,7 @@ class TaskController extends Controller
             'description' => $request->description,
         ]);
 
-        return redirect()->route('backoffice.tasks.index')->with('success', 'Tarefa atualizada com sucesso.');
+        return redirect()->route('backoffice.tasks.index')->with('success', __('Tarefa atualizada com sucesso.'));
     }
     
 
@@ -75,7 +75,7 @@ class TaskController extends Controller
             'description' => $request->description,
         ]);
 
-        return redirect()->route('backoffice.tasks.index')->with('success', 'Tarefa criada com sucesso.');
+        return redirect()->route('backoffice.tasks.index')->with('success', __('Tarefa criada com sucesso.'));
     }
 
 public function index()
@@ -104,10 +104,10 @@ public function index()
         $task = Task::findOrFail($id);
         // Verifica se a tarefa está agendada em algum TaskSchedule
         if ($task->schedules()->count() > 0) {
-            return redirect()->route('backoffice.tasks.index')->with('error', 'Não é possível apagar: esta tarefa já está agendada.');
+            return redirect()->route('backoffice.tasks.index')->with('error', __('Não é possível apagar: esta tarefa já está agendada.'));
         }
         $task->delete();
-        return redirect()->route('backoffice.tasks.index')->with('success', 'Tarefa apagada com sucesso.');
+        return redirect()->route('backoffice.tasks.index')->with('success', __('Tarefa apagada com sucesso.'));
     }
 
     private function isTechnician(): bool

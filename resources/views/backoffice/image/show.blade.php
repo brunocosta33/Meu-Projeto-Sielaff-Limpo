@@ -1,7 +1,7 @@
 @extends('layouts.backoffice_master')
 
 @section('head-meta')
-    <title>{{ str_replace('.', ' ', config('app.name')) }} - Visualizar Vinho</title>
+    <title>{{ str_replace('.', ' ', config('app.name')) }} - {{ __('Visualizar Vinho') }}</title>
     <link rel="stylesheet" href="{{ URL::asset('css/style.css') }}">
     <script type="text/javascript" src="{{ URL::asset('js/datasheetsimage.js') }}"></script>
 @endsection
@@ -20,7 +20,7 @@
     <div class="card-body">
         <a class="btn btn-outline-secondary" href="{!! URL::previous() !!}">
         <span class="fa fa-arrow-left"></span>
-         &nbsp; Voltar
+         &nbsp; {{ __('Voltar') }}
         </a>
             </div>
         </div>

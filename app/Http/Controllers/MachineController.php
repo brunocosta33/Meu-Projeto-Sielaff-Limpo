@@ -116,7 +116,7 @@ class MachineController extends Controller
         Machine::create($request->all());
 
         return redirect()->route('backoffice.machines.index')
-            ->with('success', 'Máquina criada com sucesso.');
+            ->with('success', __('Máquina criada com sucesso.'));
     }
     public function edit($id)
     {
@@ -138,7 +138,7 @@ class MachineController extends Controller
         $machine->update($request->all());
 
         return redirect()->route('backoffice.machines.index')
-            ->with('success', 'Máquina atualizada com sucesso.');
+            ->with('success', __('Máquina atualizada com sucesso.'));
     }
 
     public function destroy($id)
@@ -147,7 +147,7 @@ class MachineController extends Controller
         $machine->delete();
 
         return redirect()->route('backoffice.machines.index')
-            ->with('success', 'Máquina eliminada com sucesso.');
+            ->with('success', __('Máquina eliminada com sucesso.'));
     }
 
     public function getByStore($storeId)

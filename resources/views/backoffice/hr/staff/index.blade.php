@@ -33,9 +33,9 @@
                                 <tr>
                                     <td>{{ $member->user->name ?? '—' }}</td>
                                     <td>
-                                        @if($member->funcao)<span class="badge text-white" style="background: {{ $member->funcao_color }}; font-size: .85rem">{{ $member->funcao_label }}</span>@else — @endif
+                                        @if($member->funcao)<span class="badge text-white" style="background: {{ $member->funcao_color }}; font-size: .85rem">{{ __($member->funcao_label) }}</span>@else — @endif
                                     </td>
-                                    <td>{{ $member->rotation_group ? __('Grupo') . ' ' . $member->rotation_group . ($member->zona ? ' · ' . config('hr.zones.' . $member->zona) : '') : '—' }}</td>
+                                    <td>{{ $member->rotation_group ? __('Grupo') . ' ' . $member->rotation_group . ($member->zona ? ' · ' . __(config('hr.zones.' . $member->zona)) : '') : '—' }}</td>
                                     <td>
                                         @if($member->ativo)
                                             <span class="badge badge-success">{{ __('Ativo') }}</span>
@@ -44,12 +44,12 @@
                                         @endif
                                     </td>
                                     <td class="text-right">
-                                        <a href="{{ route('backoffice.hr.staff.edit', $member->id) }}" class="ml-2"><i class="fa fa-edit" title="Editar"></i></a>
+                                        <a href="{{ route('backoffice.hr.staff.edit', $member->id) }}" class="ml-2"><i class="fa fa-edit" title="{{ __('Editar') }}"></i></a>
                                         <form action="{{ route('backoffice.hr.staff.delete', $member->id) }}" method="POST" class="d-inline"
-                                              onsubmit="return confirm('Tem a certeza que deseja remover este colaborador? As substituições associadas também serão apagadas.')">
+                                              onsubmit="return confirm({{ json_encode(__('Tem a certeza que deseja remover este colaborador? As substituições associadas também serão apagadas.')) }})">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-link p-0 ml-2 text-danger"><i class="fa fa-trash" title="Remover"></i></button>
+                                            <button type="submit" class="btn btn-link p-0 ml-2 text-danger"><i class="fa fa-trash" title="{{ __('Remover') }}"></i></button>
                                         </form>
                                     </td>
                                 </tr>

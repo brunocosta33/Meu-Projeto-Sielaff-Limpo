@@ -72,7 +72,7 @@
                 <div class="form-group mt-3">
                     <label>{{ __('Adicionar PDFs Relacionados') }}</label>
                     <input type="file" name="pdfs[]" class="form-control" accept="application/pdf" multiple>
-                    <small class="form-text text-muted">Pode selecionar vários ficheiros PDF.</small>
+                    <small class="form-text text-muted">{{ __('Pode selecionar vários ficheiros PDF.') }}</small>
                 </div>
 
                 <input type="hidden" name="page" value="{{ request('page') }}">
@@ -94,18 +94,18 @@
                                         <span class="fw-semibold">{{ $file->file_name }}</span>
                                     </div>
                                     <div class="d-flex gap-2">
-                                        <a href="{{ asset('storage/' . $file->file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary">Abrir</a>
+                                        <a href="{{ asset('storage/' . $file->file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary">{{ __('Abrir') }}</a>
                                         <form method="POST" action="{{ route('backoffice.appointments.files.delete', $file->id) }}" style="display:inline;">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Remover este PDF?')">Apagar</button>
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm(@js(__('Remover este PDF?')))">{{ __('Apagar') }}</button>
                                         </form>
                                     </div>
                                 </li>
                             @endforeach
                         </ul>
                     @else
-                        <p class="text-muted">Nenhum PDF enviado.</p>
+                        <p class="text-muted">{{ __('Nenhum PDF enviado.') }}</p>
                     @endif
                 </div
             </div>

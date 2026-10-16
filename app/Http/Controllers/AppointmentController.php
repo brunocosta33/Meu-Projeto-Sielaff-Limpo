@@ -87,7 +87,7 @@ class AppointmentController extends Controller
             }
         }
 
-        flash('Agendamento criado com sucesso!')->success();
+        flash(__('Agendamento criado com sucesso!'))->success();
         return redirect()->route('backoffice.appointments.index', ['page' => $request->input('page')]);
     }
 
@@ -116,7 +116,7 @@ class AppointmentController extends Controller
             }
         }
 
-        flash('Agendamento atualizado com sucesso!')->success();
+        flash(__('Agendamento atualizado com sucesso!'))->success();
         return redirect()->route('backoffice.appointments.index', ['page' => $request->input('page')]);
     }
 
@@ -127,12 +127,12 @@ class AppointmentController extends Controller
         // Remove file from storage
         Storage::disk('public')->delete($file->file_path);
         $file->delete();
-        flash('PDF removido com sucesso!')->success();
+        flash(__('PDF removido com sucesso!'))->success();
         return redirect()->route('backoffice.appointments.edit', ['id' => $appointmentId]);
     }
     public function delete($id) {
         Appointment::findOrFail($id)->delete();
-        flash('Agendamento apagado com sucesso!')->success();
+        flash(__('Agendamento apagado com sucesso!'))->success();
         return redirect()->route('backoffice.appointments.index');
     }
 

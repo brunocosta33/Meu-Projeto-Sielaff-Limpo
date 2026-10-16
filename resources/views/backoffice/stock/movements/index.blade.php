@@ -79,7 +79,7 @@
                         <select name="movement_type" class="form-control">
                             <option value="">{{ __('Todos os tipos') }}</option>
                             @foreach($movementTypes as $value => $label)
-                                <option value="{{ $value }}" {{ request('movement_type') === $value ? 'selected' : '' }}>{{ $label }}</option>
+                                <option value="{{ $value }}" {{ request('movement_type') === $value ? 'selected' : '' }}>{{ __($label) }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -143,14 +143,14 @@
                                         @endphp
                                         <strong class="{{ $quantityClass }}">{{ $movement->signed_quantity }}</strong>
                                     </td>
-                                    <td>{{ $movement->source ?? '—' }}</td>
-                                    <td>{{ $movement->destination ?? '—' }}</td>
+                                    <td>{{ $movement->source ? __($movement->source) : '—' }}</td>
+                                    <td>{{ $movement->destination ? __($movement->destination) : '—' }}</td>
                                     <td>{{ $movement->notes ?: '—' }}</td>
                                     @if($canManageWarehouse)
                                         <td>{{ $movement->creator->name ?? $movement->creator->email ?? '—' }}</td>
                                         <td class="text-right">
                                             <form method="POST" action="{{ route('backoffice.stock.movements.destroy', $movement) }}" class="d-inline"
-                                                  onsubmit="return confirm('{{ __('Remover este movimento e repor o stock? Esta ação não pode ser anulada.') }}');">
+                                                  onsubmit="return confirm(@js(__('Remover este movimento e repor o stock? Esta ação não pode ser anulada.')));">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ __('Remover movimento') }}">

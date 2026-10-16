@@ -50,7 +50,7 @@
                                             @if (auth()->user()->role()->first()->name == 'admin')
                                                 <a class="ml-2"
                                                     href="{{ route('backoffice.suppliers.delete', $supplier->id) }}"
-                                                    onclick="return confirm('{{ __('Tem a certeza que deseja apagar?') }}')">
+                                                    onclick="return confirm(@js(__('Tem a certeza que deseja apagar?')))">
                                                     <i class="fa fa-trash mr-1" title="{{ __('Apagar') }}"></i>
                                                 </a>
                                             @else

@@ -76,9 +76,9 @@
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div>
                                         <strong>{{ optional($request->data_resolucao ?? $request->data_pedido)->format('d/m/Y') ?? '—' }}</strong>
-                                        <span class="badge badge-{{ $color }} ml-1">{{ $statuses[$request->estado] ?? $request->estado }}</span>
+                                        <span class="badge badge-{{ $color }} ml-1">{{ __($statuses[$request->estado] ?? $request->estado) }}</span>
                                         @if($request->tipo_servico)
-                                            <span class="badge badge-light border ml-1">{{ $serviceTypes[$request->tipo_servico] ?? $request->tipo_servico }}</span>
+                                            <span class="badge badge-light border ml-1">{{ __($serviceTypes[$request->tipo_servico] ?? $request->tipo_servico) }}</span>
                                         @endif
                                     </div>
                                     <a href="{{ route('backoffice.technical_requests.show', $request->id) }}" class="btn btn-sm btn-link p-0">{{ __('ver') }}</a>

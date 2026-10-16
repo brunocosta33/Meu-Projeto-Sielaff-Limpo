@@ -81,7 +81,7 @@ class InstallationController extends Controller
 
         $this->storeFiles($request, $installation);
 
-        flash('Instalação criada com sucesso!')->success();
+        flash(__('Instalação criada com sucesso!'))->success();
         return redirect()->route('backoffice.installations.index');
     }
     public function update(Request $request, $id)
@@ -93,7 +93,7 @@ class InstallationController extends Controller
 
         $this->storeFiles($request, $installation);
 
-        flash('Instalação atualizada com sucesso!')->success();
+        flash(__('Instalação atualizada com sucesso!'))->success();
 
         return redirect()->route('backoffice.installations.index', ['page' => $request->get('page')]);
     }
@@ -115,7 +115,7 @@ class InstallationController extends Controller
     public function delete(Installation $installation)
     {
         $installation->delete();
-        flash('Instalação apagada com sucesso!')->success();
+        flash(__('Instalação apagada com sucesso!'))->success();
         return redirect()->route('backoffice.installations.index');
     }
 
@@ -124,7 +124,7 @@ class InstallationController extends Controller
         $pdf = \App\Models\InstallationPdf::findOrFail($id);
         Storage::disk('public')->delete($pdf->file_path);
         $pdf->delete();
-        flash('Ficheiro apagado com sucesso!')->success();
+        flash(__('Ficheiro apagado com sucesso!'))->success();
         return back();
     }
 

@@ -17,7 +17,7 @@
                 <div class="card-body">
                     <div class="float-right">
                         <a href="{{ route('backoffice.clients.create') }}" class="collapsed" data-parent="#sidebar">
-                            <button type="submit" class="btn btn-outline-secondary" title={{ __('Create') }}><span
+                            <button type="submit" class="btn btn-outline-secondary" title="{{ __('Create') }}"><span
                                     class="fa fa-plus"></span>&nbsp;&nbsp;{{ __('Create') }}</button>
                         </a>
                     </div>
@@ -40,21 +40,21 @@
                                         <td>{{ $client->name }}</td>
                                         <td class="text-right">
                                             <a class="ml-2" href="{{ route('backoffice.clients.show', $client->id) }}"><i
-                                                    class="fa fa-eye mr-1" title={{ __('Show') }}></i></a>
+                                                    class="fa fa-eye mr-1" title="{{ __('Show') }}"></i></a>
                                             <a class="ml-2" href="{{ route('backoffice.clients.edit', $client->id) }}"><i
-                                                    class="fa fa-edit mr-1" title={{ __('Edit') }}></i></a>
+                                                    class="fa fa-edit mr-1" title="{{ __('Edit') }}"></i></a>
                                         </td>
                                         @if (auth()->user()->role()->first()->name == 'admin')
                                             <td>
                                                 <a class="ml-2"
                                                     href="{{ route('backoffice.clients.delete', $client->id) }}"
-                                                    onclick="return confirm('{{ __('Are you sure?') }}')"><i
-                                                        class="fa fa-trash mr-1" title={{ __('Delete') }}></i></a>
+                                                    onclick="return confirm(@js(__('Are you sure?')))"><i
+                                                        class="fa fa-trash mr-1" title="{{ __('Delete') }}"></i></a>
                                             </td>
                                         @else
                                             <td>
                                                 <a href=""><i class="text-secondary ml-2 fa fa-trash mr-1"
-                                                        title={{ __('Unavailable') }}></i></a>
+                                                        title="{{ __('Unavailable') }}"></i></a>
                                             </td>
                                         @endif
                                     </tr>

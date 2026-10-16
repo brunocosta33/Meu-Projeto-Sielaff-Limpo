@@ -30,7 +30,7 @@
 								<small class="text-danger">{{ $errors->first('name') }}</small>
 							</div>
 							<div class="form-group col-6">
-								<label>Email</label>
+								<label>{{ __('Email') }}</label>
 								<input type="text" name="email" class="form-control {{ $errors->has('email') ? "is-invalid" : "" }}">
 								<small class="text-muted fa-pull-right">{{__('max. 255')}}</small>
 								<small class="text-danger">{{ $errors->first('email') }}</small>
@@ -39,7 +39,7 @@
 						<div class="row">
 							<div class="form-group col-4">
 								<label>{{__('Role')}}</label>
-								<select class="selectpicker form-control {{ $errors->has('role') ? "is-invalid" : "" }}" name="role" title={{__('Role')}}>
+								<select class="selectpicker form-control {{ $errors->has('role') ? "is-invalid" : "" }}" name="role" title="{{ __('Role') }}">
 									@forelse ($roles as $role)
 										<option value="{{ $role->id }}">{{ $role->display_name }}</option>
 									@empty

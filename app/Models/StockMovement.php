@@ -136,7 +136,7 @@ class StockMovement extends Model
 
     public function getTypeLabelAttribute(): string
     {
-        return self::TYPES[$this->movement_type] ?? $this->movement_type;
+        return __(self::TYPES[$this->movement_type] ?? $this->movement_type);
     }
 
     public function getTypeIconAttribute(): string

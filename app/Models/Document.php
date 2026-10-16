@@ -29,7 +29,12 @@ class Document extends Model
 
     public function getTypeAttribute(): array
     {
-        return config('documents.types.' . $this->tipo, config('documents.types.outros'));
+        $type = config('documents.types.' . $this->tipo, config('documents.types.outros'));
+        if (isset($type['label'])) {
+            $type['label'] = __($type['label']);
+        }
+
+        return $type;
     }
 
     public function getSizeLabelAttribute(): string

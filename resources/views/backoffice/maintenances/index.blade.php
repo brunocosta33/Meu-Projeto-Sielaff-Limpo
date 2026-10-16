@@ -1,6 +1,6 @@
 @extends('layouts.backoffice_master')
 
-@php(\Carbon\Carbon::setLocale('pt'))
+@php(\Carbon\Carbon::setLocale(app()->getLocale()))
 @php($filters = request()->only(['q', 'estado']))
 
 @section('head-meta')
@@ -64,7 +64,7 @@
                 @php($n = $key === 'feita' ? ($counts['feita'] ?? 0) + ($counts['feita_fora'] ?? 0) : ($counts[$key] ?? 0))
                 <a href="{{ route('backoffice.maintenances.index', ['ano' => $year, 'estado' => $key] + $filters) }}"
                    class="mt-stat {{ request('estado') === $key ? 'is-active' : '' }}" style="--bg: {{ $state['bg'] }}; --fg: {{ $state['color'] }}">
-                    <div class="num">{{ $n }}</div><div class="lbl"><i class="fas {{ $state['icon'] }}"></i> {{ $key === 'feita' ? __('Feitas') : $state['label'] }}</div>
+                    <div class="num">{{ $n }}</div><div class="lbl"><i class="fas {{ $state['icon'] }}"></i> {{ $key === 'feita' ? __('Feitas') : __($state['label']) }}</div>
                 </a>
             @endforeach
         </div>
@@ -138,7 +138,7 @@
                                     <div class="text-muted">{{ __('de') }} {{ $row->start->format('d/m') }} {{ __('a') }} {{ $row->end->format('d/m') }}</div>
                                 </td>
                                 <td>
-                                    <span class="mt-badge" style="--bg: {{ $state['bg'] }}; --fg: {{ $state['color'] }}"><i class="fas {{ $state['icon'] }}"></i> {{ $state['label'] }}</span>
+                                    <span class="mt-badge" style="--bg: {{ $state['bg'] }}; --fg: {{ $state['color'] }}"><i class="fas {{ $state['icon'] }}"></i> {{ __($state['label']) }}</span>
                                     @if($row->status === 'atrasada')
                                         <div class="small text-danger mt-1">{{ $row->end->diffInDays(now()->startOfDay()) }} {{ __('dias de atraso') }}</div>
                                     @elseif($row->status === 'janela')
@@ -172,7 +172,7 @@
                                             <i class="fa fa-paperclip"></i>
                                         </button>
                                         <form method="POST" action="{{ route('backoffice.maintenances.undo', $row->record->id) }}" class="d-inline"
-                                              onsubmit="return confirm('Anular o registo desta manutenção? Volta a ficar por fazer (a folha de obra anexada também é apagada).')">
+                                              onsubmit="return confirm({{ json_encode(__('Anular o registo desta manutenção? Volta a ficar por fazer (a folha de obra anexada também é apagada).')) }})">
                                             @csrf
                                             @method('DELETE')
                                             <button class="btn btn-sm btn-outline-secondary" title="{{ __('Anular registo') }}"><i class="fa fa-undo"></i></button>
@@ -181,7 +181,7 @@
                                         <button type="button" class="btn btn-sm btn-success" data-toggle="modal" data-target="#mt-done"
                                                 data-action="{{ route('backoffice.maintenances.done', $row->maintenance->id) }}"
                                                 data-store="{{ $row->store->codigo_loja }} — {{ $row->store->nome_loja }}"
-                                                data-window="{{ $row->start->format('d/m/Y') }} a {{ $row->end->format('d/m/Y') }}">
+                                                data-window="{{ $row->start->format('d/m/Y') }} {{ __('a') }} {{ $row->end->format('d/m/Y') }}">
                                             <i class="fa fa-check"></i> {{ __('Marcar feita') }}
                                         </button>
                                     @endif
@@ -266,7 +266,7 @@
                     </div>
                 </div>
                 <div class="modal-footer justify-content-between">
-                    <button type="submit" form="mt-attach-delete" class="btn btn-link text-danger" id="mt-attach-delete-btn" onclick="return confirm('Remover a folha de obra?')">
+                    <button type="submit" form="mt-attach-delete" class="btn btn-link text-danger" id="mt-attach-delete-btn" onclick="return confirm({{ json_encode(__('Remover a folha de obra?')) }})">
                         <i class="fa fa-trash"></i> {{ __('Remover') }}
                     </button>
                     <div>
@@ -307,7 +307,7 @@
                     </div>
                 </div>
                 <div class="modal-footer justify-content-between">
-                    <button type="submit" form="mt-delete-form" class="btn btn-link text-danger" onclick="return confirm('Remover esta loja das manutenções anuais? O histórico também é apagado.')">
+                    <button type="submit" form="mt-delete-form" class="btn btn-link text-danger" onclick="return confirm({{ json_encode(__('Remover esta loja das manutenções anuais? O histórico também é apagado.')) }})">
                         <i class="fa fa-trash"></i> {{ __('Remover') }}
                     </button>
                     <div>
@@ -340,7 +340,7 @@
             $('#mt-attach-form').attr('action', b.data('action'));
             $('#mt-attach-store').text(b.data('store'));
             var current = b.data('current');
-            $('#mt-attach-current').text(current ? 'Atual: ' + current + ' (será substituída)' : 'Ainda sem folha de obra anexada.');
+            $('#mt-attach-current').text(current ? @json(__('Atual: :nome (será substituída)')).replace(':nome', current) : @json(__('Ainda sem folha de obra anexada.')));
             $('#mt-attach-delete').attr('action', b.data('delete') || '');
             $('#mt-attach-delete-btn').toggle(!!b.data('delete'));
         });
