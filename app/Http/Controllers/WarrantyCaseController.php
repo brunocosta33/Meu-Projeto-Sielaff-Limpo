@@ -185,16 +185,16 @@ class WarrantyCaseController extends Controller
         $rules = ['data' => ['required', 'date', 'before_or_equal:today'], 'nota' => ['nullable', 'string', 'max:2000']];
         $messages = ['data.before_or_equal' => __('A data não pode ser no futuro.')];
         if ($next === 'cotacao_recebida') {
-            $rules += ['cotacao_numero' => ['required', 'string', 'max:100'], 'documento' => ['required', ...$this->documentRule()]];
-            $messages += ['cotacao_numero.required' => __('Indique o número da cotação.'), 'documento.required' => __('Anexe o PDF da cotação.')];
+            $rules += ['cotacao_numero' => ['required', 'string', 'max:100'], 'documento' => ['nullable', ...$this->documentRule()]];
+            $messages += ['cotacao_numero.required' => __('Indique o número da cotação.')];
         } elseif ($next === 'enviada_cliente') {
             $rules += ['enviada_para' => ['nullable', 'string', 'max:255']];
         } elseif ($next === 'pedido_alemanha') {
             $rules += ['artigo_numero' => ['required', 'string', 'max:255'], 'cliente_numero' => ['required', 'string', 'max:100']];
             $messages += ['artigo_numero.required' => __('Indique o número do artigo.'), 'cliente_numero.required' => __('Indique o número do cliente.')];
         } elseif ($next === 'oc_recebida') {
-            $rules += ['oc_numero' => ['required', 'string', 'max:100'], 'documento' => ['required', ...$this->documentRule()]];
-            $messages += ['oc_numero.required' => __('Indique o número da ordem de compra.'), 'documento.required' => __('Anexe o PDF da ordem de compra.')];
+            $rules += ['oc_numero' => ['required', 'string', 'max:100'], 'documento' => ['nullable', ...$this->documentRule()]];
+            $messages += ['oc_numero.required' => __('Indique o número da ordem de compra.')];
         }
         $data = $request->validate($rules, $messages + $this->documentMessages());
 
@@ -346,20 +346,21 @@ class WarrantyCaseController extends Controller
         return Storage::disk(self::DISK)->response($path, $case->{$tipo . '_nome'});
     }
 
-    /** Substituir o PDF da cotação ou da ordem de compra (ex.: versão corrigida). */
+    /** Anexar (mais tarde) ou substituir o PDF da cotação ou da ordem de compra. */
     public function replaceDocument(Request $request, $id, string $tipo)
     {
         abort_unless(in_array($tipo, ['cotacao', 'oc'], true), 404);
         $case = WarrantyCase::findOrFail($id);
-        abort_unless($case->{$tipo . '_path'}, 404);
+        // Só depois de o passo estar registado (já tem número)
+        abort_unless($case->{$tipo . '_numero'}, 404);
 
         $request->validate([
             'documento' => ['required', ...$this->documentRule()],
-            'numero' => ['required', 'string', 'max:100'],
-        ], $this->documentMessages());
+        ], $this->documentMessages() + ['documento.required' => __('Escolha o ficheiro.')]);
 
-        $case->update($this->storeDocument($request, $case, $tipo) + [$tipo . '_numero' => $request->numero, 'updated_by' => auth()->id()]);
-        flash(__('Documento substituído.'))->success();
+        $hadFile = (bool) $case->{$tipo . '_path'};
+        $case->update($this->storeDocument($request, $case, $tipo) + ['updated_by' => auth()->id()]);
+        flash($hadFile ? __('Documento substituído.') : __('Documento anexado.'))->success();
 
         return back();
     }
@@ -472,8 +473,11 @@ class WarrantyCaseController extends Controller
 
     private function storeDocument(Request $request, WarrantyCase $case, string $tipo): array
     {
-        $old = $case->{$tipo . '_path'};
         $file = $request->file('documento');
+        if (!$file) {
+            return [];
+        }
+        $old = $case->{$tipo . '_path'};
         $path = $file->store($this->folder($case) . '/' . $tipo, self::DISK);
         if ($old) {
             Storage::disk(self::DISK)->delete($old);

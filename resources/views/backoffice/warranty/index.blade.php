@@ -136,12 +136,16 @@
                                     @endif
                                 </td>
                                 <td class="wc-docs">
-                                    @if($case->cotacao_numero)
-                                        <div><a href="{{ route('backoffice.warranty.document', [$case->id, 'cotacao']) }}" target="_blank"><i class="fa fa-file-invoice"></i> {{ __('Cotação') }} {{ $case->cotacao_numero }}</a></div>
-                                    @endif
-                                    @if($case->oc_numero)
-                                        <div><a href="{{ route('backoffice.warranty.document', [$case->id, 'oc']) }}" target="_blank"><i class="fa fa-file-signature"></i> {{ __('OC') }} {{ $case->oc_numero }}</a></div>
-                                    @endif
+                                    @foreach(['cotacao' => [__('Cotação'), 'fa-file-invoice'], 'oc' => [__('OC'), 'fa-file-signature']] as $tipo => [$docLabel, $docIcon])
+                                        @continue(!$case->{$tipo . '_numero'})
+                                        <div>
+                                            @if($case->{$tipo . '_path'})
+                                                <a href="{{ route('backoffice.warranty.document', [$case->id, $tipo]) }}" target="_blank"><i class="fa {{ $docIcon }}"></i> {{ $docLabel }} {{ $case->{$tipo . '_numero'} }}</a>
+                                            @else
+                                                <span class="text-muted" title="{{ __('sem PDF') }}"><i class="fa {{ $docIcon }}"></i> {{ $docLabel }} {{ $case->{$tipo . '_numero'} }}</span>
+                                            @endif
+                                        </div>
+                                    @endforeach
                                     @if(!$case->cotacao_numero && !$case->oc_numero)<span class="text-muted">—</span>@endif
                                 </td>
                                 <td class="text-right"><a href="{{ route('backoffice.warranty.show', $case->id) }}" class="btn btn-sm btn-outline-primary"><i class="fa fa-arrow-right"></i></a></td>

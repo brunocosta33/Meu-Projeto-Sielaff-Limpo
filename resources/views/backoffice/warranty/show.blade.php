@@ -13,9 +13,9 @@
     $currentIndex = array_search($case->fase, $steps, true);
     $nextForms = [
         'cotacao_pedida' => ['title' => __('Pedi a cotação à Sielaff'), 'help' => __('Registe o dia em que pediu a cotação à Sielaff.'), 'button' => __('Registar pedido de cotação')],
-        'cotacao_recebida' => ['title' => __('Recebi a cotação da Sielaff'), 'help' => __('Indique o número e anexe o PDF da cotação.'), 'button' => __('Registar cotação')],
+        'cotacao_recebida' => ['title' => __('Recebi a cotação da Sielaff'), 'help' => __('Indique o número da cotação e, se já o tiver, anexe o PDF.'), 'button' => __('Registar cotação')],
         'enviada_cliente' => ['title' => __('Enviei a cotação ao cliente'), 'help' => __('Registe quando enviou a cotação ao :cliente.', ['cliente' => $case->clientLabel()]), 'button' => __('Registar envio')],
-        'oc_recebida' => ['title' => __('Recebi a ordem de compra'), 'help' => __('Indique o número e anexe o PDF da ordem de compra do :cliente.', ['cliente' => $case->clientLabel()]), 'button' => __('Registar ordem de compra')],
+        'oc_recebida' => ['title' => __('Recebi a ordem de compra'), 'help' => __('Indique o número da ordem de compra do :cliente e, se já o tiver, anexe o PDF.', ['cliente' => $case->clientLabel()]), 'button' => __('Registar ordem de compra')],
         'pedido_alemanha' => ['title' => __('Enviei o pedido para a Alemanha'), 'help' => __('Envie um email para :email com o número do artigo e o número do cliente e registe o envio.', ['email' => $germanyEmail]), 'button' => __('Registar envio para a Alemanha')],
         'peca_recebida' => ['title' => __('Recebi a peça'), 'help' => __('Registe o dia em que a peça chegou. Depois é só enviar o técnico fazer a reparação.'), 'button' => __('Registar peça recebida')],
         'concluido' => ['title' => __('Reparação feita'), 'help' => __('Fecha o processo.'), 'button' => __('Fechar processo')],
@@ -204,8 +204,9 @@
                                 <input type="text" name="{{ $numberField }}" class="form-control" value="{{ old($numberField) }}" required>
                             </div>
                             <div class="form-group">
-                                <label class="small font-weight-bold mb-1">{{ $next === 'cotacao_recebida' ? __('PDF da cotação') : __('PDF da ordem de compra') }}</label>
-                                <input type="file" name="documento" class="form-control-file" accept=".pdf,.jpg,.jpeg,.png" required>
+                                <label class="small font-weight-bold mb-1">{{ $next === 'cotacao_recebida' ? __('PDF da cotação') : __('PDF da ordem de compra') }} <span class="text-muted font-weight-normal">({{ __('opcional') }})</span></label>
+                                <input type="file" name="documento" class="form-control-file" accept=".pdf,.jpg,.jpeg,.png">
+                                <small class="form-text text-muted">{{ __('Também pode anexar mais tarde, no cartão Documentos.') }}</small>
                             </div>
                         @endif
                         @if($next === 'pedido_alemanha')
@@ -275,23 +276,26 @@
                 @php($docs = ['cotacao' => [__('Cotação Sielaff'), $case->cotacao_numero, $case->cotacao_recebida_em, $case->cotacao_path], 'oc' => [__('Ordem de compra'), $case->oc_numero, $case->oc_recebida_em, $case->oc_path]])
                 @php($anyDoc = false)
                 @foreach($docs as $tipo => [$label, $numero, $data, $path])
-                    @continue(!$path)
+                    @continue(!$numero)
                     @php($anyDoc = true)
                     <div class="wc-doc">
-                        <i class="fa fa-file-pdf fa-2x"></i>
+                        <i class="fa {{ $path ? 'fa-file-pdf' : 'fa-file' }} fa-2x" @unless($path) style="color: #cbd5e1" @endunless></i>
                         <div class="flex-grow-1">
                             <strong>{{ $label }} {{ $numero }}</strong>
-                            <small>{{ __('Recebida a') }} {{ optional($data)->format('d/m/Y') }}</small>
+                            <small>{{ __('Recebida a') }} {{ optional($data)->format('d/m/Y') }}{{ $path ? '' : ' · ' . __('sem PDF') }}</small>
                         </div>
-                        <a href="{{ route('backoffice.warranty.document', [$case->id, $tipo]) }}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fa fa-eye"></i> {{ __('Abrir') }}</a>
-                        <button type="button" class="btn btn-sm btn-link text-secondary px-1" data-toggle="collapse" data-target="#wc-replace-{{ $tipo }}" title="{{ __('Substituir') }}"><i class="fa fa-sync-alt"></i></button>
+                        @if($path)
+                            <a href="{{ route('backoffice.warranty.document', [$case->id, $tipo]) }}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fa fa-eye"></i> {{ __('Abrir') }}</a>
+                            <button type="button" class="btn btn-sm btn-link text-secondary px-1" data-toggle="collapse" data-target="#wc-replace-{{ $tipo }}" title="{{ __('Substituir') }}"><i class="fa fa-sync-alt"></i></button>
+                        @else
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-toggle="collapse" data-target="#wc-replace-{{ $tipo }}"><i class="fa fa-paperclip"></i> {{ __('Anexar PDF') }}</button>
+                        @endif
                     </div>
                     <div class="collapse" id="wc-replace-{{ $tipo }}">
                         <form method="POST" action="{{ route('backoffice.warranty.document.replace', [$case->id, $tipo]) }}" enctype="multipart/form-data" class="p-2">
                             @csrf
-                            <input type="text" name="numero" class="form-control form-control-sm mb-2" value="{{ $numero }}" required>
                             <input type="file" name="documento" class="form-control-file mb-2" accept=".pdf,.jpg,.jpeg,.png" required>
-                            <button class="btn btn-sm btn-primary"><i class="fa fa-upload"></i> {{ __('Substituir documento') }}</button>
+                            <button class="btn btn-sm btn-primary"><i class="fa fa-upload"></i> {{ $path ? __('Substituir documento') : __('Anexar PDF') }}</button>
                         </form>
                     </div>
                 @endforeach

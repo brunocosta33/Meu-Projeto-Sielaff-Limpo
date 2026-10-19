@@ -2036,5 +2036,12 @@
     "Recebi a peça": "I received the part",
     "Registar peça recebida": "Record part received",
     "Registe o dia em que a peça chegou. Depois é só enviar o técnico fazer a reparação.": "Record the day the part arrived. Then just send the technician to do the repair.",
-    "À espera da peça": "Waiting for the part"
+    "À espera da peça": "Waiting for the part",
+    "Anexar PDF": "Attach PDF",
+    "Documento anexado.": "Document attached.",
+    "Escolha o ficheiro.": "Choose the file.",
+    "Indique o número da cotação e, se já o tiver, anexe o PDF.": "Enter the quotation number and, if you already have it, attach the PDF.",
+    "Indique o número da ordem de compra do :cliente e, se já o tiver, anexe o PDF.": "Enter the :cliente purchase order number and, if you already have it, attach the PDF.",
+    "Também pode anexar mais tarde, no cartão Documentos.": "You can also attach it later, in the Documents card.",
+    "sem PDF": "no PDF"
 }

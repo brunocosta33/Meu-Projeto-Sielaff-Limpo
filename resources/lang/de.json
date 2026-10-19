@@ -2112,5 +2112,12 @@
   "Recebi a peça": "Teil erhalten",
   "Registar peça recebida": "Teileingang erfassen",
   "Registe o dia em que a peça chegou. Depois é só enviar o técnico fazer a reparação.": "Erfassen Sie den Tag, an dem das Teil angekommen ist. Danach den Techniker zur Reparatur schicken.",
-  "À espera da peça": "Warten auf das Teil"
+  "À espera da peça": "Warten auf das Teil",
+  "Anexar PDF": "PDF anhängen",
+  "Documento anexado.": "Dokument angehängt.",
+  "Escolha o ficheiro.": "Wählen Sie die Datei.",
+  "Indique o número da cotação e, se já o tiver, anexe o PDF.": "Geben Sie die Angebotsnummer an und hängen Sie, falls vorhanden, das PDF an.",
+  "Indique o número da ordem de compra do :cliente e, se já o tiver, anexe o PDF.": "Geben Sie die Bestellnummer von :cliente an und hängen Sie, falls vorhanden, das PDF an.",
+  "Também pode anexar mais tarde, no cartão Documentos.": "Sie können es auch später in der Karte Dokumente anhängen.",
+  "sem PDF": "ohne PDF"
 }
