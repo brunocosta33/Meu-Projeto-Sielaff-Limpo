@@ -2105,5 +2105,12 @@
   "Pedido enviado para a Alemanha a": "Bestellung nach Deutschland gesendet am",
   "Registar envio para a Alemanha": "Versand nach Deutschland erfassen",
   "Se forem vários, separe por vírgulas": "Mehrere bitte durch Kommas trennen",
-  "Sugerido: o último usado para o :cliente.": "Vorschlag: die zuletzt für :cliente verwendete."
+  "Sugerido: o último usado para o :cliente.": "Vorschlag: die zuletzt für :cliente verwendete.",
+  "Enviar técnico para a reparação": "Techniker zur Reparatur schicken",
+  "Peça recebida": "Teil erhalten",
+  "Peça recebida a": "Teil erhalten am",
+  "Recebi a peça": "Teil erhalten",
+  "Registar peça recebida": "Teileingang erfassen",
+  "Registe o dia em que a peça chegou. Depois é só enviar o técnico fazer a reparação.": "Erfassen Sie den Tag, an dem das Teil angekommen ist. Danach den Techniker zur Reparatur schicken.",
+  "À espera da peça": "Warten auf das Teil"
 }

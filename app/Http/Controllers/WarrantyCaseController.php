@@ -30,7 +30,8 @@ class WarrantyCaseController extends Controller
         'cotacao_recebida' => 'enviada_cliente',
         'enviada_cliente' => 'oc_recebida',
         'oc_recebida' => 'pedido_alemanha',
-        'pedido_alemanha' => 'concluido',
+        'pedido_alemanha' => 'peca_recebida',
+        'peca_recebida' => 'concluido',
     ];
 
     /** Campo de data do processo que corresponde a cada passo. */
@@ -41,6 +42,7 @@ class WarrantyCaseController extends Controller
         'enviada_cliente' => 'enviada_cliente_em',
         'oc_recebida' => 'oc_recebida_em',
         'pedido_alemanha' => 'alemanha_enviado_em',
+        'peca_recebida' => 'peca_recebida_em',
         'concluido' => 'fechado_em',
         'recusado' => 'fechado_em',
     ];
@@ -52,6 +54,7 @@ class WarrantyCaseController extends Controller
         'enviada_cliente' => ['enviada_cliente_em', 'enviada_para'],
         'oc_recebida' => ['oc_numero', 'oc_recebida_em', 'oc_path', 'oc_nome'],
         'pedido_alemanha' => ['artigo_numero', 'cliente_numero', 'alemanha_enviado_em'],
+        'peca_recebida' => ['peca_recebida_em'],
         'concluido' => ['fechado_em'],
         'recusado' => ['fechado_em', 'motivo_recusa'],
     ];
@@ -202,6 +205,7 @@ class WarrantyCaseController extends Controller
             'oc_recebida' => ['oc_recebida_em' => $data['data'], 'oc_numero' => $data['oc_numero']]
                 + $this->storeDocument($request, $case, 'oc'),
             'pedido_alemanha' => ['alemanha_enviado_em' => $data['data'], 'artigo_numero' => $data['artigo_numero'], 'cliente_numero' => $data['cliente_numero']],
+            'peca_recebida' => ['peca_recebida_em' => $data['data']],
             'concluido' => ['fechado_em' => $data['data']],
         };
 

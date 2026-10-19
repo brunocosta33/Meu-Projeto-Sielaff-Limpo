@@ -8,12 +8,12 @@ use Illuminate\Support\Carbon;
 /** Avaria fora da garantia: cotação Sielaff -> envio ao cliente -> ordem de compra -> reparação. */
 class WarrantyCase extends Model
 {
-    public const OPEN_PHASES = ['registado', 'cotacao_pedida', 'cotacao_recebida', 'enviada_cliente', 'oc_recebida', 'pedido_alemanha'];
+    public const OPEN_PHASES = ['registado', 'cotacao_pedida', 'cotacao_recebida', 'enviada_cliente', 'oc_recebida', 'pedido_alemanha', 'peca_recebida'];
 
     protected $fillable = [
         'store_id', 'machine_id', 'technical_request_id', 'cliente', 'data_avaria', 'descricao', 'observacoes', 'fase', 'fase_desde',
         'cotacao_pedida_em', 'cotacao_numero', 'cotacao_recebida_em', 'cotacao_path', 'cotacao_nome',
-        'enviada_cliente_em', 'enviada_para', 'oc_numero', 'oc_recebida_em', 'oc_path', 'oc_nome', 'artigo_numero', 'cliente_numero', 'alemanha_enviado_em',
+        'enviada_cliente_em', 'enviada_para', 'oc_numero', 'oc_recebida_em', 'oc_path', 'oc_nome', 'artigo_numero', 'cliente_numero', 'alemanha_enviado_em', 'peca_recebida_em',
         'fechado_em', 'motivo_recusa', 'created_by', 'updated_by',
     ];
 
@@ -25,6 +25,7 @@ class WarrantyCase extends Model
         'enviada_cliente_em' => 'date',
         'oc_recebida_em' => 'date',
         'alemanha_enviado_em' => 'date',
+        'peca_recebida_em' => 'date',
         'fechado_em' => 'date',
     ];
 

@@ -9,7 +9,7 @@
     $phase = $case->phase();
     $alert = $case->waitingAlert();
     $reached = $case->events->keyBy('fase');
-    $steps = ['registado', 'cotacao_pedida', 'cotacao_recebida', 'enviada_cliente', 'oc_recebida', 'pedido_alemanha', $case->fase === 'recusado' ? 'recusado' : 'concluido'];
+    $steps = ['registado', 'cotacao_pedida', 'cotacao_recebida', 'enviada_cliente', 'oc_recebida', 'pedido_alemanha', 'peca_recebida', $case->fase === 'recusado' ? 'recusado' : 'concluido'];
     $currentIndex = array_search($case->fase, $steps, true);
     $nextForms = [
         'cotacao_pedida' => ['title' => __('Pedi a cotação à Sielaff'), 'help' => __('Registe o dia em que pediu a cotação à Sielaff.'), 'button' => __('Registar pedido de cotação')],
@@ -17,6 +17,7 @@
         'enviada_cliente' => ['title' => __('Enviei a cotação ao cliente'), 'help' => __('Registe quando enviou a cotação ao :cliente.', ['cliente' => $case->clientLabel()]), 'button' => __('Registar envio')],
         'oc_recebida' => ['title' => __('Recebi a ordem de compra'), 'help' => __('Indique o número e anexe o PDF da ordem de compra do :cliente.', ['cliente' => $case->clientLabel()]), 'button' => __('Registar ordem de compra')],
         'pedido_alemanha' => ['title' => __('Enviei o pedido para a Alemanha'), 'help' => __('Envie um email para :email com o número do artigo e o número do cliente e registe o envio.', ['email' => $germanyEmail]), 'button' => __('Registar envio para a Alemanha')],
+        'peca_recebida' => ['title' => __('Recebi a peça'), 'help' => __('Registe o dia em que a peça chegou. Depois é só enviar o técnico fazer a reparação.'), 'button' => __('Registar peça recebida')],
         'concluido' => ['title' => __('Reparação feita'), 'help' => __('Fecha o processo.'), 'button' => __('Fechar processo')],
     ];
     $machinesByStore = $stores->mapWithKeys(fn ($s) => [$s->id => $s->machines->map(fn ($m) => ['id' => $m->id, 'label' => trim($m->serial_number . ($m->descricao ? ' — ' . $m->descricao : ''))])->values()]);
@@ -31,7 +32,7 @@
                 border-radius: 999px; background: var(--bg); color: var(--fg); border: 1px solid var(--fg); white-space: nowrap; }
 
     .wc-steps { display: flex; gap: .25rem; overflow-x: auto; padding-bottom: .25rem; }
-    .wc-step { flex: 1 1 0; min-width: 120px; text-align: center; position: relative; padding-top: 2.6rem; font-size: .78rem; color: #94a3b8; }
+    .wc-step { flex: 1 1 0; min-width: 105px; text-align: center; position: relative; padding-top: 2.6rem; font-size: .78rem; color: #94a3b8; }
     .wc-step::before { content: ""; position: absolute; top: 1.05rem; left: -50%; right: 50%; height: 3px; background: #e2e8f0; }
     .wc-step:first-child::before { display: none; }
     .wc-step .dot { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 2.2rem; height: 2.2rem; border-radius: 50%;
@@ -290,6 +291,9 @@
                 @endunless
                 @if($case->alemanha_enviado_em)
                     <p class="small text-muted mt-2 mb-0"><i class="fa fa-globe-europe"></i> {{ __('Pedido enviado para a Alemanha a') }} {{ $case->alemanha_enviado_em->format('d/m/Y') }} — {{ __('Artigo') }} {{ $case->artigo_numero }} · {{ __('Cliente') }} {{ $case->cliente_numero }}</p>
+                @endif
+                @if($case->peca_recebida_em)
+                    <p class="small text-muted mt-2 mb-0"><i class="fa fa-box-open"></i> {{ __('Peça recebida a') }} {{ $case->peca_recebida_em->format('d/m/Y') }}</p>
                 @endif
                 @if($case->enviada_cliente_em)
                     <p class="small text-muted mt-2 mb-0"><i class="fa fa-paper-plane"></i> {{ __('Enviada ao cliente a') }} {{ $case->enviada_cliente_em->format('d/m/Y') }}{{ $case->enviada_para ? ' — ' . $case->enviada_para : '' }}</p>

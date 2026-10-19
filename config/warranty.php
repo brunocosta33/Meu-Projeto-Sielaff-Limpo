@@ -14,7 +14,8 @@ return [
         'cotacao_recebida' => ['label' => 'Cotação recebida', 'waiting' => 'Enviar cotação ao cliente', 'icon' => 'fa-file-invoice', 'color' => '#0369a1', 'bg' => '#e0f2fe'],
         'enviada_cliente' => ['label' => 'Enviada ao cliente', 'waiting' => 'À espera da ordem de compra', 'icon' => 'fa-hourglass-half', 'color' => '#6d28d9', 'bg' => '#ede9fe'],
         'oc_recebida' => ['label' => 'Ordem de compra recebida', 'waiting' => 'Enviar pedido para a Alemanha', 'icon' => 'fa-file-signature', 'color' => '#1d4ed8', 'bg' => '#dbeafe'],
-        'pedido_alemanha' => ['label' => 'Pedido enviado para a Alemanha', 'waiting' => 'Fazer a reparação', 'icon' => 'fa-globe-europe', 'color' => '#0f766e', 'bg' => '#ccfbf1'],
+        'pedido_alemanha' => ['label' => 'Pedido enviado para a Alemanha', 'waiting' => 'À espera da peça', 'icon' => 'fa-globe-europe', 'color' => '#0f766e', 'bg' => '#ccfbf1'],
+        'peca_recebida' => ['label' => 'Peça recebida', 'waiting' => 'Enviar técnico para a reparação', 'icon' => 'fa-box-open', 'color' => '#c2410c', 'bg' => '#ffedd5'],
         'concluido' => ['label' => 'Reparação feita', 'waiting' => null, 'icon' => 'fa-check-circle', 'color' => '#15803d', 'bg' => '#dcfce7'],
         'recusado' => ['label' => 'Recusada pelo cliente', 'waiting' => null, 'icon' => 'fa-times-circle', 'color' => '#b91c1c', 'bg' => '#fee2e2'],
     ],
@@ -23,5 +24,5 @@ return [
     'germany_email' => 'spareparts@sielaff.de',
 
     // Fases em que estamos à espera de terceiros: avisa a partir de X dias e fica a vermelho a partir de Y
-    'waiting_alert_days' => ['cotacao_pedida' => [5, 10], 'enviada_cliente' => [7, 14]],
+    'waiting_alert_days' => ['cotacao_pedida' => [5, 10], 'enviada_cliente' => [7, 14], 'pedido_alemanha' => [14, 30]],
 ];

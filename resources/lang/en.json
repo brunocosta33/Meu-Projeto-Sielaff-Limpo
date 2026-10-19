@@ -2029,5 +2029,12 @@
     "Pedido enviado para a Alemanha a": "Order sent to Germany on",
     "Registar envio para a Alemanha": "Record order sent to Germany",
     "Se forem vários, separe por vírgulas": "If there are several, separate them with commas",
-    "Sugerido: o último usado para o :cliente.": "Suggested: the last one used for :cliente."
+    "Sugerido: o último usado para o :cliente.": "Suggested: the last one used for :cliente.",
+    "Enviar técnico para a reparação": "Send technician to repair",
+    "Peça recebida": "Part received",
+    "Peça recebida a": "Part received on",
+    "Recebi a peça": "I received the part",
+    "Registar peça recebida": "Record part received",
+    "Registe o dia em que a peça chegou. Depois é só enviar o técnico fazer a reparação.": "Record the day the part arrived. Then just send the technician to do the repair.",
+    "À espera da peça": "Waiting for the part"
 }
