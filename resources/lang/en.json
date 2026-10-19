@@ -2011,5 +2011,6 @@
     "A data da avaria não pode ser posterior ao passo seguinte (:data).": "The failure date cannot be after the next step (:data).",
     "Avaria": "Failure",
     "Data da avaria": "Failure date",
-    "Indique a data da avaria.": "Enter the failure date."
+    "Indique a data da avaria.": "Enter the failure date.",
+    "Alterar data da avaria": "Change failure date"
 }

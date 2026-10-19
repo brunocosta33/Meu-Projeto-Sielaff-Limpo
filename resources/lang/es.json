@@ -1493,5 +1493,6 @@
     "A data da avaria não pode ser posterior ao passo seguinte (:data).": "La fecha de la avería no puede ser posterior al paso siguiente (:data).",
     "Avaria": "Avería",
     "Data da avaria": "Fecha de la avería",
-    "Indique a data da avaria.": "Indique la fecha de la avería."
+    "Indique a data da avaria.": "Indique la fecha de la avería.",
+    "Alterar data da avaria": "Cambiar fecha de la avería"
 }

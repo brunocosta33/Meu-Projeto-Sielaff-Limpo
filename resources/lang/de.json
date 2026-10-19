@@ -2087,5 +2087,6 @@
   "A data da avaria não pode ser posterior ao passo seguinte (:data).": "Das Schadensdatum darf nicht nach dem nächsten Schritt liegen (:data).",
   "Avaria": "Schaden",
   "Data da avaria": "Schadensdatum",
-  "Indique a data da avaria.": "Geben Sie das Schadensdatum an."
+  "Indique a data da avaria.": "Geben Sie das Schadensdatum an.",
+  "Alterar data da avaria": "Schadensdatum ändern"
 }
