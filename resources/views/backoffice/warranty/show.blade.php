@@ -134,7 +134,7 @@
                 @endif
                 <dl class="wc-facts mb-0">
                     <div><dt>{{ __('Data da avaria') }}</dt><dd>{{ optional($case->data_avaria)->format('d/m/Y') ?? '—' }}
-                        <a href="#" class="ml-1 text-primary" data-toggle="modal" data-target="#wc-edit" data-focus="data_avaria" title="{{ __('Alterar data da avaria') }}"><i class="fa fa-pencil-alt"></i></a></dd></div>
+                        <a href="#" class="ml-1 text-primary" data-toggle="modal" data-target="#wc-edit" data-wc-field="data_avaria" title="{{ __('Alterar data da avaria') }}"><i class="fa fa-pencil-alt"></i></a></dd></div>
                     <div><dt>{{ __('Máquina') }}</dt><dd>{{ $case->machine ? trim($case->machine->serial_number . ' ' . ($case->machine->descricao ? '— ' . $case->machine->descricao : '')) : '—' }}</dd></div>
                     <div><dt>{{ __('Criado por') }}</dt><dd>{{ $case->creator->name ?? '—' }} · {{ $case->created_at->format('d/m/Y') }}</dd></div>
                     @if($case->technicalRequest)
@@ -380,7 +380,7 @@
         if (window.jQuery && $.fn.selectpicker) $('.selectpicker').selectpicker();
         // Lápis da data da avaria: abre o Editar já com o campo da data selecionado
         if (window.jQuery) $('#wc-edit').on('shown.bs.modal', function (e) {
-            var field = $(e.relatedTarget).data('focus');
+            var field = $(e.relatedTarget).data('wcField');
             if (field) $(this).find('[name=' + field + ']').trigger('focus');
         });
     });
