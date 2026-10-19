@@ -72,8 +72,8 @@ class WarrantyCaseController extends Controller
             ->when($request->filled('fase'), fn ($q) => $request->fase === 'abertos'
                 ? $q->whereIn('fase', WarrantyCase::OPEN_PHASES)
                 : $q->where('fase', $request->fase))
-            // Mais recentes primeiro (data de criação do processo)
-            ->orderByDesc('created_at')
+            // Avarias mais recentes primeiro (data da avaria); no mesmo dia, o último registado primeiro
+            ->orderByDesc('data_avaria')
             ->orderByDesc('id')
             ->paginate(40)
             ->withQueryString();
