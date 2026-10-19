@@ -530,7 +530,7 @@
                     </div>
                     <div class="mt-3 mt-lg-0">
                         @if(\App\Services\HrAccess::canManageWarranty(auth()->user()))
-                            @php($warrantyCase = \App\Models\WarrantyCase::where('technical_request_id', $request->id)->latest('id')->first())
+                            @php $warrantyCase = \App\Models\WarrantyCase::where('technical_request_id', $request->id)->latest('id')->first(); @endphp
                             @if($warrantyCase)
                                 <a href="{{ route('backoffice.warranty.show', $warrantyCase->id) }}" class="btn btn-outline-danger mr-2">
                                     <i class="fa fa-file-invoice-dollar"></i> {{ __('Ver processo fora da garantia') }}
