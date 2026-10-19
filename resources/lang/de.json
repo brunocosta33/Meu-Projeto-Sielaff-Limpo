@@ -2088,5 +2088,22 @@
   "Avaria": "Schaden",
   "Data da avaria": "Schadensdatum",
   "Indique a data da avaria.": "Geben Sie das Schadensdatum an.",
-  "Alterar data da avaria": "Schadensdatum ändern"
+  "Alterar data da avaria": "Schadensdatum ändern",
+  "Abrir email para :email": "E-Mail an :email öffnen",
+  "Artigo": "Artikel",
+  "Editar passo": "Schritt bearbeiten",
+  "Enviar pedido para a Alemanha": "Bestellung nach Deutschland senden",
+  "Envie um email para :email com o número do artigo e o número do cliente e registe o envio.": "Senden Sie eine E-Mail an :email mit der Artikelnummer und der Kundennummer und erfassen Sie den Versand.",
+  "Enviei o pedido para a Alemanha": "Bestellung nach Deutschland gesendet",
+  "Indique o número do artigo.": "Geben Sie die Artikelnummer an.",
+  "Indique o número do cliente.": "Geben Sie die Kundennummer an.",
+  "Nº do artigo": "Artikelnr.",
+  "Nº do cliente": "Kundennr.",
+  "Para trocar o PDF use o botão de substituir no cartão Documentos.": "Um das PDF zu ersetzen, verwenden Sie die Schaltfläche in der Karte Dokumente.",
+  "Passo atualizado: :fase.": "Schritt aktualisiert: :fase.",
+  "Pedido enviado para a Alemanha": "Bestellung nach Deutschland gesendet",
+  "Pedido enviado para a Alemanha a": "Bestellung nach Deutschland gesendet am",
+  "Registar envio para a Alemanha": "Versand nach Deutschland erfassen",
+  "Se forem vários, separe por vírgulas": "Mehrere bitte durch Kommas trennen",
+  "Sugerido: o último usado para o :cliente.": "Vorschlag: die zuletzt für :cliente verwendete."
 }

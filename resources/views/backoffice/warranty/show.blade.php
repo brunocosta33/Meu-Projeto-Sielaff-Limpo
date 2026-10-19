@@ -9,13 +9,14 @@
     $phase = $case->phase();
     $alert = $case->waitingAlert();
     $reached = $case->events->keyBy('fase');
-    $steps = ['registado', 'cotacao_pedida', 'cotacao_recebida', 'enviada_cliente', 'oc_recebida', $case->fase === 'recusado' ? 'recusado' : 'concluido'];
+    $steps = ['registado', 'cotacao_pedida', 'cotacao_recebida', 'enviada_cliente', 'oc_recebida', 'pedido_alemanha', $case->fase === 'recusado' ? 'recusado' : 'concluido'];
     $currentIndex = array_search($case->fase, $steps, true);
     $nextForms = [
         'cotacao_pedida' => ['title' => __('Pedi a cotação à Sielaff'), 'help' => __('Registe o dia em que pediu a cotação à Sielaff.'), 'button' => __('Registar pedido de cotação')],
         'cotacao_recebida' => ['title' => __('Recebi a cotação da Sielaff'), 'help' => __('Indique o número e anexe o PDF da cotação.'), 'button' => __('Registar cotação')],
         'enviada_cliente' => ['title' => __('Enviei a cotação ao cliente'), 'help' => __('Registe quando enviou a cotação ao :cliente.', ['cliente' => $case->clientLabel()]), 'button' => __('Registar envio')],
         'oc_recebida' => ['title' => __('Recebi a ordem de compra'), 'help' => __('Indique o número e anexe o PDF da ordem de compra do :cliente.', ['cliente' => $case->clientLabel()]), 'button' => __('Registar ordem de compra')],
+        'pedido_alemanha' => ['title' => __('Enviei o pedido para a Alemanha'), 'help' => __('Envie um email para :email com o número do artigo e o número do cliente e registe o envio.', ['email' => $germanyEmail]), 'button' => __('Registar envio para a Alemanha')],
         'concluido' => ['title' => __('Reparação feita'), 'help' => __('Fecha o processo.'), 'button' => __('Fechar processo')],
     ];
     $machinesByStore = $stores->mapWithKeys(fn ($s) => [$s->id => $s->machines->map(fn ($m) => ['id' => $m->id, 'label' => trim($m->serial_number . ($m->descricao ? ' — ' . $m->descricao : ''))])->values()]);
@@ -197,6 +198,18 @@
                                 <input type="file" name="documento" class="form-control-file" accept=".pdf,.jpg,.jpeg,.png" required>
                             </div>
                         @endif
+                        @if($next === 'pedido_alemanha')
+                            <div class="form-group">
+                                <label class="small font-weight-bold mb-1">{{ __('Nº do artigo') }}</label>
+                                <input type="text" name="artigo_numero" id="wc-artigo" class="form-control" value="{{ old('artigo_numero') }}" required placeholder="{{ __('Se forem vários, separe por vírgulas') }}">
+                            </div>
+                            <div class="form-group">
+                                <label class="small font-weight-bold mb-1">{{ __('Nº do cliente') }}</label>
+                                <input type="text" name="cliente_numero" id="wc-cliente-num" class="form-control" value="{{ old('cliente_numero', $suggestedClientNumber) }}" required>
+                                @if($suggestedClientNumber)<small class="form-text text-muted">{{ __('Sugerido: o último usado para o :cliente.', ['cliente' => $case->clientLabel()]) }}</small>@endif
+                            </div>
+                            <a href="#" class="btn btn-outline-dark btn-block mb-3" id="wc-mail"><i class="fa fa-envelope"></i> {{ __('Abrir email para :email', ['email' => $germanyEmail]) }}</a>
+                        @endif
                         @if($next === 'enviada_cliente')
                             <div class="form-group">
                                 <label class="small font-weight-bold mb-1">{{ __('Enviada para') }} <span class="text-muted font-weight-normal">({{ __('opcional') }})</span></label>
@@ -275,6 +288,9 @@
                 @unless($anyDoc)
                     <p class="text-muted small mb-0">{{ __('A cotação e a ordem de compra aparecem aqui quando forem registadas.') }}</p>
                 @endunless
+                @if($case->alemanha_enviado_em)
+                    <p class="small text-muted mt-2 mb-0"><i class="fa fa-globe-europe"></i> {{ __('Pedido enviado para a Alemanha a') }} {{ $case->alemanha_enviado_em->format('d/m/Y') }} — {{ __('Artigo') }} {{ $case->artigo_numero }} · {{ __('Cliente') }} {{ $case->cliente_numero }}</p>
+                @endif
                 @if($case->enviada_cliente_em)
                     <p class="small text-muted mt-2 mb-0"><i class="fa fa-paper-plane"></i> {{ __('Enviada ao cliente a') }} {{ $case->enviada_cliente_em->format('d/m/Y') }}{{ $case->enviada_para ? ' — ' . $case->enviada_para : '' }}</p>
                 @endif
@@ -289,8 +305,12 @@
                     @foreach($case->events as $event)
                         <li style="--c: {{ $phases[$event->fase]['color'] ?? '#94a3b8' }}">
                             <span class="tl-dot"></span>
-                            <div class="tl-title">{{ __($phases[$event->fase]['label'] ?? $event->fase) }}</div>
+                            <div class="tl-title">
+                                {{ __($phases[$event->fase]['label'] ?? $event->fase) }}
+                                <a href="#" class="ml-1 text-primary small" data-toggle="modal" data-target="#wc-step-{{ $event->id }}" title="{{ __('Editar passo') }}"><i class="fa fa-pencil-alt"></i></a>
+                            </div>
                             <div class="tl-meta">{{ $event->data->format('d/m/Y') }} · {{ $event->user->name ?? '—' }}</div>
+                            @if($event->fase === 'pedido_alemanha')<div class="tl-meta">{{ __('Artigo') }} {{ $case->artigo_numero }} · {{ __('Cliente') }} {{ $case->cliente_numero }}</div>@endif
                             @if($event->nota)<div class="tl-note">{{ $event->nota }}</div>@endif
                         </li>
                     @endforeach
@@ -305,6 +325,71 @@
         </div>
     </div>
 </div>
+
+{{-- Editar cada passo do histórico --}}
+@foreach($case->events as $event)
+    <div class="modal fade" id="wc-step-{{ $event->id }}" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <form method="POST" action="{{ route('backoffice.warranty.step.update', [$case->id, $event->id]) }}" class="modal-content">
+                @csrf
+                @method('PUT')
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fa fa-pencil-alt"></i> {{ __($phases[$event->fase]['label'] ?? $event->fase) }}</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="small font-weight-bold mb-1">{{ $event->fase === 'registado' ? __('Data da avaria') : __('Data') }}</label>
+                        <input type="date" name="data" class="form-control" value="{{ $event->data->toDateString() }}" max="{{ now()->toDateString() }}" required>
+                    </div>
+                    @if($event->fase === 'cotacao_recebida')
+                        <div class="form-group">
+                            <label class="small font-weight-bold mb-1">{{ __('Nº da cotação') }}</label>
+                            <input type="text" name="cotacao_numero" class="form-control" value="{{ $case->cotacao_numero }}" required>
+                        </div>
+                    @elseif($event->fase === 'enviada_cliente')
+                        <div class="form-group">
+                            <label class="small font-weight-bold mb-1">{{ __('Enviada para') }}</label>
+                            <input type="text" name="enviada_para" class="form-control" value="{{ $case->enviada_para }}">
+                        </div>
+                    @elseif($event->fase === 'oc_recebida')
+                        <div class="form-group">
+                            <label class="small font-weight-bold mb-1">{{ __('Nº da ordem de compra') }}</label>
+                            <input type="text" name="oc_numero" class="form-control" value="{{ $case->oc_numero }}" required>
+                        </div>
+                    @elseif($event->fase === 'pedido_alemanha')
+                        <div class="form-group">
+                            <label class="small font-weight-bold mb-1">{{ __('Nº do artigo') }}</label>
+                            <input type="text" name="artigo_numero" class="form-control" value="{{ $case->artigo_numero }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="small font-weight-bold mb-1">{{ __('Nº do cliente') }}</label>
+                            <input type="text" name="cliente_numero" class="form-control" value="{{ $case->cliente_numero }}" required>
+                        </div>
+                    @endif
+                    @if($event->fase === 'recusado')
+                        <div class="form-group mb-0">
+                            <label class="small font-weight-bold mb-1">{{ __('Motivo da recusa') }}</label>
+                            <textarea name="motivo_recusa" class="form-control" rows="2" required>{{ $case->motivo_recusa }}</textarea>
+                        </div>
+                    @else
+                        <div class="form-group mb-0">
+                            <label class="small font-weight-bold mb-1">{{ __('Nota') }} <span class="text-muted font-weight-normal">({{ __('opcional') }})</span></label>
+                            <textarea name="nota" class="form-control" rows="2">{{ $event->nota }}</textarea>
+                        </div>
+                    @endif
+                    @if(in_array($event->fase, ['cotacao_recebida', 'oc_recebida'], true))
+                        <small class="form-text text-muted mt-2"><i class="fa fa-info-circle"></i> {{ __('Para trocar o PDF use o botão de substituir no cartão Documentos.') }}</small>
+                    @endif
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">{{ __('Cancelar') }}</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> {{ __('Gravar') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+@endforeach
 
 {{-- Editar dados --}}
 <div class="modal fade" id="wc-edit" tabindex="-1" role="dialog">
@@ -378,6 +463,30 @@
         if (window.jQuery) $(store).on('change', fill); else store.addEventListener('change', fill);
         fill();
         if (window.jQuery && $.fn.selectpicker) $('.selectpicker').selectpicker();
+        // Email para a Sielaff Alemanha com o nº do artigo e do cliente já escritos
+        var mail = document.getElementById('wc-mail');
+        if (mail) mail.addEventListener('click', function (e) {
+            e.preventDefault();
+            var artigo = document.getElementById('wc-artigo').value.trim();
+            var cliente = document.getElementById('wc-cliente-num').value.trim();
+            var info = {{ \Illuminate\Support\Js::from([
+                'email' => $germanyEmail,
+                'oc' => $case->oc_numero,
+                'loja' => trim(($case->store->codigo_loja ?? '') . ' - ' . ($case->store->nome_loja ?? '') . ' (' . $case->clientLabel() . ')'),
+                'serie' => $case->machine->serial_number ?? null,
+                'assinatura' => auth()->user()->name,
+            ]) }};
+            var subject = 'Spare parts order - Customer no. ' + cliente + (info.oc ? ' - PO ' + info.oc : '');
+            var body = 'Hello,\n\nPlease process the following spare parts order:\n\n'
+                + 'Customer number: ' + cliente + '\n'
+                + 'Article number(s): ' + artigo + '\n'
+                + (info.oc ? 'Customer purchase order: ' + info.oc + '\n' : '')
+                + 'Store: ' + info.loja + '\n'
+                + (info.serie ? 'Machine S/N: ' + info.serie + '\n' : '')
+                + '\nBest regards,\n' + info.assinatura + '\nSielaff Portugal';
+            window.location.href = 'mailto:' + info.email + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+        });
+
         // Lápis da data da avaria: abre o Editar já com o campo da data selecionado
         if (window.jQuery) $('#wc-edit').on('shown.bs.modal', function (e) {
             var field = $(e.relatedTarget).data('wcField');

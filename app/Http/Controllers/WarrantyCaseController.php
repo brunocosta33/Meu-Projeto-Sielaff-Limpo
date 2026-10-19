@@ -29,7 +29,20 @@ class WarrantyCaseController extends Controller
         'cotacao_pedida' => 'cotacao_recebida',
         'cotacao_recebida' => 'enviada_cliente',
         'enviada_cliente' => 'oc_recebida',
-        'oc_recebida' => 'concluido',
+        'oc_recebida' => 'pedido_alemanha',
+        'pedido_alemanha' => 'concluido',
+    ];
+
+    /** Campo de data do processo que corresponde a cada passo. */
+    private const DATE_FIELDS = [
+        'registado' => 'data_avaria',
+        'cotacao_pedida' => 'cotacao_pedida_em',
+        'cotacao_recebida' => 'cotacao_recebida_em',
+        'enviada_cliente' => 'enviada_cliente_em',
+        'oc_recebida' => 'oc_recebida_em',
+        'pedido_alemanha' => 'alemanha_enviado_em',
+        'concluido' => 'fechado_em',
+        'recusado' => 'fechado_em',
     ];
 
     /** Campos preenchidos ao entrar em cada fase (limpos ao voltar atrás). */
@@ -38,6 +51,7 @@ class WarrantyCaseController extends Controller
         'cotacao_recebida' => ['cotacao_numero', 'cotacao_recebida_em', 'cotacao_path', 'cotacao_nome'],
         'enviada_cliente' => ['enviada_cliente_em', 'enviada_para'],
         'oc_recebida' => ['oc_numero', 'oc_recebida_em', 'oc_path', 'oc_nome'],
+        'pedido_alemanha' => ['artigo_numero', 'cliente_numero', 'alemanha_enviado_em'],
         'concluido' => ['fechado_em'],
         'recusado' => ['fechado_em', 'motivo_recusa'],
     ];
@@ -125,6 +139,10 @@ class WarrantyCaseController extends Controller
             'clients' => config('warranty.clients'),
             'stores' => $this->storesWithMachines(),
             'next' => self::NEXT[$case->fase] ?? null,
+            // Nº de cliente na Sielaff Alemanha: sugere o último usado para o mesmo cliente (Lidl/Sonae)
+            'suggestedClientNumber' => WarrantyCase::where('cliente', $case->cliente)->whereNotNull('cliente_numero')
+                ->orderByDesc('alemanha_enviado_em')->orderByDesc('id')->value('cliente_numero'),
+            'germanyEmail' => config('warranty.germany_email'),
         ]);
     }
 
@@ -133,12 +151,6 @@ class WarrantyCaseController extends Controller
     {
         $case = WarrantyCase::with('events')->findOrFail($id);
         $data = $this->validateCase($request, $case);
-
-        // A data da avaria é o início do processo: não pode ficar depois do passo seguinte já registado
-        $nextStep = $case->events->get(1);
-        if ($nextStep && \Illuminate\Support\Carbon::parse($data['data_avaria'])->gt($nextStep->data)) {
-            throw ValidationException::withMessages(['data_avaria' => __('A data da avaria não pode ser posterior ao passo seguinte (:data).', ['data' => $nextStep->data->format('d/m/Y')])]);
-        }
 
         DB::transaction(function () use ($case, $data) {
             $case->update($data + ['updated_by' => auth()->id()] + ($case->fase === 'registado' ? ['fase_desde' => $data['data_avaria']] : []));
@@ -173,6 +185,9 @@ class WarrantyCaseController extends Controller
             $messages += ['cotacao_numero.required' => __('Indique o número da cotação.'), 'documento.required' => __('Anexe o PDF da cotação.')];
         } elseif ($next === 'enviada_cliente') {
             $rules += ['enviada_para' => ['nullable', 'string', 'max:255']];
+        } elseif ($next === 'pedido_alemanha') {
+            $rules += ['artigo_numero' => ['required', 'string', 'max:255'], 'cliente_numero' => ['required', 'string', 'max:100']];
+            $messages += ['artigo_numero.required' => __('Indique o número do artigo.'), 'cliente_numero.required' => __('Indique o número do cliente.')];
         } elseif ($next === 'oc_recebida') {
             $rules += ['oc_numero' => ['required', 'string', 'max:100'], 'documento' => ['required', ...$this->documentRule()]];
             $messages += ['oc_numero.required' => __('Indique o número da ordem de compra.'), 'documento.required' => __('Anexe o PDF da ordem de compra.')];
@@ -186,11 +201,53 @@ class WarrantyCaseController extends Controller
             'enviada_cliente' => ['enviada_cliente_em' => $data['data'], 'enviada_para' => $data['enviada_para'] ?? null],
             'oc_recebida' => ['oc_recebida_em' => $data['data'], 'oc_numero' => $data['oc_numero']]
                 + $this->storeDocument($request, $case, 'oc'),
+            'pedido_alemanha' => ['alemanha_enviado_em' => $data['data'], 'artigo_numero' => $data['artigo_numero'], 'cliente_numero' => $data['cliente_numero']],
             'concluido' => ['fechado_em' => $data['data']],
         };
 
         $this->moveTo($case, $next, $data['data'], $data['nota'] ?? null, $updates);
         flash(__('Passo registado: :fase.', ['fase' => __(config("warranty.phases.$next.label"))]))->success();
+
+        return back();
+    }
+
+    /** Corrigir um passo já registado: data, nota e os dados próprios desse passo. */
+    public function updateStep(Request $request, $id, $eventId)
+    {
+        $case = WarrantyCase::with('events')->findOrFail($id);
+        $event = $case->events->firstWhere('id', (int) $eventId);
+        abort_unless($event, 404);
+
+        $rules = ['data' => ['required', 'date', 'before_or_equal:today'], 'nota' => ['nullable', 'string', 'max:2000']];
+        $extra = match ($event->fase) {
+            'cotacao_recebida' => ['cotacao_numero' => ['required', 'string', 'max:100']],
+            'enviada_cliente' => ['enviada_para' => ['nullable', 'string', 'max:255']],
+            'oc_recebida' => ['oc_numero' => ['required', 'string', 'max:100']],
+            'pedido_alemanha' => ['artigo_numero' => ['required', 'string', 'max:255'], 'cliente_numero' => ['required', 'string', 'max:100']],
+            'recusado' => ['motivo_recusa' => ['required', 'string', 'max:2000']],
+            default => [],
+        };
+        $data = $request->validate($rules + $extra, [
+            'data.before_or_equal' => __('A data não pode ser no futuro.'),
+            'cotacao_numero.required' => __('Indique o número da cotação.'),
+            'oc_numero.required' => __('Indique o número da ordem de compra.'),
+            'artigo_numero.required' => __('Indique o número do artigo.'),
+            'cliente_numero.required' => __('Indique o número do cliente.'),
+            'motivo_recusa.required' => __('Indique o motivo da recusa.'),
+        ]);
+
+        $caseUpdates = array_intersect_key($data, $extra) + [self::DATE_FIELDS[$event->fase] => $data['data'], 'updated_by' => auth()->id()];
+        if ($event->is($case->events->last())) {
+            $caseUpdates['fase_desde'] = $data['data'];
+        }
+        $note = $event->fase === 'recusado' ? $data['motivo_recusa'] : ($data['nota'] ?? null);
+
+        DB::transaction(function () use ($case, $event, $caseUpdates, $data, $note) {
+            $case->update($caseUpdates);
+            $event->update(['data' => $data['data'], 'nota' => $note]);
+        });
+
+        flash(__('Passo atualizado: :fase.', ['fase' => __(config("warranty.phases.{$event->fase}.label"))]))->success();
 
         return back();
     }

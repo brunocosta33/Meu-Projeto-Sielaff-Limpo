@@ -2012,5 +2012,22 @@
     "Avaria": "Failure",
     "Data da avaria": "Failure date",
     "Indique a data da avaria.": "Enter the failure date.",
-    "Alterar data da avaria": "Change failure date"
+    "Alterar data da avaria": "Change failure date",
+    "Abrir email para :email": "Open email to :email",
+    "Artigo": "Article",
+    "Editar passo": "Edit step",
+    "Enviar pedido para a Alemanha": "Send order to Germany",
+    "Envie um email para :email com o número do artigo e o número do cliente e registe o envio.": "Send an email to :email with the article number and the customer number, then record it.",
+    "Enviei o pedido para a Alemanha": "I sent the order to Germany",
+    "Indique o número do artigo.": "Enter the article number.",
+    "Indique o número do cliente.": "Enter the customer number.",
+    "Nº do artigo": "Article no.",
+    "Nº do cliente": "Customer no.",
+    "Para trocar o PDF use o botão de substituir no cartão Documentos.": "To change the PDF, use the replace button in the Documents card.",
+    "Passo atualizado: :fase.": "Step updated: :fase.",
+    "Pedido enviado para a Alemanha": "Order sent to Germany",
+    "Pedido enviado para a Alemanha a": "Order sent to Germany on",
+    "Registar envio para a Alemanha": "Record order sent to Germany",
+    "Se forem vários, separe por vírgulas": "If there are several, separate them with commas",
+    "Sugerido: o último usado para o :cliente.": "Suggested: the last one used for :cliente."
 }

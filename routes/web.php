@@ -219,6 +219,7 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
         Route::post('/{id}/avancar', [WarrantyCaseController::class, 'advance'])->name('advance');
         Route::post('/{id}/recusar', [WarrantyCaseController::class, 'refuse'])->name('refuse');
         Route::post('/{id}/desfazer', [WarrantyCaseController::class, 'undo'])->name('undo');
+        Route::put('/{id}/passo/{event}', [WarrantyCaseController::class, 'updateStep'])->name('step.update');
         Route::post('/{id}/fotos', [WarrantyCaseController::class, 'addPhotos'])->name('photos.store');
         Route::get('/{id}/documento/{tipo}', [WarrantyCaseController::class, 'document'])->name('document');
         Route::post('/{id}/documento/{tipo}', [WarrantyCaseController::class, 'replaceDocument'])->name('document.replace');

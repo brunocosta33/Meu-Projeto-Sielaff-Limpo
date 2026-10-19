@@ -1494,5 +1494,22 @@
     "Avaria": "Avería",
     "Data da avaria": "Fecha de la avería",
     "Indique a data da avaria.": "Indique la fecha de la avería.",
-    "Alterar data da avaria": "Cambiar fecha de la avería"
+    "Alterar data da avaria": "Cambiar fecha de la avería",
+    "Abrir email para :email": "Abrir email para :email",
+    "Artigo": "Artículo",
+    "Editar passo": "Editar paso",
+    "Enviar pedido para a Alemanha": "Enviar pedido a Alemania",
+    "Envie um email para :email com o número do artigo e o número do cliente e registe o envio.": "Envíe un email a :email con el número de artículo y el número de cliente y registre el envío.",
+    "Enviei o pedido para a Alemanha": "He enviado el pedido a Alemania",
+    "Indique o número do artigo.": "Indique el número de artículo.",
+    "Indique o número do cliente.": "Indique el número de cliente.",
+    "Nº do artigo": "N.º de artículo",
+    "Nº do cliente": "N.º de cliente",
+    "Para trocar o PDF use o botão de substituir no cartão Documentos.": "Para cambiar el PDF use el botón de sustituir en la tarjeta Documentos.",
+    "Passo atualizado: :fase.": "Paso actualizado: :fase.",
+    "Pedido enviado para a Alemanha": "Pedido enviado a Alemania",
+    "Pedido enviado para a Alemanha a": "Pedido enviado a Alemania el",
+    "Registar envio para a Alemanha": "Registrar envío a Alemania",
+    "Se forem vários, separe por vírgulas": "Si son varios, sepárelos con comas",
+    "Sugerido: o último usado para o :cliente.": "Sugerido: el último usado para :cliente."
 }
