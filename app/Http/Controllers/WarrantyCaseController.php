@@ -179,10 +179,6 @@ class WarrantyCaseController extends Controller
         }
         $data = $request->validate($rules, $messages + $this->documentMessages());
 
-        if ($this->dateBeforePrevious($case, $data['data'])) {
-            throw ValidationException::withMessages(['data' => __('A data não pode ser anterior ao passo anterior (:data).', ['data' => $case->fase_desde->format('d/m/Y')])]);
-        }
-
         $updates = match ($next) {
             'cotacao_pedida' => ['cotacao_pedida_em' => $data['data']],
             'cotacao_recebida' => ['cotacao_recebida_em' => $data['data'], 'cotacao_numero' => $data['cotacao_numero']]
@@ -422,11 +418,6 @@ class WarrantyCaseController extends Controller
         }
 
         return [$tipo . '_path' => $path, $tipo . '_nome' => $file->getClientOriginalName()];
-    }
-
-    private function dateBeforePrevious(WarrantyCase $case, string $date): bool
-    {
-        return $case->fase_desde && \Illuminate\Support\Carbon::parse($date)->lt($case->fase_desde);
     }
 
     private function moveTo(WarrantyCase $case, string $phase, string $date, ?string $note, array $updates): void

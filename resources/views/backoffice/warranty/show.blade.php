@@ -205,7 +205,7 @@
                         <div class="form-row">
                             <div class="form-group col-sm-6">
                                 <label class="small font-weight-bold mb-1">{{ __('Data') }}</label>
-                                <input type="date" name="data" class="form-control" value="{{ old('data', now()->toDateString()) }}" min="{{ $case->fase_desde->toDateString() }}" max="{{ now()->toDateString() }}" required>
+                                <input type="date" name="data" class="form-control" value="{{ old('data', now()->toDateString()) }}" max="{{ now()->toDateString() }}" required>
                             </div>
                         </div>
                         <div class="form-group">
