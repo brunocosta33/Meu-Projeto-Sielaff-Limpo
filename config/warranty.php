@@ -20,7 +20,7 @@ return [
     ],
 
     // Pedido de peças à Sielaff Alemanha (passo "Pedido enviado para a Alemanha")
-    'germany_email' => 'sparepartes@sielaff.de',
+    'germany_email' => 'spareparts@sielaff.de',
 
     // Fases em que estamos à espera de terceiros: avisa a partir de X dias e fica a vermelho a partir de Y
     'waiting_alert_days' => ['cotacao_pedida' => [5, 10], 'enviada_cliente' => [7, 14]],
