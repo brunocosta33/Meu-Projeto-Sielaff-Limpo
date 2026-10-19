@@ -34,8 +34,8 @@
                         </p>
                     </div>
                     <div class="mt-3 mt-lg-0">
-                        <a href="{{ route('backoffice.machines.index') }}" class="btn btn-outline-secondary">
-                            <i class="fas fa-arrow-left mr-1"></i>{{ __('Voltar às máquinas') }}
+                        <a href="{{ $backUrl ?: route('backoffice.machines.index') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left mr-1"></i>{{ $backUrl ? __('Voltar') : __('Voltar às máquinas') }}
                         </a>
                     </div>
                 </div>
@@ -81,7 +81,7 @@
                                             <span class="badge badge-light border ml-1">{{ __($serviceTypes[$request->tipo_servico] ?? $request->tipo_servico) }}</span>
                                         @endif
                                     </div>
-                                    <a href="{{ route('backoffice.technical_requests.show', $request->id) }}" class="btn btn-sm btn-link p-0">{{ __('ver') }}</a>
+                                    <a href="{{ route('backoffice.technical_requests.show', ['id' => $request->id, 'return_url' => url()->full()]) }}" class="btn btn-sm btn-link p-0">{{ __('ver') }}</a>
                                 </div>
                                 @if($request->descricao_problema)
                                     <div class="text-muted small mt-1">{{ \Illuminate\Support\Str::limit($request->descricao_problema, 160) }}</div>

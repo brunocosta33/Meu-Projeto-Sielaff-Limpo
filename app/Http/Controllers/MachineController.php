@@ -24,7 +24,7 @@ class MachineController extends Controller
         'aguarda_peca' => 'Aguarda Peça',
     ];
 
-    public function history($id)
+    public function history(Request $request, $id)
     {
         $machine = Machine::with('store')->findOrFail($id);
 
@@ -61,6 +61,8 @@ class MachineController extends Controller
             'serviceTypes' => self::SERVICE_TYPES,
             'statuses' => self::STATUSES,
             'totalPartsConsumed' => $consumptions->sum('quantity'),
+            // "Voltar" regressa à página de onde se veio (ex.: lista de pedidos com filtros); senão, às máquinas
+            'backUrl' => $this->safeReturnUrl($request->input('return_url')),
         ]);
     }
 
@@ -169,5 +171,17 @@ class MachineController extends Controller
                         ->whereNull('deleted_at');
                 });
             });
+    }
+
+    /** Só aceita endereços do próprio backoffice (evita redirecionar para fora do site). */
+    private function safeReturnUrl(?string $url): ?string
+    {
+        if (!$url) {
+            return null;
+        }
+        $parts = parse_url($url);
+        $sameHost = !isset($parts['host']) || $parts['host'] === parse_url(url('/'), PHP_URL_HOST);
+
+        return $sameHost && str_starts_with($parts['path'] ?? '', '/backoffice/') ? $url : null;
     }
 }

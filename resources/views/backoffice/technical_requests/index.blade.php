@@ -1954,7 +1954,7 @@
                                         <i class="fa fa-eye"></i> {{ __('Ver') }}
                                     </a>
                                     @if($request->machine)
-                                        <a href="{{ route('backoffice.machines.history', $request->machine->id) }}" class="btn btn-sm btn-outline-info">
+                                        <a href="{{ route('backoffice.machines.history', ['id' => $request->machine->id, 'return_url' => url()->full()]) }}" class="btn btn-sm btn-outline-info">
                                             <i class="fa fa-history"></i> {{ __('Histórico') }}
                                         </a>
                                     @endif

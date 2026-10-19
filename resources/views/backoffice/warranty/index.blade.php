@@ -27,9 +27,15 @@
     .wc-store { font-weight: 600; }
     .wc-store small { display: block; font-weight: 400; color: #6c757d; }
     .wc-problem { max-width: 340px; font-size: .86rem; color: #334155; }
-    .wc-wait { font-size: .76rem; margin-top: .3rem; color: #64748b; }
-    .wc-wait.warn { color: #b45309; font-weight: 600; }
-    .wc-wait.late { color: #b91c1c; font-weight: 700; }
+    .wc-wait { display: inline-flex; align-items: center; gap: .4rem; margin-top: .4rem; padding: .3rem .7rem; border-radius: 8px;
+               font-size: .8rem; font-weight: 700; background: var(--bg); color: var(--fg); border-left: 4px solid var(--fg); white-space: nowrap; }
+    .wc-wait small { font-weight: 600; opacity: .8; }
+    .wc-wait.warn { --bg: #fff7ed !important; --fg: #c2410c !important; }
+    .wc-wait.late { --bg: #fef2f2 !important; --fg: #b91c1c !important; }
+    .wc-wait.late .fa { animation: wc-pulse 1.4s ease-in-out infinite; }
+    .wc-closed { font-size: .76rem; margin-top: .3rem; color: #64748b; }
+    @keyframes wc-pulse { 50% { opacity: .3; } }
+    @media (prefers-reduced-motion: reduce) { .wc-wait.late .fa { animation: none; } }
     .wc-docs { font-size: .78rem; white-space: nowrap; }
     .wc-docs div + div { margin-top: .2rem; }
 </style>
@@ -118,12 +124,15 @@
                                 <td>
                                     <span class="wc-badge" style="--bg: {{ $phase['bg'] }}; --fg: {{ $phase['color'] }}"><i class="fas {{ $phase['icon'] }}"></i> {{ __($phase['label']) }}</span>
                                     @if($case->isOpen())
-                                        <div class="wc-wait {{ $alert }}">
-                                            @if($alert === 'late')<i class="fa fa-exclamation-triangle"></i>@endif
-                                            {{ __($phase['waiting']) }} · {{ trans_choice('{0} hoje|{1} há :count dia|[2,*] há :count dias', $case->daysInPhase(), ['count' => $case->daysInPhase()]) }}
+                                        <div>
+                                            <span class="wc-wait {{ $alert }}" style="--bg: {{ $phase['bg'] }}; --fg: {{ $phase['color'] }}">
+                                                <i class="fa {{ $alert ? 'fa-exclamation-triangle' : 'fa-hourglass-half' }}"></i>
+                                                {{ __($phase['waiting']) }}
+                                                <small>· {{ trans_choice('{0} hoje|{1} há :count dia|[2,*] há :count dias', $case->daysInPhase(), ['count' => $case->daysInPhase()]) }}</small>
+                                            </span>
                                         </div>
                                     @elseif($case->fechado_em)
-                                        <div class="wc-wait">{{ $case->fechado_em->format('d/m/Y') }}</div>
+                                        <div class="wc-closed">{{ $case->fechado_em->format('d/m/Y') }}</div>
                                     @endif
                                 </td>
                                 <td class="wc-docs">
