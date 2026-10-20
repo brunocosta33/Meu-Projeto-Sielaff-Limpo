@@ -335,6 +335,15 @@
             max-width: none;
         }
     }
+    .stores-files { display: flex; flex-wrap: wrap; gap: .4rem; max-width: 220px; }
+    .stores-file { width: 48px; height: 48px; border-radius: 9px; overflow: hidden; display: grid; place-items: center; background: #f1f5f9;
+                   border: 1px solid #e2e8f0; text-decoration: none !important; transition: transform .15s; }
+    .stores-file:hover { transform: scale(1.06); }
+    .stores-file img { width: 100%; height: 100%; object-fit: cover; }
+    .stores-file.is-pdf { background: #fef2f2; border-color: #fecaca; color: #dc2626; display: flex; flex-direction: column; justify-content: center; align-items: center; line-height: 1; }
+    .stores-file.is-pdf .fa { font-size: 1.1rem; }
+    .stores-file.is-pdf span { font-size: .58rem; font-weight: 800; margin-top: .15rem; }
+    .stores-file-more { font-size: .78rem; font-weight: 700; color: #475569; }
 </style>
 @endsection
 
@@ -344,7 +353,7 @@
 @php
     $storeCount = $stores->count();
     $machineCount = $stores->sum(fn($store) => $store->machines->count());
-    $sonaeCount = $stores->where('insignia', 'sonae')->count();
+    $sonaeCount = $stores->filter(fn ($s) => mb_strtolower((string) $s->insignia) === 'sonae')->count();
 @endphp
 
 <div class="row stores-page">
@@ -459,6 +468,7 @@
                                     <th>{{ __('Nome Loja') }}</th>
                                     <th>{{ __('Região') }}</th>
                                     <th>{{ __('Modelos de Máquina') }}</th>
+                                    <th>{{ __('Ficheiros') }}</th>
                                     @if($canManageStores ?? true)
                                         <th class="text-right">{{ __('Ações') }}</th>
                                     @endif
@@ -468,7 +478,8 @@
                                 @forelse($stores as $store)
                                 <tr>
                                     <td>
-                                        <span class="stores-badge {{ $store->insignia === 'lidl' ? 'badge-warning text-dark' : 'badge-success' }}" style="{{ $store->insignia === 'lidl' ? 'background:#ffe39a;' : 'background:#c9f1d7; color:#17663a;' }}">
+                                        @php($isLidl = mb_strtolower((string) $store->insignia) === 'lidl')
+                                        <span class="stores-badge {{ $isLidl ? 'badge-warning text-dark' : 'badge-success' }}" style="{{ $isLidl ? 'background:#ffe39a;' : 'background:#c9f1d7; color:#17663a;' }}">
                                             <i class="fa fa-tag"></i>
                                             {{ ucfirst($store->insignia ?? '—') }}
                                         </span>
@@ -511,6 +522,26 @@
                                             </span>
                                         @endif
                                     </td>
+                                    <td>
+                                        @if($store->files->isNotEmpty())
+                                            <div class="stores-files">
+                                                @foreach($store->files->take(4) as $file)
+                                                    <a href="{{ route('backoffice.stores.file', $file->id) }}" target="_blank" class="stores-file {{ $file->isImage() ? '' : 'is-pdf' }}" title="{{ $file->nome }}">
+                                                        @if($file->isImage())
+                                                            <img src="{{ route('backoffice.stores.file', $file->id) }}" alt="{{ $file->nome }}" loading="lazy">
+                                                        @else
+                                                            <i class="fa fa-file-pdf"></i><span>PDF</span>
+                                                        @endif
+                                                    </a>
+                                                @endforeach
+                                                @if($store->files->count() > 4)
+                                                    <a href="{{ ($canManageStores ?? true) ? route('backoffice.stores.edit', $store->id) : '#' }}" class="stores-file stores-file-more">+{{ $store->files->count() - 4 }}</a>
+                                                @endif
+                                            </div>
+                                        @else
+                                            <span class="text-muted">—</span>
+                                        @endif
+                                    </td>
                                     @if($canManageStores ?? true)
                                         <td class="text-right">
                                             <div class="stores-actions">
@@ -528,7 +559,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="{{ ($canManageStores ?? true) ? 6 : 5 }}">
+                                    <td colspan="{{ ($canManageStores ?? true) ? 7 : 6 }}">
                                         <div class="stores-empty">
                                             <div class="stores-empty-icon">
                                                 <i class="fa fa-store-slash"></i>

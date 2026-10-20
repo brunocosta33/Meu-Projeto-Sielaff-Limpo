@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Store;
 use App\Models\Machine;
+use App\Models\StoreFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 
@@ -19,7 +21,7 @@ class StoreController extends Controller
 
     public function index()
     {
-        $query = Store::with('machines')->orderBy('codigo_loja');
+        $query = Store::with(['machines', 'files'])->orderBy('codigo_loja');
 
         if (request('q')) {
             $term = trim((string) request('q'));
@@ -63,11 +65,15 @@ class StoreController extends Controller
         abort_unless($this->canManageStores(), 403);
 
         $data = $this->validateStore($request);
+        $this->validateFiles($request);
 
-        DB::transaction(function () use ($data) {
+        $store = DB::transaction(function () use ($data) {
             $store = Store::create($data['store']);
             $this->syncMachines($store, $data['machines']);
+
+            return $store;
         });
+        $this->syncFiles($request, $store);
 
         flash(__('Loja criada com sucesso!'))->success();
         return redirect()->route('backoffice.stores.index');
@@ -77,7 +83,7 @@ class StoreController extends Controller
     {
         abort_unless($this->canManageStores(), 403);
 
-        $store = Store::findOrFail($id);
+        $store = Store::with('files')->findOrFail($id);
         return view('backoffice.stores.edit', [
             'store' => $store,
             'insignias' => self::INSIGNIAS,
@@ -98,11 +104,13 @@ class StoreController extends Controller
 
         $store = Store::findOrFail($id);
         $data = $this->validateStore($request, $store);
+        $this->validateFiles($request);
 
         DB::transaction(function () use ($store, $data) {
             $store->update($data['store']);
             $this->syncMachines($store, $data['machines']);
         });
+        $this->syncFiles($request, $store);
 
         flash(__('Loja atualizada com sucesso!'))->success();
         return redirect()->route('backoffice.stores.index');
@@ -115,6 +123,48 @@ class StoreController extends Controller
         Store::where('id', $id)->update(['deleted_at' => now()]);
         flash(__('Loja apagada com sucesso!'))->success();
         return redirect()->route('backoffice.stores.index');
+    }
+
+    /** Abrir uma fotografia ou PDF da loja (no browser). */
+    public function file($fileId)
+    {
+        $file = StoreFile::findOrFail($fileId);
+        abort_unless(Storage::disk('local')->exists($file->path), 404);
+
+        return Storage::disk('local')->response($file->path, $file->nome, ['Cache-Control' => 'private, max-age=86400']);
+    }
+
+    private function validateFiles(Request $request): void
+    {
+        $request->validate([
+            'ficheiros' => ['nullable', 'array', 'max:10'],
+            'ficheiros.*' => ['file', 'mimes:jpg,jpeg,png,webp,heic,heif,pdf', 'max:20480'],
+            'remover_ficheiros' => ['nullable', 'array'],
+        ], [
+            'ficheiros.max' => __('No máximo 10 ficheiros de cada vez.'),
+            'ficheiros.*.mimes' => __('Os ficheiros têm de ser imagens ou PDF.'),
+            'ficheiros.*.max' => __('Cada ficheiro pode ter no máximo 20 MB.'),
+        ]);
+    }
+
+    /** Guarda os ficheiros novos e apaga os marcados para remover (disco privado). */
+    private function syncFiles(Request $request, Store $store): void
+    {
+        $remove = array_map('intval', (array) $request->input('remover_ficheiros', []));
+        foreach ($store->files()->whereIn('id', $remove)->get() as $file) {
+            Storage::disk('local')->delete($file->path);
+            $file->delete();
+        }
+
+        foreach ((array) $request->file('ficheiros', []) as $upload) {
+            $store->files()->create([
+                'path' => $upload->store('store_files/' . $store->id, 'local'),
+                'nome' => $upload->getClientOriginalName(),
+                'mime' => $upload->getMimeType(),
+                'tamanho' => $upload->getSize(),
+                'uploaded_by' => auth()->id(),
+            ]);
+        }
     }
 
     private function canManageStores(): bool

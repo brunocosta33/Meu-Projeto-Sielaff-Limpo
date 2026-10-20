@@ -20,6 +20,7 @@ class RestrictTechnicianAccess
         'backoffice.task_schedules.minhas.update',
         'backoffice.task_schedules.minhas.concluir_todas',
         'backoffice.stores.index',
+        'backoffice.stores.file',
         'backoffice.hr.hotline.index',
         'backoffice.hr.piquete.index',
         'backoffice.hr.team.index',

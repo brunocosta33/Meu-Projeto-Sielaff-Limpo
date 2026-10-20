@@ -37,4 +37,10 @@ class Store extends Model
     {
         return $this->hasMany(Machine::class, 'store_id');
     }
+
+    /** Fotografias e PDFs da ficha da loja. */
+    public function files()
+    {
+        return $this->hasMany(StoreFile::class)->orderBy('id');
+    }
 }

@@ -190,6 +190,7 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
         Route::get('/{id}/edit', [StoreController::class, 'edit'])->name('backoffice.stores.edit');
         Route::post('/{id}/update', [StoreController::class, 'update'])->name('backoffice.stores.update');
         Route::get('/{id}/delete', [StoreController::class, 'delete'])->name('backoffice.stores.delete');
+        Route::get('/ficheiros/{file}', [StoreController::class, 'file'])->name('backoffice.stores.file');
     });
 
     // Manutenções anuais obrigatórias por loja

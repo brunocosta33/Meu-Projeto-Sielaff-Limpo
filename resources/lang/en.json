@@ -2045,5 +2045,13 @@
     "Também pode anexar mais tarde, no cartão Documentos.": "You can also attach it later, in the Documents card.",
     "sem PDF": "no PDF",
     "A manutenção pode ser feita entre :dias dias úteis antes e :dias dias úteis depois da data contratada, que se repete todos os anos. Contam de segunda a sábado; domingos e feriados não contam.": "Maintenance can be done between :dias working days before and :dias working days after the contracted date, which repeats every year. Monday to Saturday count; Sundays and holidays do not.",
-    "{0} hoje é o último dia do prazo|{1} falta :count dia útil para o fim do prazo|[2,*] faltam :count dias úteis para o fim do prazo": "{0} today is the last day of the window|{1} :count working day left in the window|[2,*] :count working days left in the window"
+    "{0} hoje é o último dia do prazo|{1} falta :count dia útil para o fim do prazo|[2,*] faltam :count dias úteis para o fim do prazo": "{0} today is the last day of the window|{1} :count working day left in the window|[2,*] :count working days left in the window",
+    "A preparar ficheiros…": "Preparing files…",
+    "Adicionar imagens ou PDF": "Add images or PDF",
+    "Cada ficheiro pode ter no máximo 20 MB.": "Each file can be at most 20 MB.",
+    "Ex.: fachada, local da máquina, acessos ou a planta da loja em PDF. Aparecem na lista de lojas.": "E.g.: storefront, machine location, access or the store floor plan as PDF. They appear in the store list.",
+    "Fotografias e documentos": "Photos and documents",
+    "No máximo 10 ficheiros de cada vez.": "At most 10 files at a time.",
+    "Os ficheiros têm de ser imagens ou PDF.": "Files must be images or PDF.",
+    "Pode escolher vários (até 10 de cada vez, 20 MB cada).": "You can choose several (up to 10 at a time, 20 MB each)."
 }

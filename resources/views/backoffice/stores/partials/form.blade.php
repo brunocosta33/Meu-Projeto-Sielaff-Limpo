@@ -31,7 +31,7 @@
                         <select name="insignia" class="form-control" required>
                             <option value="">{{ __('-- Selecione --') }}</option>
                             @foreach($insignias as $value => $label)
-                                <option value="{{ $value }}" {{ old('insignia', $store->insignia ?? '') === $value ? 'selected' : '' }}>
+                                <option value="{{ $value }}" {{ old('insignia', mb_strtolower($store->insignia ?? '')) === $value ? 'selected' : '' }}>
                                     {{ $label }}
                                 </option>
                             @endforeach
@@ -185,6 +185,40 @@
             </div>
 
             <small class="text-muted">{{ __('Se remover uma máquina existente e gravar a loja, ela deixa de estar associada a esta ficha.') }}</small>
+        </div>
+
+        <div class="border rounded p-3 mb-4">
+            <h6 class="text-uppercase text-muted mb-1">{{ __('Fotografias e documentos') }}</h6>
+            <p class="text-muted mb-3">{{ __('Ex.: fachada, local da máquina, acessos ou a planta da loja em PDF. Aparecem na lista de lojas.') }}</p>
+
+            @if(isset($store) && $store->files->isNotEmpty())
+                <div class="store-files-grid mb-3">
+                    @foreach($store->files as $file)
+                        <label class="store-file-item" title="{{ $file->nome }}">
+                            <a href="{{ route('backoffice.stores.file', $file->id) }}" target="_blank" class="store-file-thumb">
+                                @if($file->isImage())
+                                    <img src="{{ route('backoffice.stores.file', $file->id) }}" alt="{{ $file->nome }}" loading="lazy">
+                                @else
+                                    <i class="fa fa-file-pdf"></i>
+                                @endif
+                            </a>
+                            <span class="store-file-name">{{ \Illuminate\Support\Str::limit($file->nome, 22) }}</span>
+                            <span class="store-file-remove"><input type="checkbox" name="remover_ficheiros[]" value="{{ $file->id }}"> {{ __('Remover') }}</span>
+                        </label>
+                    @endforeach
+                </div>
+            @endif
+
+            <label class="store-file-drop" for="store-files-input">
+                <i class="fa fa-cloud-upload-alt"></i>
+                <span>
+                    <strong>{{ __('Adicionar imagens ou PDF') }}</strong>
+                    <small>{{ __('Pode escolher vários (até 10 de cada vez, 20 MB cada).') }}</small>
+                </span>
+            </label>
+            <input type="file" name="ficheiros[]" id="store-files-input" class="d-none" accept="image/*,.pdf,application/pdf" multiple>
+            <div class="store-files-preview" id="store-files-preview"></div>
+            <small class="text-muted d-block" id="store-files-status"></small>
         </div>
 
         {!! Form::button('<i class="fa fa-save"></i> ' . (isset($store) ? __('Atualizar') : __('Gravar')), ['type' => 'submit', 'class' => 'btn btn-success']) !!}

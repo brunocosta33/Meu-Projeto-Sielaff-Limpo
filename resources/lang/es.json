@@ -1527,5 +1527,13 @@
     "Também pode anexar mais tarde, no cartão Documentos.": "También puede adjuntarlo más tarde, en la tarjeta Documentos.",
     "sem PDF": "sin PDF",
     "A manutenção pode ser feita entre :dias dias úteis antes e :dias dias úteis depois da data contratada, que se repete todos os anos. Contam de segunda a sábado; domingos e feriados não contam.": "El mantenimiento puede hacerse entre :dias días laborables antes y :dias días laborables después de la fecha contratada, que se repite cada año. Cuentan de lunes a sábado; domingos y festivos no cuentan.",
-    "{0} hoje é o último dia do prazo|{1} falta :count dia útil para o fim do prazo|[2,*] faltam :count dias úteis para o fim do prazo": "{0} hoy es el último día del plazo|{1} queda :count día laborable para el fin del plazo|[2,*] quedan :count días laborables para el fin del plazo"
+    "{0} hoje é o último dia do prazo|{1} falta :count dia útil para o fim do prazo|[2,*] faltam :count dias úteis para o fim do prazo": "{0} hoy es el último día del plazo|{1} queda :count día laborable para el fin del plazo|[2,*] quedan :count días laborables para el fin del plazo",
+    "A preparar ficheiros…": "Preparando archivos…",
+    "Adicionar imagens ou PDF": "Añadir imágenes o PDF",
+    "Cada ficheiro pode ter no máximo 20 MB.": "Cada archivo puede tener como máximo 20 MB.",
+    "Ex.: fachada, local da máquina, acessos ou a planta da loja em PDF. Aparecem na lista de lojas.": "Ej.: fachada, ubicación de la máquina, accesos o el plano de la tienda en PDF. Aparecen en la lista de tiendas.",
+    "Fotografias e documentos": "Fotografías y documentos",
+    "No máximo 10 ficheiros de cada vez.": "Como máximo 10 archivos a la vez.",
+    "Os ficheiros têm de ser imagens ou PDF.": "Los archivos deben ser imágenes o PDF.",
+    "Pode escolher vários (até 10 de cada vez, 20 MB cada).": "Puede elegir varios (hasta 10 a la vez, 20 MB cada uno)."
 }

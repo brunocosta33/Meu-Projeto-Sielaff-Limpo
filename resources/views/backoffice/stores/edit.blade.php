@@ -9,7 +9,7 @@
 
 <div class="row">
     <div class="col-xl-10">
-        {!! Form::open(['route' => ['backoffice.stores.update', $store->id]]) !!}
+        {!! Form::open(['route' => ['backoffice.stores.update', $store->id], 'files' => true]) !!}
         {{ csrf_field() }}
         @include('backoffice.stores.partials.form')
         {!! Form::close() !!}

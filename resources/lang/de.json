@@ -2121,5 +2121,13 @@
   "Também pode anexar mais tarde, no cartão Documentos.": "Sie können es auch später in der Karte Dokumente anhängen.",
   "sem PDF": "ohne PDF",
   "A manutenção pode ser feita entre :dias dias úteis antes e :dias dias úteis depois da data contratada, que se repete todos os anos. Contam de segunda a sábado; domingos e feriados não contam.": "Die Wartung kann zwischen :dias Werktagen vor und :dias Werktagen nach dem vereinbarten Datum erfolgen, das sich jedes Jahr wiederholt. Montag bis Samstag zählen; Sonn- und Feiertage nicht.",
-  "{0} hoje é o último dia do prazo|{1} falta :count dia útil para o fim do prazo|[2,*] faltam :count dias úteis para o fim do prazo": "{0} heute ist der letzte Tag der Frist|{1} noch :count Werktag bis zum Fristende|[2,*] noch :count Werktage bis zum Fristende"
+  "{0} hoje é o último dia do prazo|{1} falta :count dia útil para o fim do prazo|[2,*] faltam :count dias úteis para o fim do prazo": "{0} heute ist der letzte Tag der Frist|{1} noch :count Werktag bis zum Fristende|[2,*] noch :count Werktage bis zum Fristende",
+  "A preparar ficheiros…": "Dateien werden vorbereitet…",
+  "Adicionar imagens ou PDF": "Bilder oder PDF hinzufügen",
+  "Cada ficheiro pode ter no máximo 20 MB.": "Jede Datei darf höchstens 20 MB groß sein.",
+  "Ex.: fachada, local da máquina, acessos ou a planta da loja em PDF. Aparecem na lista de lojas.": "Z. B.: Fassade, Standort der Maschine, Zugänge oder der Grundriss der Filiale als PDF. Sie erscheinen in der Filialliste.",
+  "Fotografias e documentos": "Fotos und Dokumente",
+  "No máximo 10 ficheiros de cada vez.": "Höchstens 10 Dateien auf einmal.",
+  "Os ficheiros têm de ser imagens ou PDF.": "Die Dateien müssen Bilder oder PDF sein.",
+  "Pode escolher vários (até 10 de cada vez, 20 MB cada).": "Sie können mehrere auswählen (bis zu 10 auf einmal, je 20 MB)."
 }
