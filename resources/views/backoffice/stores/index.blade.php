@@ -335,7 +335,6 @@
             max-width: none;
         }
     }
-    .stores-name-row { display: flex; align-items: center; gap: .75rem; }
     .stores-photos { display: flex; flex-shrink: 0; }
     .stores-photo { width: 52px; height: 52px; border-radius: 10px; overflow: hidden; display: grid; place-items: center; background: #f1f5f9;
                     border: 2px solid #fff; box-shadow: 0 2px 6px rgba(15, 23, 42, .18); transition: transform .15s; text-decoration: none !important; }
@@ -468,9 +467,10 @@
                                     <th>{{ __('Insígnia') }}</th>
                                     <th>{{ __('Código Loja') }}</th>
                                     <th>{{ __('Nome Loja') }}</th>
+                                    <th>{{ __('Fotografias') }}</th>
+                                    <th>{{ __('IBN') }}</th>
                                     <th>{{ __('Região') }}</th>
                                     <th>{{ __('Modelos de Máquina') }}</th>
-                                    <th>{{ __('IBN') }}</th>
                                     @if($canManageStores ?? true)
                                         <th class="text-right">{{ __('Ações') }}</th>
                                     @endif
@@ -492,25 +492,34 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <div class="stores-name-row">
-                                            @if($store->photos->isNotEmpty())
-                                                <div class="stores-photos">
-                                                    @foreach($store->photos->take(3) as $photo)
-                                                        <a href="{{ route('backoffice.stores.file', $photo->id) }}" target="_blank" class="stores-photo" title="{{ $photo->nome }}">
-                                                            <img src="{{ route('backoffice.stores.file', $photo->id) }}" alt="{{ $photo->nome }}" loading="lazy">
-                                                        </a>
-                                                    @endforeach
-                                                    @if($store->photos->count() > 3)
-                                                        <span class="stores-photo stores-photo-more">+{{ $store->photos->count() - 3 }}</span>
-                                                    @endif
-                                                </div>
-                                            @endif
-                                            <div>
-                                                <div class="stores-store-name">{{ $store->nome_loja }}</div>
-                                                <div class="stores-subline">{{ $store->cidade ?: '—' }}</div>
-                                                <div class="stores-subline">{{ $store->morada ?: '—' }}</div>
+                                        <div class="stores-store-name">{{ $store->nome_loja }}</div>
+                                        <div class="stores-subline">{{ $store->cidade ?: '—' }}</div>
+                                        <div class="stores-subline">{{ $store->morada ?: '—' }}</div>
+                                    </td>
+                                    <td>
+                                        @if($store->photos->isNotEmpty())
+                                            <div class="stores-photos">
+                                                @foreach($store->photos->take(3) as $photo)
+                                                    <a href="{{ route('backoffice.stores.file', $photo->id) }}" target="_blank" class="stores-photo" title="{{ $photo->nome }}">
+                                                        <img src="{{ route('backoffice.stores.file', $photo->id) }}" alt="{{ $photo->nome }}" loading="lazy">
+                                                    </a>
+                                                @endforeach
+                                                @if($store->photos->count() > 3)
+                                                    <span class="stores-photo stores-photo-more">+{{ $store->photos->count() - 3 }}</span>
+                                                @endif
                                             </div>
-                                        </div>
+                                        @else
+                                            <span class="text-muted">—</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @forelse($store->ibnFiles as $ibn)
+                                            <a href="{{ route('backoffice.stores.file', $ibn->id) }}" target="_blank" class="stores-ibn" title="{{ $ibn->nome }}">
+                                                <i class="fa fa-file-pdf"></i> {{ __('IBN') }}{{ $store->ibnFiles->count() > 1 ? ' ' . $loop->iteration : '' }}
+                                            </a>
+                                        @empty
+                                            <span class="text-muted">—</span>
+                                        @endforelse
                                     </td>
                                     <td>
                                         <div class="stores-region-pill">
@@ -540,15 +549,6 @@
                                             </span>
                                         @endif
                                     </td>
-                                    <td>
-                                        @forelse($store->ibnFiles as $ibn)
-                                            <a href="{{ route('backoffice.stores.file', $ibn->id) }}" target="_blank" class="stores-ibn" title="{{ $ibn->nome }}">
-                                                <i class="fa fa-file-pdf"></i> {{ __('IBN') }}{{ $store->ibnFiles->count() > 1 ? ' ' . $loop->iteration : '' }}
-                                            </a>
-                                        @empty
-                                            <span class="text-muted">—</span>
-                                        @endforelse
-                                    </td>
                                     @if($canManageStores ?? true)
                                         <td class="text-right">
                                             <div class="stores-actions">
@@ -566,7 +566,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="{{ ($canManageStores ?? true) ? 7 : 6 }}">
+                                    <td colspan="{{ ($canManageStores ?? true) ? 8 : 7 }}">
                                         <div class="stores-empty">
                                             <div class="stores-empty-icon">
                                                 <i class="fa fa-store-slash"></i>
