@@ -23,8 +23,9 @@
     .mt-store small { display: block; font-weight: 400; color: #6c757d; }
     .mt-window { white-space: nowrap; font-size: .85rem; }
     .mt-window .due { font-weight: 700; font-size: .95rem; }
-    .mt-done-date { display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .7rem; border-radius: 9px; background: #dcfce7; color: #166534;
-                    border-left: 4px solid #16a34a; font-weight: 800; font-size: .95rem; white-space: nowrap; }
+    /* Mesmo verde da etiqueta "Feita" (config maintenance.states.feita) */
+    .mt-done-date { display: inline-flex; align-items: center; gap: .3rem; padding: .15rem .55rem; border-radius: 999px; background: #dff0e0; color: #2e7d32;
+                    border: 1px solid #2e7d32; font-weight: 700; font-size: .78rem; white-space: nowrap; }
     .mt-doc { display: inline-flex; align-items: center; gap: .3rem; margin-top: .3rem; font-weight: 600; font-size: .78rem; color: #1565c0; background: #e3f0ff; border-radius: 999px; padding: .1rem .55rem; text-decoration: none !important; }
     .mt-doc:hover { background: #cfe3ff; }
     .mt-notes { font-size: .84rem; color: #334155; max-width: 280px; white-space: pre-line; overflow-wrap: anywhere; }
