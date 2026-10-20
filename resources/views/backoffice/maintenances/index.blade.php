@@ -25,13 +25,10 @@
     .mt-window .due { font-weight: 700; font-size: .95rem; }
     .mt-done-date { display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .7rem; border-radius: 9px; background: #dcfce7; color: #166534;
                     border-left: 4px solid #16a34a; font-weight: 800; font-size: .95rem; white-space: nowrap; }
-    .mt-done-date.is-late { background: #f5ede8; color: #6d4c41; border-left-color: #8d6e63; }
-    .mt-doc { display: inline-flex; align-items: center; gap: .4rem; margin-top: .45rem; padding: .3rem .75rem; border-radius: 9px; font-weight: 700; font-size: .8rem;
-              color: #fff !important; background: #1d4ed8; box-shadow: 0 4px 10px -6px rgba(29, 78, 216, .8); text-decoration: none !important; white-space: nowrap; }
-    .mt-doc:hover { background: #1e40af; }
+    .mt-doc { display: inline-flex; align-items: center; gap: .3rem; margin-top: .3rem; font-weight: 600; font-size: .78rem; color: #1565c0; background: #e3f0ff; border-radius: 999px; padding: .1rem .55rem; text-decoration: none !important; }
+    .mt-doc:hover { background: #cfe3ff; }
     .mt-notes { font-size: .84rem; color: #334155; max-width: 280px; white-space: pre-line; overflow-wrap: anywhere; }
-    .mt-doc-missing { display: inline-flex; align-items: center; gap: .35rem; margin-top: .45rem; padding: .25rem .6rem; border-radius: 9px; font-size: .76rem; font-weight: 600;
-                      color: #9a3412; background: #fff7ed; border: 1px dashed #fdba74; }
+    .mt-doc-missing { display: inline-block; margin-top: .3rem; font-size: .74rem; color: #8a96a8; }
 </style>
 @endpush
 
@@ -154,17 +151,15 @@
                                 </td>
                                 <td class="small">
                                     @if($row->record)
-                                        <span class="mt-done-date {{ $row->status === 'feita_fora' ? 'is-late' : '' }}" title="{{ $row->status === 'feita_fora' ? __('Feita fora do prazo') : __('Feita') }}"><i class="fa fa-check-circle"></i> {{ $row->record->data_realizada->format('d/m/Y') }}</span>
+                                        <span class="mt-done-date"><i class="fa fa-check-circle"></i> {{ $row->record->data_realizada->format('d/m/Y') }}</span>
                                         @if($row->record->technician)<div>{{ $row->record->technician->name }}</div>@endif
                                         @if($row->record->observacoes)<div class="text-muted">{{ \Illuminate\Support\Str::limit($row->record->observacoes, 60) }}</div>@endif
                                         @if($row->record->documento_path)
-                                            <div>
-                                                <a href="{{ route('backoffice.maintenances.document', $row->record->id) }}" class="mt-doc" title="{{ $row->record->documento_nome }}">
-                                                    <i class="fa fa-file-alt"></i> {{ __('Folha de obra') }}
-                                                </a>
-                                            </div>
+                                            <a href="{{ route('backoffice.maintenances.document', $row->record->id) }}" class="mt-doc" title="{{ $row->record->documento_nome }}">
+                                                <i class="fa fa-file-alt"></i> {{ __('Folha de obra') }}
+                                            </a>
                                         @else
-                                            <div><span class="mt-doc-missing"><i class="fa fa-exclamation-circle"></i> {{ __('sem folha de obra') }}</span></div>
+                                            <span class="mt-doc-missing"><i class="fa fa-paperclip"></i> {{ __('sem folha de obra') }}</span>
                                         @endif
                                     @else
                                         —
