@@ -25,6 +25,7 @@
     .mt-window .due { font-weight: 700; font-size: .95rem; }
     .mt-doc { display: inline-flex; align-items: center; gap: .3rem; margin-top: .3rem; font-weight: 600; font-size: .78rem; color: #1565c0; background: #e3f0ff; border-radius: 999px; padding: .1rem .55rem; text-decoration: none !important; }
     .mt-doc:hover { background: #cfe3ff; }
+    .mt-notes { font-size: .84rem; color: #334155; max-width: 280px; white-space: pre-line; overflow-wrap: anywhere; }
     .mt-doc-missing { display: inline-block; margin-top: .3rem; font-size: .74rem; color: #8a96a8; }
 </style>
 @endpush
@@ -122,6 +123,7 @@
                             <th>{{ __('Data contratada / prazo') }} {{ $year }}</th>
                             <th>{{ __('Estado') }}</th>
                             <th>{{ __('Feita em') }}</th>
+                            <th>{{ __('Observações') }}</th>
                             <th class="text-right">{{ __('Ações') }}</th>
                         </tr>
                     </thead>
@@ -159,6 +161,13 @@
                                         @endif
                                     @else
                                         —
+                                    @endif
+                                </td>
+                                <td class="mt-notes">
+                                    @if($row->maintenance->observacoes)
+                                        {{ $row->maintenance->observacoes }}
+                                    @else
+                                        <span class="text-muted">—</span>
                                     @endif
                                 </td>
                                 <td class="text-right text-nowrap">
