@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\WorkingDays;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
@@ -38,13 +39,52 @@ class StoreMaintenance extends Model
         return Carbon::create($year, $month, $day)->startOfDay();
     }
 
-    /** Prazo do ano: [início, fim]. */
+    /** Feriados por ano (nacionais + da empresa), partilhados por todas as lojas no mesmo pedido. */
+    private static array $holidayCache = [];
+
+    /** Dia útil para as manutenções: segunda a sábado, sem feriados. */
+    public static function isMaintenanceDay(Carbon $date): bool
+    {
+        $year = $date->year;
+        self::$holidayCache[$year] ??= app(WorkingDays::class)->holidays($year);
+
+        return !$date->isSunday() && !isset(self::$holidayCache[$year][$date->toDateString()]);
+    }
+
+    /** Anda $days dias úteis (segunda a sábado, sem feriados) para trás (-1) ou para a frente (+1). */
+    private static function shiftWorkingDays(Carbon $from, int $days, int $direction): Carbon
+    {
+        $date = $from->copy();
+        while ($days > 0) {
+            $date->addDays($direction);
+            if (self::isMaintenanceDay($date)) {
+                $days--;
+            }
+        }
+
+        return $date;
+    }
+
+    /** Dias úteis (segunda a sábado, sem feriados) depois de $from até $to, inclusive. */
+    public static function workingDaysBetween(Carbon $from, Carbon $to): int
+    {
+        $count = 0;
+        for ($d = $from->copy()->addDay(); $d->lte($to); $d->addDay()) {
+            if (self::isMaintenanceDay($d)) {
+                $count++;
+            }
+        }
+
+        return $count;
+    }
+
+    /** Prazo do ano: [início, fim] = X dias úteis antes e depois da data contratada. */
     public function window(int $year): array
     {
-        $days = (int) config('maintenance.window_days', 15);
+        $days = (int) config('maintenance.window_working_days', 12);
         $due = $this->dueDate($year);
 
-        return [$due->copy()->subDays($days), $due->copy()->addDays($days)];
+        return [self::shiftWorkingDays($due, $days, -1), self::shiftWorkingDays($due, $days, 1)];
     }
 
     /** O contrato já existia nesse ano? */

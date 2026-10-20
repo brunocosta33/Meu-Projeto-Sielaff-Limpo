@@ -69,7 +69,7 @@
             @endforeach
         </div>
         <p class="small text-muted mb-0 mt-2">
-            <i class="fa fa-info-circle"></i> {{ __('A manutenção pode ser feita entre') }} {{ $windowDays }} {{ __('dias antes e') }} {{ $windowDays }} {{ __('dias depois da data contratada, que se repete todos os anos.') }}
+            <i class="fa fa-info-circle"></i> {{ __('A manutenção pode ser feita entre :dias dias úteis antes e :dias dias úteis depois da data contratada, que se repete todos os anos. Contam de segunda a sábado; domingos e feriados não contam.', ['dias' => $windowDays]) }}
         </p>
     </div>
 </div>
@@ -142,7 +142,7 @@
                                     @if($row->status === 'atrasada')
                                         <div class="small text-danger mt-1">{{ $row->end->diffInDays(now()->startOfDay()) }} {{ __('dias de atraso') }}</div>
                                     @elseif($row->status === 'janela')
-                                        <div class="small mt-1" style="color: {{ $state['color'] }}">{{ __('faltam') }} {{ now()->startOfDay()->diffInDays($row->end) }} {{ __('dias para o fim do prazo') }}</div>
+                                        <div class="small mt-1" style="color: {{ $state['color'] }}">{{ trans_choice('{0} hoje é o último dia do prazo|{1} falta :count dia útil para o fim do prazo|[2,*] faltam :count dias úteis para o fim do prazo', $n = \App\Models\StoreMaintenance::workingDaysBetween(now()->startOfDay(), $row->end), ['count' => $n]) }}</div>
                                     @endif
                                 </td>
                                 <td class="small">

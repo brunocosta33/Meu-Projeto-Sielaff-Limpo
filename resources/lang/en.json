@@ -2043,5 +2043,7 @@
     "Indique o número da cotação e, se já o tiver, anexe o PDF.": "Enter the quotation number and, if you already have it, attach the PDF.",
     "Indique o número da ordem de compra do :cliente e, se já o tiver, anexe o PDF.": "Enter the :cliente purchase order number and, if you already have it, attach the PDF.",
     "Também pode anexar mais tarde, no cartão Documentos.": "You can also attach it later, in the Documents card.",
-    "sem PDF": "no PDF"
+    "sem PDF": "no PDF",
+    "A manutenção pode ser feita entre :dias dias úteis antes e :dias dias úteis depois da data contratada, que se repete todos os anos. Contam de segunda a sábado; domingos e feriados não contam.": "Maintenance can be done between :dias working days before and :dias working days after the contracted date, which repeats every year. Monday to Saturday count; Sundays and holidays do not.",
+    "{0} hoje é o último dia do prazo|{1} falta :count dia útil para o fim do prazo|[2,*] faltam :count dias úteis para o fim do prazo": "{0} today is the last day of the window|{1} :count working day left in the window|[2,*] :count working days left in the window"
 }

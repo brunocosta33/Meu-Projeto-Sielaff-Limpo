@@ -2119,5 +2119,7 @@
   "Indique o número da cotação e, se já o tiver, anexe o PDF.": "Geben Sie die Angebotsnummer an und hängen Sie, falls vorhanden, das PDF an.",
   "Indique o número da ordem de compra do :cliente e, se já o tiver, anexe o PDF.": "Geben Sie die Bestellnummer von :cliente an und hängen Sie, falls vorhanden, das PDF an.",
   "Também pode anexar mais tarde, no cartão Documentos.": "Sie können es auch später in der Karte Dokumente anhängen.",
-  "sem PDF": "ohne PDF"
+  "sem PDF": "ohne PDF",
+  "A manutenção pode ser feita entre :dias dias úteis antes e :dias dias úteis depois da data contratada, que se repete todos os anos. Contam de segunda a sábado; domingos e feriados não contam.": "Die Wartung kann zwischen :dias Werktagen vor und :dias Werktagen nach dem vereinbarten Datum erfolgen, das sich jedes Jahr wiederholt. Montag bis Samstag zählen; Sonn- und Feiertage nicht.",
+  "{0} hoje é o último dia do prazo|{1} falta :count dia útil para o fim do prazo|[2,*] faltam :count dias úteis para o fim do prazo": "{0} heute ist der letzte Tag der Frist|{1} noch :count Werktag bis zum Fristende|[2,*] noch :count Werktage bis zum Fristende"
 }

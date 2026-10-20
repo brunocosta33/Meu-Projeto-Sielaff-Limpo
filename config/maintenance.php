@@ -2,8 +2,9 @@
 
 return [
 
-    // A manutenção pode ser feita entre X dias antes e X dias depois da data contratada
-    'window_days' => 15,
+    // A manutenção pode ser feita entre X dias úteis antes e X dias úteis depois da data contratada.
+    // Dias úteis aqui: segunda a sábado; domingos e feriados (nacionais e da empresa) não contam.
+    'window_working_days' => 12,
 
     // Marcar como "Próxima" quando o prazo abre dentro destes dias
     'upcoming_days' => 30,

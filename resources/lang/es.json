@@ -1525,5 +1525,7 @@
     "Indique o número da cotação e, se já o tiver, anexe o PDF.": "Indique el número del presupuesto y, si ya lo tiene, adjunte el PDF.",
     "Indique o número da ordem de compra do :cliente e, se já o tiver, anexe o PDF.": "Indique el número de la orden de compra de :cliente y, si ya lo tiene, adjunte el PDF.",
     "Também pode anexar mais tarde, no cartão Documentos.": "También puede adjuntarlo más tarde, en la tarjeta Documentos.",
-    "sem PDF": "sin PDF"
+    "sem PDF": "sin PDF",
+    "A manutenção pode ser feita entre :dias dias úteis antes e :dias dias úteis depois da data contratada, que se repete todos os anos. Contam de segunda a sábado; domingos e feriados não contam.": "El mantenimiento puede hacerse entre :dias días laborables antes y :dias días laborables después de la fecha contratada, que se repite cada año. Cuentan de lunes a sábado; domingos y festivos no cuentan.",
+    "{0} hoje é o último dia do prazo|{1} falta :count dia útil para o fim do prazo|[2,*] faltam :count dias úteis para o fim do prazo": "{0} hoy es el último día del plazo|{1} queda :count día laborable para el fin del plazo|[2,*] quedan :count días laborables para el fin del plazo"
 }

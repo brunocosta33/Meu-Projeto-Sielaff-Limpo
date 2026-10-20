@@ -69,7 +69,7 @@ class StoreMaintenanceController extends Controller
             'storesWithout' => Store::whereNotIn('id', StoreMaintenance::pluck('store_id'))->orderBy('codigo_loja')->get(['id', 'codigo_loja', 'nome_loja', 'insignia']),
             'users' => User::whereNull('deleted_at')->orderBy('name')->get(['id', 'name'])
                 ->sortByDesc(fn ($u) => $technicianUserIds->contains($u->id))->values(),
-            'windowDays' => (int) config('maintenance.window_days'),
+            'windowDays' => (int) config('maintenance.window_working_days'),
         ]);
     }
 
