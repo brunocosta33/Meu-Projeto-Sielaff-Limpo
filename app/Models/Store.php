@@ -43,4 +43,15 @@ class Store extends Model
     {
         return $this->hasMany(StoreFile::class)->orderBy('id');
     }
+
+    public function photos()
+    {
+        return $this->files()->where('tipo', 'foto');
+    }
+
+    /** IBN da loja (PDF). */
+    public function ibnFiles()
+    {
+        return $this->files()->where('tipo', 'ibn');
+    }
 }

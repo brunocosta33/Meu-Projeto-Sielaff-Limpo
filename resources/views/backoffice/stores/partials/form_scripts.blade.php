@@ -94,30 +94,36 @@ document.addEventListener('DOMContentLoaded', function () {
     .store-files-preview { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .6rem; }
     .store-files-preview > * { width: 72px; height: 72px; border-radius: 9px; border: 1px solid #e2e8f0; object-fit: cover; }
     .store-files-preview .pdf { display: grid; place-items: center; background: #fef2f2; color: #dc2626; font-size: 1.6rem; }
+    .store-ibn-row { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .55rem .75rem; border-radius: 10px;
+                     background: #fef2f2; border: 1px solid #fecaca; font-size: .85rem; }
+    .store-ibn-row + .store-ibn-row { margin-top: .4rem; }
+    .store-ibn-row a { color: #b91c1c; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 </style>
 <script>
-// Ficheiros da loja: pré-visualização e redução das fotografias antes de enviar
+// Ficheiros da loja (fotografias e IBN): pré-visualização; as fotografias são reduzidas antes de enviar
 document.addEventListener('DOMContentLoaded', function () {
-    var input = document.getElementById('store-files-input');
-    if (!input) return;
-    var preview = document.getElementById('store-files-preview');
+    var inputs = Array.from(document.querySelectorAll('.store-upload'));
+    if (!inputs.length) return;
     var status = document.getElementById('store-files-status');
-    var form = input.closest('form');
+    var form = inputs[0].closest('form');
 
-    input.addEventListener('change', function () {
-        preview.innerHTML = '';
-        Array.from(input.files).forEach(function (file) {
-            var el;
-            if (/^image\//.test(file.type)) {
-                el = document.createElement('img');
-                el.src = URL.createObjectURL(file);
-            } else {
-                el = document.createElement('div');
-                el.className = 'pdf';
-                el.innerHTML = '<i class="fa fa-file-pdf"></i>';
-            }
-            el.title = file.name;
-            preview.appendChild(el);
+    inputs.forEach(function (input) {
+        var preview = document.getElementById(input.id + '-preview');
+        input.addEventListener('change', function () {
+            preview.innerHTML = '';
+            Array.from(input.files).forEach(function (file) {
+                var el;
+                if (/^image\//.test(file.type)) {
+                    el = document.createElement('img');
+                    el.src = URL.createObjectURL(file);
+                } else {
+                    el = document.createElement('div');
+                    el.className = 'pdf';
+                    el.innerHTML = '<i class="fa fa-file-pdf"></i>';
+                }
+                el.title = file.name;
+                preview.appendChild(el);
+            });
         });
     });
 
@@ -142,14 +148,15 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     };
 
-    if (form) form.addEventListener('submit', async function (e) {
-        if (form.dataset.filesReady === '1' || !input.files.length || typeof DataTransfer === 'undefined') return;
+    var photos = document.getElementById('store-photos-input');
+    if (form && photos) form.addEventListener('submit', async function (e) {
+        if (form.dataset.filesReady === '1' || !photos.files.length || typeof DataTransfer === 'undefined') return;
         e.preventDefault();
         status.textContent = {{ \Illuminate\Support\Js::from(__('A preparar ficheiros…')) }};
         try {
             var dt = new DataTransfer();
-            for (var file of Array.from(input.files)) dt.items.add(await shrink(file));
-            input.files = dt.files;
+            for (var file of Array.from(photos.files)) dt.items.add(await shrink(file));
+            photos.files = dt.files;
         } catch (err) { /* envia os originais */ }
         form.dataset.filesReady = '1';
         form.submit();

@@ -2053,5 +2053,14 @@
     "Fotografias e documentos": "Photos and documents",
     "No máximo 10 ficheiros de cada vez.": "At most 10 files at a time.",
     "Os ficheiros têm de ser imagens ou PDF.": "Files must be images or PDF.",
-    "Pode escolher vários (até 10 de cada vez, 20 MB cada).": "You can choose several (up to 10 at a time, 20 MB each)."
+    "Pode escolher vários (até 10 de cada vez, 20 MB cada).": "You can choose several (up to 10 at a time, 20 MB each).",
+    "Adicionar IBN (PDF)": "Add IBN (PDF)",
+    "Adicionar outro IBN": "Add another IBN",
+    "Documento IBN da loja em PDF. Aparece na coluna IBN da lista.": "The store's IBN document as PDF. It appears in the IBN column of the list.",
+    "Ex.: fachada, local da máquina, acessos. Aparecem na lista junto ao nome da loja.": "E.g.: storefront, machine location, access. They appear in the list next to the store name.",
+    "IBN": "IBN",
+    "No máximo 10 fotografias de cada vez.": "At most 10 photos at a time.",
+    "O IBN tem de ser PDF.": "The IBN must be a PDF.",
+    "Pode escolher várias (até 10 de cada vez).": "You can choose several (up to 10 at a time).",
+    "Só PDF, até 20 MB.": "PDF only, up to 20 MB."
 }

@@ -2129,5 +2129,14 @@
   "Fotografias e documentos": "Fotos und Dokumente",
   "No máximo 10 ficheiros de cada vez.": "Höchstens 10 Dateien auf einmal.",
   "Os ficheiros têm de ser imagens ou PDF.": "Die Dateien müssen Bilder oder PDF sein.",
-  "Pode escolher vários (até 10 de cada vez, 20 MB cada).": "Sie können mehrere auswählen (bis zu 10 auf einmal, je 20 MB)."
+  "Pode escolher vários (até 10 de cada vez, 20 MB cada).": "Sie können mehrere auswählen (bis zu 10 auf einmal, je 20 MB).",
+  "Adicionar IBN (PDF)": "IBN hinzufügen (PDF)",
+  "Adicionar outro IBN": "Weitere IBN hinzufügen",
+  "Documento IBN da loja em PDF. Aparece na coluna IBN da lista.": "IBN-Dokument der Filiale als PDF. Erscheint in der Spalte IBN der Liste.",
+  "Ex.: fachada, local da máquina, acessos. Aparecem na lista junto ao nome da loja.": "Z. B.: Fassade, Standort der Maschine, Zugänge. Sie erscheinen in der Liste neben dem Filialnamen.",
+  "IBN": "IBN",
+  "No máximo 10 fotografias de cada vez.": "Höchstens 10 Fotos auf einmal.",
+  "O IBN tem de ser PDF.": "Die IBN muss ein PDF sein.",
+  "Pode escolher várias (até 10 de cada vez).": "Sie können mehrere auswählen (bis zu 10 auf einmal).",
+  "Só PDF, até 20 MB.": "Nur PDF, bis 20 MB."
 }

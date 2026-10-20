@@ -21,7 +21,7 @@ class StoreController extends Controller
 
     public function index()
     {
-        $query = Store::with(['machines', 'files'])->orderBy('codigo_loja');
+        $query = Store::with(['machines', 'photos', 'ibnFiles'])->orderBy('codigo_loja');
 
         if (request('q')) {
             $term = trim((string) request('q'));
@@ -137,13 +137,17 @@ class StoreController extends Controller
     private function validateFiles(Request $request): void
     {
         $request->validate([
-            'ficheiros' => ['nullable', 'array', 'max:10'],
-            'ficheiros.*' => ['file', 'mimes:jpg,jpeg,png,webp,heic,heif,pdf', 'max:20480'],
+            'fotos' => ['nullable', 'array', 'max:10'],
+            'fotos.*' => ['file', 'mimes:jpg,jpeg,png,webp,heic,heif', 'max:20480'],
+            'ibn' => ['nullable', 'array', 'max:5'],
+            'ibn.*' => ['file', 'mimes:pdf', 'max:20480'],
             'remover_ficheiros' => ['nullable', 'array'],
         ], [
-            'ficheiros.max' => __('No máximo 10 ficheiros de cada vez.'),
-            'ficheiros.*.mimes' => __('Os ficheiros têm de ser imagens ou PDF.'),
-            'ficheiros.*.max' => __('Cada ficheiro pode ter no máximo 20 MB.'),
+            'fotos.max' => __('No máximo 10 fotografias de cada vez.'),
+            'fotos.*.mimes' => __('As fotografias têm de ser imagens (JPG, PNG, HEIC…).'),
+            'fotos.*.max' => __('Cada ficheiro pode ter no máximo 20 MB.'),
+            'ibn.*.mimes' => __('O IBN tem de ser PDF.'),
+            'ibn.*.max' => __('Cada ficheiro pode ter no máximo 20 MB.'),
         ]);
     }
 
@@ -156,14 +160,17 @@ class StoreController extends Controller
             $file->delete();
         }
 
-        foreach ((array) $request->file('ficheiros', []) as $upload) {
-            $store->files()->create([
-                'path' => $upload->store('store_files/' . $store->id, 'local'),
-                'nome' => $upload->getClientOriginalName(),
-                'mime' => $upload->getMimeType(),
-                'tamanho' => $upload->getSize(),
-                'uploaded_by' => auth()->id(),
-            ]);
+        foreach (['fotos' => 'foto', 'ibn' => 'ibn'] as $field => $tipo) {
+            foreach ((array) $request->file($field, []) as $upload) {
+                $store->files()->create([
+                    'tipo' => $tipo,
+                    'path' => $upload->store('store_files/' . $store->id, 'local'),
+                    'nome' => $upload->getClientOriginalName(),
+                    'mime' => $upload->getMimeType(),
+                    'tamanho' => $upload->getSize(),
+                    'uploaded_by' => auth()->id(),
+                ]);
+            }
         }
     }
 

@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 /** Fotografia ou PDF anexado à ficha da loja. */
 class StoreFile extends Model
 {
-    protected $fillable = ['store_id', 'path', 'nome', 'mime', 'tamanho', 'uploaded_by'];
+    public const TYPES = ['foto', 'ibn'];
+
+    protected $fillable = ['store_id', 'tipo', 'path', 'nome', 'mime', 'tamanho', 'uploaded_by'];
 
     public function store()
     {

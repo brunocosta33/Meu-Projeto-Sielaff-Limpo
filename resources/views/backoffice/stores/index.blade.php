@@ -335,15 +335,17 @@
             max-width: none;
         }
     }
-    .stores-files { display: flex; flex-wrap: wrap; gap: .4rem; max-width: 220px; }
-    .stores-file { width: 48px; height: 48px; border-radius: 9px; overflow: hidden; display: grid; place-items: center; background: #f1f5f9;
-                   border: 1px solid #e2e8f0; text-decoration: none !important; transition: transform .15s; }
-    .stores-file:hover { transform: scale(1.06); }
-    .stores-file img { width: 100%; height: 100%; object-fit: cover; }
-    .stores-file.is-pdf { background: #fef2f2; border-color: #fecaca; color: #dc2626; display: flex; flex-direction: column; justify-content: center; align-items: center; line-height: 1; }
-    .stores-file.is-pdf .fa { font-size: 1.1rem; }
-    .stores-file.is-pdf span { font-size: .58rem; font-weight: 800; margin-top: .15rem; }
-    .stores-file-more { font-size: .78rem; font-weight: 700; color: #475569; }
+    .stores-name-row { display: flex; align-items: center; gap: .75rem; }
+    .stores-photos { display: flex; flex-shrink: 0; }
+    .stores-photo { width: 52px; height: 52px; border-radius: 10px; overflow: hidden; display: grid; place-items: center; background: #f1f5f9;
+                    border: 2px solid #fff; box-shadow: 0 2px 6px rgba(15, 23, 42, .18); transition: transform .15s; text-decoration: none !important; }
+    .stores-photo + .stores-photo { margin-left: -14px; }
+    .stores-photo:hover { transform: translateY(-2px) scale(1.08); z-index: 1; }
+    .stores-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .stores-photo-more { font-size: .75rem; font-weight: 700; color: #475569; }
+    .stores-ibn { display: inline-flex; align-items: center; gap: .35rem; padding: .3rem .65rem; border-radius: 8px; background: #fef2f2;
+                  border: 1px solid #fecaca; color: #b91c1c; font-weight: 700; font-size: .8rem; text-decoration: none !important; white-space: nowrap; margin: .1rem 0; }
+    .stores-ibn:hover { background: #dc2626; border-color: #dc2626; color: #fff; }
 </style>
 @endsection
 
@@ -468,7 +470,7 @@
                                     <th>{{ __('Nome Loja') }}</th>
                                     <th>{{ __('Região') }}</th>
                                     <th>{{ __('Modelos de Máquina') }}</th>
-                                    <th>{{ __('Ficheiros') }}</th>
+                                    <th>{{ __('IBN') }}</th>
                                     @if($canManageStores ?? true)
                                         <th class="text-right">{{ __('Ações') }}</th>
                                     @endif
@@ -490,9 +492,25 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <div class="stores-store-name">{{ $store->nome_loja }}</div>
-                                        <div class="stores-subline">{{ $store->cidade ?: '—' }}</div>
-                                        <div class="stores-subline">{{ $store->morada ?: '—' }}</div>
+                                        <div class="stores-name-row">
+                                            @if($store->photos->isNotEmpty())
+                                                <div class="stores-photos">
+                                                    @foreach($store->photos->take(3) as $photo)
+                                                        <a href="{{ route('backoffice.stores.file', $photo->id) }}" target="_blank" class="stores-photo" title="{{ $photo->nome }}">
+                                                            <img src="{{ route('backoffice.stores.file', $photo->id) }}" alt="{{ $photo->nome }}" loading="lazy">
+                                                        </a>
+                                                    @endforeach
+                                                    @if($store->photos->count() > 3)
+                                                        <span class="stores-photo stores-photo-more">+{{ $store->photos->count() - 3 }}</span>
+                                                    @endif
+                                                </div>
+                                            @endif
+                                            <div>
+                                                <div class="stores-store-name">{{ $store->nome_loja }}</div>
+                                                <div class="stores-subline">{{ $store->cidade ?: '—' }}</div>
+                                                <div class="stores-subline">{{ $store->morada ?: '—' }}</div>
+                                            </div>
+                                        </div>
                                     </td>
                                     <td>
                                         <div class="stores-region-pill">
@@ -523,24 +541,13 @@
                                         @endif
                                     </td>
                                     <td>
-                                        @if($store->files->isNotEmpty())
-                                            <div class="stores-files">
-                                                @foreach($store->files->take(4) as $file)
-                                                    <a href="{{ route('backoffice.stores.file', $file->id) }}" target="_blank" class="stores-file {{ $file->isImage() ? '' : 'is-pdf' }}" title="{{ $file->nome }}">
-                                                        @if($file->isImage())
-                                                            <img src="{{ route('backoffice.stores.file', $file->id) }}" alt="{{ $file->nome }}" loading="lazy">
-                                                        @else
-                                                            <i class="fa fa-file-pdf"></i><span>PDF</span>
-                                                        @endif
-                                                    </a>
-                                                @endforeach
-                                                @if($store->files->count() > 4)
-                                                    <a href="{{ ($canManageStores ?? true) ? route('backoffice.stores.edit', $store->id) : '#' }}" class="stores-file stores-file-more">+{{ $store->files->count() - 4 }}</a>
-                                                @endif
-                                            </div>
-                                        @else
+                                        @forelse($store->ibnFiles as $ibn)
+                                            <a href="{{ route('backoffice.stores.file', $ibn->id) }}" target="_blank" class="stores-ibn" title="{{ $ibn->nome }}">
+                                                <i class="fa fa-file-pdf"></i> {{ __('IBN') }}{{ $store->ibnFiles->count() > 1 ? ' ' . $loop->iteration : '' }}
+                                            </a>
+                                        @empty
                                             <span class="text-muted">—</span>
-                                        @endif
+                                        @endforelse
                                     </td>
                                     @if($canManageStores ?? true)
                                         <td class="text-right">

@@ -187,39 +187,66 @@
             <small class="text-muted">{{ __('Se remover uma máquina existente e gravar a loja, ela deixa de estar associada a esta ficha.') }}</small>
         </div>
 
-        <div class="border rounded p-3 mb-4">
-            <h6 class="text-uppercase text-muted mb-1">{{ __('Fotografias e documentos') }}</h6>
-            <p class="text-muted mb-3">{{ __('Ex.: fachada, local da máquina, acessos ou a planta da loja em PDF. Aparecem na lista de lojas.') }}</p>
+        <div class="row">
+            {{-- Fotografias da loja --}}
+            <div class="col-lg-7">
+                <div class="border rounded p-3 mb-4 h-100">
+                    <h6 class="text-uppercase text-muted mb-1"><i class="fa fa-camera"></i> {{ __('Fotografias') }}</h6>
+                    <p class="text-muted small mb-3">{{ __('Ex.: fachada, local da máquina, acessos. Aparecem na lista junto ao nome da loja.') }}</p>
 
-            @if(isset($store) && $store->files->isNotEmpty())
-                <div class="store-files-grid mb-3">
-                    @foreach($store->files as $file)
-                        <label class="store-file-item" title="{{ $file->nome }}">
-                            <a href="{{ route('backoffice.stores.file', $file->id) }}" target="_blank" class="store-file-thumb">
-                                @if($file->isImage())
-                                    <img src="{{ route('backoffice.stores.file', $file->id) }}" alt="{{ $file->nome }}" loading="lazy">
-                                @else
-                                    <i class="fa fa-file-pdf"></i>
-                                @endif
-                            </a>
-                            <span class="store-file-name">{{ \Illuminate\Support\Str::limit($file->nome, 22) }}</span>
-                            <span class="store-file-remove"><input type="checkbox" name="remover_ficheiros[]" value="{{ $file->id }}"> {{ __('Remover') }}</span>
-                        </label>
-                    @endforeach
+                    @php($existingPhotos = isset($store) ? $store->files->where('tipo', 'foto') : collect())
+                    @if($existingPhotos->isNotEmpty())
+                        <div class="store-files-grid mb-3">
+                            @foreach($existingPhotos as $file)
+                                <label class="store-file-item" title="{{ $file->nome }}">
+                                    <a href="{{ route('backoffice.stores.file', $file->id) }}" target="_blank" class="store-file-thumb">
+                                        <img src="{{ route('backoffice.stores.file', $file->id) }}" alt="{{ $file->nome }}" loading="lazy">
+                                    </a>
+                                    <span class="store-file-remove"><input type="checkbox" name="remover_ficheiros[]" value="{{ $file->id }}"> {{ __('Remover') }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    <label class="store-file-drop" for="store-photos-input">
+                        <i class="fa fa-camera"></i>
+                        <span>
+                            <strong>{{ __('Adicionar fotografias') }}</strong>
+                            <small>{{ __('Pode escolher várias (até 10 de cada vez).') }}</small>
+                        </span>
+                    </label>
+                    <input type="file" name="fotos[]" id="store-photos-input" class="d-none store-upload" data-kind="foto" accept="image/*" multiple>
+                    <div class="store-files-preview" id="store-photos-input-preview"></div>
                 </div>
-            @endif
+            </div>
 
-            <label class="store-file-drop" for="store-files-input">
-                <i class="fa fa-cloud-upload-alt"></i>
-                <span>
-                    <strong>{{ __('Adicionar imagens ou PDF') }}</strong>
-                    <small>{{ __('Pode escolher vários (até 10 de cada vez, 20 MB cada).') }}</small>
-                </span>
-            </label>
-            <input type="file" name="ficheiros[]" id="store-files-input" class="d-none" accept="image/*,.pdf,application/pdf" multiple>
-            <div class="store-files-preview" id="store-files-preview"></div>
-            <small class="text-muted d-block" id="store-files-status"></small>
+            {{-- IBN (PDF) --}}
+            <div class="col-lg-5">
+                <div class="border rounded p-3 mb-4 h-100">
+                    <h6 class="text-uppercase text-muted mb-1"><i class="fa fa-file-pdf"></i> {{ __('IBN') }}</h6>
+                    <p class="text-muted small mb-3">{{ __('Documento IBN da loja em PDF. Aparece na coluna IBN da lista.') }}</p>
+
+                    @php($existingIbn = isset($store) ? $store->files->where('tipo', 'ibn') : collect())
+                    @foreach($existingIbn as $file)
+                        <div class="store-ibn-row">
+                            <a href="{{ route('backoffice.stores.file', $file->id) }}" target="_blank"><i class="fa fa-file-pdf"></i> {{ $file->nome }}</a>
+                            <label class="store-file-remove mb-0"><input type="checkbox" name="remover_ficheiros[]" value="{{ $file->id }}"> {{ __('Remover') }}</label>
+                        </div>
+                    @endforeach
+
+                    <label class="store-file-drop {{ $existingIbn->isNotEmpty() ? 'mt-3' : '' }}" for="store-ibn-input">
+                        <i class="fa fa-file-upload"></i>
+                        <span>
+                            <strong>{{ $existingIbn->isNotEmpty() ? __('Adicionar outro IBN') : __('Adicionar IBN (PDF)') }}</strong>
+                            <small>{{ __('Só PDF, até 20 MB.') }}</small>
+                        </span>
+                    </label>
+                    <input type="file" name="ibn[]" id="store-ibn-input" class="d-none store-upload" data-kind="ibn" accept=".pdf,application/pdf" multiple>
+                    <div class="store-files-preview" id="store-ibn-input-preview"></div>
+                </div>
+            </div>
         </div>
+        <small class="text-muted d-block mb-3" id="store-files-status"></small>
 
         {!! Form::button('<i class="fa fa-save"></i> ' . (isset($store) ? __('Atualizar') : __('Gravar')), ['type' => 'submit', 'class' => 'btn btn-success']) !!}
     </div>
