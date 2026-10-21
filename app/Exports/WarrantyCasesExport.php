@@ -38,6 +38,7 @@ class WarrantyCasesExport implements FromCollection, WithHeadings, WithStyles
             $date($c->peca_recebida_em),
             $c->partOriginLabel(),
             $date($c->fechado_em),
+            $c->servico_nome ?: ($c->fase === 'concluido' ? __('sem PDF') : ''),
             $c->motivo_recusa,
         ]);
     }
@@ -48,7 +49,7 @@ class WarrantyCasesExport implements FromCollection, WithHeadings, WithStyles
             __('Nº'), __('Data da avaria'), __('Cliente'), __('Loja'), __('Nº Série'), __('Problema'), __('Fase'),
             __('Cotação pedida'), __('Nº cotação'), __('Cotação recebida'), __('Enviada ao cliente'),
             __('Nº ordem de compra'), __('Ordem de compra recebida'),
-            __('Nº do artigo'), __('Nº do cliente'), __('Pedido enviado para a Alemanha'), __('Peça confirmada'), __('Peça'), __('Fechado em'), __('Motivo da recusa'),
+            __('Nº do artigo'), __('Nº do cliente'), __('Pedido enviado para a Alemanha'), __('Peça confirmada'), __('Peça'), __('Fechado em'), __('Ordem de serviço'), __('Motivo da recusa'),
         ];
     }
 

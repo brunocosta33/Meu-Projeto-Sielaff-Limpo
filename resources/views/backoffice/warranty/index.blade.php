@@ -98,7 +98,7 @@
                             <th>{{ __('Loja') }}</th>
                             <th>{{ __('Problema') }}</th>
                             <th>{{ __('Fase') }}</th>
-                            <th>{{ __('Cotação / Ordem de compra') }}</th>
+                            <th>{{ __('Cotação / Ordem de compra / Ordem de serviço') }}</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -146,7 +146,16 @@
                                             @endif
                                         </div>
                                     @endforeach
-                                    @if(!$case->cotacao_numero && !$case->oc_numero)<span class="text-muted">—</span>@endif
+                                    @if($case->fase === 'concluido')
+                                        <div>
+                                            @if($case->servico_path)
+                                                <a href="{{ route('backoffice.warranty.document', [$case->id, 'servico']) }}" target="_blank"><i class="fa fa-clipboard-check"></i> {{ __('Ordem de serviço') }}</a>
+                                            @else
+                                                <span class="text-muted" title="{{ __('sem PDF') }}"><i class="fa fa-clipboard-check"></i> {{ __('Ordem de serviço') }} · {{ __('sem PDF') }}</span>
+                                            @endif
+                                        </div>
+                                    @endif
+                                    @if(!$case->cotacao_numero && !$case->oc_numero && $case->fase !== 'concluido')<span class="text-muted">—</span>@endif
                                 </td>
                                 <td class="text-right"><a href="{{ route('backoffice.warranty.show', $case->id) }}" class="btn btn-sm btn-outline-primary"><i class="fa fa-arrow-right"></i></a></td>
                             </tr>
