@@ -54,8 +54,8 @@ class WarrantyCaseController extends Controller
         'enviada_cliente' => ['enviada_cliente_em', 'enviada_para'],
         'oc_recebida' => ['oc_numero', 'oc_recebida_em', 'oc_path', 'oc_nome'],
         'pedido_alemanha' => ['artigo_numero', 'cliente_numero', 'alemanha_enviado_em'],
-        'peca_recebida' => ['peca_recebida_em'],
-        'concluido' => ['fechado_em'],
+        'peca_recebida' => ['peca_recebida_em', 'peca_origem'],
+        'concluido' => ['fechado_em', 'servico_path', 'servico_nome'],
         'recusado' => ['fechado_em', 'motivo_recusa'],
     ];
 
@@ -195,6 +195,11 @@ class WarrantyCaseController extends Controller
         } elseif ($next === 'oc_recebida') {
             $rules += ['oc_numero' => ['required', 'string', 'max:100'], 'documento' => ['nullable', ...$this->documentRule()]];
             $messages += ['oc_numero.required' => __('Indique o número da ordem de compra.')];
+        } elseif ($next === 'peca_recebida') {
+            $rules += ['peca_origem' => ['required', Rule::in(array_keys(config('warranty.part_origins')))]];
+            $messages += ['peca_origem.required' => __('Escolha se recebemos a peça ou se já a tínhamos.')];
+        } elseif ($next === 'concluido') {
+            $rules += ['documento' => ['nullable', ...$this->documentRule()]];
         }
         $data = $request->validate($rules, $messages + $this->documentMessages());
 
@@ -206,8 +211,8 @@ class WarrantyCaseController extends Controller
             'oc_recebida' => ['oc_recebida_em' => $data['data'], 'oc_numero' => $data['oc_numero']]
                 + $this->storeDocument($request, $case, 'oc'),
             'pedido_alemanha' => ['alemanha_enviado_em' => $data['data'], 'artigo_numero' => $data['artigo_numero'], 'cliente_numero' => $data['cliente_numero']],
-            'peca_recebida' => ['peca_recebida_em' => $data['data']],
-            'concluido' => ['fechado_em' => $data['data']],
+            'peca_recebida' => ['peca_recebida_em' => $data['data'], 'peca_origem' => $data['peca_origem']],
+            'concluido' => ['fechado_em' => $data['data']] + $this->storeDocument($request, $case, 'servico'),
         };
 
         $this->moveTo($case, $next, $data['data'], $data['nota'] ?? null, $updates);
@@ -230,6 +235,7 @@ class WarrantyCaseController extends Controller
             'oc_recebida' => ['oc_numero' => ['required', 'string', 'max:100']],
             'pedido_alemanha' => ['artigo_numero' => ['required', 'string', 'max:255'], 'cliente_numero' => ['required', 'string', 'max:100']],
             'recusado' => ['motivo_recusa' => ['required', 'string', 'max:2000']],
+            'peca_recebida' => ['peca_origem' => ['required', Rule::in(array_keys(config('warranty.part_origins')))]],
             default => [],
         };
         $data = $request->validate($rules + $extra, [
@@ -288,7 +294,7 @@ class WarrantyCaseController extends Controller
         $previous = $events->get($events->count() - 2);
 
         $clear = array_fill_keys(self::PHASE_FIELDS[$case->fase] ?? [], null);
-        foreach (['cotacao_path', 'oc_path'] as $file) {
+        foreach (['cotacao_path', 'oc_path', 'servico_path'] as $file) {
             if (array_key_exists($file, $clear) && $case->$file) {
                 Storage::disk(self::DISK)->delete($case->$file);
             }
@@ -335,10 +341,10 @@ class WarrantyCaseController extends Controller
         return back();
     }
 
-    /** Abrir o PDF da cotação ou da ordem de compra. */
+    /** Abrir o PDF da cotação, da ordem de compra ou da ordem de serviço. */
     public function document($id, string $tipo)
     {
-        abort_unless(in_array($tipo, ['cotacao', 'oc'], true), 404);
+        abort_unless(in_array($tipo, ['cotacao', 'oc', 'servico'], true), 404);
         $case = WarrantyCase::findOrFail($id);
         $path = $case->{$tipo . '_path'};
         abort_unless($path && Storage::disk(self::DISK)->exists($path), 404);
@@ -349,10 +355,10 @@ class WarrantyCaseController extends Controller
     /** Anexar (mais tarde) ou substituir o PDF da cotação ou da ordem de compra. */
     public function replaceDocument(Request $request, $id, string $tipo)
     {
-        abort_unless(in_array($tipo, ['cotacao', 'oc'], true), 404);
+        abort_unless(in_array($tipo, ['cotacao', 'oc', 'servico'], true), 404);
         $case = WarrantyCase::findOrFail($id);
-        // Só depois de o passo estar registado (já tem número)
-        abort_unless($case->{$tipo . '_numero'}, 404);
+        // Só depois de o passo estar registado (cotação/OC com número; ordem de serviço com a reparação feita)
+        abort_unless($tipo === 'servico' ? $case->fase === 'concluido' : $case->{$tipo . '_numero'}, 404);
 
         $request->validate([
             'documento' => ['required', ...$this->documentRule()],

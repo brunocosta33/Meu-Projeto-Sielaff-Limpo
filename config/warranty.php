@@ -15,9 +15,15 @@ return [
         'enviada_cliente' => ['label' => 'Enviada ao cliente', 'waiting' => 'À espera da ordem de compra', 'icon' => 'fa-hourglass-half', 'color' => '#6d28d9', 'bg' => '#ede9fe'],
         'oc_recebida' => ['label' => 'Ordem de compra recebida', 'waiting' => 'Enviar pedido para a Alemanha', 'icon' => 'fa-file-signature', 'color' => '#1d4ed8', 'bg' => '#dbeafe'],
         'pedido_alemanha' => ['label' => 'Pedido enviado para a Alemanha', 'waiting' => 'À espera da peça', 'icon' => 'fa-globe-europe', 'color' => '#0f766e', 'bg' => '#ccfbf1'],
-        'peca_recebida' => ['label' => 'Peça recebida', 'waiting' => 'Enviar técnico para a reparação', 'icon' => 'fa-box-open', 'color' => '#c2410c', 'bg' => '#ffedd5'],
+        'peca_recebida' => ['label' => 'Peça confirmada', 'waiting' => 'Enviar técnico para a reparação', 'icon' => 'fa-box-open', 'color' => '#c2410c', 'bg' => '#ffedd5'],
         'concluido' => ['label' => 'Reparação feita', 'waiting' => null, 'icon' => 'fa-check-circle', 'color' => '#15803d', 'bg' => '#dcfce7'],
         'recusado' => ['label' => 'Recusada pelo cliente', 'waiting' => null, 'icon' => 'fa-times-circle', 'color' => '#b91c1c', 'bg' => '#fee2e2'],
+    ],
+
+    // Passo "Peça confirmada": de onde veio a peça
+    'part_origins' => [
+        'recebida' => 'Recebemos a peça',
+        'stock' => 'Já tínhamos a peça connosco',
     ],
 
     // Pedido de peças à Sielaff Alemanha (passo "Pedido enviado para a Alemanha")

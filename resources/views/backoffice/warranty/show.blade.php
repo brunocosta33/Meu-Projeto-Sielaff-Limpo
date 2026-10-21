@@ -17,8 +17,8 @@
         'enviada_cliente' => ['title' => __('Enviei a cotação ao cliente'), 'help' => __('Registe quando enviou a cotação ao :cliente.', ['cliente' => $case->clientLabel()]), 'button' => __('Registar envio')],
         'oc_recebida' => ['title' => __('Recebi a ordem de compra'), 'help' => __('Indique o número da ordem de compra do :cliente e, se já o tiver, anexe o PDF.', ['cliente' => $case->clientLabel()]), 'button' => __('Registar ordem de compra')],
         'pedido_alemanha' => ['title' => __('Enviei o pedido para a Alemanha'), 'help' => __('Envie um email para :email com o número do artigo e o número do cliente e registe o envio.', ['email' => $germanyEmail]), 'button' => __('Registar envio para a Alemanha')],
-        'peca_recebida' => ['title' => __('Recebi a peça'), 'help' => __('Registe o dia em que a peça chegou. Depois é só enviar o técnico fazer a reparação.'), 'button' => __('Registar peça recebida')],
-        'concluido' => ['title' => __('Reparação feita'), 'help' => __('Fecha o processo.'), 'button' => __('Fechar processo')],
+        'peca_recebida' => ['title' => __('Confirmar a peça'), 'help' => __('Confirme se recebemos a peça ou se já a tínhamos connosco. Depois é só enviar o técnico fazer a reparação.'), 'button' => __('Confirmar peça')],
+        'concluido' => ['title' => __('Reparação feita'), 'help' => __('Fecha o processo. Pode anexar a ordem de serviço.'), 'button' => __('Fechar processo')],
     ];
     $machinesByStore = $stores->mapWithKeys(fn ($s) => [$s->id => $s->machines->map(fn ($m) => ['id' => $m->id, 'label' => trim($m->serial_number . ($m->descricao ? ' — ' . $m->descricao : ''))])->values()]);
 @endphp
@@ -127,6 +127,7 @@
                     <span class="dot"><i class="fas {{ $i < $currentIndex || !$case->isOpen() ? ($step === 'recusado' ? 'fa-times' : 'fa-check') : $p['icon'] }}"></i></span>
                     {{ __($p['label']) }}
                     @if(isset($reached[$step]))<span class="when">{{ $reached[$step]->data->format('d/m/Y') }}</span>@endif
+                    @if($step === 'peca_recebida' && $case->partOriginLabel())<span class="when">{{ $case->partOriginLabel() }}</span>@endif
                 </div>
             @endforeach
         </div>
@@ -209,6 +210,23 @@
                                 <small class="form-text text-muted">{{ __('Também pode anexar mais tarde, no cartão Documentos.') }}</small>
                             </div>
                         @endif
+                        @if($next === 'peca_recebida')
+                            <div class="form-group">
+                                @foreach(config('warranty.part_origins') as $value => $label)
+                                    <div class="custom-control custom-radio mb-1">
+                                        <input type="radio" class="custom-control-input" name="peca_origem" id="wc-origem-{{ $value }}" value="{{ $value }}" @checked(old('peca_origem', 'recebida') === $value) required>
+                                        <label class="custom-control-label font-weight-bold" for="wc-origem-{{ $value }}">{{ __($label) }}</label>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                        @if($next === 'concluido')
+                            <div class="form-group">
+                                <label class="small font-weight-bold mb-1">{{ __('Ordem de serviço') }} <span class="text-muted font-weight-normal">({{ __('opcional') }})</span></label>
+                                <input type="file" name="documento" class="form-control-file" accept=".pdf,.jpg,.jpeg,.png">
+                                <small class="form-text text-muted">{{ __('PDF ou fotografia da ordem de serviço. Também pode anexar mais tarde, no cartão Documentos.') }}</small>
+                            </div>
+                        @endif
                         @if($next === 'pedido_alemanha')
                             <div class="form-group">
                                 <label class="small font-weight-bold mb-1">{{ __('Nº do artigo') }}</label>
@@ -273,7 +291,7 @@
         <div class="card mb-3">
             <div class="card-body">
                 <h5 class="card-title"><i class="fa fa-folder-open text-warning"></i> {{ __('Documentos') }}</h5>
-                @php($docs = ['cotacao' => [__('Cotação Sielaff'), $case->cotacao_numero, $case->cotacao_recebida_em, $case->cotacao_path], 'oc' => [__('Ordem de compra'), $case->oc_numero, $case->oc_recebida_em, $case->oc_path]])
+                @php($docs = ['cotacao' => [__('Cotação Sielaff'), $case->cotacao_numero, $case->cotacao_recebida_em, $case->cotacao_path], 'oc' => [__('Ordem de compra'), $case->oc_numero, $case->oc_recebida_em, $case->oc_path], 'servico' => [__('Ordem de serviço'), $case->fase === 'concluido' ? ' ' : null, $case->fechado_em, $case->servico_path]])
                 @php($anyDoc = false)
                 @foreach($docs as $tipo => [$label, $numero, $data, $path])
                     @continue(!$numero)
@@ -281,8 +299,8 @@
                     <div class="wc-doc">
                         <i class="fa {{ $path ? 'fa-file-pdf' : 'fa-file' }} fa-2x" @unless($path) style="color: #cbd5e1" @endunless></i>
                         <div class="flex-grow-1">
-                            <strong>{{ $label }} {{ $numero }}</strong>
-                            <small>{{ __('Recebida a') }} {{ optional($data)->format('d/m/Y') }}{{ $path ? '' : ' · ' . __('sem PDF') }}</small>
+                            <strong>{{ $label }} {{ trim($numero) }}</strong>
+                            <small>{{ $tipo === 'servico' ? __('Reparação feita a') : __('Recebida a') }} {{ optional($data)->format('d/m/Y') }}{{ $path ? '' : ' · ' . __('sem PDF') }}</small>
                         </div>
                         @if($path)
                             <a href="{{ route('backoffice.warranty.document', [$case->id, $tipo]) }}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fa fa-eye"></i> {{ __('Abrir') }}</a>
@@ -306,7 +324,7 @@
                     <p class="small text-muted mt-2 mb-0"><i class="fa fa-globe-europe"></i> {{ __('Pedido enviado para a Alemanha a') }} {{ $case->alemanha_enviado_em->format('d/m/Y') }} — {{ __('Artigo') }} {{ $case->artigo_numero }} · {{ __('Cliente') }} {{ $case->cliente_numero }}</p>
                 @endif
                 @if($case->peca_recebida_em)
-                    <p class="small text-muted mt-2 mb-0"><i class="fa fa-box-open"></i> {{ __('Peça recebida a') }} {{ $case->peca_recebida_em->format('d/m/Y') }}</p>
+                    <p class="small text-muted mt-2 mb-0"><i class="fa fa-box-open"></i> {{ __('Peça confirmada a') }} {{ $case->peca_recebida_em->format('d/m/Y') }}{{ $case->partOriginLabel() ? ' — ' . $case->partOriginLabel() : '' }}</p>
                 @endif
                 @if($case->enviada_cliente_em)
                     <p class="small text-muted mt-2 mb-0"><i class="fa fa-paper-plane"></i> {{ __('Enviada ao cliente a') }} {{ $case->enviada_cliente_em->format('d/m/Y') }}{{ $case->enviada_para ? ' — ' . $case->enviada_para : '' }}</p>
@@ -328,6 +346,7 @@
                             </div>
                             <div class="tl-meta">{{ $event->data->format('d/m/Y') }} · {{ $event->user->name ?? '—' }}</div>
                             @if($event->fase === 'pedido_alemanha')<div class="tl-meta">{{ __('Artigo') }} {{ $case->artigo_numero }} · {{ __('Cliente') }} {{ $case->cliente_numero }}</div>@endif
+                            @if($event->fase === 'peca_recebida' && $case->partOriginLabel())<div class="tl-meta">{{ $case->partOriginLabel() }}</div>@endif
                             @if($event->nota)<div class="tl-note">{{ $event->nota }}</div>@endif
                         </li>
                     @endforeach
@@ -374,6 +393,15 @@
                             <label class="small font-weight-bold mb-1">{{ __('Nº da ordem de compra') }}</label>
                             <input type="text" name="oc_numero" class="form-control" value="{{ $case->oc_numero }}" required>
                         </div>
+                    @elseif($event->fase === 'peca_recebida')
+                        <div class="form-group">
+                            @foreach(config('warranty.part_origins') as $value => $label)
+                                <div class="custom-control custom-radio mb-1">
+                                    <input type="radio" class="custom-control-input" name="peca_origem" id="wc-ed-origem-{{ $event->id }}-{{ $value }}" value="{{ $value }}" @checked(($case->peca_origem ?? 'recebida') === $value) required>
+                                    <label class="custom-control-label" for="wc-ed-origem-{{ $event->id }}-{{ $value }}">{{ __($label) }}</label>
+                                </div>
+                            @endforeach
+                        </div>
                     @elseif($event->fase === 'pedido_alemanha')
                         <div class="form-group">
                             <label class="small font-weight-bold mb-1">{{ __('Nº do artigo') }}</label>
@@ -395,7 +423,7 @@
                             <textarea name="nota" class="form-control" rows="2">{{ $event->nota }}</textarea>
                         </div>
                     @endif
-                    @if(in_array($event->fase, ['cotacao_recebida', 'oc_recebida'], true))
+                    @if(in_array($event->fase, ['cotacao_recebida', 'oc_recebida', 'concluido'], true))
                         <small class="form-text text-muted mt-2"><i class="fa fa-info-circle"></i> {{ __('Para trocar o PDF use o botão de substituir no cartão Documentos.') }}</small>
                     @endif
                 </div>

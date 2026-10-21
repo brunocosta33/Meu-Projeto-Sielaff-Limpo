@@ -13,7 +13,7 @@ class WarrantyCase extends Model
     protected $fillable = [
         'store_id', 'machine_id', 'technical_request_id', 'cliente', 'data_avaria', 'descricao', 'observacoes', 'fase', 'fase_desde',
         'cotacao_pedida_em', 'cotacao_numero', 'cotacao_recebida_em', 'cotacao_path', 'cotacao_nome',
-        'enviada_cliente_em', 'enviada_para', 'oc_numero', 'oc_recebida_em', 'oc_path', 'oc_nome', 'artigo_numero', 'cliente_numero', 'alemanha_enviado_em', 'peca_recebida_em',
+        'enviada_cliente_em', 'enviada_para', 'oc_numero', 'oc_recebida_em', 'oc_path', 'oc_nome', 'artigo_numero', 'cliente_numero', 'alemanha_enviado_em', 'peca_recebida_em', 'peca_origem', 'servico_path', 'servico_nome',
         'fechado_em', 'motivo_recusa', 'created_by', 'updated_by',
     ];
 
@@ -57,6 +57,12 @@ class WarrantyCase extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /** "Recebemos a peça" / "Já tínhamos a peça connosco". */
+    public function partOriginLabel(): ?string
+    {
+        return $this->peca_origem ? __(config('warranty.part_origins.' . $this->peca_origem, $this->peca_origem)) : null;
     }
 
     public function isOpen(): bool
