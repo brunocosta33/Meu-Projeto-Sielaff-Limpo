@@ -30,7 +30,9 @@ class WarrantyCaseController extends Controller
         $base = $this->filteredQuery($request);
 
         $counts = (clone $base)->toBase()->selectRaw('fase, COUNT(*) as total')->groupBy('fase')->pluck('total', 'fase');
-        $typeCounts = (clone $base)->toBase()->selectRaw('tipo, COUNT(*) as total')->groupBy('tipo')->pluck('total', 'tipo');
+        // Os totais por tipo ignoram o filtro do tipo: senão, ao escolher um, o outro ficava a zero
+        $typeCounts = $this->filteredQuery($request, ignoreType: true)
+            ->toBase()->selectRaw('tipo, COUNT(*) as total')->groupBy('tipo')->pluck('total', 'tipo');
 
         $cases = (clone $base)
             ->with(['store', 'machine'])
@@ -355,11 +357,11 @@ class WarrantyCaseController extends Controller
         ];
     }
 
-    private function filteredQuery(Request $request)
+    private function filteredQuery(Request $request, bool $ignoreType = false)
     {
         return WarrantyCase::query()
             ->when($request->filled('cliente'), fn ($q) => $q->where('cliente', $request->cliente))
-            ->when($request->filled('tipo'), fn ($q) => $q->where('tipo', $request->tipo))
+            ->when(!$ignoreType && $request->filled('tipo'), fn ($q) => $q->where('tipo', $request->tipo))
             ->when($request->filled('q'), function ($q) use ($request) {
                 $term = '%' . trim($request->q) . '%';
                 $q->where(fn ($w) => $w->where('descricao', 'like', $term)

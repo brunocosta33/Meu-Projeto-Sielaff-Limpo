@@ -152,28 +152,6 @@
 
 <div class="row">
     <div class="col-lg-7">
-        @php($n = 0)
-        @foreach($blocks as $blockKey => $block)
-            @php($n++)
-            <div class="wc-block {{ $next && $next['block'] === $blockKey ? 'is-current' : '' }}" style="--c: {{ $block['color'] }}; --bg: {{ $block['bg'] }}">
-                <header><span class="num">{{ $n }}</span> <i class="fas {{ $block['icon'] }}"></i> {{ __($block['label']) }}</header>
-                @foreach($block['halves'] as $halfKey => $half)
-                    @php($step = $case->step($blockKey, $halfKey))
-                    {{-- As duas metades do fecho são alternativas: a recusa esconde-se depois de o processo fechar --}}
-                    @continue($blockKey === 'fecho' && $halfKey === 'recusado' && !$case->stepDone($step) && !$case->isOpen())
-                    @include('backoffice.warranty.partials.step', [
-                        'blockKey' => $blockKey,
-                        'block' => $block,
-                        'halfKey' => $halfKey,
-                        'step' => $step,
-                        'isNext' => $next && $next['block'] === $blockKey && $next['half'] === $halfKey,
-                    ])
-                @endforeach
-            </div>
-        @endforeach
-    </div>
-
-    <div class="col-lg-5">
         {{-- Problema --}}
         <div class="card mb-3">
             <div class="card-body">
@@ -203,6 +181,28 @@
             </div>
         </div>
 
+        @php($n = 0)
+        @foreach($blocks as $blockKey => $block)
+            @php($n++)
+            <div class="wc-block {{ $next && $next['block'] === $blockKey ? 'is-current' : '' }}" style="--c: {{ $block['color'] }}; --bg: {{ $block['bg'] }}">
+                <header><span class="num">{{ $n }}</span> <i class="fas {{ $block['icon'] }}"></i> {{ __($block['label']) }}</header>
+                @foreach($block['halves'] as $halfKey => $half)
+                    @php($step = $case->step($blockKey, $halfKey))
+                    {{-- As duas metades do fecho são alternativas: a recusa esconde-se depois de o processo fechar --}}
+                    @continue($blockKey === 'fecho' && $halfKey === 'recusado' && !$case->stepDone($step) && !$case->isOpen())
+                    @include('backoffice.warranty.partials.step', [
+                        'blockKey' => $blockKey,
+                        'block' => $block,
+                        'halfKey' => $halfKey,
+                        'step' => $step,
+                        'isNext' => $next && $next['block'] === $blockKey && $next['half'] === $halfKey,
+                    ])
+                @endforeach
+            </div>
+        @endforeach
+    </div>
+
+    <div class="col-lg-5">
         @if($siblings->isNotEmpty())
             <div class="card mb-3">
                 <div class="card-body">
