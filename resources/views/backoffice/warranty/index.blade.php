@@ -107,7 +107,7 @@
             @foreach($types as $key => $type)
                 <a href="{{ route('backoffice.warranty.index', ['tipo' => $key] + request()->only(['q', 'cliente', 'fase'])) }}" class="wc-stat {{ request('tipo') === $key ? 'is-active' : '' }}" style="--bg: {{ $type['bg'] }}; --fg: {{ $type['color'] }}">
                     <div class="num">{{ $typeCounts[$key] ?? 0 }}</div>
-                    <div class="lbl"><i class="fas {{ $type['icon'] }}"></i> {{ __($type['curto']) }}</div>
+                    <div class="lbl"><i class="fas {{ $type['icon'] }}"></i> {{ __($type['label']) }}</div>
                 </a>
             @endforeach
             @foreach($phases as $key => $phase)
