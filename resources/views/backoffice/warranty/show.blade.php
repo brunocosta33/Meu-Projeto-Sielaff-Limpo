@@ -105,7 +105,7 @@
                     <span class="wc-cod">{{ $case->store->codigo_loja ?? '—' }}</span>
                     {{ $case->store->nome_loja ?? '—' }}
                     <span class="wc-type-badge" style="--c: {{ $type['color'] }}; --bg: {{ $type['bg'] }}" title="{{ __($type['ajuda']) }}">
-                        <i class="fas {{ $type['icon'] }}"></i> {{ __($type['label']) }}
+                        <i class="fas {{ $type['icon'] }}"></i> {{ __($type['curto']) }}
                     </span>
                 </h4>
                 @if($case->isOpen())
@@ -332,7 +332,7 @@
                             @endforeach
                         </select>
                     @else
-                        <p class="mb-0"><span class="wc-type-badge" style="--c: {{ $type['color'] }}; --bg: {{ $type['bg'] }}"><i class="fas {{ $type['icon'] }}"></i> {{ __($type['label']) }}</span>
+                        <p class="mb-0"><span class="wc-type-badge" style="--c: {{ $type['color'] }}; --bg: {{ $type['bg'] }}"><i class="fas {{ $type['icon'] }}"></i> {{ __($type['curto']) }}</span>
                             <small class="text-muted ml-2">{{ __('Já não pode ser alterado: o processo passou da visita.') }}</small></p>
                     @endif
                 </div>

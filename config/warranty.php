@@ -18,16 +18,16 @@ return [
     'types' => [
         'com_pecas' => [
             'label' => 'Com peças',
-            'curto' => 'Peças',
-            'ajuda' => 'A reparação precisa de peça: pede-se cotação à Sielaff e encomenda-se à Alemanha.',
+            'curto' => 'Com peças',
+            'ajuda' => 'É preciso encomendar a peça: cotação à Sielaff e pedido à Alemanha.',
             'icon' => 'fa-cogs',
             'color' => '#b91c1c',
             'bg' => '#fee2e2',
         ],
         'sem_pecas' => [
-            'label' => 'Sem peças',
-            'curto' => 'Serviço',
-            'ajuda' => 'Só deslocação e mão de obra (ex.: cobrar a visita de diagnóstico). A cotação é nossa e vai direta ao cliente.',
+            'label' => 'Sem peças / trocado peças na hora',
+            'curto' => 'Sem peças',
+            'ajuda' => 'Não há nada a encomendar: só deslocação e mão de obra, ou peça trocada na hora com o que o técnico levava. A cotação é nossa e vai direta ao cliente.',
             'icon' => 'fa-tools',
             'color' => '#0369a1',
             'bg' => '#e0f2fe',

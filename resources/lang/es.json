@@ -1640,5 +1640,9 @@
     "Visita": "Visita",
     "abrir": "abrir",
     "desde": "desde",
-    "nada": "nada"
+    "nada": "nada",
+    "Sem peças / trocado peças na hora": "Sin piezas / piezas cambiadas en el momento",
+    "É preciso encomendar a peça: cotação à Sielaff e pedido à Alemanha.": "Hay que encargar la pieza: presupuesto a Sielaff y pedido a Alemania.",
+    "Não há nada a encomendar: só deslocação e mão de obra, ou peça trocada na hora com o que o técnico levava. A cotação é nossa e vai direta ao cliente.": "No hay nada que encargar: solo desplazamiento y mano de obra, o una pieza cambiada en el momento con lo que llevaba el técnico. El presupuesto es nuestro y va directo al cliente.",
+    "Avarias por culpa do cliente. Com peças: cotação da Sielaff e encomenda à Alemanha. Sem peças: deslocação, mão de obra ou peça trocada na hora.": "Averías por culpa del cliente. Con piezas: presupuesto de Sielaff y pedido a Alemania. Sin piezas: desplazamiento, mano de obra o pieza cambiada en el momento."
 }

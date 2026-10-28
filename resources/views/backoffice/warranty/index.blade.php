@@ -73,7 +73,7 @@
         <div class="d-flex flex-wrap align-items-center justify-content-between mb-3" style="gap: .75rem">
             <div>
                 <h4 class="mb-1"><i class="fas fa-file-invoice-dollar text-danger"></i> {{ __('Fora da Garantia') }}</h4>
-                <p class="text-muted small mb-0">{{ __('Avarias por culpa do cliente. Com peças: cotação da Sielaff e encomenda à Alemanha. Sem peças: só a deslocação e a mão de obra.') }}</p>
+                <p class="text-muted small mb-0">{{ __('Avarias por culpa do cliente. Com peças: cotação da Sielaff e encomenda à Alemanha. Sem peças: deslocação, mão de obra ou peça trocada na hora.') }}</p>
             </div>
             <div class="d-flex flex-wrap" style="gap: .5rem">
                 <form method="GET" class="form-inline" style="gap: .5rem">
@@ -81,7 +81,7 @@
                     <select name="tipo" class="form-control form-control-sm" onchange="this.form.submit()">
                         <option value="">{{ __('Com e sem peças') }} ({{ $typeCounts->sum() }})</option>
                         @foreach($types as $value => $type)
-                            <option value="{{ $value }}" @selected(request('tipo') === $value)>{{ __($type['label']) }} ({{ $typeCounts[$value] ?? 0 }})</option>
+                            <option value="{{ $value }}" @selected(request('tipo') === $value)>{{ __($type['curto']) }} ({{ $typeCounts[$value] ?? 0 }})</option>
                         @endforeach
                     </select>
                     <select name="cliente" class="form-control form-control-sm" onchange="this.form.submit()">
@@ -107,7 +107,7 @@
             @foreach($types as $key => $type)
                 <a href="{{ route('backoffice.warranty.index', ['tipo' => $key] + request()->only(['q', 'cliente', 'fase'])) }}" class="wc-stat {{ request('tipo') === $key ? 'is-active' : '' }}" style="--bg: {{ $type['bg'] }}; --fg: {{ $type['color'] }}">
                     <div class="num">{{ $typeCounts[$key] ?? 0 }}</div>
-                    <div class="lbl"><i class="fas {{ $type['icon'] }}"></i> {{ __($type['label']) }}</div>
+                    <div class="lbl"><i class="fas {{ $type['icon'] }}"></i> {{ __($type['curto']) }}</div>
                 </a>
             @endforeach
             @foreach($phases as $key => $phase)
