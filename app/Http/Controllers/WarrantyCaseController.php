@@ -27,34 +27,57 @@ class WarrantyCaseController extends Controller
 
     public function index(Request $request)
     {
-        $base = $this->filteredQuery($request);
+        $closed = WarrantyCase::CLOSED_PHASES;
+        $marks = implode(',', array_fill(0, count($closed), '?'));
 
-        $counts = (clone $base)->toBase()->selectRaw('fase, COUNT(*) as total')->groupBy('fase')->pluck('total', 'fase');
-        // Os totais por tipo ignoram o filtro do tipo: senão, ao escolher um, o outro ficava a zero
-        $typeCounts = $this->filteredQuery($request, ignoreType: true)
-            ->toBase()->selectRaw('tipo, COUNT(*) as total')->groupBy('tipo')->pluck('total', 'tipo');
-
-        $cases = (clone $base)
+        $cases = $this->filteredQuery($request)
             ->with(['store', 'machine'])
             ->withCount('photos')
-            ->when($request->filled('fase'), fn ($q) => $request->fase === 'abertos'
-                ? $q->whereNotIn('fase', WarrantyCase::CLOSED_PHASES)
-                : $q->where('fase', $request->fase))
-            // Avarias mais recentes primeiro (data da avaria); no mesmo dia, o último registado primeiro
-            ->orderByDesc('data_avaria')
+            // Os abertos primeiro e, entre esses, o que está parado há mais tempo no topo
+            ->orderByRaw("(fase IN ($marks)) ASC", $closed)
+            ->orderByRaw("CASE WHEN fase IN ($marks) THEN 0 ELSE DATEDIFF(CURDATE(), fase_desde) END DESC", $closed)
+            ->orderByDesc('fase_desde')
             ->orderByDesc('id')
             ->paginate(40)
             ->withQueryString();
 
         return view('backoffice.warranty.index', [
             'cases' => $cases,
-            'counts' => $counts,
-            'typeCounts' => $typeCounts,
-            'openTotal' => $counts->sum() - collect(WarrantyCase::CLOSED_PHASES)->sum(fn ($p) => $counts[$p] ?? 0),
-            'phases' => config('warranty.phases'),
+            'waitCounts' => $this->waitingCounts($request),
+            // Os totais por tipo ignoram o filtro do tipo: senão, ao escolher um, o outro ficava a zero
+            'typeCounts' => $this->filteredQuery($request, ['tipo'])
+                ->toBase()->selectRaw('tipo, COUNT(*) as total')->groupBy('tipo')->pluck('total', 'tipo'),
+            'total' => $this->filteredQuery($request, ['espera'])->count(),
+            'waitingGroups' => config('warranty.waiting_on'),
             'types' => config('warranty.types'),
             'clients' => config('warranty.clients'),
         ]);
+    }
+
+    /** Quantos processos estão à espera de cada um. Ignora o filtro da espera, para se poder saltar entre eles. */
+    private function waitingCounts(Request $request): array
+    {
+        $base = $this->filteredQuery($request, ['espera']);
+        $byPhase = (clone $base)->toBase()->selectRaw('fase, COUNT(*) as total')->groupBy('fase')->pluck('total', 'fase');
+
+        $counts = [];
+        foreach (config('warranty.waiting_on') as $key => $group) {
+            $counts[$key] = ($group['late'] ?? false)
+                ? $this->applyLate(clone $base)->count()
+                : collect($group['phases'])->sum(fn ($p) => $byPhase[$p] ?? 0);
+        }
+
+        return $counts;
+    }
+
+    /** Os que já passaram do prazo de espera da fase em que estão (config warranty.waiting_alert_days). */
+    private function applyLate($query)
+    {
+        return $query->where(function ($q) {
+            foreach (config('warranty.waiting_alert_days') as $fase => [, $late]) {
+                $q->orWhere(fn ($w) => $w->where('fase', $fase)->whereDate('fase_desde', '<=', now()->subDays($late)));
+            }
+        });
     }
 
     public function export(Request $request)
@@ -357,11 +380,20 @@ class WarrantyCaseController extends Controller
         ];
     }
 
-    private function filteredQuery(Request $request, bool $ignoreType = false)
+    private function filteredQuery(Request $request, array $ignore = [])
     {
+        $usa = fn (string $filtro) => !in_array($filtro, $ignore, true) && $request->filled($filtro);
+
         return WarrantyCase::query()
             ->when($request->filled('cliente'), fn ($q) => $q->where('cliente', $request->cliente))
-            ->when(!$ignoreType && $request->filled('tipo'), fn ($q) => $q->where('tipo', $request->tipo))
+            ->when($usa('tipo'), fn ($q) => $q->where('tipo', $request->tipo))
+            ->when($usa('espera'), function ($q) use ($request) {
+                $group = config('warranty.waiting_on.' . $request->espera);
+                if (!$group) {
+                    return;
+                }
+                $group['late'] ?? false ? $this->applyLate($q) : $q->whereIn('fase', $group['phases']);
+            })
             ->when($request->filled('q'), function ($q) use ($request) {
                 $term = '%' . trim($request->q) . '%';
                 $q->where(fn ($w) => $w->where('descricao', 'like', $term)

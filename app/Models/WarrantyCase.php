@@ -215,6 +215,23 @@ class WarrantyCase extends Model
         return !in_array($this->fase, self::CLOSED_PHASES, true);
     }
 
+    /** De quem estamos à espera: 'nos', 'sielaff', 'cliente', 'alemanha' ou 'fechados'. */
+    public function waitingOn(): string
+    {
+        foreach (config('warranty.waiting_on') as $key => $group) {
+            if (in_array($this->fase, $group['phases'] ?? [], true)) {
+                return $key;
+            }
+        }
+
+        return 'nos';
+    }
+
+    public function waitingOnConfig(): array
+    {
+        return config('warranty.waiting_on.' . $this->waitingOn());
+    }
+
     public function clientLabel(): string
     {
         return config('warranty.clients.' . $this->cliente, ucfirst((string) $this->cliente));

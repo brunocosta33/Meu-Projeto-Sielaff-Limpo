@@ -107,6 +107,36 @@ return [
         'recusado' => ['label' => 'Recusada pelo cliente', 'icon' => 'fa-times-circle', 'color' => '#b91c1c', 'bg' => '#fee2e2'],
     ],
 
+    // De quem estamos à espera em cada fase. É assim que a listagem se organiza:
+    // a pergunta não é "em que fase está", é "o que tenho de fazer e por quem espero".
+    'waiting_on' => [
+        'nos' => [
+            'label' => 'A nossa vez', 'curto' => 'A nossa vez', 'icon' => 'fa-user-check', 'color' => '#b45309', 'bg' => '#fef3c7',
+            'phases' => ['registado', 'os_diagnostico', 'cotacao_recebida', 'oc_recebida', 'peca_recebida'],
+        ],
+        'sielaff' => [
+            'label' => 'À espera da Sielaff', 'curto' => 'Sielaff', 'icon' => 'fa-paper-plane', 'color' => '#0369a1', 'bg' => '#e0f2fe',
+            'phases' => ['cotacao_pedida'],
+        ],
+        'cliente' => [
+            'label' => 'À espera do cliente', 'curto' => 'Cliente', 'icon' => 'fa-hourglass-half', 'color' => '#6d28d9', 'bg' => '#ede9fe',
+            'phases' => ['enviada_cliente'],
+        ],
+        'alemanha' => [
+            'label' => 'À espera da Alemanha', 'curto' => 'Alemanha', 'icon' => 'fa-globe-europe', 'color' => '#0f766e', 'bg' => '#ccfbf1',
+            'phases' => ['pedido_alemanha'],
+        ],
+        // Não é uma fase: são os que já passaram do prazo de espera (ver waiting_alert_days)
+        'atrasados' => [
+            'label' => 'Passaram do prazo', 'curto' => 'Atrasados', 'icon' => 'fa-exclamation-triangle', 'color' => '#b91c1c', 'bg' => '#fee2e2',
+            'late' => true,
+        ],
+        'fechados' => [
+            'label' => 'Fechados', 'curto' => 'Fechados', 'icon' => 'fa-check-circle', 'color' => '#15803d', 'bg' => '#dcfce7',
+            'phases' => ['concluido', 'recusado'],
+        ],
+    ],
+
     // Passo "Peça confirmada": de onde veio a peça
     'part_origins' => [
         'recebida' => 'Recebemos a peça',

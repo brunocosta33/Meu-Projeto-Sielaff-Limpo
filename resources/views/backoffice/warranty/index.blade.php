@@ -2,6 +2,7 @@
 
 @php(\Carbon\Carbon::setLocale(app()->getLocale()))
 @php($filters = request()->only(['q', 'cliente', 'tipo']))
+@php($filtrosTodos = request()->only(['q', 'cliente', 'tipo', 'espera']))
 
 @section('head-meta')
     <title>{{ config('app.name') }} - {{ __('Fora da Garantia') }}</title>
@@ -37,6 +38,7 @@
     .wc-wait.late { --bg: #fef2f2 !important; --fg: #b91c1c !important; }
     .wc-wait.late .fa { animation: wc-pulse 1.4s ease-in-out infinite; }
     .wc-closed { font-size: .76rem; margin-top: .3rem; color: #64748b; }
+    .wc-todo { font-weight: 700; color: #1e293b; font-size: .88rem; line-height: 1.25; margin-bottom: .3rem; }
     @keyframes wc-pulse { 50% { opacity: .3; } }
     @media (prefers-reduced-motion: reduce) { .wc-wait.late .fa { animation: none; } }
     .wc-docs { font-size: .78rem; white-space: nowrap; }
@@ -54,11 +56,11 @@
             </div>
             <div class="d-flex flex-wrap" style="gap: .5rem">
                 <form method="GET" class="form-inline" style="gap: .5rem">
-                    @if(request('fase'))<input type="hidden" name="fase" value="{{ request('fase') }}">@endif
+                    @if(request('espera'))<input type="hidden" name="espera" value="{{ request('espera') }}">@endif
                     <select name="tipo" class="form-control form-control-sm" onchange="this.form.submit()">
-                        <option value="">{{ __('Com e sem peças') }}</option>
+                        <option value="">{{ __('Com e sem peças') }} ({{ $typeCounts->sum() }})</option>
                         @foreach($types as $value => $type)
-                            <option value="{{ $value }}" @selected(request('tipo') === $value)>{{ __($type['label']) }}</option>
+                            <option value="{{ $value }}" @selected(request('tipo') === $value)>{{ __($type['label']) }} ({{ $typeCounts[$value] ?? 0 }})</option>
                         @endforeach
                     </select>
                     <select name="cliente" class="form-control form-control-sm" onchange="this.form.submit()">
@@ -69,28 +71,19 @@
                     </select>
                     <input type="search" name="q" class="form-control form-control-sm" value="{{ request('q') }}" placeholder="{{ __('Loja, nº série, nº cotação…') }}" style="min-width: 220px">
                 </form>
-                <a href="{{ route('backoffice.warranty.export', $filters + request()->only('fase')) }}" class="btn btn-outline-success btn-sm"><i class="fa fa-file-excel"></i> {{ __('Exportar Excel') }}</a>
+                <a href="{{ route('backoffice.warranty.export', $filtrosTodos) }}" class="btn btn-outline-success btn-sm"><i class="fa fa-file-excel"></i> {{ __('Exportar Excel') }}</a>
                 <a href="{{ route('backoffice.warranty.create') }}" class="btn btn-danger btn-sm"><i class="fa fa-plus"></i> {{ __('Novo processo') }}</a>
             </div>
         </div>
 
         <div class="wc-summary">
-            <a href="{{ route('backoffice.warranty.index', $filters) }}" class="wc-stat {{ request('fase') ? '' : 'is-active' }}" style="--bg: #f1f3f6; --fg: #263238">
-                <div class="num">{{ $counts->sum() }}</div><div class="lbl">{{ __('Todos') }}</div>
+            <a href="{{ route('backoffice.warranty.index', $filters) }}" class="wc-stat {{ request('espera') ? '' : 'is-active' }}" style="--bg: #f1f3f6; --fg: #263238">
+                <div class="num">{{ $total }}</div><div class="lbl">{{ __('Todos') }}</div>
             </a>
-            <a href="{{ route('backoffice.warranty.index', ['fase' => 'abertos'] + $filters) }}" class="wc-stat {{ request('fase') === 'abertos' ? 'is-active' : '' }}" style="--bg: #fff1f2; --fg: #be123c">
-                <div class="num">{{ $openTotal }}</div><div class="lbl">{{ __('Em aberto') }}</div>
-            </a>
-            @foreach($types as $key => $type)
-                <a href="{{ route('backoffice.warranty.index', ['tipo' => $key] + request()->only(['q', 'cliente', 'fase'])) }}" class="wc-stat {{ request('tipo') === $key ? 'is-active' : '' }}" style="--bg: {{ $type['bg'] }}; --fg: {{ $type['color'] }}">
-                    <div class="num">{{ $typeCounts[$key] ?? 0 }}</div>
-                    <div class="lbl"><i class="fas {{ $type['icon'] }}"></i> {{ __($type['label']) }}</div>
-                </a>
-            @endforeach
-            @foreach($phases as $key => $phase)
-                <a href="{{ route('backoffice.warranty.index', ['fase' => $key] + $filters) }}" class="wc-stat {{ request('fase') === $key ? 'is-active' : '' }}" style="--bg: {{ $phase['bg'] }}; --fg: {{ $phase['color'] }}">
-                    <div class="num">{{ $counts[$key] ?? 0 }}</div>
-                    <div class="lbl"><i class="fas {{ $phase['icon'] }}"></i> {{ __($phase['label']) }}</div>
+            @foreach($waitingGroups as $key => $group)
+                <a href="{{ route('backoffice.warranty.index', ['espera' => $key] + $filters) }}" class="wc-stat {{ request('espera') === $key ? 'is-active' : '' }}" style="--bg: {{ $group['bg'] }}; --fg: {{ $group['color'] }}">
+                    <div class="num">{{ $waitCounts[$key] ?? 0 }}</div>
+                    <div class="lbl"><i class="fas {{ $group['icon'] }}"></i> {{ __($group['label']) }}</div>
                 </a>
             @endforeach
         </div>
@@ -112,7 +105,7 @@
                         <tr>
                             <th>{{ __('Loja') }}</th>
                             <th>{{ __('Problema') }}</th>
-                            <th>{{ __('Fase') }}</th>
+                            <th>{{ __('O que falta') }}</th>
                             <th>{{ __('Documentos') }}</th>
                             <th></th>
                         </tr>
@@ -139,17 +132,17 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <span class="wc-badge" style="--bg: {{ $phase['bg'] }}; --fg: {{ $phase['color'] }}"><i class="fas {{ $phase['icon'] }}"></i> {{ __($phase['label']) }}</span>
-                                    @if($case->isOpen() && $case->todoLabel())
-                                        <div>
-                                            <span class="wc-wait {{ $alert }}" style="--bg: {{ $phase['bg'] }}; --fg: {{ $phase['color'] }}">
-                                                <i class="fa {{ $alert ? 'fa-exclamation-triangle' : 'fa-hourglass-half' }}"></i>
-                                                {{ $case->todoLabel() }}
-                                                <small>· {{ trans_choice('{0} hoje|{1} há :count dia|[2,*] há :count dias', $case->daysInPhase(), ['count' => $case->daysInPhase()]) }}</small>
-                                            </span>
-                                        </div>
-                                    @elseif($case->fechado_em)
-                                        <div class="wc-closed">{{ $case->fechado_em->format('d/m/Y') }}</div>
+                                    @if($case->isOpen())
+                                        @php($espera = $case->waitingOnConfig())
+                                        <div class="wc-todo">{{ $case->todoLabel() }}</div>
+                                        <span class="wc-wait {{ $alert }}" style="--bg: {{ $espera['bg'] }}; --fg: {{ $espera['color'] }}">
+                                            <i class="fa {{ $alert ? 'fa-exclamation-triangle' : $espera['icon'] }}"></i>
+                                            {{ __($espera['curto']) }}
+                                            <small>· {{ trans_choice('{0} hoje|{1} há :count dia|[2,*] há :count dias', $case->daysInPhase(), ['count' => $case->daysInPhase()]) }}</small>
+                                        </span>
+                                    @else
+                                        <span class="wc-badge" style="--bg: {{ $phase['bg'] }}; --fg: {{ $phase['color'] }}"><i class="fas {{ $phase['icon'] }}"></i> {{ __($phase['label']) }}</span>
+                                        @if($case->fechado_em)<div class="wc-closed">{{ $case->fechado_em->format('d/m/Y') }}</div>@endif
                                     @endif
                                 </td>
                                 <td class="wc-docs">
