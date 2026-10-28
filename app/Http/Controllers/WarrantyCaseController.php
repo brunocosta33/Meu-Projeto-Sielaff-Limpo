@@ -41,43 +41,20 @@ class WarrantyCaseController extends Controller
             ->paginate(40)
             ->withQueryString();
 
+        // Cada total ignora o seu próprio filtro: senão, ao escolher um, os outros ficavam a zero
+        $counts = $this->filteredQuery($request, ['fase'])
+            ->toBase()->selectRaw('fase, COUNT(*) as total')->groupBy('fase')->pluck('total', 'fase');
+
         return view('backoffice.warranty.index', [
             'cases' => $cases,
-            'waitCounts' => $this->waitingCounts($request),
-            // Os totais por tipo ignoram o filtro do tipo: senão, ao escolher um, o outro ficava a zero
+            'counts' => $counts,
             'typeCounts' => $this->filteredQuery($request, ['tipo'])
                 ->toBase()->selectRaw('tipo, COUNT(*) as total')->groupBy('tipo')->pluck('total', 'tipo'),
-            'total' => $this->filteredQuery($request, ['espera'])->count(),
-            'waitingGroups' => config('warranty.waiting_on'),
+            'openTotal' => $counts->sum() - collect(WarrantyCase::CLOSED_PHASES)->sum(fn ($p) => $counts[$p] ?? 0),
+            'phases' => config('warranty.phases'),
             'types' => config('warranty.types'),
             'clients' => config('warranty.clients'),
         ]);
-    }
-
-    /** Quantos processos estão à espera de cada um. Ignora o filtro da espera, para se poder saltar entre eles. */
-    private function waitingCounts(Request $request): array
-    {
-        $base = $this->filteredQuery($request, ['espera']);
-        $byPhase = (clone $base)->toBase()->selectRaw('fase, COUNT(*) as total')->groupBy('fase')->pluck('total', 'fase');
-
-        $counts = [];
-        foreach (config('warranty.waiting_on') as $key => $group) {
-            $counts[$key] = ($group['late'] ?? false)
-                ? $this->applyLate(clone $base)->count()
-                : collect($group['phases'])->sum(fn ($p) => $byPhase[$p] ?? 0);
-        }
-
-        return $counts;
-    }
-
-    /** Os que já passaram do prazo de espera da fase em que estão (config warranty.waiting_alert_days). */
-    private function applyLate($query)
-    {
-        return $query->where(function ($q) {
-            foreach (config('warranty.waiting_alert_days') as $fase => [, $late]) {
-                $q->orWhere(fn ($w) => $w->where('fase', $fase)->whereDate('fase_desde', '<=', now()->subDays($late)));
-            }
-        });
     }
 
     public function export(Request $request)
@@ -387,13 +364,10 @@ class WarrantyCaseController extends Controller
         return WarrantyCase::query()
             ->when($request->filled('cliente'), fn ($q) => $q->where('cliente', $request->cliente))
             ->when($usa('tipo'), fn ($q) => $q->where('tipo', $request->tipo))
-            ->when($usa('espera'), function ($q) use ($request) {
-                $group = config('warranty.waiting_on.' . $request->espera);
-                if (!$group) {
-                    return;
-                }
-                $group['late'] ?? false ? $this->applyLate($q) : $q->whereIn('fase', $group['phases']);
-            })
+            // Aqui dentro para que o Excel exporte o mesmo que estamos a ver
+            ->when($usa('fase'), fn ($q) => $request->fase === 'abertos'
+                ? $q->whereNotIn('fase', WarrantyCase::CLOSED_PHASES)
+                : $q->where('fase', $request->fase))
             ->when($request->filled('q'), function ($q) use ($request) {
                 $term = '%' . trim($request->q) . '%';
                 $q->where(fn ($w) => $w->where('descricao', 'like', $term)
