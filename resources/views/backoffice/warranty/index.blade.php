@@ -78,10 +78,10 @@
             <div class="d-flex flex-wrap" style="gap: .5rem">
                 <form method="GET" class="form-inline" style="gap: .5rem">
                     @if(request('fase'))<input type="hidden" name="fase" value="{{ request('fase') }}">@endif
-                    <select name="tipo" class="form-control form-control-sm" onchange="this.form.submit()">
+                    <select name="tipo" class="form-control form-control-sm" onchange="this.form.submit()" style="max-width: 250px">
                         <option value="">{{ __('Com e sem peças') }} ({{ $typeCounts->sum() }})</option>
                         @foreach($types as $value => $type)
-                            <option value="{{ $value }}" @selected(request('tipo') === $value)>{{ __($type['curto']) }} ({{ $typeCounts[$value] ?? 0 }})</option>
+                            <option value="{{ $value }}" @selected(request('tipo') === $value)>{{ __($type['label']) }} ({{ $typeCounts[$value] ?? 0 }})</option>
                         @endforeach
                     </select>
                     <select name="cliente" class="form-control form-control-sm" onchange="this.form.submit()">
