@@ -10,22 +10,11 @@
     $alert = $case->waitingAlert();
     $type = $case->typeConfig();
     $blocks = $case->blocks();
-    $todo = $case->todoLabel();
+    $feitos = $case->doneSteps();
+    $porFazer = $case->pendingSteps();
+    // O próximo passo fica no cartão grande; os outros por fazer ficam atrás de "não é isto?"
+    $outros = array_values(array_filter($porFazer, fn ($s) => !$next || $s['block'] . '.' . $s['half'] !== $next['block'] . '.' . $next['half']));
     $machinesByStore = $stores->mapWithKeys(fn ($s) => [$s->id => $s->machines->map(fn ($m) => ['id' => $m->id, 'label' => trim($m->serial_number . ($m->descricao ? ' — ' . $m->descricao : ''))])->values()]);
-
-    // Estado de cada bloco para a tira do topo
-    $blockState = function ($blockKey, $block) use ($case, $next) {
-        $halves = array_map(fn ($k) => $case->step($blockKey, $k), array_keys($block['halves']));
-        $done = array_filter($halves, fn ($h) => $case->stepDone($h));
-        if ($blockKey === 'fecho') {
-            return count($done) ? 'done' : ($next && $next['block'] === $blockKey ? 'current' : '');
-        }
-        if (count($done) === count($halves)) {
-            return 'done';
-        }
-
-        return $next && $next['block'] === $blockKey ? 'current' : (count($done) ? 'partial' : '');
-    };
 @endphp
 
 @push('styles')
@@ -33,91 +22,101 @@
     .wc-client { display: inline-block; font-size: .72rem; font-weight: 800; letter-spacing: .03em; padding: .15rem .5rem; border-radius: 6px; text-transform: uppercase; vertical-align: middle; }
     .wc-client-lidl { background: #0050aa; color: #fff200; }
     .wc-client-sonae { background: #f39200; color: #fff; }
-    .wc-type-badge { display: inline-flex; align-items: center; gap: .3rem; font-size: .72rem; font-weight: 800; letter-spacing: .03em;
-                     padding: .15rem .5rem; border-radius: 6px; text-transform: uppercase; vertical-align: middle;
+    .wc-type-badge { display: inline-flex; align-items: center; gap: .3rem; font-size: .68rem; font-weight: 800; letter-spacing: .03em;
+                     padding: .12rem .45rem; border-radius: 6px; text-transform: uppercase; vertical-align: middle;
                      background: var(--bg); color: var(--c); border: 1px solid var(--c); }
-    .wc-badge { display: inline-flex; align-items: center; gap: .3rem; font-size: .8rem; font-weight: 600; padding: .25rem .65rem;
-                border-radius: 999px; background: var(--bg); color: var(--fg); border: 1px solid var(--fg); white-space: nowrap; }
-    .wc-wait { display: inline-flex; align-items: center; gap: .45rem; padding: .35rem .8rem; border-radius: 9px; vertical-align: middle;
-               font-size: .88rem; font-weight: 700; background: var(--bg); color: var(--fg); border-left: 4px solid var(--fg); }
-    .wc-wait small { font-weight: 600; opacity: .8; font-size: .8rem; }
-    .wc-wait.warn { --bg: #fff7ed !important; --fg: #c2410c !important; }
-    .wc-wait.late { --bg: #fef2f2 !important; --fg: #b91c1c !important; }
-    .wc-wait.late .fa { animation: wc-pulse 1.4s ease-in-out infinite; }
+    .wc-cod { font-family: ui-monospace, Menlo, monospace; color: #64748b; }
+
+    .wc-dias { display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .7rem; border-radius: 9px;
+               font-size: .85rem; font-weight: 700; background: #f1f5f9; color: #475569; white-space: nowrap; }
+    .wc-dias.warn { background: #fff7ed; color: #c2410c; }
+    .wc-dias.late { background: #fef2f2; color: #b91c1c; }
+    .wc-dias.late .fa { animation: wc-pulse 1.4s ease-in-out infinite; }
     @keyframes wc-pulse { 50% { opacity: .3; } }
-    @media (prefers-reduced-motion: reduce) { .wc-wait.late .fa { animation: none; } }
+    @media (prefers-reduced-motion: reduce) { .wc-dias.late .fa { animation: none; } }
 
-    /* Tira do topo: um ponto por bloco */
-    .wc-steps { display: flex; gap: .25rem; overflow-x: auto; padding-bottom: .25rem; }
-    .wc-step { flex: 1 1 0; min-width: 120px; text-align: center; position: relative; padding-top: 2.6rem; font-size: .8rem; color: #94a3b8; }
-    .wc-step::before { content: ""; position: absolute; top: 1.05rem; left: -50%; right: 50%; height: 3px; background: #e2e8f0; }
-    .wc-step:first-child::before { display: none; }
-    .wc-step .dot { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 2.2rem; height: 2.2rem; border-radius: 50%;
-                    display: grid; place-items: center; background: #fff; border: 3px solid #e2e8f0; color: #94a3b8; z-index: 1; }
-    .wc-step.done, .wc-step.partial { color: #334155; }
-    .wc-step.done::before, .wc-step.current::before, .wc-step.partial::before { background: var(--c); }
-    .wc-step.done .dot { background: var(--c); border-color: var(--c); color: #fff; }
-    .wc-step.partial .dot { border-color: var(--c); color: var(--c); }
-    .wc-step.current { color: #0f172a; font-weight: 700; }
-    .wc-step.current .dot { border-color: var(--c); color: var(--c); box-shadow: 0 0 0 5px color-mix(in srgb, var(--c) 18%, transparent); }
+    /* A mesma barra de cinco passos da listagem */
+    .wc-trilho { display: grid; grid-template-columns: repeat(5, 1fr); gap: .3rem; margin-top: 1rem; }
+    .wc-passo .barra { height: .55rem; border-radius: 4px; background: #e2e8f0; }
+    .wc-passo.feito .barra { background: var(--c); }
+    .wc-passo.agora .barra { background: var(--c); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 28%, transparent); }
+    .wc-passo .nome { display: block; font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; color: #94a3b8; margin-top: .35rem; }
+    .wc-passo.feito .nome { color: #64748b; }
+    .wc-passo.agora .nome { color: var(--c); font-weight: 700; }
+    .wc-passo .quando { display: block; font-size: .7rem; color: #94a3b8; font-weight: 400; }
+    .wc-passo.vazio { opacity: .35; }
 
-    /* Blocos */
-    .wc-block { border: 1px solid #e2e8f0; border-radius: 14px; margin-bottom: .75rem; overflow: hidden; background: #fff; }
-    .wc-block.is-current { border-color: var(--c); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 12%, transparent); }
-    .wc-block > header { display: flex; align-items: center; gap: .5rem; padding: .55rem .85rem; background: var(--bg); color: var(--c); font-weight: 700; font-size: .92rem; }
-    .wc-block > header .num { width: 1.5rem; height: 1.5rem; border-radius: 50%; background: var(--c); color: #fff; display: grid; place-items: center; font-size: .78rem; }
-    .wc-half { padding: .6rem .85rem; }
-    .wc-half + .wc-half { border-top: 1px dashed #e2e8f0; }
-    .wc-half-head { display: flex; align-items: center; gap: .5rem; }
-    .wc-half-head form { margin: 0; }
-    .wc-tick { width: 1.4rem; height: 1.4rem; border-radius: 50%; display: grid; place-items: center; font-size: .62rem; background: #f1f5f9; color: #cbd5e1; flex: none; }
-    .wc-half.done .wc-tick { background: #dcfce7; color: #15803d; }
-    .wc-half.next .wc-tick { background: #fef3c7; color: #b45309; }
-    .wc-half .wc-when { color: #64748b; font-size: .82rem; margin-left: .4rem; }
-    .wc-half-body { padding: .35rem 0 0 1.9rem; font-size: .86rem; color: #334155; }
-    .wc-half-form { padding: .6rem 0 .2rem 1.9rem; }
-    .wc-half-form label { font-size: .76rem; font-weight: 700; margin-bottom: .15rem; color: #475569; }
-    .wc-note { margin-top: .35rem; padding: .35rem .6rem; background: #f8fafc; border-left: 3px solid #cbd5e1; border-radius: 0 6px 6px 0; font-size: .82rem; color: #475569; }
+    /* O que fazer agora */
+    .wc-agora { border: 2px solid var(--c); border-radius: 16px; overflow: hidden; }
+    .wc-agora > header { background: color-mix(in srgb, var(--c) 10%, #fff); color: var(--c); padding: .6rem .9rem;
+                         display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; flex-wrap: wrap; }
+    .wc-agora > header strong { font-size: 1rem; }
+    .wc-agora > header small { font-weight: 600; opacity: .85; }
+    .wc-agora .corpo { padding: .9rem; }
+    .wc-fechado { border: 2px solid var(--c); border-radius: 16px; padding: 1.1rem; text-align: center; }
+
+    .wc-form label { font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: #475569; margin-bottom: .2rem; }
+    .wc-outros { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; margin-top: .75rem; font-size: .82rem; }
+    .wc-outros .chip { border: 1px dashed #cbd5e1; border-radius: 999px; padding: .15rem .6rem; color: #475569; background: #fff; }
+    .wc-outros .chip:hover { border-color: var(--c); color: var(--c); text-decoration: none; }
+
+    /* Já feito */
+    .wc-feito { border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; }
+    .wc-feito + .wc-feito { margin-top: .4rem; }
+    .wc-feito > summary { display: flex; align-items: center; gap: .55rem; padding: .55rem .7rem; cursor: pointer; list-style: none; }
+    .wc-feito > summary::-webkit-details-marker { display: none; }
+    .wc-feito[open] > summary { border-bottom: 1px solid #e2e8f0; background: #f8fafc; }
+    .wc-feito .tick { width: 1.3rem; height: 1.3rem; border-radius: 50%; display: grid; place-items: center; flex: none;
+                      font-size: .7rem; background: color-mix(in srgb, var(--c) 18%, #fff); color: var(--c); }
+    .wc-feito .que { font-weight: 600; font-size: .9rem; color: #1e293b; }
+    .wc-feito .quando { margin-left: auto; font-size: .8rem; color: #94a3b8; white-space: nowrap; }
+    .wc-feito .corpo { padding: .8rem; }
+    .wc-nota { font-size: .82rem; color: #475569; background: #f8fafc; border-left: 3px solid #cbd5e1;
+               border-radius: 0 6px 6px 0; padding: .3rem .55rem; margin: .35rem .7rem .55rem 2.5rem; }
+    .wc-anexo { font-family: ui-monospace, Menlo, monospace; font-size: .74rem; padding: .1rem .4rem; border-radius: 4px;
+                border: 1px solid #e2e8f0; color: #64748b; white-space: nowrap; }
+    a.wc-anexo { color: #b91c1c; border-color: #fecaca; }
+    a.wc-anexo:hover { background: #fef2f2; color: #991b1b; }
 
     .wc-desc { white-space: pre-line; color: #1e293b; }
-    .wc-diag { background: #faf9ff; border-left: 3px solid #7c3aed; border-radius: 8px; padding: .6rem .8rem; }
-    .wc-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .6rem; }
-    .wc-facts div { background: #f8fafc; border-radius: 10px; padding: .45rem .65rem; }
-    .wc-facts dt { font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; color: #94a3b8; margin: 0; }
-    .wc-facts dd { margin: 0; font-weight: 600; color: #334155; font-size: .88rem; }
-    .wc-sibling { display: flex; align-items: center; gap: .5rem; padding: .5rem .65rem; border-radius: 10px; background: #f8fafc; }
-    .wc-sibling + .wc-sibling { margin-top: .4rem; }
-    .wc-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: .5rem; }
+    .wc-obs { background: #fffbeb; border-left: 3px solid #d97706; border-radius: 0 8px 8px 0; padding: .5rem .7rem; font-size: .88rem; }
+    .wc-diag { background: #faf9ff; border-left: 3px solid #7c3aed; border-radius: 0 8px 8px 0; padding: .5rem .7rem; font-size: .88rem; }
+    .wc-facts { font-size: .88rem; color: #334155; }
+    .wc-facts div + div { margin-top: .25rem; }
+    .wc-facts dt { display: inline; font-size: .74rem; text-transform: uppercase; letter-spacing: .04em; color: #94a3b8; font-weight: 600; }
+    .wc-facts dd { display: inline; margin: 0 0 0 .3rem; font-weight: 600; }
+    .wc-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: .4rem; }
     .wc-thumb { position: relative; }
-    .wc-thumb img { width: 100%; height: 92px; object-fit: cover; border-radius: 10px; border: 1px solid #e2e8f0; }
-    .wc-thumb form { position: absolute; top: .2rem; right: .2rem; margin: 0; }
-    .wc-thumb button { border: 0; border-radius: 50%; width: 1.4rem; height: 1.4rem; font-size: .7rem; background: rgba(15,23,42,.65); color: #fff; }
-    .wc-timeline { list-style: none; margin: 0; padding: 0 0 0 1rem; }
-    .wc-timeline li { position: relative; padding: 0 0 .9rem 1rem; border-left: 2px solid #e2e8f0; }
-    .wc-timeline li:last-child { border-left-color: transparent; padding-bottom: 0; }
-    .wc-timeline .tl-dot { position: absolute; left: -.43rem; top: .15rem; width: .8rem; height: .8rem; border-radius: 50%; background: #fff; border: 3px solid var(--c); }
-    .wc-timeline .tl-title { font-weight: 600; font-size: .88rem; color: #1e293b; }
-    .wc-timeline .tl-meta { font-size: .76rem; color: #64748b; }
-    .wc-timeline .tl-note { font-size: .8rem; color: #475569; background: #f8fafc; border-radius: 6px; padding: .25rem .5rem; margin-top: .2rem; }
+    .wc-thumb img { width: 100%; height: 78px; object-fit: cover; border-radius: 8px; border: 1px solid #e2e8f0; }
+    .wc-thumb form { position: absolute; top: .15rem; right: .15rem; margin: 0; }
+    .wc-thumb button { border: 0; border-radius: 50%; width: 1.3rem; height: 1.3rem; font-size: .65rem; background: rgba(15,23,42,.65); color: #fff; }
+    .wc-sibling { display: flex; align-items: center; gap: .5rem; padding: .4rem .55rem; border-radius: 8px; background: #f8fafc; }
+    .wc-sibling + .wc-sibling { margin-top: .35rem; }
 </style>
 @endpush
 
 @section('content')
 <div class="card mb-3">
     <div class="card-body">
-        <div class="d-flex flex-wrap align-items-start justify-content-between mb-3" style="gap: .75rem">
+        <div class="d-flex flex-wrap align-items-start justify-content-between" style="gap: .75rem">
             <div>
-                <h4 class="mb-2">
+                <h4 class="mb-1">
                     <span class="wc-client wc-client-{{ $case->cliente }}">{{ $case->clientLabel() }}</span>
-                    <span class="wc-type-badge" style="--c: {{ $type['color'] }}; --bg: {{ $type['bg'] }}" title="{{ __($type['ajuda']) }}"><i class="fas {{ $type['icon'] }}"></i> {{ __($type['label']) }}</span>
-                    {{ $case->store->codigo_loja ?? '—' }} — {{ $case->store->nome_loja ?? '—' }}
+                    <span class="wc-cod">{{ $case->store->codigo_loja ?? '—' }}</span>
+                    {{ $case->store->nome_loja ?? '—' }}
+                    <span class="wc-type-badge" style="--c: {{ $type['color'] }}; --bg: {{ $type['bg'] }}" title="{{ __($type['ajuda']) }}">
+                        <i class="fas {{ $type['icon'] }}"></i> {{ __($type['label']) }}
+                    </span>
                 </h4>
-                <span class="wc-badge" style="--bg: {{ $phase['bg'] }}; --fg: {{ $phase['color'] }}"><i class="fas {{ $phase['icon'] }}"></i> {{ __($phase['label']) }}</span>
-                @if($todo)
-                    <span class="wc-wait ml-2 {{ $alert }}" style="--bg: {{ $phase['bg'] }}; --fg: {{ $phase['color'] }}">
-                        <i class="fa {{ $alert ? 'fa-exclamation-triangle' : 'fa-hourglass-half' }}"></i>
-                        {{ $todo }}
-                        <small>· {{ trans_choice('{0} hoje|{1} há :count dia|[2,*] há :count dias', $case->daysInPhase(), ['count' => $case->daysInPhase()]) }}</small>
+                @if($case->isOpen())
+                    <span class="wc-dias {{ $alert }}">
+                        <i class="fa {{ $alert ? 'fa-exclamation-triangle' : 'fa-clock' }}"></i>
+                        {{ trans_choice('{0} hoje|{1} há :count dia|[2,*] há :count dias', $case->daysInPhase(), ['count' => $case->daysInPhase()]) }}
+                        <small>· {{ __($case->waitingOnConfig()['label']) }}</small>
+                    </span>
+                @else
+                    <span class="wc-dias" style="background: {{ $phase['bg'] }}; color: {{ $phase['color'] }}">
+                        <i class="fas {{ $phase['icon'] }}"></i> {{ __($phase['label']) }} · {{ optional($case->fechado_em)->format('d/m/Y') }}
                     </span>
                 @endif
             </div>
@@ -132,14 +131,19 @@
             </div>
         </div>
 
-        <div class="wc-steps">
+        <div class="wc-trilho">
             @foreach($blocks as $blockKey => $block)
-                @php($state = $blockState($blockKey, $block))
-                <div class="wc-step {{ $state }}" style="--c: {{ $block['color'] }}">
-                    <span class="dot"><i class="fas {{ $state === 'done' ? 'fa-check' : $block['icon'] }}"></i></span>
-                    {{ __($block['label']) }}
+                @php($estado = $case->blockState($blockKey, $next))
+                <div class="wc-passo {{ $estado }}" style="--c: {{ $block['color'] }}" title="{{ __($block['label']) }}">
+                    <div class="barra"></div>
+                    <span class="nome">{{ __($block['curto']) }}
+                        <span class="quando">{{ optional($case->blockDate($blockKey))->format('d/m') ?: '—' }}</span>
+                    </span>
                 </div>
             @endforeach
+            @for($i = count($blocks); $i < 5; $i++)
+                <div class="wc-passo vazio"><div class="barra"></div><span class="nome">—</span></div>
+            @endfor
         </div>
     </div>
 </div>
@@ -152,79 +156,105 @@
 
 <div class="row">
     <div class="col-lg-7">
-        {{-- Problema --}}
-        <div class="card mb-3">
-            <div class="card-body">
-                <h5 class="card-title"><i class="fa fa-exclamation-circle text-danger"></i> {{ __('Problema') }}</h5>
-                <p class="wc-desc">{{ $case->descricao }}</p>
-                @if($case->observacoes)
-                    <div class="alert alert-warning py-2 small mb-3"><strong>{{ __('Observações') }}:</strong> {{ $case->observacoes }}</div>
-                @endif
-                @if($case->os_texto)
-                    <div class="wc-diag mb-3">
-                        <div class="small font-weight-bold text-uppercase mb-1" style="color: {{ config('warranty.blocks.visita.color') }}">
-                            <i class="fa fa-clipboard-check"></i> {{ __('Diagnóstico do técnico') }}
-                            @if($case->os_numero)<span class="text-muted">· {{ __('OS') }} {{ $case->os_numero }}</span>@endif
-                        </div>
-                        <p class="wc-desc mb-0">{{ $case->os_texto }}</p>
-                    </div>
-                @endif
-                <dl class="wc-facts mb-0">
-                    <div><dt>{{ __('Data da avaria') }}</dt><dd>{{ optional($case->data_avaria)->format('d/m/Y') ?? '—' }}
-                        <a href="#" class="ml-1 text-primary" data-toggle="modal" data-target="#wc-edit" data-wc-field="data_avaria" title="{{ __('Alterar data da avaria') }}"><i class="fa fa-pencil-alt"></i></a></dd></div>
-                    <div><dt>{{ __('Máquina') }}</dt><dd>{{ $case->machine ? trim($case->machine->serial_number . ' ' . ($case->machine->descricao ? '— ' . $case->machine->descricao : '')) : '—' }}</dd></div>
-                    <div><dt>{{ __('Criado por') }}</dt><dd>{{ $case->creator->name ?? '—' }} · {{ $case->created_at->format('d/m/Y') }}</dd></div>
-                    @if($case->technicalRequest)
-                        <div><dt>{{ __('Pedido de assistência') }}</dt><dd><a href="{{ route('backoffice.technical_requests.show', $case->technical_request_id) }}">#{{ $case->technical_request_id }} <i class="fa fa-external-link-alt small"></i></a></dd></div>
+        {{-- Uma coisa a fazer de cada vez --}}
+        @if($next)
+            @php($blocoDoNext = config('warranty.blocks.' . $next['block']))
+            <div class="wc-agora mb-3" style="--c: {{ $blocoDoNext['color'] }}">
+                <header>
+                    <strong><i class="fas {{ $blocoDoNext['icon'] }}"></i> {{ __('Agora') }}: {{ __($next['todo'] ?? $next['label']) }}</strong>
+                    @if($case->daysInPhase() > 0)
+                        <small>{{ __($case->waitingOnConfig()['label']) }} {{ __('desde') }} {{ optional($case->fase_desde)->format('d/m') }}</small>
                     @endif
-                </dl>
-            </div>
-        </div>
+                </header>
+                <div class="corpo">
+                    @include('backoffice.warranty.partials.step_form', ['step' => $next, 'done' => false])
 
-        @php($n = 0)
-        @foreach($blocks as $blockKey => $block)
-            @php($n++)
-            <div class="wc-block {{ $next && $next['block'] === $blockKey ? 'is-current' : '' }}" style="--c: {{ $block['color'] }}; --bg: {{ $block['bg'] }}">
-                <header><span class="num">{{ $n }}</span> <i class="fas {{ $block['icon'] }}"></i> {{ __($block['label']) }}</header>
-                @foreach($block['halves'] as $halfKey => $half)
-                    @php($step = $case->step($blockKey, $halfKey))
-                    {{-- As duas metades do fecho são alternativas: a recusa esconde-se depois de o processo fechar --}}
-                    @continue($blockKey === 'fecho' && $halfKey === 'recusado' && !$case->stepDone($step) && !$case->isOpen())
-                    @include('backoffice.warranty.partials.step', [
-                        'blockKey' => $blockKey,
-                        'block' => $block,
-                        'halfKey' => $halfKey,
-                        'step' => $step,
-                        'isNext' => $next && $next['block'] === $blockKey && $next['half'] === $halfKey,
-                    ])
-                @endforeach
-            </div>
-        @endforeach
-    </div>
-
-    <div class="col-lg-5">
-        @if($siblings->isNotEmpty())
-            <div class="card mb-3">
-                <div class="card-body">
-                    <h5 class="card-title"><i class="fa fa-code-branch text-info"></i> {{ __('Outros processos do mesmo pedido') }}</h5>
-                    @foreach($siblings as $sibling)
-                        @php($st = $sibling->typeConfig())
-                        <div class="wc-sibling">
-                            <span class="wc-type-badge" style="--c: {{ $st['color'] }}; --bg: {{ $st['bg'] }}"><i class="fas {{ $st['icon'] }}"></i> {{ __($st['label']) }}</span>
-                            <span class="flex-grow-1 small">#{{ $sibling->id }} · {{ __($sibling->phase()['label']) }}</span>
-                            <a href="{{ route('backoffice.warranty.show', $sibling->id) }}" class="btn btn-sm btn-outline-primary"><i class="fa fa-arrow-right"></i></a>
+                    @if($outros)
+                        <div class="wc-outros">
+                            <span class="text-muted">{{ __('Não é isto?') }}</span>
+                            @foreach($outros as $outro)
+                                <a href="#wc-p-{{ $outro['block'] }}-{{ $outro['half'] }}" data-toggle="collapse" class="chip"
+                                   style="--c: {{ config('warranty.blocks.' . $outro['block'] . '.color') }}">{{ __($outro['label']) }}</a>
+                            @endforeach
                         </div>
-                    @endforeach
+                    @endif
                 </div>
+            </div>
+
+            @foreach($outros as $outro)
+                <div class="collapse {{ $errors->any() && old('__step') === $outro['block'] . '.' . $outro['half'] ? 'show' : '' }}"
+                     id="wc-p-{{ $outro['block'] }}-{{ $outro['half'] }}">
+                    <div class="card mb-3" style="border-left: 4px solid {{ config('warranty.blocks.' . $outro['block'] . '.color') }}">
+                        <div class="card-body">
+                            <h6 class="font-weight-bold">{{ __($outro['label']) }}</h6>
+                            @include('backoffice.warranty.partials.step_form', ['step' => $outro, 'done' => false])
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        @else
+            <div class="wc-fechado mb-3" style="--c: {{ $phase['color'] }}">
+                <i class="fas {{ $phase['icon'] }} fa-2x mb-2" style="color: {{ $phase['color'] }}"></i>
+                <h5 class="mb-1">{{ __($phase['label']) }}</h5>
+                <p class="text-muted small mb-0">{{ __('Processo fechado a :data.', ['data' => optional($case->fechado_em)->format('d/m/Y')]) }}</p>
+                @if($case->motivo_recusa)<p class="small mt-2 mb-0"><strong>{{ __('Motivo') }}:</strong> {{ $case->motivo_recusa }}</p>@endif
             </div>
         @endif
 
-        {{-- Fotografias --}}
+        {{-- O que já foi feito, do mais recente para o mais antigo --}}
+        <h6 class="text-uppercase text-muted small font-weight-bold mt-4 mb-2">{{ __('Já feito') }}</h6>
+        @foreach($feitos as $step)
+            @php($bloco = config('warranty.blocks.' . $step['block']))
+            @php($evento = $case->events->firstWhere('fase', $step['fase']))
+            @php($doc = $step['doc'] ?? null)
+            <details class="wc-feito" style="--c: {{ $bloco['color'] }}">
+                <summary>
+                    <span class="tick"><i class="fa fa-check"></i></span>
+                    <span class="que">{{ __($step['label']) }}</span>
+                    @if($doc && $case->{$doc . '_path'})
+                        <a href="{{ route('backoffice.warranty.document', [$case->id, $doc]) }}" target="_blank" class="wc-anexo">
+                            <i class="fa fa-file-pdf"></i> {{ $case->{$doc . '_numero'} ?? __('abrir') }}
+                        </a>
+                    @elseif($doc && $case->{$doc . '_numero'})
+                        <span class="wc-anexo" title="{{ __('sem PDF') }}">{{ $case->{$doc . '_numero'} }}</span>
+                    @endif
+                    <span class="quando">{{ $case->{$step['date']}->format('d/m/Y') }}</span>
+                </summary>
+                <div class="corpo">
+                    @include('backoffice.warranty.partials.step_form', ['step' => $step, 'done' => true])
+                </div>
+            </details>
+            @if($evento?->nota)<div class="wc-nota">{{ $evento->nota }}</div>@endif
+        @endforeach
+
+        @php($registado = $case->events->firstWhere('fase', 'registado'))
+        <div class="wc-feito" style="--c: #94a3b8">
+            <div class="d-flex align-items-center" style="gap: .55rem; padding: .55rem .7rem">
+                <span class="tick"><i class="fa fa-check"></i></span>
+                <span class="que">{{ __('Avaria registada') }}</span>
+                <span class="quando">{{ optional($case->data_avaria)->format('d/m/Y') }} · {{ $case->creator->name ?? '—' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
         <div class="card mb-3">
             <div class="card-body">
-                <h5 class="card-title"><i class="fa fa-camera text-primary"></i> {{ __('Fotografias') }} <span class="text-muted small">({{ $case->photos->count() }})</span></h5>
+                <h5 class="card-title"><i class="fa fa-exclamation-circle text-danger"></i> {{ __('A avaria') }}</h5>
+                <p class="wc-desc">{{ $case->descricao }}</p>
+                @if($case->observacoes)
+                    <div class="wc-obs mb-2"><strong>{{ __('Atenção') }}:</strong> {{ $case->observacoes }}</div>
+                @endif
+                @if($case->os_texto)
+                    <div class="wc-diag mb-2">
+                        <strong style="color: {{ config('warranty.blocks.visita.color') }}">
+                            {{ __('Diagnóstico do técnico') }}@if($case->os_numero) · {{ $case->os_numero }}@endif
+                        </strong><br>{{ $case->os_texto }}
+                    </div>
+                @endif
+
                 @if($case->photos->isNotEmpty())
-                    <div class="wc-gallery mb-3">
+                    <div class="wc-gallery mt-3">
                         @foreach($case->photos as $photo)
                             <div class="wc-thumb">
                                 <a href="{{ route('backoffice.warranty.photo', $photo->id) }}" target="_blank" title="{{ $photo->nome }}">
@@ -238,32 +268,45 @@
                             </div>
                         @endforeach
                     </div>
-                @else
-                    <p class="text-muted small">{{ __('Ainda sem fotografias.') }}</p>
                 @endif
-                <form method="POST" action="{{ route('backoffice.warranty.photos.store', $case->id) }}" enctype="multipart/form-data">
-                    @csrf
-                    @include('backoffice.warranty.partials.photo_input', ['inputId' => 'wc-more-photos'])
-                    <button type="submit" class="btn btn-primary btn-sm mt-2"><i class="fa fa-upload"></i> {{ __('Adicionar fotografias') }}</button>
-                </form>
+                <a href="#wc-fotos" data-toggle="collapse" class="small text-muted d-inline-block mt-2">
+                    <i class="fa fa-camera"></i> {{ __('Adicionar fotografias') }}
+                </a>
+                <div class="collapse" id="wc-fotos">
+                    <form method="POST" action="{{ route('backoffice.warranty.photos.store', $case->id) }}" enctype="multipart/form-data" class="mt-2">
+                        @csrf
+                        @include('backoffice.warranty.partials.photo_input', ['inputId' => 'wc-more-photos'])
+                        <button type="submit" class="btn btn-primary btn-sm mt-2"><i class="fa fa-upload"></i> {{ __('Adicionar fotografias') }}</button>
+                    </form>
+                </div>
             </div>
         </div>
 
-        {{-- Histórico --}}
         <div class="card mb-3">
             <div class="card-body">
-                <h5 class="card-title"><i class="fa fa-history text-secondary"></i> {{ __('Histórico') }}</h5>
-                <ul class="wc-timeline">
-                    @foreach($case->events as $event)
-                        @php($ep = config('warranty.phases.' . $event->fase, []))
-                        <li style="--c: {{ $ep['color'] ?? '#94a3b8' }}">
-                            <span class="tl-dot"></span>
-                            <div class="tl-title">{{ __($ep['label'] ?? $event->fase) }}</div>
-                            <div class="tl-meta">{{ $event->data->format('d/m/Y') }} · {{ $event->user->name ?? '—' }}</div>
-                            @if($event->nota)<div class="tl-note">{{ $event->nota }}</div>@endif
-                        </li>
+                <h5 class="card-title"><i class="fa fa-link text-info"></i> {{ __('Ligações') }}</h5>
+                <dl class="wc-facts mb-0">
+                    <div><dt>{{ __('Data da avaria') }}</dt><dd>{{ optional($case->data_avaria)->format('d/m/Y') ?? '—' }}
+                        <a href="#" class="ml-1 text-primary" data-toggle="modal" data-target="#wc-edit" data-wc-field="data_avaria" title="{{ __('Alterar data da avaria') }}"><i class="fa fa-pencil-alt"></i></a></dd></div>
+                    <div><dt>{{ __('Máquina') }}</dt><dd>{{ $case->machine ? trim($case->machine->serial_number . ' ' . ($case->machine->descricao ? '— ' . $case->machine->descricao : '')) : '—' }}</dd></div>
+                    @if($case->technicalRequest)
+                        <div><dt>{{ __('Pedido de assistência') }}</dt><dd><a href="{{ route('backoffice.technical_requests.show', $case->technical_request_id) }}">#{{ $case->technical_request_id }} <i class="fa fa-external-link-alt small"></i></a></dd></div>
+                    @endif
+                    <div><dt>{{ __('Criado por') }}</dt><dd>{{ $case->creator->name ?? '—' }} · {{ $case->created_at->format('d/m/Y') }}</dd></div>
+                </dl>
+
+                @if($siblings->isNotEmpty())
+                    <hr>
+                    <h6 class="text-uppercase text-muted small font-weight-bold">{{ __('Outros processos do mesmo pedido') }}</h6>
+                    @foreach($siblings as $sibling)
+                        @php($st = $sibling->typeConfig())
+                        <div class="wc-sibling">
+                            <span class="wc-type-badge" style="--c: {{ $st['color'] }}; --bg: {{ $st['bg'] }}"><i class="fas {{ $st['icon'] }}"></i> {{ __($st['curto']) }}</span>
+                            <span class="flex-grow-1 small">#{{ $sibling->id }} · {{ __($sibling->phase()['label']) }}</span>
+                            <a href="{{ route('backoffice.warranty.show', $sibling->id) }}" class="btn btn-sm btn-outline-primary"><i class="fa fa-arrow-right"></i></a>
+                        </div>
                     @endforeach
-                </ul>
+                @endif
             </div>
         </div>
     </div>

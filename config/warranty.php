@@ -37,7 +37,7 @@ return [
     // Os blocos, por ordem. Cada metade diz qual é a sua data, a fase que representa e se leva documento.
     'blocks' => [
         'visita' => [
-            'label' => 'Visita de diagnóstico',
+            'label' => 'Visita de diagnóstico', 'curto' => 'Visita',
             'icon' => 'fa-clipboard-check',
             'color' => '#7c3aed',
             'bg' => '#f3e8ff',
@@ -47,7 +47,7 @@ return [
             ],
         ],
         'sielaff' => [
-            'label' => 'Cotação Sielaff',
+            'label' => 'Cotação Sielaff', 'curto' => 'Sielaff',
             'icon' => 'fa-file-invoice',
             'color' => '#b45309',
             'bg' => '#fef3c7',
@@ -58,7 +58,7 @@ return [
             ],
         ],
         'cliente' => [
-            'label' => 'Cliente',
+            'label' => 'Cliente', 'curto' => 'Cliente',
             'icon' => 'fa-paper-plane',
             'color' => '#6d28d9',
             'bg' => '#ede9fe',
@@ -69,7 +69,7 @@ return [
             ],
         ],
         'alemanha' => [
-            'label' => 'Peça (Alemanha)',
+            'label' => 'Peça (Alemanha)', 'curto' => 'Alemanha',
             'icon' => 'fa-globe-europe',
             'color' => '#0f766e',
             'bg' => '#ccfbf1',
@@ -80,7 +80,7 @@ return [
             ],
         ],
         'fecho' => [
-            'label' => 'Fecho',
+            'label' => 'Fecho', 'curto' => 'Fecho',
             'icon' => 'fa-check-circle',
             'color' => '#15803d',
             'bg' => '#dcfce7',

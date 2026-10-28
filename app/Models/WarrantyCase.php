@@ -182,6 +182,51 @@ class WarrantyCase extends Model
         return $next && isset($next['todo']) ? __($next['todo']) : null;
     }
 
+    /** As metades que ainda faltam preencher, pela ordem do processo. */
+    public function pendingSteps(): array
+    {
+        return array_values(array_filter($this->steps(), fn ($s) => !$this->stepDone($s)));
+    }
+
+    /** As metades já preenchidas, da mais recente para a mais antiga. */
+    public function doneSteps(): array
+    {
+        $done = array_filter($this->steps(), fn ($s) => $this->stepDone($s));
+
+        return array_reverse(array_values($done));
+    }
+
+    /** Estado de um bloco na barra de progresso: 'feito', 'agora' ou vazio. */
+    public function blockState(string $blockKey, ?array $next = null): string
+    {
+        $halves = array_keys(config("warranty.blocks.$blockKey.halves"));
+        $done = array_filter($halves, fn ($h) => $this->stepDone($this->step($blockKey, $h)));
+
+        // O fecho tem duas metades alternativas: basta uma para o bloco estar feito
+        $completo = $blockKey === 'fecho' ? count($done) > 0 : count($done) === count($halves);
+        if ($completo) {
+            return 'feito';
+        }
+
+        $next = $next ?? $this->nextStep();
+
+        return $next && $next['block'] === $blockKey ? 'agora' : '';
+    }
+
+    /** A data do bloco: a da última metade preenchida. */
+    public function blockDate(string $blockKey): ?Carbon
+    {
+        $datas = [];
+        foreach (array_keys(config("warranty.blocks.$blockKey.halves")) as $half) {
+            $step = $this->step($blockKey, $half);
+            if ($step && $this->stepDone($step)) {
+                $datas[] = $this->{$step['date']};
+            }
+        }
+
+        return $datas ? max($datas) : null;
+    }
+
     /** A fase e a data em que entrámos nela, deduzidas das datas preenchidas. */
     public function syncPhase(): void
     {

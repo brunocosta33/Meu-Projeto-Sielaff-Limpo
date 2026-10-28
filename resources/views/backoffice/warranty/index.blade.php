@@ -26,33 +26,44 @@
     .wc-badge { display: inline-flex; align-items: center; gap: .3rem; font-size: .76rem; font-weight: 600; padding: .2rem .55rem;
                 border-radius: 999px; background: var(--bg); color: var(--fg); border: 1px solid var(--fg); white-space: nowrap; }
 
-    /* Um cartão por processo: insígnia, loja, estado e os anexos */
-    .wc-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: .75rem; }
-    @media (max-width: 575px) { .wc-cards { grid-template-columns: 1fr; } }
-    .wc-card { cursor: pointer; padding: .75rem .9rem; background: #fff;
-               border: 1px solid #e2e8f0; border-left: 5px solid var(--c); border-radius: 12px;
-               transition: box-shadow .15s, transform .15s; }
-    .wc-card:hover { box-shadow: 0 6px 18px rgba(15, 23, 42, .09); transform: translateY(-2px); }
-    .wc-card-head { display: flex; align-items: center; flex-wrap: wrap; gap: .45rem; }
-    .wc-card-store { font-weight: 700; color: #0f172a; font-size: .95rem; }
-    .wc-card-store a { color: inherit; }
-    .wc-card-store a:hover { color: var(--c); }
+    /* Uma linha por processo, com a barra de cinco passos */
+    .wc-list { display: flex; flex-direction: column; }
+    .wc-item { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.25fr) minmax(0, .95fr);
+               gap: 1rem; align-items: center; padding: .85rem .75rem; border-radius: 10px; cursor: pointer; }
+    .wc-item + .wc-item { border-top: 1px solid #eef1f5; }
+    .wc-item:hover { background: #f8fafc; }
+    @media (max-width: 991px) { .wc-item { grid-template-columns: 1fr; gap: .6rem; } }
 
-    .wc-state { margin-left: auto; display: inline-flex; align-items: center; gap: .3rem; padding: .2rem .6rem; border-radius: 999px;
-                font-size: .74rem; font-weight: 700; white-space: nowrap; background: var(--bg); color: var(--fg); }
-    .wc-late { display: inline-flex; align-items: center; gap: .3rem; padding: .2rem .55rem; border-radius: 999px;
-               font-size: .74rem; font-weight: 700; background: #fef2f2; color: #b91c1c; white-space: nowrap; }
-    .wc-late .fa { animation: wc-pulse 1.4s ease-in-out infinite; }
-    @keyframes wc-pulse { 50% { opacity: .3; } }
-    @media (prefers-reduced-motion: reduce) { .wc-late .fa { animation: none; } }
+    .wc-loja { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; font-weight: 700; color: #0f172a; }
+    .wc-loja a { color: inherit; }
+    .wc-loja .cod { font-family: ui-monospace, Menlo, monospace; color: #64748b; font-weight: 600; }
+    .wc-avaria { color: #64748b; font-size: .88rem; margin: .2rem 0 0;
+                 display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
-    /* Os três anexos, sempre nos mesmos lugares: a cinzento os que ainda não existem */
-    .wc-files { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .55rem; }
-    .wc-file { display: inline-flex; align-items: center; gap: .3rem; padding: .22rem .5rem; border-radius: 8px;
-               font-size: .75rem; font-weight: 600; background: #f1f5f9; color: #94a3b8; border: 1px solid transparent; }
-    .wc-file.has { background: #fff; color: #334155; border-color: #cbd5e1; }
-    .wc-file.pdf { color: #b91c1c; border-color: #fecaca; background: #fff5f5; }
-    .wc-file.pdf:hover { background: #fee2e2; color: #991b1b; }
+    /* Barra de progresso: um segmento por bloco, sempre cinco para as linhas alinharem */
+    .wc-trilho { display: grid; grid-template-columns: repeat(5, 1fr); gap: .22rem; min-width: 0; }
+    .wc-passo { min-width: 0; }
+    .wc-passo .barra { height: .42rem; border-radius: 3px; background: #e2e8f0; }
+    .wc-passo.feito .barra { background: var(--c); }
+    .wc-passo.agora .barra { background: var(--c); box-shadow: 0 0 0 2px color-mix(in srgb, var(--c) 30%, transparent); }
+    .wc-passo .nome { display: block; font-size: .66rem; text-transform: uppercase; letter-spacing: .04em;
+                      color: #94a3b8; margin-top: .3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .wc-passo.feito .nome { color: #64748b; }
+    .wc-passo.agora .nome { color: var(--c); font-weight: 700; }
+    .wc-passo.vazio { opacity: .35; }
+
+    .wc-agora { font-weight: 700; font-size: .9rem; line-height: 1.3; color: #1e293b; }
+    .wc-agora .seta { color: var(--c); }
+    .wc-meta { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; margin-top: .35rem; }
+    .wc-dias { font-size: .76rem; color: #94a3b8; }
+    .wc-dias.warn { color: #c2410c; background: #fff7ed; font-weight: 700; padding: .1rem .4rem; border-radius: 5px; }
+    .wc-dias.late { color: #b91c1c; background: #fef2f2; font-weight: 700; padding: .1rem .4rem; border-radius: 5px; }
+    .wc-anexo { font-family: ui-monospace, Menlo, monospace; font-size: .72rem; padding: .1rem .35rem; border-radius: 4px;
+                border: 1px solid #e2e8f0; color: #64748b; white-space: nowrap; }
+    a.wc-anexo { color: #b91c1c; border-color: #fecaca; }
+    a.wc-anexo:hover { background: #fef2f2; color: #991b1b; }
+    .wc-fechado { font-size: .84rem; font-weight: 700; color: #15803d; }
+    .wc-fechado.recusado { color: #b91c1c; }
 </style>
 @endpush
 
@@ -118,50 +129,63 @@
                 <a href="{{ route('backoffice.warranty.create') }}" class="btn btn-danger btn-sm"><i class="fa fa-plus"></i> {{ __('Novo processo') }}</a>
             </div>
         @else
-            <div class="wc-cards">
+            <div class="wc-list">
                 @foreach($cases as $case)
                     @php($phase = $case->phase())
+                    @php($next = $case->nextStep())
                     @php($accent = $case->isOpen() ? $case->waitingOnConfig()['color'] : $phase['color'])
-                    <div class="wc-card" style="--c: {{ $accent }}"
+                    <div class="wc-item" style="--c: {{ $accent }}"
                          onclick="if (!event.target.closest('a')) location.href = this.dataset.href"
                          data-href="{{ route('backoffice.warranty.show', $case->id) }}">
 
-                        <div class="wc-card-head">
-                            <span class="wc-client wc-client-{{ $case->cliente }}">{{ $case->clientLabel() }}</span>
-                            <span class="wc-card-store">
-                                <a href="{{ route('backoffice.warranty.show', $case->id) }}">{{ $case->store->codigo_loja ?? '—' }} · {{ $case->store->nome_loja ?? '—' }}</a>
-                            </span>
-                            @if($case->isOpen())
-                                <span class="wc-state" style="--bg: #f1f5f9; --fg: #475569"><i class="fa fa-circle-notch"></i> {{ __('Em curso') }}</span>
-                            @else
-                                <span class="wc-state" style="--bg: {{ $phase['bg'] }}; --fg: {{ $phase['color'] }}">
-                                    <i class="fas {{ $phase['icon'] }}"></i> {{ $case->fase === 'concluido' ? __('Concluído') : __('Recusado') }}
-                                </span>
-                            @endif
+                        <div>
+                            <div class="wc-loja">
+                                <span class="wc-client wc-client-{{ $case->cliente }}">{{ $case->clientLabel() }}</span>
+                                <span class="cod">{{ $case->store->codigo_loja ?? '—' }}</span>
+                                <a href="{{ route('backoffice.warranty.show', $case->id) }}">{{ $case->store->nome_loja ?? '—' }}</a>
+                            </div>
+                            <p class="wc-avaria">{{ $case->descricao }}</p>
                         </div>
 
-                        {{-- Os três anexos sempre nos mesmos lugares: vê-se de relance o que já existe --}}
-                        <div class="wc-files">
-                            @foreach(['os' => [__('OS'), __('Ordem de serviço')], 'cotacao' => [__('Cotação'), __('Cotação')], 'oc' => [__('OC'), __('Ordem de compra')]] as $tipo => [$curto, $completo])
-                                @php($numero = $case->{$tipo . '_numero'})
-                                @if($case->{$tipo . '_path'})
-                                    <a href="{{ route('backoffice.warranty.document', [$case->id, $tipo]) }}" target="_blank" class="wc-file pdf" title="{{ $completo }} {{ $numero }}">
-                                        <i class="fa fa-file-pdf"></i> {{ $curto }}@if($numero) · {{ $numero }}@endif
-                                    </a>
-                                @elseif($numero)
-                                    <span class="wc-file has" title="{{ $completo }} {{ $numero }} · {{ __('sem PDF') }}">
-                                        <i class="fa fa-file"></i> {{ $curto }} · {{ $numero }}
-                                    </span>
-                                @else
-                                    <span class="wc-file" title="{{ $completo }} · {{ __('ainda não') }}"><i class="fa fa-minus"></i> {{ $curto }}</span>
-                                @endif
+                        {{-- Cinco segmentos sempre: os processos sem peças mostram os que não têm apagados --}}
+                        <div class="wc-trilho">
+                            @foreach($case->blocks() as $blockKey => $block)
+                                @php($estado = $case->blockState($blockKey, $next))
+                                <div class="wc-passo {{ $estado }}" style="--c: {{ $block['color'] }}" title="{{ __($block['label']) }}">
+                                    <div class="barra"></div><span class="nome">{{ __($block['curto']) }}</span>
+                                </div>
                             @endforeach
-                            @if($case->isOpen() && $case->waitingAlert() === 'late')
-                                <span class="wc-late" title="{{ $case->todoLabel() }}">
-                                    <i class="fa fa-exclamation-triangle"></i>
-                                    {{ trans_choice('{0} hoje|{1} há :count dia|[2,*] há :count dias', $case->daysInPhase(), ['count' => $case->daysInPhase()]) }}
-                                </span>
+                            @for($i = count($case->blocks()); $i < 5; $i++)
+                                <div class="wc-passo vazio"><div class="barra"></div><span class="nome">—</span></div>
+                            @endfor
+                        </div>
+
+                        <div>
+                            @if($case->isOpen())
+                                <div class="wc-agora"><span class="seta">→</span> {{ $case->todoLabel() }}</div>
+                            @else
+                                <div class="wc-fechado {{ $case->fase === 'recusado' ? 'recusado' : '' }}">
+                                    <i class="fas {{ $phase['icon'] }}"></i> {{ __($phase['label']) }} {{ optional($case->fechado_em)->format('d/m/Y') }}
+                                </div>
                             @endif
+                            <div class="wc-meta">
+                                @if($case->isOpen())
+                                    <span class="wc-dias {{ $case->waitingAlert() }}">
+                                        {{ trans_choice('{0} hoje|{1} há :count dia|[2,*] há :count dias', $case->daysInPhase(), ['count' => $case->daysInPhase()]) }}
+                                    </span>
+                                @endif
+                                @foreach(['os' => __('Ordem de serviço'), 'cotacao' => __('Cotação'), 'oc' => __('Ordem de compra')] as $tipo => $label)
+                                    @continue(!$case->{$tipo . '_numero'})
+                                    @if($case->{$tipo . '_path'})
+                                        <a href="{{ route('backoffice.warranty.document', [$case->id, $tipo]) }}" target="_blank" class="wc-anexo" title="{{ $label }}">{{ $case->{$tipo . '_numero'} }}</a>
+                                    @else
+                                        <span class="wc-anexo" title="{{ $label }} · {{ __('sem PDF') }}">{{ $case->{$tipo . '_numero'} }}</span>
+                                    @endif
+                                @endforeach
+                                @if($case->photos_count)
+                                    <span class="wc-dias"><i class="fa fa-camera"></i> {{ $case->photos_count }}</span>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 @endforeach
