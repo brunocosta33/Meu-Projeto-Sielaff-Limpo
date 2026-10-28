@@ -5,6 +5,7 @@
 @endsection
 
 @php
+    $prefillType = old('tipo', $prefillType);
     $prefillStore = old('store_id', $technicalRequest->store_id ?? null);
     $prefillMachine = old('machine_id', $technicalRequest->machine_id ?? null);
     $prefillClient = old('cliente', \App\Models\WarrantyCase::clientFromStore($technicalRequest->store ?? null));
@@ -13,6 +14,18 @@
         'machines' => $s->machines->map(fn ($m) => ['id' => $m->id, 'label' => trim($m->serial_number . ($m->descricao ? ' — ' . $m->descricao : ''))])->values(),
     ]]);
 @endphp
+
+@push('styles')
+<style>
+    .wc-type { display: block; cursor: pointer; margin: 0; height: 100%; padding: .75rem .9rem; border-radius: 12px;
+               border: 2px solid #e2e8f0; background: #fff; transition: all .15s; }
+    .wc-type:hover { border-color: var(--c); }
+    .wc-type.active { border-color: var(--c); background: var(--bg); }
+    .wc-type input { position: absolute; opacity: 0; }
+    .wc-type strong { display: block; font-size: .95rem; color: var(--c); }
+    .wc-type small { display: block; color: #64748b; line-height: 1.3; margin-top: .2rem; }
+</style>
+@endpush
 
 @section('content')
 <div class="row justify-content-center">
@@ -45,6 +58,21 @@
                             @endif
                         </div>
                     @endif
+
+                    <div class="form-group">
+                        <label class="small font-weight-bold mb-1">{{ __('Tipo de processo') }}</label>
+                        <div class="form-row">
+                            @foreach($types as $value => $type)
+                                <div class="col-md-6 mb-2">
+                                    <label class="wc-type {{ $prefillType === $value ? 'active' : '' }}" style="--c: {{ $type['color'] }}; --bg: {{ $type['bg'] }}">
+                                        <input type="radio" name="tipo" value="{{ $value }}" @checked($prefillType === $value) required>
+                                        <strong><i class="fas {{ $type['icon'] }}"></i> {{ __($type['label']) }}</strong>
+                                        <small>{{ __($type['ajuda']) }}</small>
+                                    </label>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
 
                     <div class="form-row">
                         <div class="form-group col-md-7">
@@ -84,6 +112,38 @@
                     <div class="form-group">
                         <label class="small font-weight-bold mb-1">{{ __('Problema') }}</label>
                         <textarea name="descricao" class="form-control" rows="5" required placeholder="{{ __('O que aconteceu e porque é culpa do cliente (ex.: máquina danificada por empilhador, objeto estranho no tapete…)') }}">{{ old('descricao', $technicalRequest->descricao_problema ?? '') }}</textarea>
+                    </div>
+
+                    <div class="card bg-light border-0 mb-3">
+                        <div class="card-body py-3">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <strong class="small text-uppercase" style="color: {{ config('warranty.blocks.visita.color') }}">
+                                    <i class="fas fa-clipboard-check"></i> {{ __('Ordem de serviço da visita') }}
+                                </strong>
+                                <a href="#wc-os" data-toggle="collapse" class="small">{{ __('preencher agora') }}</a>
+                            </div>
+                            <small class="form-text text-muted mb-0">{{ __('Se o técnico já foi à loja, registe já a ordem de serviço. Se ainda não, deixe em branco e preencha depois na ficha do processo.') }}</small>
+                            <div class="collapse {{ old('os_em') ? 'show' : '' }}" id="wc-os">
+                                <div class="form-row mt-3">
+                                    <div class="form-group col-md-4 mb-2">
+                                        <label class="small font-weight-bold mb-1">{{ __('Data da visita') }}</label>
+                                        <input type="date" name="os_em" class="form-control" value="{{ old('os_em') }}" max="{{ now()->toDateString() }}">
+                                    </div>
+                                    <div class="form-group col-md-8 mb-2">
+                                        <label class="small font-weight-bold mb-1">{{ __('Nº da ordem de serviço') }}</label>
+                                        <input type="text" name="os_numero" class="form-control" value="{{ old('os_numero') }}">
+                                    </div>
+                                </div>
+                                <div class="form-group mb-2">
+                                    <label class="small font-weight-bold mb-1">{{ __('O que o técnico encontrou') }}</label>
+                                    <textarea name="os_texto" class="form-control" rows="3" placeholder="{{ __('Descrição da avaria escrita na ordem de serviço, tal como foi para o cliente.') }}">{{ old('os_texto') }}</textarea>
+                                </div>
+                                <div class="form-group mb-0">
+                                    <label class="small font-weight-bold mb-1">{{ __('PDF da ordem de serviço') }} <span class="text-muted font-weight-normal">({{ __('opcional') }})</span></label>
+                                    <input type="file" name="documento" class="form-control-file" accept=".pdf,.jpg,.jpeg,.png">
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -129,6 +189,14 @@
                 });
             }
         };
+
+        document.querySelectorAll('input[name=tipo]').forEach(function (r) {
+            r.addEventListener('change', function () {
+                document.querySelectorAll('.wc-type').forEach(function (l) {
+                    l.classList.toggle('active', l.contains(r) && r.checked);
+                });
+            });
+        });
 
         // O bootstrap-select dispara o "change" via jQuery (não chega aos addEventListener)
         if (window.jQuery) $(store).on('change', function () { fill(true); });

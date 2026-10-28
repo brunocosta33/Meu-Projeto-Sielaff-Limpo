@@ -11,66 +11,32 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
 
 /**
  * Assistência > Fora da Garantia: avarias por culpa do cliente.
- * Pedir cotação à Sielaff -> receber cotação -> enviar ao cliente (Lidl/Sonae) -> receber ordem de compra -> reparar.
+ * O processo são blocos com duas metades (config/warranty.php): grava-se uma metade de cada vez,
+ * por qualquer ordem. Uma metade em branco é um passo que não foi preciso (ex.: peça já em stock).
  */
 class WarrantyCaseController extends Controller
 {
     // Fotografias, cotações e ordens de compra ficam no disco privado (só abrem com sessão iniciada)
     private const DISK = 'local';
 
-    /** Fase seguinte de cada fase em aberto. */
-    private const NEXT = [
-        'registado' => 'cotacao_pedida',
-        'cotacao_pedida' => 'cotacao_recebida',
-        'cotacao_recebida' => 'enviada_cliente',
-        'enviada_cliente' => 'oc_recebida',
-        'oc_recebida' => 'pedido_alemanha',
-        'pedido_alemanha' => 'peca_recebida',
-        'peca_recebida' => 'concluido',
-    ];
-
-    /** Campo de data do processo que corresponde a cada passo. */
-    private const DATE_FIELDS = [
-        'registado' => 'data_avaria',
-        'cotacao_pedida' => 'cotacao_pedida_em',
-        'cotacao_recebida' => 'cotacao_recebida_em',
-        'enviada_cliente' => 'enviada_cliente_em',
-        'oc_recebida' => 'oc_recebida_em',
-        'pedido_alemanha' => 'alemanha_enviado_em',
-        'peca_recebida' => 'peca_recebida_em',
-        'concluido' => 'fechado_em',
-        'recusado' => 'fechado_em',
-    ];
-
-    /** Campos preenchidos ao entrar em cada fase (limpos ao voltar atrás). */
-    private const PHASE_FIELDS = [
-        'cotacao_pedida' => ['cotacao_pedida_em'],
-        'cotacao_recebida' => ['cotacao_numero', 'cotacao_recebida_em', 'cotacao_path', 'cotacao_nome'],
-        'enviada_cliente' => ['enviada_cliente_em', 'enviada_para'],
-        'oc_recebida' => ['oc_numero', 'oc_recebida_em', 'oc_path', 'oc_nome'],
-        'pedido_alemanha' => ['artigo_numero', 'cliente_numero', 'alemanha_enviado_em'],
-        'peca_recebida' => ['peca_recebida_em', 'peca_origem'],
-        'concluido' => ['fechado_em', 'servico_path', 'servico_nome'],
-        'recusado' => ['fechado_em', 'motivo_recusa'],
-    ];
+    private const DOC_TYPES = ['os', 'cotacao', 'oc', 'servico'];
 
     public function index(Request $request)
     {
-        $phases = config('warranty.phases');
         $base = $this->filteredQuery($request);
 
         $counts = (clone $base)->toBase()->selectRaw('fase, COUNT(*) as total')->groupBy('fase')->pluck('total', 'fase');
+        $typeCounts = (clone $base)->toBase()->selectRaw('tipo, COUNT(*) as total')->groupBy('tipo')->pluck('total', 'tipo');
 
         $cases = (clone $base)
             ->with(['store', 'machine'])
             ->withCount('photos')
             ->when($request->filled('fase'), fn ($q) => $request->fase === 'abertos'
-                ? $q->whereIn('fase', WarrantyCase::OPEN_PHASES)
+                ? $q->whereNotIn('fase', WarrantyCase::CLOSED_PHASES)
                 : $q->where('fase', $request->fase))
             // Avarias mais recentes primeiro (data da avaria); no mesmo dia, o último registado primeiro
             ->orderByDesc('data_avaria')
@@ -81,8 +47,10 @@ class WarrantyCaseController extends Controller
         return view('backoffice.warranty.index', [
             'cases' => $cases,
             'counts' => $counts,
-            'openTotal' => collect(WarrantyCase::OPEN_PHASES)->sum(fn ($p) => $counts[$p] ?? 0),
-            'phases' => $phases,
+            'typeCounts' => $typeCounts,
+            'openTotal' => $counts->sum() - collect(WarrantyCase::CLOSED_PHASES)->sum(fn ($p) => $counts[$p] ?? 0),
+            'phases' => config('warranty.phases'),
+            'types' => config('warranty.types'),
             'clients' => config('warranty.clients'),
         ]);
     }
@@ -101,15 +69,27 @@ class WarrantyCaseController extends Controller
         return view('backoffice.warranty.create', [
             'stores' => $this->storesWithMachines(),
             'clients' => config('warranty.clients'),
+            'types' => config('warranty.types'),
+            'prefillType' => array_key_exists((string) $request->tipo, config('warranty.types')) ? $request->tipo : null,
             'technicalRequest' => $technicalRequest,
             'requestPhotos' => $technicalRequest ? $technicalRequest->files->filter(fn ($f) => $f->isImage()) : collect(),
         ]);
     }
 
+    /** Criar o processo. A ordem de serviço da visita pode vir já preenchida (é o caso normal). */
     public function store(Request $request)
     {
         $data = $this->validateCase($request);
-        $request->validate($this->photoRules(), $this->photoMessages());
+        $request->validate($this->photoRules() + [
+            'os_em' => ['nullable', 'date', 'before_or_equal:today'],
+            'os_numero' => ['nullable', 'required_with:os_em', 'string', 'max:100'],
+            'os_texto' => ['nullable', 'required_with:os_em', 'string', 'max:5000'],
+            'documento' => ['nullable', ...$this->documentRule()],
+        ], $this->photoMessages() + $this->documentMessages() + [
+            'os_numero.required_with' => __('Indique o número da ordem de serviço.'),
+            'os_texto.required_with' => __('Escreva o que o técnico encontrou na visita.'),
+            'os_em.before_or_equal' => __('A data da visita não pode ser no futuro.'),
+        ]);
 
         $case = DB::transaction(function () use ($data, $request) {
             $case = WarrantyCase::create($data + [
@@ -120,6 +100,13 @@ class WarrantyCaseController extends Controller
             ]);
             $case->events()->create(['fase' => 'registado', 'data' => $data['data_avaria'], 'user_id' => auth()->id()]);
 
+            if ($request->filled('os_em')) {
+                $case->fill($request->only(['os_em', 'os_numero', 'os_texto']) + $this->storeDocument($request, $case, 'os'));
+                $case->syncPhase();
+                $case->save();
+                $case->events()->create(['fase' => 'os_diagnostico', 'data' => $request->os_em, 'user_id' => auth()->id()]);
+            }
+
             return $case;
         });
 
@@ -128,7 +115,7 @@ class WarrantyCaseController extends Controller
             $this->copyRequestPhotos($case);
         }
 
-        flash(__('Processo fora da garantia criado. Próximo passo: pedir a cotação à Sielaff.'))->success();
+        flash(__('Processo criado. Falta: :passo.', ['passo' => $case->todoLabel() ?? __('nada')]))->success();
 
         return redirect()->route('backoffice.warranty.show', $case->id);
     }
@@ -141,8 +128,10 @@ class WarrantyCaseController extends Controller
             'case' => $case,
             'phases' => config('warranty.phases'),
             'clients' => config('warranty.clients'),
+            'types' => config('warranty.types'),
             'stores' => $this->storesWithMachines(),
-            'next' => self::NEXT[$case->fase] ?? null,
+            'next' => $case->nextStep(),
+            'siblings' => $case->siblings(),
             // Nº de cliente na Sielaff Alemanha: sugere o último usado para o mesmo cliente (Lidl/Sonae)
             'suggestedClientNumber' => WarrantyCase::where('cliente', $case->cliente)->whereNotNull('cliente_numero')
                 ->orderByDesc('alemanha_enviado_em')->orderByDesc('id')->value('cliente_numero'),
@@ -150,15 +139,17 @@ class WarrantyCaseController extends Controller
         ]);
     }
 
-    /** Corrigir os dados da avaria (loja, máquina, cliente, texto). */
+    /** Corrigir os dados da avaria (loja, máquina, cliente, tipo, texto). */
     public function update(Request $request, $id)
     {
         $case = WarrantyCase::with('events')->findOrFail($id);
         $data = $this->validateCase($request, $case);
 
         DB::transaction(function () use ($case, $data) {
-            $case->update($data + ['updated_by' => auth()->id()] + ($case->fase === 'registado' ? ['fase_desde' => $data['data_avaria']] : []));
-            $case->events->first()?->update(['data' => $data['data_avaria']]);
+            $case->fill($data + ['updated_by' => auth()->id()]);
+            $case->syncPhase();
+            $case->save();
+            $case->events->firstWhere('fase', 'registado')?->update(['data' => $data['data_avaria']]);
         });
         flash(__('Dados atualizados.'))->success();
 
@@ -175,137 +166,60 @@ class WarrantyCaseController extends Controller
         return redirect()->route('backoffice.warranty.index');
     }
 
-    /** Avançar para a fase seguinte (cada fase pede os seus dados). */
-    public function advance(Request $request, $id)
+    /** Gravar (ou corrigir) uma metade de um bloco: a data, os seus dados e o documento. */
+    public function saveStep(Request $request, $id, string $block, string $half)
     {
         $case = WarrantyCase::findOrFail($id);
-        $next = self::NEXT[$case->fase] ?? null;
-        abort_unless($next && $request->input('fase') === $next, 422, __('O processo mudou entretanto. Atualize a página.'));
+        $step = $case->step($block, $half);
+        abort_unless($step, 404);
 
-        $rules = ['data' => ['required', 'date', 'before_or_equal:today'], 'nota' => ['nullable', 'string', 'max:2000']];
-        $messages = ['data.before_or_equal' => __('A data não pode ser no futuro.')];
-        if ($next === 'cotacao_recebida') {
-            $rules += ['cotacao_numero' => ['required', 'string', 'max:100'], 'documento' => ['nullable', ...$this->documentRule()]];
-            $messages += ['cotacao_numero.required' => __('Indique o número da cotação.')];
-        } elseif ($next === 'enviada_cliente') {
-            $rules += ['enviada_para' => ['nullable', 'string', 'max:255']];
-        } elseif ($next === 'pedido_alemanha') {
-            $rules += ['artigo_numero' => ['required', 'string', 'max:255'], 'cliente_numero' => ['required', 'string', 'max:100']];
-            $messages += ['artigo_numero.required' => __('Indique o número do artigo.'), 'cliente_numero.required' => __('Indique o número do cliente.')];
-        } elseif ($next === 'oc_recebida') {
-            $rules += ['oc_numero' => ['required', 'string', 'max:100'], 'documento' => ['nullable', ...$this->documentRule()]];
-            $messages += ['oc_numero.required' => __('Indique o número da ordem de compra.')];
-        } elseif ($next === 'peca_recebida') {
-            $rules += ['peca_origem' => ['required', Rule::in(array_keys(config('warranty.part_origins')))]];
-            $messages += ['peca_origem.required' => __('Escolha se recebemos a peça ou se já a tínhamos.')];
-        } elseif ($next === 'concluido') {
-            $rules += ['documento' => ['nullable', ...$this->documentRule()]];
-        }
-        $data = $request->validate($rules, $messages + $this->documentMessages());
+        $data = $request->validate(
+            ['data' => ['required', 'date', 'before_or_equal:today'], 'nota' => ['nullable', 'string', 'max:2000']] + $this->stepRules($case, $block, $half),
+            ['data.before_or_equal' => __('A data não pode ser no futuro.')] + $this->stepMessages() + $this->documentMessages()
+        );
 
-        $updates = match ($next) {
-            'cotacao_pedida' => ['cotacao_pedida_em' => $data['data']],
-            'cotacao_recebida' => ['cotacao_recebida_em' => $data['data'], 'cotacao_numero' => $data['cotacao_numero']]
-                + $this->storeDocument($request, $case, 'cotacao'),
-            'enviada_cliente' => ['enviada_cliente_em' => $data['data'], 'enviada_para' => $data['enviada_para'] ?? null],
-            'oc_recebida' => ['oc_recebida_em' => $data['data'], 'oc_numero' => $data['oc_numero']]
-                + $this->storeDocument($request, $case, 'oc'),
-            'pedido_alemanha' => ['alemanha_enviado_em' => $data['data'], 'artigo_numero' => $data['artigo_numero'], 'cliente_numero' => $data['cliente_numero']],
-            'peca_recebida' => ['peca_recebida_em' => $data['data'], 'peca_origem' => $data['peca_origem']],
-            'concluido' => ['fechado_em' => $data['data']] + $this->storeDocument($request, $case, 'servico'),
-        };
+        $updates = [$step['date'] => $data['data']] + $this->stepUpdates($case, $block, $half, $data, $request);
 
-        $this->moveTo($case, $next, $data['data'], $data['nota'] ?? null, $updates);
-        flash(__('Passo registado: :fase.', ['fase' => __(config("warranty.phases.$next.label"))]))->success();
-
-        return back();
-    }
-
-    /** Corrigir um passo já registado: data, nota e os dados próprios desse passo. */
-    public function updateStep(Request $request, $id, $eventId)
-    {
-        $case = WarrantyCase::with('events')->findOrFail($id);
-        $event = $case->events->firstWhere('id', (int) $eventId);
-        abort_unless($event, 404);
-
-        $rules = ['data' => ['required', 'date', 'before_or_equal:today'], 'nota' => ['nullable', 'string', 'max:2000']];
-        $extra = match ($event->fase) {
-            'cotacao_recebida' => ['cotacao_numero' => ['required', 'string', 'max:100']],
-            'enviada_cliente' => ['enviada_para' => ['nullable', 'string', 'max:255']],
-            'oc_recebida' => ['oc_numero' => ['required', 'string', 'max:100']],
-            'pedido_alemanha' => ['artigo_numero' => ['required', 'string', 'max:255'], 'cliente_numero' => ['required', 'string', 'max:100']],
-            'recusado' => ['motivo_recusa' => ['required', 'string', 'max:2000']],
-            'peca_recebida' => ['peca_origem' => ['required', Rule::in(array_keys(config('warranty.part_origins')))]],
-            default => [],
-        };
-        $data = $request->validate($rules + $extra, [
-            'data.before_or_equal' => __('A data não pode ser no futuro.'),
-            'cotacao_numero.required' => __('Indique o número da cotação.'),
-            'oc_numero.required' => __('Indique o número da ordem de compra.'),
-            'artigo_numero.required' => __('Indique o número do artigo.'),
-            'cliente_numero.required' => __('Indique o número do cliente.'),
-            'motivo_recusa.required' => __('Indique o motivo da recusa.'),
-        ]);
-
-        $caseUpdates = array_intersect_key($data, $extra) + [self::DATE_FIELDS[$event->fase] => $data['data'], 'updated_by' => auth()->id()];
-        if ($event->is($case->events->last())) {
-            $caseUpdates['fase_desde'] = $data['data'];
-        }
-        $note = $event->fase === 'recusado' ? $data['motivo_recusa'] : ($data['nota'] ?? null);
-
-        DB::transaction(function () use ($case, $event, $caseUpdates, $data, $note) {
-            $case->update($caseUpdates);
-            $event->update(['data' => $data['data'], 'nota' => $note]);
-        });
-
-        flash(__('Passo atualizado: :fase.', ['fase' => __(config("warranty.phases.{$event->fase}.label"))]))->success();
-
-        return back();
-    }
-
-    /** O cliente recusou a cotação (depois de a receber). */
-    public function refuse(Request $request, $id)
-    {
-        $case = WarrantyCase::findOrFail($id);
-        abort_unless(in_array($case->fase, ['cotacao_recebida', 'enviada_cliente'], true), 422);
-
-        $data = $request->validate([
-            'data' => ['required', 'date', 'before_or_equal:today'],
-            'motivo_recusa' => ['required', 'string', 'max:2000'],
-        ], [
-            'motivo_recusa.required' => __('Indique o motivo da recusa.'),
-            'data.before_or_equal' => __('A data não pode ser no futuro.'),
-        ]);
-
-        $this->moveTo($case, 'recusado', $data['data'], $data['motivo_recusa'], ['fechado_em' => $data['data'], 'motivo_recusa' => $data['motivo_recusa']]);
-        flash(__('Processo fechado: recusado pelo cliente.'))->success();
-
-        return back();
-    }
-
-    /** Desfazer o último passo (engano): volta à fase anterior e limpa os dados desse passo. */
-    public function undo($id)
-    {
-        $case = WarrantyCase::with('events')->findOrFail($id);
-        $events = $case->events;
-        abort_if($events->count() < 2, 422, __('Não há passos para desfazer.'));
-
-        $last = $events->last();
-        $previous = $events->get($events->count() - 2);
-
-        $clear = array_fill_keys(self::PHASE_FIELDS[$case->fase] ?? [], null);
-        foreach (['cotacao_path', 'oc_path', 'servico_path'] as $file) {
-            if (array_key_exists($file, $clear) && $case->$file) {
-                Storage::disk(self::DISK)->delete($case->$file);
+        DB::transaction(function () use ($case, $step, $data, $updates) {
+            $case->fill($updates + ['updated_by' => auth()->id()]);
+            $case->syncPhase();
+            $case->save();
+            // O fecho tem duas metades alternativas: ao gravar uma, a outra deixa de existir
+            if ($step['block'] === 'fecho') {
+                $case->events()->where('fase', $step['half'] === 'concluido' ? 'recusado' : 'concluido')->delete();
             }
-        }
-
-        DB::transaction(function () use ($case, $last, $previous, $clear) {
-            $case->update($clear + ['fase' => $previous->fase, 'fase_desde' => $previous->data, 'updated_by' => auth()->id()]);
-            $last->delete();
+            $case->events()->updateOrCreate(
+                ['fase' => $step['fase']],
+                ['data' => $data['data'], 'nota' => $data['nota'] ?? null, 'user_id' => auth()->id()]
+            );
         });
 
-        flash(__('Último passo desfeito. O processo voltou a: :fase.', ['fase' => __(config("warranty.phases.{$previous->fase}.label"))]))->success();
+        flash(__('Registado: :passo.', ['passo' => __($step['label'])]))->success();
+
+        return back();
+    }
+
+    /** Apagar uma metade: ou foi engano, ou esse passo não foi preciso. */
+    public function clearStep($id, string $block, string $half)
+    {
+        $case = WarrantyCase::findOrFail($id);
+        $step = $case->step($block, $half);
+        abort_unless($step, 404);
+        abort_unless($case->stepDone($step), 422, __('Este passo ainda não foi registado.'));
+
+        $fields = $this->stepFields($case, $block, $half);
+        if (isset($step['doc']) && $case->{$step['doc'] . '_path'}) {
+            Storage::disk(self::DISK)->delete($case->{$step['doc'] . '_path'});
+        }
+
+        DB::transaction(function () use ($case, $step, $fields) {
+            $case->fill(array_fill_keys($fields, null) + ['updated_by' => auth()->id()]);
+            $case->syncPhase();
+            $case->save();
+            $case->events()->where('fase', $step['fase'])->delete();
+        });
+
+        flash(__('Passo apagado: :passo.', ['passo' => __($step['label'])]))->success();
 
         return back();
     }
@@ -341,10 +255,10 @@ class WarrantyCaseController extends Controller
         return back();
     }
 
-    /** Abrir o PDF da cotação, da ordem de compra ou da ordem de serviço. */
+    /** Abrir o PDF da ordem de serviço, da cotação, da ordem de compra ou da ordem de serviço final. */
     public function document($id, string $tipo)
     {
-        abort_unless(in_array($tipo, ['cotacao', 'oc', 'servico'], true), 404);
+        abort_unless(in_array($tipo, self::DOC_TYPES, true), 404);
         $case = WarrantyCase::findOrFail($id);
         $path = $case->{$tipo . '_path'};
         abort_unless($path && Storage::disk(self::DISK)->exists($path), 404);
@@ -352,13 +266,11 @@ class WarrantyCaseController extends Controller
         return Storage::disk(self::DISK)->response($path, $case->{$tipo . '_nome'});
     }
 
-    /** Anexar (mais tarde) ou substituir o PDF da cotação ou da ordem de compra. */
+    /** Anexar (mais tarde) ou substituir um documento. */
     public function replaceDocument(Request $request, $id, string $tipo)
     {
-        abort_unless(in_array($tipo, ['cotacao', 'oc', 'servico'], true), 404);
+        abort_unless(in_array($tipo, self::DOC_TYPES, true), 404);
         $case = WarrantyCase::findOrFail($id);
-        // Só depois de o passo estar registado (cotação/OC com número; ordem de serviço com a reparação feita)
-        abort_unless($tipo === 'servico' ? $case->fase === 'concluido' : $case->{$tipo . '_numero'}, 404);
 
         $request->validate([
             'documento' => ['required', ...$this->documentRule()],
@@ -373,13 +285,85 @@ class WarrantyCaseController extends Controller
 
     // ----------------------------------------------------------------------
 
+    /** Dados próprios de cada metade: o que é preciso para a gravar. */
+    private function stepRules(WarrantyCase $case, string $block, string $half): array
+    {
+        $doc = ['documento' => ['nullable', ...$this->documentRule()]];
+
+        return match ("$block.$half") {
+            'visita.feita' => ['os_numero' => ['required', 'string', 'max:100'], 'os_texto' => ['required', 'string', 'max:5000']] + $doc,
+            'sielaff.recebida' => ['cotacao_numero' => ['required', 'string', 'max:100']] + $doc,
+            'cliente.enviada' => ['enviada_para' => ['nullable', 'string', 'max:255']]
+                // Sem peças a cotação é nossa: o número e o PDF entram aqui
+                + ($case->needsParts() ? [] : ['cotacao_numero' => ['required', 'string', 'max:100']] + $doc),
+            'cliente.oc' => ['oc_numero' => ['required', 'string', 'max:100']] + $doc,
+            'alemanha.pedida' => ['artigo_numero' => ['required', 'string', 'max:255'], 'cliente_numero' => ['required', 'string', 'max:100']],
+            'alemanha.recebida' => ['peca_origem' => ['required', Rule::in(array_keys(config('warranty.part_origins')))]],
+            'fecho.concluido' => $doc,
+            'fecho.recusado' => ['motivo_recusa' => ['required', 'string', 'max:2000']],
+            default => [],
+        };
+    }
+
+    private function stepUpdates(WarrantyCase $case, string $block, string $half, array $data, Request $request): array
+    {
+        $only = fn (array $keys) => array_intersect_key($data, array_flip($keys));
+
+        return match ("$block.$half") {
+            'visita.feita' => $only(['os_numero', 'os_texto']) + $this->storeDocument($request, $case, 'os'),
+            'sielaff.recebida' => $only(['cotacao_numero']) + $this->storeDocument($request, $case, 'cotacao'),
+            'cliente.enviada' => ['enviada_para' => $data['enviada_para'] ?? null]
+                + ($case->needsParts() ? [] : $only(['cotacao_numero']) + $this->storeDocument($request, $case, 'cotacao')),
+            'cliente.oc' => $only(['oc_numero']) + $this->storeDocument($request, $case, 'oc'),
+            'alemanha.pedida' => $only(['artigo_numero', 'cliente_numero']),
+            'alemanha.recebida' => $only(['peca_origem']),
+            'fecho.concluido' => ['motivo_recusa' => null] + $this->storeDocument($request, $case, 'servico'),
+            'fecho.recusado' => $only(['motivo_recusa']) + ['servico_path' => null, 'servico_nome' => null],
+            default => [],
+        };
+    }
+
+    /** Campos a limpar quando se apaga uma metade. */
+    private function stepFields(WarrantyCase $case, string $block, string $half): array
+    {
+        return match ("$block.$half") {
+            'visita.feita' => ['os_em', 'os_numero', 'os_texto', 'os_path', 'os_nome'],
+            'sielaff.pedida' => ['cotacao_pedida_em'],
+            'sielaff.recebida' => ['cotacao_recebida_em', 'cotacao_numero', 'cotacao_path', 'cotacao_nome'],
+            'cliente.enviada' => array_merge(['enviada_cliente_em', 'enviada_para'],
+                $case->needsParts() ? [] : ['cotacao_numero', 'cotacao_path', 'cotacao_nome']),
+            'cliente.oc' => ['oc_recebida_em', 'oc_numero', 'oc_path', 'oc_nome'],
+            'alemanha.pedida' => ['alemanha_enviado_em', 'artigo_numero', 'cliente_numero'],
+            'alemanha.recebida' => ['peca_recebida_em', 'peca_origem'],
+            'fecho.concluido' => ['fechado_em', 'servico_path', 'servico_nome'],
+            'fecho.recusado' => ['fechado_em', 'motivo_recusa'],
+            default => [],
+        };
+    }
+
+    private function stepMessages(): array
+    {
+        return [
+            'os_numero.required' => __('Indique o número da ordem de serviço.'),
+            'os_texto.required' => __('Escreva o que o técnico encontrou na visita.'),
+            'cotacao_numero.required' => __('Indique o número da cotação.'),
+            'oc_numero.required' => __('Indique o número da ordem de compra.'),
+            'artigo_numero.required' => __('Indique o número do artigo.'),
+            'cliente_numero.required' => __('Indique o número do cliente.'),
+            'peca_origem.required' => __('Escolha se recebemos a peça ou se já a tínhamos.'),
+            'motivo_recusa.required' => __('Indique o motivo da recusa.'),
+        ];
+    }
+
     private function filteredQuery(Request $request)
     {
         return WarrantyCase::query()
             ->when($request->filled('cliente'), fn ($q) => $q->where('cliente', $request->cliente))
+            ->when($request->filled('tipo'), fn ($q) => $q->where('tipo', $request->tipo))
             ->when($request->filled('q'), function ($q) use ($request) {
                 $term = '%' . trim($request->q) . '%';
                 $q->where(fn ($w) => $w->where('descricao', 'like', $term)
+                    ->orWhere('os_numero', 'like', $term)
                     ->orWhere('cotacao_numero', 'like', $term)
                     ->orWhere('oc_numero', 'like', $term)
                     ->orWhereHas('store', fn ($s) => $s->where('codigo_loja', 'like', $term)->orWhere('nome_loja', 'like', $term)->orWhere('cidade', 'like', $term))
@@ -393,6 +377,7 @@ class WarrantyCaseController extends Controller
             'store_id' => ['required', 'exists:stores,id'],
             'machine_id' => ['nullable', Rule::exists('machines', 'id')->where('store_id', $request->input('store_id'))],
             'cliente' => ['required', Rule::in(array_keys(config('warranty.clients')))],
+            'tipo' => [$case ? 'sometimes' : 'required', Rule::in(array_keys(config('warranty.types')))],
             'data_avaria' => ['required', 'date', 'before_or_equal:today'],
             'descricao' => ['required', 'string', 'max:5000'],
             'observacoes' => ['nullable', 'string', 'max:5000'],
@@ -400,6 +385,7 @@ class WarrantyCaseController extends Controller
         ], [
             'store_id.required' => __('Escolha a loja.'),
             'cliente.required' => __('Escolha o cliente.'),
+            'tipo.required' => __('Escolha se o processo leva peças ou não.'),
             'descricao.required' => __('Descreva o problema.'),
             'data_avaria.required' => __('Indique a data da avaria.'),
             'data_avaria.before_or_equal' => __('A data da avaria não pode ser no futuro.'),
@@ -408,6 +394,9 @@ class WarrantyCaseController extends Controller
 
         if ($case) {
             unset($data['technical_request_id']);
+            if (!$case->canChangeType()) {
+                unset($data['tipo']);
+            }
         }
 
         return $data;
@@ -490,14 +479,6 @@ class WarrantyCaseController extends Controller
         }
 
         return [$tipo . '_path' => $path, $tipo . '_nome' => $file->getClientOriginalName()];
-    }
-
-    private function moveTo(WarrantyCase $case, string $phase, string $date, ?string $note, array $updates): void
-    {
-        DB::transaction(function () use ($case, $phase, $date, $note, $updates) {
-            $case->update($updates + ['fase' => $phase, 'fase_desde' => $date, 'updated_by' => auth()->id()]);
-            $case->events()->create(['fase' => $phase, 'data' => $date, 'nota' => $note, 'user_id' => auth()->id()]);
-        });
     }
 
     private function storesWithMachines()

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\TechnicalRequest;
 use App\Models\TechnicalRequestFile;
+use App\Models\WarrantyCase;
+use App\Services\HrAccess;
 use Illuminate\Http\Request;
 use App\Models\Store;
 use App\Models\User;
@@ -206,9 +208,16 @@ class TechnicalRequestController extends Controller
 
         $this->authorizeRequestAccess($request);
 
+        // Fora da garantia: quem gere a área pode abrir um processo a partir deste pedido
+        $canWarranty = HrAccess::canManageWarranty(auth()->user());
+
         return view('backoffice.technical_requests.show', [
             'request' => $request,
             'canManageAll' => $this->isAdmin(),
+            'canWarranty' => $canWarranty,
+            'warrantyCases' => $canWarranty
+                ? WarrantyCase::where('technical_request_id', $request->id)->orderBy('id')->get()
+                : collect(),
             'statuses' => self::translatedLabels(self::STATUSES),
             'priorities' => self::translatedLabels(self::PRIORITIES),
             'serviceTypes' => self::translatedLabels(self::SERVICE_TYPES),

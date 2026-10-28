@@ -217,10 +217,8 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
         Route::get('/{id}', [WarrantyCaseController::class, 'show'])->name('show');
         Route::put('/{id}', [WarrantyCaseController::class, 'update'])->name('update');
         Route::delete('/{id}', [WarrantyCaseController::class, 'destroy'])->name('destroy');
-        Route::post('/{id}/avancar', [WarrantyCaseController::class, 'advance'])->name('advance');
-        Route::post('/{id}/recusar', [WarrantyCaseController::class, 'refuse'])->name('refuse');
-        Route::post('/{id}/desfazer', [WarrantyCaseController::class, 'undo'])->name('undo');
-        Route::put('/{id}/passo/{event}', [WarrantyCaseController::class, 'updateStep'])->name('step.update');
+        Route::post('/{id}/passo/{bloco}/{metade}', [WarrantyCaseController::class, 'saveStep'])->name('step.save');
+        Route::delete('/{id}/passo/{bloco}/{metade}', [WarrantyCaseController::class, 'clearStep'])->name('step.clear');
         Route::post('/{id}/fotos', [WarrantyCaseController::class, 'addPhotos'])->name('photos.store');
         Route::get('/{id}/documento/{tipo}', [WarrantyCaseController::class, 'document'])->name('document');
         Route::post('/{id}/documento/{tipo}', [WarrantyCaseController::class, 'replaceDocument'])->name('document.replace');

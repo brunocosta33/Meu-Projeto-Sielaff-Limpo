@@ -529,6 +529,22 @@
                         </div>
                     </div>
                     <div class="mt-3 mt-lg-0">
+                        @if($canWarranty)
+                            <div class="btn-group mr-2">
+                                <button type="button" class="btn btn-outline-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="fas fa-file-invoice-dollar"></i> {{ __('Fora da garantia') }}
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-right">
+                                    <h6 class="dropdown-header">{{ __('Abrir processo a partir deste pedido') }}</h6>
+                                    @foreach(config('warranty.types') as $tipoValue => $tipoInfo)
+                                        <a class="dropdown-item" href="{{ route('backoffice.warranty.create', ['pedido' => $request->id, 'tipo' => $tipoValue]) }}">
+                                            <i class="fas {{ $tipoInfo['icon'] }}" style="color: {{ $tipoInfo['color'] }}"></i> {{ __($tipoInfo['label']) }}
+                                            <small class="d-block text-muted" style="white-space: normal; max-width: 280px">{{ __($tipoInfo['ajuda']) }}</small>
+                                        </a>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
                         @if($canManageAll || $request->estado !== 'concluido')
                             <a href="{{ route('backoffice.technical_requests.edit', ['id' => $request->id, 'return_url' => $backRoute]) }}" class="btn btn-outline-primary mr-2">
                                 <i class="fa fa-edit"></i> {{ __('Editar') }}
@@ -539,6 +555,17 @@
                         </a>
                     </div>
                 </div>
+
+                @if($warrantyCases->isNotEmpty())
+                    <div class="alert alert-light border d-flex flex-wrap align-items-center mt-3 mb-0" style="gap: .5rem">
+                        <strong class="small text-uppercase text-muted"><i class="fas fa-file-invoice-dollar text-danger"></i> {{ __('Fora da garantia') }}</strong>
+                        @foreach($warrantyCases as $warrantyCase)
+                            <a href="{{ route('backoffice.warranty.show', $warrantyCase->id) }}" class="btn btn-sm btn-outline-secondary">
+                                #{{ $warrantyCase->id }} · {{ $warrantyCase->typeLabel() }} · {{ __($warrantyCase->phase()['label']) }}
+                            </a>
+                        @endforeach
+                    </div>
+                @endif
 
                 <div class="technical-request-show-body">
                 @php

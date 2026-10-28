@@ -8,19 +8,24 @@
     \Carbon\Carbon::setLocale(app()->getLocale());
     $phase = $case->phase();
     $alert = $case->waitingAlert();
-    $reached = $case->events->keyBy('fase');
-    $steps = ['registado', 'cotacao_pedida', 'cotacao_recebida', 'enviada_cliente', 'oc_recebida', 'pedido_alemanha', 'peca_recebida', $case->fase === 'recusado' ? 'recusado' : 'concluido'];
-    $currentIndex = array_search($case->fase, $steps, true);
-    $nextForms = [
-        'cotacao_pedida' => ['title' => __('Pedi a cotação à Sielaff'), 'help' => __('Registe o dia em que pediu a cotação à Sielaff.'), 'button' => __('Registar pedido de cotação')],
-        'cotacao_recebida' => ['title' => __('Recebi a cotação da Sielaff'), 'help' => __('Indique o número da cotação e, se já o tiver, anexe o PDF.'), 'button' => __('Registar cotação')],
-        'enviada_cliente' => ['title' => __('Enviei a cotação ao cliente'), 'help' => __('Registe quando enviou a cotação ao :cliente.', ['cliente' => $case->clientLabel()]), 'button' => __('Registar envio')],
-        'oc_recebida' => ['title' => __('Recebi a ordem de compra'), 'help' => __('Indique o número da ordem de compra do :cliente e, se já o tiver, anexe o PDF.', ['cliente' => $case->clientLabel()]), 'button' => __('Registar ordem de compra')],
-        'pedido_alemanha' => ['title' => __('Enviei o pedido para a Alemanha'), 'help' => __('Envie um email para :email com o número do artigo e o número do cliente e registe o envio.', ['email' => $germanyEmail]), 'button' => __('Registar envio para a Alemanha')],
-        'peca_recebida' => ['title' => __('Confirmar a peça'), 'help' => __('Confirme se recebemos a peça ou se já a tínhamos connosco. Depois é só enviar o técnico fazer a reparação.'), 'button' => __('Confirmar peça')],
-        'concluido' => ['title' => __('Reparação feita'), 'help' => __('Fecha o processo. Pode anexar a ordem de serviço.'), 'button' => __('Fechar processo')],
-    ];
+    $type = $case->typeConfig();
+    $blocks = $case->blocks();
+    $todo = $case->todoLabel();
     $machinesByStore = $stores->mapWithKeys(fn ($s) => [$s->id => $s->machines->map(fn ($m) => ['id' => $m->id, 'label' => trim($m->serial_number . ($m->descricao ? ' — ' . $m->descricao : ''))])->values()]);
+
+    // Estado de cada bloco para a tira do topo
+    $blockState = function ($blockKey, $block) use ($case, $next) {
+        $halves = array_map(fn ($k) => $case->step($blockKey, $k), array_keys($block['halves']));
+        $done = array_filter($halves, fn ($h) => $case->stepDone($h));
+        if ($blockKey === 'fecho') {
+            return count($done) ? 'done' : ($next && $next['block'] === $blockKey ? 'current' : '');
+        }
+        if (count($done) === count($halves)) {
+            return 'done';
+        }
+
+        return $next && $next['block'] === $blockKey ? 'current' : (count($done) ? 'partial' : '');
+    };
 @endphp
 
 @push('styles')
@@ -28,9 +33,11 @@
     .wc-client { display: inline-block; font-size: .72rem; font-weight: 800; letter-spacing: .03em; padding: .15rem .5rem; border-radius: 6px; text-transform: uppercase; vertical-align: middle; }
     .wc-client-lidl { background: #0050aa; color: #fff200; }
     .wc-client-sonae { background: #f39200; color: #fff; }
+    .wc-type-badge { display: inline-flex; align-items: center; gap: .3rem; font-size: .72rem; font-weight: 800; letter-spacing: .03em;
+                     padding: .15rem .5rem; border-radius: 6px; text-transform: uppercase; vertical-align: middle;
+                     background: var(--bg); color: var(--c); border: 1px solid var(--c); }
     .wc-badge { display: inline-flex; align-items: center; gap: .3rem; font-size: .8rem; font-weight: 600; padding: .25rem .65rem;
                 border-radius: 999px; background: var(--bg); color: var(--fg); border: 1px solid var(--fg); white-space: nowrap; }
-
     .wc-wait { display: inline-flex; align-items: center; gap: .45rem; padding: .35rem .8rem; border-radius: 9px; vertical-align: middle;
                font-size: .88rem; font-weight: 700; background: var(--bg); color: var(--fg); border-left: 4px solid var(--fg); }
     .wc-wait small { font-weight: 600; opacity: .8; font-size: .8rem; }
@@ -39,72 +46,77 @@
     .wc-wait.late .fa { animation: wc-pulse 1.4s ease-in-out infinite; }
     @keyframes wc-pulse { 50% { opacity: .3; } }
     @media (prefers-reduced-motion: reduce) { .wc-wait.late .fa { animation: none; } }
+
+    /* Tira do topo: um ponto por bloco */
     .wc-steps { display: flex; gap: .25rem; overflow-x: auto; padding-bottom: .25rem; }
-    .wc-step { flex: 1 1 0; min-width: 105px; text-align: center; position: relative; padding-top: 2.6rem; font-size: .78rem; color: #94a3b8; }
+    .wc-step { flex: 1 1 0; min-width: 120px; text-align: center; position: relative; padding-top: 2.6rem; font-size: .8rem; color: #94a3b8; }
     .wc-step::before { content: ""; position: absolute; top: 1.05rem; left: -50%; right: 50%; height: 3px; background: #e2e8f0; }
     .wc-step:first-child::before { display: none; }
     .wc-step .dot { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 2.2rem; height: 2.2rem; border-radius: 50%;
                     display: grid; place-items: center; background: #fff; border: 3px solid #e2e8f0; color: #94a3b8; z-index: 1; }
-    .wc-step.done { color: #334155; }
-    .wc-step.done::before, .wc-step.current::before { background: var(--c); }
+    .wc-step.done, .wc-step.partial { color: #334155; }
+    .wc-step.done::before, .wc-step.current::before, .wc-step.partial::before { background: var(--c); }
     .wc-step.done .dot { background: var(--c); border-color: var(--c); color: #fff; }
+    .wc-step.partial .dot { border-color: var(--c); color: var(--c); }
     .wc-step.current { color: #0f172a; font-weight: 700; }
     .wc-step.current .dot { border-color: var(--c); color: var(--c); box-shadow: 0 0 0 5px color-mix(in srgb, var(--c) 18%, transparent); }
-    .wc-step .when { display: block; font-weight: 400; color: #64748b; font-size: .72rem; }
 
-    .wc-next { border: 2px solid var(--c); border-radius: 16px; }
-    .wc-next .card-header { background: color-mix(in srgb, var(--c) 10%, #fff); border-bottom: 0; border-radius: 14px 14px 0 0; font-weight: 700; color: var(--c); }
+    /* Blocos */
+    .wc-block { border: 1px solid #e2e8f0; border-radius: 14px; margin-bottom: .75rem; overflow: hidden; background: #fff; }
+    .wc-block.is-current { border-color: var(--c); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 12%, transparent); }
+    .wc-block > header { display: flex; align-items: center; gap: .5rem; padding: .55rem .85rem; background: var(--bg); color: var(--c); font-weight: 700; font-size: .92rem; }
+    .wc-block > header .num { width: 1.5rem; height: 1.5rem; border-radius: 50%; background: var(--c); color: #fff; display: grid; place-items: center; font-size: .78rem; }
+    .wc-half { padding: .6rem .85rem; }
+    .wc-half + .wc-half { border-top: 1px dashed #e2e8f0; }
+    .wc-half-head { display: flex; align-items: center; gap: .5rem; }
+    .wc-half-head form { margin: 0; }
+    .wc-tick { width: 1.4rem; height: 1.4rem; border-radius: 50%; display: grid; place-items: center; font-size: .62rem; background: #f1f5f9; color: #cbd5e1; flex: none; }
+    .wc-half.done .wc-tick { background: #dcfce7; color: #15803d; }
+    .wc-half.next .wc-tick { background: #fef3c7; color: #b45309; }
+    .wc-half .wc-when { color: #64748b; font-size: .82rem; margin-left: .4rem; }
+    .wc-half-body { padding: .35rem 0 0 1.9rem; font-size: .86rem; color: #334155; }
+    .wc-half-form { padding: .6rem 0 .2rem 1.9rem; }
+    .wc-half-form label { font-size: .76rem; font-weight: 700; margin-bottom: .15rem; color: #475569; }
+    .wc-note { margin-top: .35rem; padding: .35rem .6rem; background: #f8fafc; border-left: 3px solid #cbd5e1; border-radius: 0 6px 6px 0; font-size: .82rem; color: #475569; }
+
     .wc-desc { white-space: pre-line; color: #1e293b; }
+    .wc-diag { background: #faf9ff; border-left: 3px solid #7c3aed; border-radius: 8px; padding: .6rem .8rem; }
     .wc-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .6rem; }
     .wc-facts div { background: #f8fafc; border-radius: 10px; padding: .45rem .65rem; }
     .wc-facts dt { font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; color: #94a3b8; margin: 0; }
     .wc-facts dd { margin: 0; font-weight: 600; color: #334155; font-size: .88rem; }
-
-    .wc-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: .6rem; }
-    .wc-thumb { position: relative; border-radius: 12px; overflow: hidden; aspect-ratio: 1; background: #f1f5f9; }
-    .wc-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .2s; }
-    .wc-thumb:hover img { transform: scale(1.05); }
-    .wc-thumb form { position: absolute; top: 4px; right: 4px; }
-    .wc-thumb button { width: 26px; height: 26px; border-radius: 50%; border: 0; background: rgba(15, 23, 42, .65); color: #fff; font-size: .75rem; line-height: 1; }
-
-    .wc-doc { display: flex; align-items: center; gap: .75rem; padding: .7rem .8rem; border-radius: 12px; background: #f8fafc; }
-    .wc-doc + .wc-doc { margin-top: .5rem; }
-    .wc-doc .fa-2x { color: #dc2626; }
-    .wc-doc small { display: block; color: #64748b; }
-
-    .wc-timeline { list-style: none; margin: 0; padding: 0; }
-    .wc-timeline li { position: relative; padding: 0 0 .9rem 1.6rem; }
-    .wc-timeline li::before { content: ""; position: absolute; left: .42rem; top: 1rem; bottom: 0; width: 2px; background: #e2e8f0; }
-    .wc-timeline li:last-child::before { display: none; }
-    .wc-timeline .tl-dot { position: absolute; left: 0; top: .2rem; width: .95rem; height: .95rem; border-radius: 50%; background: var(--c); }
-    .wc-timeline .tl-title { font-weight: 600; font-size: .88rem; }
+    .wc-sibling { display: flex; align-items: center; gap: .5rem; padding: .5rem .65rem; border-radius: 10px; background: #f8fafc; }
+    .wc-sibling + .wc-sibling { margin-top: .4rem; }
+    .wc-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: .5rem; }
+    .wc-thumb { position: relative; }
+    .wc-thumb img { width: 100%; height: 92px; object-fit: cover; border-radius: 10px; border: 1px solid #e2e8f0; }
+    .wc-thumb form { position: absolute; top: .2rem; right: .2rem; margin: 0; }
+    .wc-thumb button { border: 0; border-radius: 50%; width: 1.4rem; height: 1.4rem; font-size: .7rem; background: rgba(15,23,42,.65); color: #fff; }
+    .wc-timeline { list-style: none; margin: 0; padding: 0 0 0 1rem; }
+    .wc-timeline li { position: relative; padding: 0 0 .9rem 1rem; border-left: 2px solid #e2e8f0; }
+    .wc-timeline li:last-child { border-left-color: transparent; padding-bottom: 0; }
+    .wc-timeline .tl-dot { position: absolute; left: -.43rem; top: .15rem; width: .8rem; height: .8rem; border-radius: 50%; background: #fff; border: 3px solid var(--c); }
+    .wc-timeline .tl-title { font-weight: 600; font-size: .88rem; color: #1e293b; }
     .wc-timeline .tl-meta { font-size: .76rem; color: #64748b; }
-    .wc-timeline .tl-note { font-size: .82rem; color: #334155; white-space: pre-line; margin-top: .15rem; }
+    .wc-timeline .tl-note { font-size: .8rem; color: #475569; background: #f8fafc; border-radius: 6px; padding: .25rem .5rem; margin-top: .2rem; }
 </style>
 @endpush
 
 @section('content')
-@if($errors->any())
-    <div class="alert alert-danger">
-        <ul class="mb-0">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
-    </div>
-@endif
-
-{{-- Cabeçalho --}}
 <div class="card mb-3">
     <div class="card-body">
-        <div class="d-flex flex-wrap align-items-start justify-content-between mb-4" style="gap: .75rem">
+        <div class="d-flex flex-wrap align-items-start justify-content-between mb-3" style="gap: .75rem">
             <div>
-                <div class="small text-muted mb-1">{{ __('Fora da Garantia') }} · #{{ $case->id }}</div>
                 <h4 class="mb-2">
                     <span class="wc-client wc-client-{{ $case->cliente }}">{{ $case->clientLabel() }}</span>
+                    <span class="wc-type-badge" style="--c: {{ $type['color'] }}; --bg: {{ $type['bg'] }}" title="{{ __($type['ajuda']) }}"><i class="fas {{ $type['icon'] }}"></i> {{ __($type['label']) }}</span>
                     {{ $case->store->codigo_loja ?? '—' }} — {{ $case->store->nome_loja ?? '—' }}
                 </h4>
                 <span class="wc-badge" style="--bg: {{ $phase['bg'] }}; --fg: {{ $phase['color'] }}"><i class="fas {{ $phase['icon'] }}"></i> {{ __($phase['label']) }}</span>
-                @if($case->isOpen() && $phase['waiting'])
+                @if($todo)
                     <span class="wc-wait ml-2 {{ $alert }}" style="--bg: {{ $phase['bg'] }}; --fg: {{ $phase['color'] }}">
                         <i class="fa {{ $alert ? 'fa-exclamation-triangle' : 'fa-hourglass-half' }}"></i>
-                        {{ __($phase['waiting']) }}
+                        {{ $todo }}
                         <small>· {{ trans_choice('{0} hoje|{1} há :count dia|[2,*] há :count dias', $case->daysInPhase(), ['count' => $case->daysInPhase()]) }}</small>
                     </span>
                 @endif
@@ -121,21 +133,47 @@
         </div>
 
         <div class="wc-steps">
-            @foreach($steps as $i => $step)
-                @php($p = $phases[$step])
-                <div class="wc-step {{ $i < $currentIndex || in_array($case->fase, ['concluido', 'recusado'], true) ? 'done' : ($i === $currentIndex ? 'current' : '') }}" style="--c: {{ $p['color'] }}">
-                    <span class="dot"><i class="fas {{ $i < $currentIndex || !$case->isOpen() ? ($step === 'recusado' ? 'fa-times' : 'fa-check') : $p['icon'] }}"></i></span>
-                    {{ __($p['label']) }}
-                    @if(isset($reached[$step]))<span class="when">{{ $reached[$step]->data->format('d/m/Y') }}</span>@endif
-                    @if($step === 'peca_recebida' && $case->partOriginLabel())<span class="when">{{ $case->partOriginLabel() }}</span>@endif
+            @foreach($blocks as $blockKey => $block)
+                @php($state = $blockState($blockKey, $block))
+                <div class="wc-step {{ $state }}" style="--c: {{ $block['color'] }}">
+                    <span class="dot"><i class="fas {{ $state === 'done' ? 'fa-check' : $block['icon'] }}"></i></span>
+                    {{ __($block['label']) }}
                 </div>
             @endforeach
         </div>
     </div>
 </div>
 
+@if($errors->any())
+    <div class="alert alert-danger">
+        <ul class="mb-0">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+    </div>
+@endif
+
 <div class="row">
     <div class="col-lg-7">
+        @php($n = 0)
+        @foreach($blocks as $blockKey => $block)
+            @php($n++)
+            <div class="wc-block {{ $next && $next['block'] === $blockKey ? 'is-current' : '' }}" style="--c: {{ $block['color'] }}; --bg: {{ $block['bg'] }}">
+                <header><span class="num">{{ $n }}</span> <i class="fas {{ $block['icon'] }}"></i> {{ __($block['label']) }}</header>
+                @foreach($block['halves'] as $halfKey => $half)
+                    @php($step = $case->step($blockKey, $halfKey))
+                    {{-- As duas metades do fecho são alternativas: a recusa esconde-se depois de o processo fechar --}}
+                    @continue($blockKey === 'fecho' && $halfKey === 'recusado' && !$case->stepDone($step) && !$case->isOpen())
+                    @include('backoffice.warranty.partials.step', [
+                        'blockKey' => $blockKey,
+                        'block' => $block,
+                        'halfKey' => $halfKey,
+                        'step' => $step,
+                        'isNext' => $next && $next['block'] === $blockKey && $next['half'] === $halfKey,
+                    ])
+                @endforeach
+            </div>
+        @endforeach
+    </div>
+
+    <div class="col-lg-5">
         {{-- Problema --}}
         <div class="card mb-3">
             <div class="card-body">
@@ -143,6 +181,15 @@
                 <p class="wc-desc">{{ $case->descricao }}</p>
                 @if($case->observacoes)
                     <div class="alert alert-warning py-2 small mb-3"><strong>{{ __('Observações') }}:</strong> {{ $case->observacoes }}</div>
+                @endif
+                @if($case->os_texto)
+                    <div class="wc-diag mb-3">
+                        <div class="small font-weight-bold text-uppercase mb-1" style="color: {{ config('warranty.blocks.visita.color') }}">
+                            <i class="fa fa-clipboard-check"></i> {{ __('Diagnóstico do técnico') }}
+                            @if($case->os_numero)<span class="text-muted">· {{ __('OS') }} {{ $case->os_numero }}</span>@endif
+                        </div>
+                        <p class="wc-desc mb-0">{{ $case->os_texto }}</p>
+                    </div>
                 @endif
                 <dl class="wc-facts mb-0">
                     <div><dt>{{ __('Data da avaria') }}</dt><dd>{{ optional($case->data_avaria)->format('d/m/Y') ?? '—' }}
@@ -155,6 +202,22 @@
                 </dl>
             </div>
         </div>
+
+        @if($siblings->isNotEmpty())
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fa fa-code-branch text-info"></i> {{ __('Outros processos do mesmo pedido') }}</h5>
+                    @foreach($siblings as $sibling)
+                        @php($st = $sibling->typeConfig())
+                        <div class="wc-sibling">
+                            <span class="wc-type-badge" style="--c: {{ $st['color'] }}; --bg: {{ $st['bg'] }}"><i class="fas {{ $st['icon'] }}"></i> {{ __($st['label']) }}</span>
+                            <span class="flex-grow-1 small">#{{ $sibling->id }} · {{ __($sibling->phase()['label']) }}</span>
+                            <a href="{{ route('backoffice.warranty.show', $sibling->id) }}" class="btn btn-sm btn-outline-primary"><i class="fa fa-arrow-right"></i></a>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
 
         {{-- Fotografias --}}
         <div class="card mb-3">
@@ -185,152 +248,6 @@
                 </form>
             </div>
         </div>
-    </div>
-
-    <div class="col-lg-5">
-        {{-- Próximo passo --}}
-        @if($next)
-            @php($nf = $nextForms[$next])
-            <div class="card wc-next mb-3" style="--c: {{ $phases[$next]['color'] }}">
-                <div class="card-header"><i class="fas {{ $phases[$next]['icon'] }}"></i> {{ __('Próximo passo') }}: {{ $nf['title'] }}</div>
-                <div class="card-body">
-                    <p class="small text-muted">{{ $nf['help'] }}</p>
-                    <form method="POST" action="{{ route('backoffice.warranty.advance', $case->id) }}" enctype="multipart/form-data">
-                        @csrf
-                        <input type="hidden" name="fase" value="{{ $next }}">
-                        @if($next === 'cotacao_recebida' || $next === 'oc_recebida')
-                            @php($numberField = $next === 'cotacao_recebida' ? 'cotacao_numero' : 'oc_numero')
-                            <div class="form-group">
-                                <label class="small font-weight-bold mb-1">{{ $next === 'cotacao_recebida' ? __('Nº da cotação') : __('Nº da ordem de compra') }}</label>
-                                <input type="text" name="{{ $numberField }}" class="form-control" value="{{ old($numberField) }}" required>
-                            </div>
-                            <div class="form-group">
-                                <label class="small font-weight-bold mb-1">{{ $next === 'cotacao_recebida' ? __('PDF da cotação') : __('PDF da ordem de compra') }} <span class="text-muted font-weight-normal">({{ __('opcional') }})</span></label>
-                                <input type="file" name="documento" class="form-control-file" accept=".pdf,.jpg,.jpeg,.png">
-                                <small class="form-text text-muted">{{ __('Também pode anexar mais tarde, no cartão Documentos.') }}</small>
-                            </div>
-                        @endif
-                        @if($next === 'peca_recebida')
-                            <div class="form-group">
-                                @foreach(config('warranty.part_origins') as $value => $label)
-                                    <div class="custom-control custom-radio mb-1">
-                                        <input type="radio" class="custom-control-input" name="peca_origem" id="wc-origem-{{ $value }}" value="{{ $value }}" @checked(old('peca_origem', 'recebida') === $value) required>
-                                        <label class="custom-control-label font-weight-bold" for="wc-origem-{{ $value }}">{{ __($label) }}</label>
-                                    </div>
-                                @endforeach
-                            </div>
-                        @endif
-                        @if($next === 'concluido')
-                            <div class="form-group">
-                                <label class="small font-weight-bold mb-1">{{ __('Ordem de serviço') }} <span class="text-muted font-weight-normal">({{ __('opcional') }})</span></label>
-                                <input type="file" name="documento" class="form-control-file" accept=".pdf,.jpg,.jpeg,.png">
-                                <small class="form-text text-muted">{{ __('PDF ou fotografia da ordem de serviço. Também pode anexar mais tarde, no cartão Documentos.') }}</small>
-                            </div>
-                        @endif
-                        @if($next === 'pedido_alemanha')
-                            <div class="form-group">
-                                <label class="small font-weight-bold mb-1">{{ __('Nº do artigo') }}</label>
-                                <input type="text" name="artigo_numero" id="wc-artigo" class="form-control" value="{{ old('artigo_numero') }}" required placeholder="{{ __('Se forem vários, separe por vírgulas') }}">
-                            </div>
-                            <div class="form-group">
-                                <label class="small font-weight-bold mb-1">{{ __('Nº do cliente') }}</label>
-                                <input type="text" name="cliente_numero" id="wc-cliente-num" class="form-control" value="{{ old('cliente_numero', $suggestedClientNumber) }}" required>
-                                @if($suggestedClientNumber)<small class="form-text text-muted">{{ __('Sugerido: o último usado para o :cliente.', ['cliente' => $case->clientLabel()]) }}</small>@endif
-                            </div>
-                            <a href="#" class="btn btn-outline-dark btn-block mb-3" id="wc-mail"><i class="fa fa-envelope"></i> {{ __('Abrir email para :email', ['email' => $germanyEmail]) }}</a>
-                        @endif
-                        @if($next === 'enviada_cliente')
-                            <div class="form-group">
-                                <label class="small font-weight-bold mb-1">{{ __('Enviada para') }} <span class="text-muted font-weight-normal">({{ __('opcional') }})</span></label>
-                                <input type="text" name="enviada_para" class="form-control" value="{{ old('enviada_para') }}" placeholder="{{ __('Ex.: nome ou email do contacto no cliente') }}">
-                            </div>
-                        @endif
-                        <div class="form-row">
-                            <div class="form-group col-sm-6">
-                                <label class="small font-weight-bold mb-1">{{ __('Data') }}</label>
-                                <input type="date" name="data" class="form-control" value="{{ old('data', now()->toDateString()) }}" max="{{ now()->toDateString() }}" required>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="small font-weight-bold mb-1">{{ __('Nota') }} <span class="text-muted font-weight-normal">({{ __('opcional') }})</span></label>
-                            <textarea name="nota" class="form-control" rows="2">{{ old('nota') }}</textarea>
-                        </div>
-                        <button type="submit" class="btn btn-block text-white" style="background: {{ $phases[$next]['color'] }}"><i class="fa fa-check"></i> {{ $nf['button'] }}</button>
-                    </form>
-
-                    @if(in_array($case->fase, ['cotacao_recebida', 'enviada_cliente'], true))
-                        <hr>
-                        <a href="#wc-refuse" data-toggle="collapse" class="small text-danger"><i class="fa fa-times-circle"></i> {{ __('O cliente recusou a cotação?') }}</a>
-                        <div class="collapse {{ $errors->has('motivo_recusa') ? 'show' : '' }}" id="wc-refuse">
-                            <form method="POST" action="{{ route('backoffice.warranty.refuse', $case->id) }}" class="mt-2">
-                                @csrf
-                                <div class="form-group">
-                                    <textarea name="motivo_recusa" class="form-control" rows="2" placeholder="{{ __('Motivo da recusa') }}" required>{{ old('motivo_recusa') }}</textarea>
-                                </div>
-                                <div class="d-flex" style="gap: .5rem">
-                                    <input type="date" name="data" class="form-control" value="{{ now()->toDateString() }}" max="{{ now()->toDateString() }}" required style="max-width: 170px">
-                                    <button class="btn btn-outline-danger"><i class="fa fa-times"></i> {{ __('Fechar como recusado') }}</button>
-                                </div>
-                            </form>
-                        </div>
-                    @endif
-                </div>
-            </div>
-        @else
-            <div class="card mb-3" style="border: 2px solid {{ $phase['color'] }}; border-radius: 16px">
-                <div class="card-body text-center">
-                    <i class="fas {{ $phase['icon'] }} fa-2x mb-2" style="color: {{ $phase['color'] }}"></i>
-                    <h5 class="mb-1">{{ __($phase['label']) }}</h5>
-                    <p class="text-muted small mb-0">{{ __('Processo fechado a :data.', ['data' => optional($case->fechado_em)->format('d/m/Y')]) }}</p>
-                    @if($case->motivo_recusa)<p class="small mt-2 mb-0"><strong>{{ __('Motivo') }}:</strong> {{ $case->motivo_recusa }}</p>@endif
-                </div>
-            </div>
-        @endif
-
-        {{-- Documentos --}}
-        <div class="card mb-3">
-            <div class="card-body">
-                <h5 class="card-title"><i class="fa fa-folder-open text-warning"></i> {{ __('Documentos') }}</h5>
-                @php($docs = ['cotacao' => [__('Cotação Sielaff'), $case->cotacao_numero, $case->cotacao_recebida_em, $case->cotacao_path], 'oc' => [__('Ordem de compra'), $case->oc_numero, $case->oc_recebida_em, $case->oc_path], 'servico' => [__('Ordem de serviço'), $case->fase === 'concluido' ? ' ' : null, $case->fechado_em, $case->servico_path]])
-                @php($anyDoc = false)
-                @foreach($docs as $tipo => [$label, $numero, $data, $path])
-                    @continue(!$numero)
-                    @php($anyDoc = true)
-                    <div class="wc-doc">
-                        <i class="fa {{ $path ? 'fa-file-pdf' : 'fa-file' }} fa-2x" @unless($path) style="color: #cbd5e1" @endunless></i>
-                        <div class="flex-grow-1">
-                            <strong>{{ $label }} {{ trim($numero) }}</strong>
-                            <small>{{ $tipo === 'servico' ? __('Reparação feita a') : __('Recebida a') }} {{ optional($data)->format('d/m/Y') }}{{ $path ? '' : ' · ' . __('sem PDF') }}</small>
-                        </div>
-                        @if($path)
-                            <a href="{{ route('backoffice.warranty.document', [$case->id, $tipo]) }}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fa fa-eye"></i> {{ __('Abrir') }}</a>
-                            <button type="button" class="btn btn-sm btn-link text-secondary px-1" data-toggle="collapse" data-target="#wc-replace-{{ $tipo }}" title="{{ __('Substituir') }}"><i class="fa fa-sync-alt"></i></button>
-                        @else
-                            <button type="button" class="btn btn-sm btn-outline-secondary" data-toggle="collapse" data-target="#wc-replace-{{ $tipo }}"><i class="fa fa-paperclip"></i> {{ __('Anexar PDF') }}</button>
-                        @endif
-                    </div>
-                    <div class="collapse" id="wc-replace-{{ $tipo }}">
-                        <form method="POST" action="{{ route('backoffice.warranty.document.replace', [$case->id, $tipo]) }}" enctype="multipart/form-data" class="p-2">
-                            @csrf
-                            <input type="file" name="documento" class="form-control-file mb-2" accept=".pdf,.jpg,.jpeg,.png" required>
-                            <button class="btn btn-sm btn-primary"><i class="fa fa-upload"></i> {{ $path ? __('Substituir documento') : __('Anexar PDF') }}</button>
-                        </form>
-                    </div>
-                @endforeach
-                @unless($anyDoc)
-                    <p class="text-muted small mb-0">{{ __('A cotação e a ordem de compra aparecem aqui quando forem registadas.') }}</p>
-                @endunless
-                @if($case->alemanha_enviado_em)
-                    <p class="small text-muted mt-2 mb-0"><i class="fa fa-globe-europe"></i> {{ __('Pedido enviado para a Alemanha a') }} {{ $case->alemanha_enviado_em->format('d/m/Y') }} — {{ __('Artigo') }} {{ $case->artigo_numero }} · {{ __('Cliente') }} {{ $case->cliente_numero }}</p>
-                @endif
-                @if($case->peca_recebida_em)
-                    <p class="small text-muted mt-2 mb-0"><i class="fa fa-box-open"></i> {{ __('Peça confirmada a') }} {{ $case->peca_recebida_em->format('d/m/Y') }}{{ $case->partOriginLabel() ? ' — ' . $case->partOriginLabel() : '' }}</p>
-                @endif
-                @if($case->enviada_cliente_em)
-                    <p class="small text-muted mt-2 mb-0"><i class="fa fa-paper-plane"></i> {{ __('Enviada ao cliente a') }} {{ $case->enviada_cliente_em->format('d/m/Y') }}{{ $case->enviada_para ? ' — ' . $case->enviada_para : '' }}</p>
-                @endif
-            </div>
-        </div>
 
         {{-- Histórico --}}
         <div class="card mb-3">
@@ -338,103 +255,19 @@
                 <h5 class="card-title"><i class="fa fa-history text-secondary"></i> {{ __('Histórico') }}</h5>
                 <ul class="wc-timeline">
                     @foreach($case->events as $event)
-                        <li style="--c: {{ $phases[$event->fase]['color'] ?? '#94a3b8' }}">
+                        @php($ep = config('warranty.phases.' . $event->fase, []))
+                        <li style="--c: {{ $ep['color'] ?? '#94a3b8' }}">
                             <span class="tl-dot"></span>
-                            <div class="tl-title">
-                                {{ __($phases[$event->fase]['label'] ?? $event->fase) }}
-                                <a href="#" class="ml-1 text-primary small" data-toggle="modal" data-target="#wc-step-{{ $event->id }}" title="{{ __('Editar passo') }}"><i class="fa fa-pencil-alt"></i></a>
-                            </div>
+                            <div class="tl-title">{{ __($ep['label'] ?? $event->fase) }}</div>
                             <div class="tl-meta">{{ $event->data->format('d/m/Y') }} · {{ $event->user->name ?? '—' }}</div>
-                            @if($event->fase === 'pedido_alemanha')<div class="tl-meta">{{ __('Artigo') }} {{ $case->artigo_numero }} · {{ __('Cliente') }} {{ $case->cliente_numero }}</div>@endif
-                            @if($event->fase === 'peca_recebida' && $case->partOriginLabel())<div class="tl-meta">{{ $case->partOriginLabel() }}</div>@endif
                             @if($event->nota)<div class="tl-note">{{ $event->nota }}</div>@endif
                         </li>
                     @endforeach
                 </ul>
-                @if($case->events->count() > 1)
-                    <form method="POST" action="{{ route('backoffice.warranty.undo', $case->id) }}" onsubmit="return confirm({{ \Illuminate\Support\Js::from(__('Desfazer o último passo? Os dados e o documento desse passo são apagados.')) }})">
-                        @csrf
-                        <button class="btn btn-sm btn-link text-secondary p-0"><i class="fa fa-undo"></i> {{ __('Desfazer último passo') }}</button>
-                    </form>
-                @endif
             </div>
         </div>
     </div>
 </div>
-
-{{-- Editar cada passo do histórico --}}
-@foreach($case->events as $event)
-    <div class="modal fade" id="wc-step-{{ $event->id }}" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-            <form method="POST" action="{{ route('backoffice.warranty.step.update', [$case->id, $event->id]) }}" class="modal-content">
-                @csrf
-                @method('PUT')
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="fa fa-pencil-alt"></i> {{ __($phases[$event->fase]['label'] ?? $event->fase) }}</h5>
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label class="small font-weight-bold mb-1">{{ $event->fase === 'registado' ? __('Data da avaria') : __('Data') }}</label>
-                        <input type="date" name="data" class="form-control" value="{{ $event->data->toDateString() }}" max="{{ now()->toDateString() }}" required>
-                    </div>
-                    @if($event->fase === 'cotacao_recebida')
-                        <div class="form-group">
-                            <label class="small font-weight-bold mb-1">{{ __('Nº da cotação') }}</label>
-                            <input type="text" name="cotacao_numero" class="form-control" value="{{ $case->cotacao_numero }}" required>
-                        </div>
-                    @elseif($event->fase === 'enviada_cliente')
-                        <div class="form-group">
-                            <label class="small font-weight-bold mb-1">{{ __('Enviada para') }}</label>
-                            <input type="text" name="enviada_para" class="form-control" value="{{ $case->enviada_para }}">
-                        </div>
-                    @elseif($event->fase === 'oc_recebida')
-                        <div class="form-group">
-                            <label class="small font-weight-bold mb-1">{{ __('Nº da ordem de compra') }}</label>
-                            <input type="text" name="oc_numero" class="form-control" value="{{ $case->oc_numero }}" required>
-                        </div>
-                    @elseif($event->fase === 'peca_recebida')
-                        <div class="form-group">
-                            @foreach(config('warranty.part_origins') as $value => $label)
-                                <div class="custom-control custom-radio mb-1">
-                                    <input type="radio" class="custom-control-input" name="peca_origem" id="wc-ed-origem-{{ $event->id }}-{{ $value }}" value="{{ $value }}" @checked(($case->peca_origem ?? 'recebida') === $value) required>
-                                    <label class="custom-control-label" for="wc-ed-origem-{{ $event->id }}-{{ $value }}">{{ __($label) }}</label>
-                                </div>
-                            @endforeach
-                        </div>
-                    @elseif($event->fase === 'pedido_alemanha')
-                        <div class="form-group">
-                            <label class="small font-weight-bold mb-1">{{ __('Nº do artigo') }}</label>
-                            <input type="text" name="artigo_numero" class="form-control" value="{{ $case->artigo_numero }}" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="small font-weight-bold mb-1">{{ __('Nº do cliente') }}</label>
-                            <input type="text" name="cliente_numero" class="form-control" value="{{ $case->cliente_numero }}" required>
-                        </div>
-                    @endif
-                    @if($event->fase === 'recusado')
-                        <div class="form-group mb-0">
-                            <label class="small font-weight-bold mb-1">{{ __('Motivo da recusa') }}</label>
-                            <textarea name="motivo_recusa" class="form-control" rows="2" required>{{ $case->motivo_recusa }}</textarea>
-                        </div>
-                    @else
-                        <div class="form-group mb-0">
-                            <label class="small font-weight-bold mb-1">{{ __('Nota') }} <span class="text-muted font-weight-normal">({{ __('opcional') }})</span></label>
-                            <textarea name="nota" class="form-control" rows="2">{{ $event->nota }}</textarea>
-                        </div>
-                    @endif
-                    @if(in_array($event->fase, ['cotacao_recebida', 'oc_recebida', 'concluido'], true))
-                        <small class="form-text text-muted mt-2"><i class="fa fa-info-circle"></i> {{ __('Para trocar o PDF use o botão de substituir no cartão Documentos.') }}</small>
-                    @endif
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">{{ __('Cancelar') }}</button>
-                    <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> {{ __('Gravar') }}</button>
-                </div>
-            </form>
-        </div>
-    </div>
-@endforeach
 
 {{-- Editar dados --}}
 <div class="modal fade" id="wc-edit" tabindex="-1" role="dialog">
@@ -447,6 +280,19 @@
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
             </div>
             <div class="modal-body">
+                <div class="form-group">
+                    <label class="small font-weight-bold mb-1">{{ __('Tipo de processo') }}</label>
+                    @if($case->canChangeType())
+                        <select name="tipo" class="form-control">
+                            @foreach($types as $value => $t)
+                                <option value="{{ $value }}" @selected($case->tipo === $value)>{{ __($t['label']) }} — {{ __($t['ajuda']) }}</option>
+                            @endforeach
+                        </select>
+                    @else
+                        <p class="mb-0"><span class="wc-type-badge" style="--c: {{ $type['color'] }}; --bg: {{ $type['bg'] }}"><i class="fas {{ $type['icon'] }}"></i> {{ __($type['label']) }}</span>
+                            <small class="text-muted ml-2">{{ __('Já não pode ser alterado: o processo passou da visita.') }}</small></p>
+                    @endif
+                </div>
                 <div class="form-row">
                     <div class="form-group col-md-8">
                         <label class="small font-weight-bold mb-1">{{ __('Loja') }}</label>
@@ -508,6 +354,7 @@
         if (window.jQuery) $(store).on('change', fill); else store.addEventListener('change', fill);
         fill();
         if (window.jQuery && $.fn.selectpicker) $('.selectpicker').selectpicker();
+
         // Email para a Sielaff Alemanha com o nº do artigo e do cliente já escritos
         var mail = document.getElementById('wc-mail');
         if (mail) mail.addEventListener('click', function (e) {
