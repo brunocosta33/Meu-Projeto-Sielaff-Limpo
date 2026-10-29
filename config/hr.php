@@ -116,7 +116,7 @@ return [
     // (a aguardar / justificada / injustificada) continuam a valer nas listas de RH.
     'calendar_colors' => [
         'ferias' => '#f9a825',
-        'falta' => '#546e7a',
+        'falta' => '#8e24aa',
     ],
 
     'override_reasons' => [

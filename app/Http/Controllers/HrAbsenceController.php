@@ -132,11 +132,13 @@ class HrAbsenceController extends Controller
 
         $canEdit = HrAccess::isManager(auth()->user());
         $ownStaffId = HrAccess::staffOf(auth()->user())?->id;
+        // O 'end' que o calendário envia é exclusivo: o último dia visível é o anterior
+        $ultimo = $to->copy()->subDay();
 
         $absences = HrAbsence::with('staff.user')
             ->overlapping($from->toDateString(), $to->toDateString())
             ->get()
-            ->map(function (HrAbsence $a) use ($canEdit, $ownStaffId) {
+            ->flatMap(function (HrAbsence $a) use ($canEdit, $ownStaffId, $from, $ultimo) {
                 $name = $a->staff->user->name ?? '—';
                 $showReason = $canEdit || $a->hr_staff_id === $ownStaffId;
 
@@ -158,21 +160,15 @@ class HrAbsenceController extends Controller
                 ];
 
                 if ($a->isPartial()) {
-                    return $event + [
+                    return collect([$event + [
                         'start' => $a->data_inicio->toDateString() . 'T' . $a->hora_inicio,
                         'end' => $a->data_inicio->toDateString() . 'T' . $a->hora_fim,
-                    ];
+                    ]]);
                 }
 
-                return $event + [
-                    'start' => $a->data_inicio->toDateString(),
-                    'end' => $a->data_fim->copy()->addDay()->toDateString(),
-                    'allDay' => true,
-                ];
+                return $this->perDay($event, $a->data_inicio, $a->data_fim, $from, $ultimo);
             });
 
-        // Um evento por dia (e não um só a atravessar os dias): a marca fica dentro de cada célula
-        $ultimo = $to->copy()->subDay();
         $vacations = HrVacation::with('staff.user')
             ->approved()
             ->overlapping($from->toDateString(), $to->toDateString())
@@ -188,14 +184,27 @@ class HrAbsenceController extends Controller
                         . ' · ' . $v->data_inicio->format('d/m') . ' a ' . $v->data_fim->format('d/m'),
                 ];
 
-                $inicio = $v->data_inicio->lt($from) ? $from->copy() : $v->data_inicio->copy();
-                $fim = $v->data_fim->gt($ultimo) ? $ultimo->copy() : $v->data_fim->copy();
-
-                return collect(CarbonPeriod::create($inicio, $fim))
-                    ->map(fn (Carbon $dia) => $base + ['start' => $dia->toDateString()]);
+                return $this->perDay($base, $v->data_inicio, $v->data_fim, $from, $ultimo);
             });
 
         return response()->json($absences->concat($vacations)->values());
+    }
+
+    /**
+     * Espalha um período por dias: um evento por célula, em vez de uma barra a atravessá-las.
+     * Recorta ao intervalo pedido para não mandar dias que não se veem.
+     */
+    private function perDay(array $base, Carbon $inicio, Carbon $fim, Carbon $from, Carbon $ultimo)
+    {
+        $de = $inicio->lt($from) ? $from->copy() : $inicio->copy();
+        $ate = $fim->gt($ultimo) ? $ultimo->copy() : $fim->copy();
+
+        if ($ate->lt($de)) {
+            return collect();
+        }
+
+        return collect(CarbonPeriod::create($de, $ate))
+            ->map(fn (Carbon $dia) => $base + ['start' => $dia->toDateString(), 'allDay' => true]);
     }
 
     private function validated(Request $request): array
