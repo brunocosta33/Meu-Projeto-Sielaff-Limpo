@@ -36,10 +36,23 @@ class HotlineRotation
         return $staff->funcao === 'tecnico' ? 'piquete' : 'hotline';
     }
 
+    /**
+     * Semanas inteiras entre a segunda de referência e a semana de uma data.
+     * Conta só com datas, em UTC: as datas que chegam do calendário trazem o fuso colado
+     * (ex.: +01:00 no horário de verão) e, passada a mudança da hora, esse offset deixa de
+     * corresponder à hora local — o startOfWeek caía na segunda-feira errada e o ciclo saltava.
+     */
+    private static function weeksSince(string $reference, Carbon $date): int
+    {
+        $inicio = Carbon::parse($reference, 'UTC')->startOfWeek();
+        $semana = Carbon::parse($date->toDateString(), 'UTC')->startOfWeek();
+
+        return intdiv((int) $inicio->diffInDays($semana, false), 7);
+    }
+
     public function weekType(Carbon $date, string $group): string
     {
-        $reference = Carbon::parse(config('hr.reference_monday'))->startOfWeek();
-        $weeks = intdiv((int) $reference->diffInDays($date->copy()->startOfWeek(), false), 7);
+        $weeks = self::weeksSince(config('hr.reference_monday'), $date);
         $even = $weeks % 2 === 0;
 
         // Grupo A faz fim de semana nas semanas pares, grupo B nas ímpares
@@ -67,8 +80,7 @@ class HotlineRotation
             return null;
         }
 
-        $reference = Carbon::parse($config['reference_saturday'])->startOfWeek();
-        $weeks = intdiv((int) $reference->diffInDays($date->copy()->startOfWeek(), false), 7);
+        $weeks = self::weeksSince($config['reference_saturday'], $date);
         $groupOnDuty = $weeks % 2 === 0 ? 'A' : 'B';
 
         return $staff->rotation_group === $groupOnDuty
