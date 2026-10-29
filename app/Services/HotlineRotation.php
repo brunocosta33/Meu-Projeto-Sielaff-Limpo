@@ -152,6 +152,9 @@ class HotlineRotation
         $hotliners ??= self::staffFor('hotline');
         $reasons = config('hr.override_reasons');
         $colors = self::colorMap($hotliners);
+        // A cor é da pessoa que está a trabalhar, não de quem estava escalado:
+        // cada um tem sempre a mesma cor, mesmo quando faz o turno de outro
+        $colorByUser = $hotliners->filter(fn ($s) => $s->user_id)->mapWithKeys(fn ($s) => [$s->user_id => $colors[$s->id]]);
 
         $shifts = collect();
         foreach ($this->schedule($from, $to, $hotliners) as $day) {
@@ -201,7 +204,10 @@ class HotlineRotation
                         : ($onVacation ? __(':nome está de férias', ['nome' => $cell['staff']->user->name])
                             : ($absent ? __(':nome ausente', ['nome' => $cell['staff']->user->name]) : null)),
                     'uncovered' => $uncovered,
-                    'color' => $uncovered ? self::UNCOVERED_COLOR : $colors[$cell['staff']->id],
+                    'troca' => (bool) $override && $override->motivo === 'troca',
+                    'color' => $uncovered
+                        ? self::UNCOVERED_COLOR
+                        : ($colorByUser[$cell['worker']->id ?? null] ?? $colors[$cell['staff']->id]),
                 ]);
             }
         }

@@ -60,10 +60,16 @@
 
     /* Ausências, férias e feriados (pílulas de dia inteiro) */
     .fc-pill-event { background: transparent !important; border: 0 !important; }
-    .fc-pill { display: flex; align-items: center; gap: 6px; width: 100%; padding: 3px 10px; border-radius: 999px; font-size: .74rem; font-weight: 700;
-               background: var(--pill); color: #fff; overflow: hidden; white-space: nowrap; box-shadow: 0 2px 6px color-mix(in srgb, var(--pill) 35%, transparent); }
-    .fc-pill i { font-size: .7rem; }
+    .fc-pill { display: flex; align-items: center; gap: 6px; width: 100%; padding: 3px 10px 3px 3px; border-radius: 999px; font-size: .74rem; font-weight: 700;
+               background: linear-gradient(135deg, var(--pill), color-mix(in srgb, var(--pill) 72%, #000));
+               color: #fff; overflow: hidden; white-space: nowrap; box-shadow: 0 2px 6px color-mix(in srgb, var(--pill) 35%, transparent); }
+    .fc-pill i { font-size: .72rem; opacity: .95; }
     .fc-pill span { overflow: hidden; text-overflow: ellipsis; }
+    .fc-pill-avatar { flex: 0 0 19px; height: 19px; border-radius: 50%; background: rgba(255, 255, 255, .95); color: var(--pill);
+                      font-size: .56rem; font-weight: 800; display: flex; align-items: center; justify-content: center; letter-spacing: .02em; }
+    /* Férias: a faixa que atravessa os dias todos de uma vez */
+    .fc-pill.is-ferias { box-shadow: 0 2px 10px color-mix(in srgb, var(--pill) 50%, transparent); }
+    .fc-pill.is-ferias i { font-size: .8rem; }
 
     /* Tarefas */
     #calendar-agendamentos .fc-task-event { border-radius: 7px !important; border: 0 !important; padding: 1px 5px; font-size: .74rem; font-weight: 600; }
@@ -107,7 +113,8 @@
             var events = @json($taskEvents ?? []);
             var T = {{ \Illuminate\Support\Js::from([
                 'escala' => __('Escala'), 'ferias' => __('Férias'), 'ausente' => __('Ausente / falta'), 'feriado' => __('Feriado'),
-                'troca' => __('Troca / substituição'), 'semSubstituto' => __('Sem substituto'), 'substitui' => __('substitui'),
+                'troca' => __('Troca / substituição'), 'semSubstituto' => __('Sem substituto'),
+                'trocadoCom' => __('trocado com'), 'cobre' => __('cobre'),
                 'prioridade' => __('Prioridade:'), 'recorrencia' => __('Recorrência:'),
             ]) }};
             var isPiquete = function (p) { return p.escala ? p.escala === 'piquete' : /piquete/i.test(p.funcao || ''); };
@@ -172,15 +179,26 @@
                                 '</span>' +
                                 (p.titular
                                     ? '<span class="fc-duty-sub"><i class="fas ' + (uncovered ? 'fa-exclamation-triangle' : 'fa-exchange-alt') + '"></i>' +
-                                        '<span class="quem">' + (uncovered ? '' : esc(T.substitui) + ' ') + esc(shortName(p.titular)) +
-                                        (p.motivo ? ' · ' + esc(p.motivo) : '') + '</span></span>'
+                                        '<span class="quem">' + (
+                                            uncovered ? esc(shortName(p.titular)) + (p.motivo ? ' · ' + esc(p.motivo) : '')
+                                          : p.troca ? esc(T.trocadoCom) + ' ' + esc(shortName(p.titular))
+                                          : esc(T.cobre) + ' ' + esc(shortName(p.titular)) + (p.motivo ? ' · ' + esc(p.motivo) : '')
+                                        ) + '</span></span>'
                                     : '') +
                             '</span>' +
                         '</div>' };
                 }
                 if (p.ausencia || p.feriado) {
-                    var icon = p.feriado ? 'fa-flag' : (isVacation(e) ? 'fa-umbrella-beach' : 'fa-user-clock');
-                    return { html: '<div class="fc-pill" style="--pill:' + e.backgroundColor + '"><i class="fas ' + icon + '"></i><span>' + esc(e.title) + '</span></div>' };
+                    var ferias = isVacation(e);
+                    var icon = p.feriado ? 'fa-flag' : (ferias ? 'fa-umbrella-beach' : 'fa-user-clock');
+                    var partes = (e.title || '').split(' – ');
+                    var pessoa = partes.length > 1 ? partes[1] : '';
+                    return { html:
+                        '<div class="fc-pill' + (ferias ? ' is-ferias' : '') + '" style="--pill:' + e.backgroundColor + '">' +
+                            (pessoa ? '<span class="fc-pill-avatar">' + esc(initials(pessoa).toUpperCase()) + '</span>' : '') +
+                            '<i class="fas ' + icon + '"></i>' +
+                            '<span>' + (pessoa ? esc(shortName(pessoa)) + ' · ' + esc(partes[0]) : esc(e.title)) + '</span>' +
+                        '</div>' };
                 }
                 return true;
             },

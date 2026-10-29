@@ -219,6 +219,7 @@ class HrController extends Controller
             // Só quando quem trabalha não é quem estava escalado
             'titular' => $s->worker_id === $s->staff->user_id ? null : $s->titular,
             'motivo' => $canEdit ? $s->motivo : $s->public_motivo,
+            'troca' => $s->troca,
             'description' => __('Horário') . ': ' . $s->hours . ($noteOf($s) ? ' · ' . $noteOf($s) : ''),
         ])->values();
 
