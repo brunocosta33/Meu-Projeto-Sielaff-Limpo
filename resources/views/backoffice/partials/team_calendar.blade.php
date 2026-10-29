@@ -117,6 +117,7 @@
                 'trocadoCom' => __('trocado com'), 'cobre' => __('cobre'),
                 'prioridade' => __('Prioridade:'), 'recorrencia' => __('Recorrência:'),
             ]) }};
+            var CORES = {{ \Illuminate\Support\Js::from(config('hr.calendar_colors')) }};
             var isPiquete = function (p) { return p.escala ? p.escala === 'piquete' : /piquete/i.test(p.funcao || ''); };
             var isVacation = function (e) { return e.extendedProps.ferias || /^Férias/.test(e.title); };
             var esc = function (t) { var d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML; };
@@ -235,8 +236,8 @@
                     });
                     html += '<span class="lg-sep"></span>';
                 }
-                if (hasVacation) html += '<span class="lg-item"><span class="lg-pill" style="--c:#0288d1"></span>' + esc(T.ferias) + '</span>';
-                if (hasAbsent) html += '<span class="lg-item"><span class="lg-pill" style="--c:#78909c"></span>' + esc(T.ausente) + '</span>';
+                if (hasVacation) html += '<span class="lg-item"><span class="lg-pill" style="--c:' + CORES.ferias + '"></span>' + esc(T.ferias) + '</span>';
+                if (hasAbsent) html += '<span class="lg-item"><span class="lg-pill" style="--c:' + CORES.falta + '"></span>' + esc(T.ausente) + '</span>';
                 if (hasHoliday) html += '<span class="lg-item"><span class="lg-pill" style="--c:#d32f2f"></span>' + esc(T.feriado) + '</span>';
                 if (hasSwap) html += '<span class="lg-item"><span class="lg-swap"></span>' + esc(T.troca) + '</span>';
                 if (hasUncovered) html += '<span class="lg-item"><span class="lg-dot" style="--c:#c62828">!</span>' + esc(T.semSubstituto) + '</span>';

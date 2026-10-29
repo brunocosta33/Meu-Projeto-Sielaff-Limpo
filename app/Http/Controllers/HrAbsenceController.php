@@ -8,6 +8,7 @@ use App\Models\HrVacation;
 use App\Services\HrAccess;
 use App\Services\WorkingDays;
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -142,13 +143,13 @@ class HrAbsenceController extends Controller
                 $event = $showReason
                     ? [
                         'title' => __('Falta') . ' – ' . $name,
-                        'color' => $a->situacao_color,
+                        'color' => config('hr.calendar_colors.falta'),
                         'description' => $a->motivo_label . ' · ' . $a->situacao_label . ' · ' . $a->duracao
                             . ($a->situacao === 'justificada' && !$a->documento_path ? ' · ' . __('sem comprovativo') : ''),
                     ]
                     : [
                         'title' => __('Ausente') . ' – ' . $name,
-                        'color' => '#78909c',
+                        'color' => config('hr.calendar_colors.falta'),
                         'description' => __('Ausente') . ' · ' . $a->duracao,
                     ];
                 $event += [
@@ -170,20 +171,29 @@ class HrAbsenceController extends Controller
                 ];
             });
 
+        // Um evento por dia (e não um só a atravessar os dias): a marca fica dentro de cada célula
+        $ultimo = $to->copy()->subDay();
         $vacations = HrVacation::with('staff.user')
             ->approved()
             ->overlapping($from->toDateString(), $to->toDateString())
             ->get()
-            ->map(fn (HrVacation $v) => [
-                'title' => __('Férias') . ' – ' . ($v->staff->user->name ?? '—'),
-                'color' => '#0288d1',
-                'start' => $v->data_inicio->toDateString(),
-                'end' => $v->data_fim->copy()->addDay()->toDateString(),
-                'allDay' => true,
-                'ausencia' => true,
-                'ferias' => true,
-                'description' => __('Férias') . ' · ' . $v->dias_uteis . ' ' . ($v->dias_uteis === 1 ? __('dia útil') : __('dias úteis')),
-            ]);
+            ->flatMap(function (HrVacation $v) use ($from, $ultimo) {
+                $base = [
+                    'title' => __('Férias') . ' – ' . ($v->staff->user->name ?? '—'),
+                    'color' => config('hr.calendar_colors.ferias'),
+                    'allDay' => true,
+                    'ausencia' => true,
+                    'ferias' => true,
+                    'description' => __('Férias') . ' · ' . $v->dias_uteis . ' ' . ($v->dias_uteis === 1 ? __('dia útil') : __('dias úteis'))
+                        . ' · ' . $v->data_inicio->format('d/m') . ' a ' . $v->data_fim->format('d/m'),
+                ];
+
+                $inicio = $v->data_inicio->lt($from) ? $from->copy() : $v->data_inicio->copy();
+                $fim = $v->data_fim->gt($ultimo) ? $ultimo->copy() : $v->data_fim->copy();
+
+                return collect(CarbonPeriod::create($inicio, $fim))
+                    ->map(fn (Carbon $dia) => $base + ['start' => $dia->toDateString()]);
+            });
 
         return response()->json($absences->concat($vacations)->values());
     }

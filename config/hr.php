@@ -112,6 +112,13 @@ return [
         'sem_motivo' => 'Sem motivo',
     ],
 
+    // Cores das marcas do calendário da equipa. As cores de estado das faltas
+    // (a aguardar / justificada / injustificada) continuam a valer nas listas de RH.
+    'calendar_colors' => [
+        'ferias' => '#f9a825',
+        'falta' => '#546e7a',
+    ],
+
     'override_reasons' => [
         'doenca' => 'Doença',
         'troca' => 'Troca',
