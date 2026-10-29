@@ -24,7 +24,9 @@
     #calendar-agendamentos .fc-daygrid-day, #calendar-agendamentos .fc-timegrid-col { background: #f4f7fb; }
     #calendar-agendamentos .fc-day-sat, #calendar-agendamentos .fc-day-sun { background: #e7edf6 !important; }
     #calendar-agendamentos .fc-col-header-cell.fc-day-sat, #calendar-agendamentos .fc-col-header-cell.fc-day-sun { background: #2b4a75 !important; }
-    #calendar-agendamentos .fc-day-other { background: #eceff4 !important; }
+    /* Fora do mês não há célula: fica o espaço em branco, para só se verem os dias do mês */
+    #calendar-agendamentos .fc-day-other { background: #fafbfd !important; }
+    #calendar-agendamentos .fc-day-other .fc-daygrid-day-frame { min-height: 0; }
     #calendar-agendamentos .fc-col-header-cell.fc-day-today { background: #1f6fd1 !important; box-shadow: none; }
     #calendar-agendamentos .fc-day-today { background: #dcebff !important; box-shadow: inset 0 0 0 2px #1f6fd1; }
     #calendar-agendamentos .fc-daygrid-day-frame { min-height: 96px; padding: 2px 3px 4px; }
@@ -46,9 +48,14 @@
     .fc-duty-meta { display: flex; align-items: center; gap: 4px; font-size: .68rem; color: rgba(255, 255, 255, .9); white-space: nowrap; overflow: hidden; }
     .fc-duty-meta i { font-size: .62rem; color: #fff; opacity: .85; }
     .fc-duty-zone { font-size: .56rem; font-weight: 800; text-transform: uppercase; background: rgba(255, 255, 255, .92); color: var(--duty); border-radius: 4px; padding: 0 4px; }
-    .fc-duty-chip.is-override { box-shadow: 0 0 0 2px #ffc107, 0 2px 6px rgba(0, 0, 0, .15); }
+    .fc-duty-chip.is-override { box-shadow: inset 4px 0 0 #ffc107, 0 1px 3px rgba(15, 23, 42, .18); padding-left: 8px; }
     .fc-duty-chip.is-uncovered { --duty: #c62828; }
-    .fc-duty-swap { color: #ffe082 !important; opacity: 1 !important; font-size: .7rem !important; }
+    /* Quem está a cobrir quem, dentro da marca: é a linha que faz a troca perceber-se */
+    .fc-duty-sub { display: flex; align-items: center; gap: 4px; margin-top: 3px; padding: 1px 5px; border-radius: 5px;
+                   background: rgba(255, 255, 255, .22); font-size: .66rem; font-weight: 700; line-height: 1.3;
+                   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .fc-duty-sub i { font-size: .6rem; opacity: .95; }
+    .fc-duty-sub .quem { overflow: hidden; text-overflow: ellipsis; }
     .fc-timegrid-event .fc-duty-chip { height: 100%; align-items: flex-start; padding-top: 6px; }
 
     /* Ausências, férias e feriados (pílulas de dia inteiro) */
@@ -79,7 +86,7 @@
     .cal-legend .lg-item { display: inline-flex; align-items: center; gap: .4rem; white-space: nowrap; }
     .cal-legend .lg-dot { width: 22px; height: 22px; border-radius: 50%; background: var(--c); color: #fff; font-size: .58rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; }
     .cal-legend .lg-pill { width: 26px; height: 12px; border-radius: 999px; background: var(--c); display: inline-block; }
-    .cal-legend .lg-swap { width: 22px; height: 14px; border-radius: 4px; background: #8a96a8; box-shadow: 0 0 0 2px #ffc107; display: inline-block; }
+    .cal-legend .lg-swap { width: 26px; height: 14px; border-radius: 4px; background: #8a96a8; box-shadow: inset 4px 0 0 #ffc107; display: inline-block; }
     .cal-legend .lg-sep { width: 1px; height: 18px; background: #d9e1ec; }
 </style>
 @endpush
@@ -100,12 +107,16 @@
             var events = @json($taskEvents ?? []);
             var T = {{ \Illuminate\Support\Js::from([
                 'escala' => __('Escala'), 'ferias' => __('Férias'), 'ausente' => __('Ausente / falta'), 'feriado' => __('Feriado'),
-                'troca' => __('Troca / substituição'), 'semSubstituto' => __('Sem substituto'),
+                'troca' => __('Troca / substituição'), 'semSubstituto' => __('Sem substituto'), 'substitui' => __('substitui'),
                 'prioridade' => __('Prioridade:'), 'recorrencia' => __('Recorrência:'),
             ]) }};
             var isPiquete = function (p) { return p.escala ? p.escala === 'piquete' : /piquete/i.test(p.funcao || ''); };
             var isVacation = function (e) { return e.extendedProps.ferias || /^Férias/.test(e.title); };
             var esc = function (t) { var d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML; };
+            var shortName = function (name) {
+                var parts = (name || '').trim().split(/\s+/);
+                return parts.length > 1 ? parts[0] + ' ' + parts[parts.length - 1] : (parts[0] || '');
+            };
             var initials = function (name) {
                 var parts = (name || '').split(' · ')[0].trim().split(/\s+/);
                 return ((parts[0] || '')[0] || '') + (parts.length > 1 ? parts[parts.length - 1][0] : '');
@@ -114,6 +125,8 @@
                 initialView: 'dayGridMonth',
                 locale: @json(app()->getLocale()),
                 firstDay: 1, // semana de segunda a domingo
+                fixedWeekCount: false,      // só as semanas que o mês ocupa
+                showNonCurrentDates: false, // sem os dias do mês anterior e do seguinte
                 buttonText: { today: @json(__('Hoje')), month: @json(__('Mês')), week: @json(__('Semana')), day: @json(__('Dia')), list: @json(__('Lista')) },
                 allDayText: @json(__('Dia todo')),
                 moreLinkText: @json(__('mais')),
@@ -150,14 +163,18 @@
                     var parts = (p.nome || '').split(' · ');
                     var uncovered = !!p.semSubstituto;
                     return { html:
-                        '<div class="fc-duty-chip' + (p.substituicao ? ' is-override' : '') + (uncovered ? ' is-uncovered' : '') + '" style="--duty:' + e.backgroundColor + '">' +
+                        '<div class="fc-duty-chip' + (p.substituicao && !uncovered ? ' is-override' : '') + (uncovered ? ' is-uncovered' : '') + '" style="--duty:' + e.backgroundColor + '">' +
                             '<span class="fc-duty-avatar">' + (uncovered ? '!' : esc(initials(parts[0]).toUpperCase())) + '</span>' +
                             '<span class="fc-duty-text">' +
                                 '<span class="fc-duty-name">' + esc(parts[0]) + '</span>' +
                                 '<span class="fc-duty-meta"><i class="fas ' + (piquete ? 'fa-tools' : 'fa-headset') + '"></i>' + esc(p.horario) +
                                     (parts[1] ? ' <span class="fc-duty-zone">' + esc(parts[1]) + '</span>' : '') +
-                                    (p.substituicao ? ' <i class="fas fa-exchange-alt fc-duty-swap"></i>' : '') +
                                 '</span>' +
+                                (p.titular
+                                    ? '<span class="fc-duty-sub"><i class="fas ' + (uncovered ? 'fa-exclamation-triangle' : 'fa-exchange-alt') + '"></i>' +
+                                        '<span class="quem">' + (uncovered ? '' : esc(T.substitui) + ' ') + esc(shortName(p.titular)) +
+                                        (p.motivo ? ' · ' + esc(p.motivo) : '') + '</span></span>'
+                                    : '') +
                             '</span>' +
                         '</div>' };
                 }

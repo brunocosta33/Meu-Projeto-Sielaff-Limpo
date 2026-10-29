@@ -216,6 +216,9 @@ class HrController extends Controller
             'nome' => $s->name . ($s->zona ? ' · ' . $s->zona : ''),
             'horario' => $s->hours,
             'substituicao' => $noteOf($s),
+            // Só quando quem trabalha não é quem estava escalado
+            'titular' => $s->worker_id === $s->staff->user_id ? null : $s->titular,
+            'motivo' => $canEdit ? $s->motivo : $s->public_motivo,
             'description' => __('Horário') . ': ' . $s->hours . ($noteOf($s) ? ' · ' . $noteOf($s) : ''),
         ])->values();
 

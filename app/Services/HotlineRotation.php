@@ -169,6 +169,14 @@ class HotlineRotation
                     'zona' => $cell['staff']->zona ? __(config('hr.zones.' . $cell['staff']->zona)) : null,
                     'staff' => $cell['staff'],
                     'name' => $cell['worker']->name ?? __('Sem substituto'),
+                    // Quem estava escalado e porque não está: o calendário mostra-o na própria marca
+                    'titular' => $cell['staff']->user->name,
+                    'motivo' => $override
+                        ? __($reasons[$override->motivo] ?? $override->motivo)
+                        : ($onVacation ? __('Férias') : ($absent ? $cell['absence']->motivo_label : null)),
+                    'public_motivo' => $override
+                        ? self::publicReason($override->motivo)
+                        : ($onVacation ? __('Férias') : ($absent ? __('Ausente') : null)),
                     'worker_id' => $cell['worker']->id ?? null,
                     'override' => $override,
                     'override_note' => $override
