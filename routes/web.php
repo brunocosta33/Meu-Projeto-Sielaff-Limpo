@@ -263,6 +263,7 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
 
         // Despesas: cada um lanca as suas e anexa comprovativos; so a direcao decide (ver controlador)
         Route::get('/despesas', [HrExpenseController::class, 'index'])->name('expenses.index');
+        Route::get('/despesas/exportar', [HrExpenseController::class, 'export'])->name('expenses.export');
         Route::post('/despesas', [HrExpenseController::class, 'store'])->name('expenses.store');
         Route::put('/despesas/{id}', [HrExpenseController::class, 'update'])->name('expenses.update');
         Route::delete('/despesas/{id}', [HrExpenseController::class, 'destroy'])->name('expenses.destroy');

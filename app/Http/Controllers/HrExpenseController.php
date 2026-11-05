@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\HrExpensesExport;
 use App\Models\HrExpense;
 use App\Models\HrExpenseFile;
 use App\Models\HrStaff;
@@ -9,6 +10,7 @@ use App\Services\HrAccess;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Maatwebsite\Excel\Facades\Excel;
 
 /**
  * Recursos Humanos > Despesas.
@@ -26,23 +28,14 @@ class HrExpenseController extends Controller
         $manager = HrAccess::isManager($user);
         $ownStaffId = HrAccess::staffOf($user)?->id;
 
-        $base = HrExpense::query()
-            // Quem não é gestão de RH só vê as suas
-            ->when(!$manager, fn ($q) => $q->where('hr_staff_id', $ownStaffId ?? 0))
-            ->when($request->filled('colaborador'), fn ($q) => $q->where('hr_staff_id', $request->colaborador))
-            ->when($request->filled('categoria'), fn ($q) => $q->where('categoria', $request->categoria))
-            ->when($request->filled('de'), fn ($q) => $q->whereDate('data', '>=', $request->de))
-            ->when($request->filled('ate'), fn ($q) => $q->whereDate('data', '<=', $request->ate));
+        $base = $this->filteredQuery($request);
 
         // Os totais ignoram o filtro do estado, para se poder saltar entre eles
         $counts = (clone $base)->toBase()->selectRaw('estado, COUNT(*) as total, SUM(valor) as soma')->groupBy('estado')->get()->keyBy('estado');
         $porPagar = (clone $base)->toPay();
 
-        $expenses = (clone $base)
+        $expenses = $this->withStateFilter(clone $base, $request)
             ->with(['staff.user', 'files', 'decider', 'payer'])
-            ->when($request->filled('estado'), fn ($q) => $request->estado === 'por_pagar'
-                ? $q->where('estado', 'aprovada')->whereNull('pago_em')
-                : $q->where('estado', $request->estado))
             ->orderByDesc('data')
             ->orderByDesc('id')
             ->paginate(30)
@@ -61,6 +54,14 @@ class HrExpenseController extends Controller
             'canApprove' => HrAccess::canApproveExpenses($user),
             'ownStaffId' => $ownStaffId,
         ]);
+    }
+
+    /** O mesmo que está à vista, em Excel. */
+    public function export(Request $request)
+    {
+        $query = $this->withStateFilter($this->filteredQuery($request), $request);
+
+        return Excel::download(new HrExpensesExport($query), 'despesas-' . now()->format('Y-m-d') . '.xlsx');
     }
 
     public function store(Request $request)
@@ -221,14 +222,13 @@ class HrExpenseController extends Controller
             'hr_staff_id' => [$manager ? 'required' : 'nullable', 'exists:hr_staff,id'],
             'data' => ['required', 'date', 'before_or_equal:today'],
             'categoria' => ['required', Rule::in(array_keys(config('hr.expense_categories')))],
-            'descricao' => ['required', 'string', 'max:255'],
+            'descricao' => ['nullable', 'string', 'max:255'],
             'valor' => ['required', 'numeric', 'min:0.01', 'max:999999.99'],
         ], [
             'hr_staff_id.required' => __('Escolha o colaborador.'),
             'data.required' => __('Indique a data da despesa.'),
             'data.before_or_equal' => __('A data da despesa não pode ser no futuro.'),
             'categoria.required' => __('Escolha a categoria.'),
-            'descricao.required' => __('Descreva a despesa.'),
             'valor.required' => __('Indique o valor.'),
             'valor.min' => __('O valor tem de ser maior que zero.'),
         ]);
@@ -240,6 +240,28 @@ class HrExpenseController extends Controller
         }
 
         return $data;
+    }
+
+    /** Filtros da página (sem o estado): quem não é gestão de RH só vê as suas. */
+    private function filteredQuery(Request $request)
+    {
+        $manager = HrAccess::isManager(auth()->user());
+        $ownStaffId = HrAccess::staffOf(auth()->user())?->id;
+
+        return HrExpense::query()
+            ->when(!$manager, fn ($q) => $q->where('hr_staff_id', $ownStaffId ?? 0))
+            ->when($request->filled('colaborador'), fn ($q) => $q->where('hr_staff_id', $request->colaborador))
+            ->when($request->filled('categoria'), fn ($q) => $q->where('categoria', $request->categoria))
+            ->when($request->filled('de'), fn ($q) => $q->whereDate('data', '>=', $request->de))
+            ->when($request->filled('ate'), fn ($q) => $q->whereDate('data', '<=', $request->ate));
+    }
+
+    /** 'por_pagar' não é um estado: são as aprovadas que ainda não foram pagas. */
+    private function withStateFilter($query, Request $request)
+    {
+        return $query->when($request->filled('estado'), fn ($q) => $request->estado === 'por_pagar'
+            ? $q->where('estado', 'aprovada')->whereNull('pago_em')
+            : $q->where('estado', $request->estado));
     }
 
     /** A despesa existe e quem está a ver pode mexer-lhe (o próprio ou a gestão de RH). */

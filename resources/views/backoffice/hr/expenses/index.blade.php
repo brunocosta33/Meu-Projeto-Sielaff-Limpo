@@ -80,6 +80,8 @@
                     <input type="date" name="de" class="form-control form-control-sm" value="{{ request('de') }}" title="{{ __('De') }}" onchange="this.form.submit()">
                     <input type="date" name="ate" class="form-control form-control-sm" value="{{ request('ate') }}" title="{{ __('Até') }}" onchange="this.form.submit()">
                 </form>
+                <a href="{{ route('backoffice.hr.expenses.export', request()->only(['colaborador', 'categoria', 'de', 'ate', 'estado'])) }}"
+                   class="btn btn-outline-success btn-sm"><i class="fa fa-file-excel"></i> {{ __('Exportar Excel') }}</a>
                 <button type="button" class="btn btn-success btn-sm" data-toggle="collapse" data-target="#ex-nova">
                     <i class="fa fa-plus"></i> {{ __('Nova despesa') }}
                 </button>
@@ -149,8 +151,8 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="small font-weight-bold mb-1">{{ __('Descrição') }}</label>
-                    <input type="text" name="descricao" class="form-control" value="{{ old('descricao') }}" maxlength="255" required
+                    <label class="small font-weight-bold mb-1">{{ __('Descrição') }} <span class="text-muted font-weight-normal">({{ __('opcional') }})</span></label>
+                    <input type="text" name="descricao" class="form-control" value="{{ old('descricao') }}" maxlength="255"
                            placeholder="{{ __('Ex.: deslocação a Braga para reparação na loja 229') }}">
                 </div>
                 <div class="form-group">
@@ -184,8 +186,8 @@
                 <span class="ex-valor">{{ $euros($e->valor) }}</span>
             </div>
 
-            <p class="ex-desc">{{ $e->descricao }}</p>
-            <div class="ex-meta">
+            @if($e->descricao)<p class="ex-desc">{{ $e->descricao }}</p>@endif
+            <div class="ex-meta {{ $e->descricao ? '' : 'mt-2' }}">
                 {{ __('Despesa de') }} {{ $e->data->format('d/m/Y') }}
                 @if($e->decided_at)
                     · {{ $e->estado === 'aprovada' ? __('Aprovada por') : __('Rejeitada por') }}

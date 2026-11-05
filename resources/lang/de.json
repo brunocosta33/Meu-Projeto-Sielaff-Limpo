@@ -2304,5 +2304,9 @@
     "Só a direção decide sobre despesas.": "Nur die Leitung entscheidet über Ausgaben.",
     "Só se paga uma despesa aprovada.": "Nur eine genehmigte Ausgabe kann bezahlt werden.",
     "Todas as categorias": "Alle Kategorien",
-    "Valor": "Betrag"
+    "Valor": "Betrag",
+    "Decidida em": "Entschieden am",
+    "Forma de pagamento": "Zahlungsart",
+    "Paga em": "Bezahlt am",
+    "Paga por": "Bezahlt von"
 }

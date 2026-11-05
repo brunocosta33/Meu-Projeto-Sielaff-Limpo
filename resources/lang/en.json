@@ -2228,5 +2228,9 @@
     "Só a direção decide sobre despesas.": "Only management decides on expenses.",
     "Só se paga uma despesa aprovada.": "Only an approved expense can be paid.",
     "Todas as categorias": "All categories",
-    "Valor": "Amount"
+    "Valor": "Amount",
+    "Decidida em": "Decided on",
+    "Forma de pagamento": "Payment method",
+    "Paga em": "Paid on",
+    "Paga por": "Paid by"
 }
