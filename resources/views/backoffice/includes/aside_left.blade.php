@@ -131,7 +131,7 @@ use App\Models\Base;
         </a>
         <ul class="collapse list-unstyled" id="pageSubmenuStock" data-parent="#menu-left">
             <li><a href="{{ route('backoffice.stock.items.index') }}"><i class="fas fa-cubes me-2"></i>{{ __('Peças e Armazém') }}</a></li>
-            <li><a href="{{ route('backoffice.stock.deliveries.index') }}"><i class="fas fa-dolly me-2"></i>{{ __('Entregas a Técnicos') }}</a></li>
+            <li><a href="{{ route('backoffice.deliveries.index') }}"><i class="fas fa-dolly me-2"></i>{{ __('Entregas a Técnicos') }}</a></li>
             <li><a href="{{ route('backoffice.stock.technicians.index') }}"><i class="fas fa-truck-loading me-2"></i>{{ __('Stock por Técnico') }}</a></li>
             <li><a href="{{ route('backoffice.stock.movements.index') }}"><i class="fas fa-exchange-alt me-2"></i>{{ __('Movimentos de Stock') }}</a></li>
         </ul>

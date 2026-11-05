@@ -2254,5 +2254,18 @@
     "Procurar no catálogo…": "Search the catalogue…",
     "Registo do que sai para cada técnico e do que volta. Não controla stock: serve para ficar escrito quem levou o quê, quando e porquê.": "A record of what goes out to each technician and what comes back. It does not control stock: it is there so that who took what, when and why is written down.",
     "Sem referência, fica uma automática. O artigo passa a existir no catálogo.": "With no reference, one is generated. The item is added to the catalogue.",
-    "Somado deste registo: entregue menos devolvido e consumido.": "Added up from this record: delivered minus returned and used."
+    "Somado deste registo: entregue menos devolvido e consumido.": "Added up from this record: delivered minus returned and used.",
+    "Ainda não há nada registado.": "Nothing recorded yet.",
+    "Apagar este registo?": "Delete this record?",
+    "Artigo, nota, técnico…": "Item, note, technician…",
+    "Devolvido :qtd x :artigo por :quem.": "Returned :qtd x :artigo by :quem.",
+    "Entregas e devoluções": "Deliveries and returns",
+    "Entregue :qtd x :artigo a :quem.": "Delivered :qtd x :artigo to :quem.",
+    "Escolha o técnico.": "Choose the technician.",
+    "Escreva a peça ou ferramenta.": "Write the part or tool.",
+    "Escreva ou escolha das sugestões": "Type it or pick a suggestion",
+    "Indique a data e a hora.": "Enter the date and time.",
+    "Os técnicos não registam entregas.": "Technicians do not record deliveries.",
+    "Quem levou que peça ou ferramenta, quando e porquê.": "Who took which part or tool, when and why.",
+    "Registo apagado.": "Record deleted."
 }

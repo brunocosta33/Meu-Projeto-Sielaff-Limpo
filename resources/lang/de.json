@@ -2330,5 +2330,18 @@
     "Procurar no catálogo…": "Im Katalog suchen…",
     "Registo do que sai para cada técnico e do que volta. Não controla stock: serve para ficar escrito quem levou o quê, quando e porquê.": "Protokoll darüber, was an die Techniker geht und was zurückkommt. Es steuert keinen Bestand: Es hält fest, wer was wann und warum mitgenommen hat.",
     "Sem referência, fica uma automática. O artigo passa a existir no catálogo.": "Ohne Referenz wird eine erzeugt. Der Artikel wird in den Katalog aufgenommen.",
-    "Somado deste registo: entregue menos devolvido e consumido.": "Aus diesem Protokoll errechnet: ausgegeben minus zurückgegeben und verbraucht."
+    "Somado deste registo: entregue menos devolvido e consumido.": "Aus diesem Protokoll errechnet: ausgegeben minus zurückgegeben und verbraucht.",
+    "Ainda não há nada registado.": "Noch nichts erfasst.",
+    "Apagar este registo?": "Diesen Eintrag löschen?",
+    "Artigo, nota, técnico…": "Artikel, Notiz, Techniker…",
+    "Devolvido :qtd x :artigo por :quem.": ":qtd x :artigo von :quem zurückgegeben.",
+    "Entregas e devoluções": "Ausgaben und Rückgaben",
+    "Entregue :qtd x :artigo a :quem.": ":qtd x :artigo an :quem ausgegeben.",
+    "Escolha o técnico.": "Wählen Sie den Techniker.",
+    "Escreva a peça ou ferramenta.": "Geben Sie das Teil oder Werkzeug an.",
+    "Escreva ou escolha das sugestões": "Eingeben oder aus den Vorschlägen wählen",
+    "Indique a data e a hora.": "Geben Sie Datum und Uhrzeit an.",
+    "Os técnicos não registam entregas.": "Techniker erfassen keine Ausgaben.",
+    "Quem levou que peça ou ferramenta, quando e porquê.": "Wer welches Teil oder Werkzeug mitgenommen hat, wann und warum.",
+    "Registo apagado.": "Eintrag gelöscht."
 }

@@ -1739,5 +1739,19 @@
     "Registo": "Registro",
     "Registo do que sai para cada técnico e do que volta. Não controla stock: serve para ficar escrito quem levou o quê, quando e porquê.": "Registro de lo que sale para cada técnico y de lo que vuelve. No controla stock: sirve para que quede escrito quién se llevó qué, cuándo y por qué.",
     "Sem referência, fica uma automática. O artigo passa a existir no catálogo.": "Sin referencia, se genera una. El artículo pasa a existir en el catálogo.",
-    "Somado deste registo: entregue menos devolvido e consumido.": "Sumado de este registro: entregado menos devuelto y consumido."
+    "Somado deste registo: entregue menos devolvido e consumido.": "Sumado de este registro: entregado menos devuelto y consumido.",
+    "Ainda não há nada registado.": "Todavía no hay nada registrado.",
+    "Apagar este registo?": "¿Eliminar este registro?",
+    "Artigo, nota, técnico…": "Artículo, nota, técnico…",
+    "Devolvido :qtd x :artigo por :quem.": "Devuelto :qtd x :artigo por :quem.",
+    "Entregas e devoluções": "Entregas y devoluciones",
+    "Entregue :qtd x :artigo a :quem.": "Entregado :qtd x :artigo a :quem.",
+    "Escolha o técnico.": "Elija el técnico.",
+    "Escreva a peça ou ferramenta.": "Escriba la pieza o herramienta.",
+    "Escreva ou escolha das sugestões": "Escriba o elija una sugerencia",
+    "Indique a data e a hora.": "Indique la fecha y la hora.",
+    "Os técnicos não registam entregas.": "Los técnicos no registran entregas.",
+    "Qtd": "Cant.",
+    "Quem levou que peça ou ferramenta, quando e porquê.": "Quién se llevó qué pieza o herramienta, cuándo y por qué.",
+    "Registo apagado.": "Registro eliminado."
 }

@@ -8,7 +8,6 @@ use App\Exports\TechnicianStocksExport;
 use App\Http\Requests\StockOperationRequest;
 use App\Http\Requests\UpsertItemRequest;
 use App\Models\Item;
-use Illuminate\Validation\Rule;
 use App\Models\Machine;
 use App\Models\StockMovement;
 use App\Models\TechnicianItemStock;
@@ -131,131 +130,18 @@ class StockController extends Controller
         ]);
     }
 
-    /**
-     * Entregas e devoluções: o registo simples de o que saiu para cada técnico.
-     * Não mexe em saldos — o que está com cada um é somado do próprio registo.
-     */
-    public function deliveries(Request $request)
-    {
-        abort_unless($this->canManageWarehouse(), 403);
-
-        $movements = StockMovement::query()
-            ->whereIn('movement_type', ['to_technician', 'from_technician'])
-            ->when($request->filled('technician_id'), fn ($q) => $q->where('technician_id', $request->technician_id))
-            ->when($request->filled('item_id'), fn ($q) => $q->where('item_id', $request->item_id))
-            ->when($request->filled('date_from'), fn ($q) => $q->whereDate('moved_at', '>=', $request->date_from))
-            ->when($request->filled('date_to'), fn ($q) => $q->whereDate('moved_at', '<=', $request->date_to))
-            ->when($request->filled('q'), function ($q) use ($request) {
-                $termo = '%' . trim($request->q) . '%';
-                $q->where(fn ($w) => $w->where('notes', 'like', $termo)
-                    ->orWhereHas('item', fn ($i) => $i->where('name', 'like', $termo)->orWhere('reference', 'like', $termo))
-                    ->orWhereHas('technician', fn ($t) => $t->where('name', 'like', $termo)));
-            })
-            ->with(['item', 'technician', 'creator'])
-            ->orderByDesc('moved_at')
-            ->orderByDesc('id')
-            ->paginate(30)
-            ->withQueryString();
-
-        return view('backoffice.stock.deliveries.index', [
-            'movements' => $movements,
-            'items' => Item::where('is_active', true)->orderBy('name')->get(['id', 'reference', 'name']),
-            'technicians' => $this->getTechnicians(),
-            'holdings' => $this->technicianHoldings(),
-        ]);
-    }
-
-    /** Registar uma entrega ou uma devolução. O artigo pode ser criado aqui, se ainda não existir. */
-    public function storeDelivery(Request $request)
-    {
-        abort_unless($this->canManageWarehouse(), 403);
-
-        $data = $request->validate([
-            'direcao' => ['required', Rule::in(['entrega', 'devolucao'])],
-            'technician_id' => ['required', 'exists:users,id'],
-            'item_id' => ['nullable', 'required_without:novo_nome', 'exists:items,id'],
-            'novo_nome' => ['nullable', 'required_without:item_id', 'string', 'max:255'],
-            'novo_referencia' => ['nullable', 'string', 'max:255', 'unique:items,reference'],
-            'quantity' => ['required', 'integer', 'min:1'],
-            'moved_at' => ['required', 'date', 'before_or_equal:now'],
-            'notes' => ['nullable', 'string', 'max:3000'],
-        ], [
-            'technician_id.required' => __('Escolha a quem está a entregar.'),
-            'item_id.required_without' => __('Escolha o artigo ou crie um novo.'),
-            'novo_nome.required_without' => __('Dê um nome ao artigo novo.'),
-            'novo_referencia.unique' => __('Já existe um artigo com essa referência.'),
-            'quantity.min' => __('A quantidade tem de ser pelo menos 1.'),
-            'moved_at.before_or_equal' => __('A data e hora não podem ser no futuro.'),
-        ]);
-
-        $item = empty($data['item_id'])
-            ? Item::create([
-                // validated() não traz as chaves opcionais que não vieram no formulário
-                'reference' => ($data['novo_referencia'] ?? '') ?: $this->nextReference(),
-                'name' => $data['novo_nome'],
-                'is_active' => true,
-            ])
-            : Item::findOrFail($data['item_id']);
-
-        $technician = $this->findTechnician($data['technician_id']);
-        $entrega = $data['direcao'] === 'entrega';
-        $quemE = $technician->name ?: $technician->email;
-
-        StockMovement::create([
-            'item_id' => $item->id,
-            'technician_id' => $technician->id,
-            'movement_type' => $entrega ? 'to_technician' : 'from_technician',
-            'quantity' => $data['quantity'],
-            'source' => $entrega ? __('Armazém') : $quemE,
-            'destination' => $entrega ? $quemE : __('Armazém'),
-            'notes' => $data['notes'] ?? null,
-            'moved_at' => $data['moved_at'],
-            'created_by' => auth()->id(),
-        ]);
-
-        flash($entrega
-            ? __('Entrega registada: :qtd x :artigo para :quem.', ['qtd' => $data['quantity'], 'artigo' => $item->name, 'quem' => $quemE])
-            : __('Devolução registada: :qtd x :artigo de :quem.', ['qtd' => $data['quantity'], 'artigo' => $item->name, 'quem' => $quemE]))->success();
-
-        return back();
-    }
-
-    /**
-     * O que está com cada técnico, somado do registo: entregue menos devolvido e consumido.
-     * Não há saldo guardado — o registo é a única verdade.
-     */
-    private function technicianHoldings()
-    {
-        return StockMovement::query()
-            ->whereNotNull('technician_id')
-            ->whereNotNull('item_id')
-            ->selectRaw("technician_id, item_id, SUM(CASE WHEN movement_type = 'to_technician' THEN quantity"
-                . " WHEN movement_type IN ('from_technician', 'consumed') THEN -quantity ELSE 0 END) as quantity")
-            ->groupBy('technician_id', 'item_id')
-            ->havingRaw('quantity <> 0')
-            ->with('item')
-            ->get()
-            ->groupBy('technician_id');
-    }
-
-    /** Referência para um artigo criado na hora sem referência própria. */
-    private function nextReference(): string
-    {
-        do {
-            $ref = 'S/REF-' . str_pad((string) (Item::count() + random_int(1, 99)), 4, '0', STR_PAD_LEFT);
-        } while (Item::where('reference', $ref)->exists());
-
-        return $ref;
-    }
-
     public function technicians(Request $request)
     {
         $technicians = $this->getTechnicians()
             ->when(!$this->canManageWarehouse(), fn ($collection) => $collection->where('id', auth()->id()))
             ->values();
 
-        // Calculado do registo de movimentos, para refletir também as entregas feitas no ecrã simples
-        $stocks = $this->technicianHoldings();
+        $stocks = TechnicianItemStock::query()
+            ->with(['item', 'technician'])
+            ->where('quantity', '>', 0)
+            ->whereIn('technician_id', $technicians->pluck('id'))
+            ->get()
+            ->groupBy('technician_id');
 
         return view('backoffice.stock.technicians.index', [
             'technicians' => $technicians,

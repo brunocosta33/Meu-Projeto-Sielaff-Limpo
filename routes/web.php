@@ -33,6 +33,7 @@ use App\Http\Controllers\TaskScheduleController;
 use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\MachineController;
 use App\Http\Controllers\StockController;
+use App\Http\Controllers\ToolDeliveryController;
 use App\Http\Controllers\TechnicalRequestController;
 use App\Http\Controllers\TechnicalScheduleController;
 use App\Http\Controllers\InstallationController;
@@ -313,6 +314,14 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
         });
     });
 
+    // Entregas a Tecnicos: registo proprio de pecas e ferramentas, independente do stock
+    Route::prefix('backoffice/entregas')->name('backoffice.deliveries.')->group(function () {
+        Route::get('/', [ToolDeliveryController::class, 'index'])->name('index');
+        Route::post('/', [ToolDeliveryController::class, 'store'])->name('store');
+        Route::get('/exportar', [ToolDeliveryController::class, 'export'])->name('export');
+        Route::delete('/{id}', [ToolDeliveryController::class, 'destroy'])->name('destroy');
+    });
+
     Route::prefix('backoffice/stock')->name('backoffice.stock.')->group(function () {
         Route::redirect('/', '/backoffice/stock/items')->name('index');
         Route::get('/items', [StockController::class, 'index'])->name('items.index');
@@ -321,8 +330,6 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
         Route::get('/items/{item}/edit', [StockController::class, 'edit'])->name('items.edit');
         Route::put('/items/{item}', [StockController::class, 'update'])->name('items.update');
 
-        Route::get('/entregas', [StockController::class, 'deliveries'])->name('deliveries.index');
-        Route::post('/entregas', [StockController::class, 'storeDelivery'])->name('deliveries.store');
         Route::get('/movements', [StockController::class, 'movements'])->name('movements.index');
         Route::delete('/movements/{movement}', [StockController::class, 'destroyMovement'])->name('movements.destroy');
         Route::get('/technicians', [StockController::class, 'technicians'])->name('technicians.index');
