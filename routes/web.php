@@ -42,6 +42,7 @@ use App\Http\Controllers\HrVacationController;
 use App\Http\Controllers\HrHolidayController;
 use App\Http\Controllers\HrAbsenceController;
 use App\Http\Controllers\HrTimeBankController;
+use App\Http\Controllers\HrExpenseController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\StoreMaintenanceController;
 
@@ -259,6 +260,19 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
         Route::post('/banco-horas/{id}/anexos', [HrTimeBankController::class, 'attach'])->name('timebank.files.store');
         Route::get('/banco-horas/anexo/{file}', [HrTimeBankController::class, 'showFile'])->name('timebank.files.show');
         Route::delete('/banco-horas/anexo/{file}', [HrTimeBankController::class, 'deleteFile'])->name('timebank.files.delete');
+
+        // Despesas: cada um lanca as suas e anexa comprovativos; so a direcao decide (ver controlador)
+        Route::get('/despesas', [HrExpenseController::class, 'index'])->name('expenses.index');
+        Route::post('/despesas', [HrExpenseController::class, 'store'])->name('expenses.store');
+        Route::put('/despesas/{id}', [HrExpenseController::class, 'update'])->name('expenses.update');
+        Route::delete('/despesas/{id}', [HrExpenseController::class, 'destroy'])->name('expenses.destroy');
+        Route::post('/despesas/{id}/anexos', [HrExpenseController::class, 'attach'])->name('expenses.files.store');
+        Route::get('/despesas/anexo/{file}', [HrExpenseController::class, 'showFile'])->name('expenses.files.show');
+        Route::delete('/despesas/anexo/{file}', [HrExpenseController::class, 'deleteFile'])->name('expenses.files.delete');
+        Route::post('/despesas/{id}/aprovar', [HrExpenseController::class, 'approve'])->name('expenses.approve');
+        Route::post('/despesas/{id}/rejeitar', [HrExpenseController::class, 'reject'])->name('expenses.reject');
+        Route::post('/despesas/{id}/pagar', [HrExpenseController::class, 'pay'])->name('expenses.pay');
+        Route::post('/despesas/{id}/despagar', [HrExpenseController::class, 'unpay'])->name('expenses.unpay');
 
         // Colaboradores: o controlador limita ao Coordenador e ao Country Manager
         Route::get('/colaboradores', [HrController::class, 'staffIndex'])->name('staff.index');

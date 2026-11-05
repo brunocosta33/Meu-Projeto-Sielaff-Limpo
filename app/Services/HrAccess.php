@@ -57,6 +57,12 @@ class HrAccess
         return in_array(self::staffOf($user)?->funcao, config('hr.warranty_functions', []), true);
     }
 
+    /** Despesas: quem aprova, rejeita e marca como paga (por agora: a direção). */
+    public static function canApproveExpenses(?User $user): bool
+    {
+        return in_array(self::staffOf($user)?->funcao, config('hr.expense_approver_functions', []), true);
+    }
+
     /** Id do colaborador do utilizador, ou null se for gestão (vê todos). */
     public static function ownStaffIdFilter(?User $user): ?int
     {
