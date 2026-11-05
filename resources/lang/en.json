@@ -2277,5 +2277,12 @@
     "Já existe um artigo com esse código.": "An item with that code already exists.",
     "Nome do artigo novo": "New item name",
     "Não está na lista? Criar artigo": "Not in the list? Create the item",
-    "Procurar por código ou nome…": "Search by code or name…"
+    "Procurar por código ou nome…": "Search by code or name…",
+    "Apagar este artigo do catálogo? Só é possível se nunca tiver sido usado.": "Delete this item from the catalogue? Only possible if it has never been used.",
+    "Artigo :artigo apagado do catálogo.": "Item :artigo deleted from the catalogue.",
+    "Corrigir ou apagar artigos": "Correct or delete items",
+    "Não dá para apagar :artigo: já tem :usos. Pode marcá-la como inativa.": "Cannot delete :artigo: it already has :usos. You can mark it as inactive instead.",
+    "entregas a técnicos": "deliveries to technicians",
+    "movimentos de stock": "stock movements",
+    "stock com técnicos": "stock held by technicians"
 }

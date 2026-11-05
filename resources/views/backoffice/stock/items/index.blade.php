@@ -160,10 +160,16 @@
                                         </span>
                                     </td>
                                     @if($canManageWarehouse)
-                                        <td class="text-right">
+                                        <td class="text-right text-nowrap">
                                             <a href="{{ route('backoffice.stock.items.edit', $item) }}" class="btn btn-sm btn-outline-secondary">
                                                 <i class="fas fa-edit mr-1"></i>{{ __('Editar') }}
                                             </a>
+                                            <form method="POST" action="{{ route('backoffice.stock.items.destroy', $item) }}" class="d-inline"
+                                                  onsubmit="return confirm({{ \Illuminate\Support\Js::from(__('Apagar este artigo do catálogo? Só é possível se nunca tiver sido usado.')) }})">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button class="btn btn-sm btn-outline-danger" title="{{ __('Apagar') }}"><i class="fas fa-trash"></i></button>
+                                            </form>
                                         </td>
                                     @endif
                                 </tr>

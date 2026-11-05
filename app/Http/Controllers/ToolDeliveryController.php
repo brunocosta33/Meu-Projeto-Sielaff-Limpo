@@ -26,7 +26,13 @@ class ToolDeliveryController extends Controller
                 ->orderByDesc('ocorrido_em')->orderByDesc('id')
                 ->paginate(40)->withQueryString(),
             'technicians' => $this->technicians(),
-            'artigos' => Item::where('is_active', true)->orderBy('name')->get(['id', 'reference', 'name']),
+            // Por número, não por texto: as referências têm 9, 10 e 12 dígitos e
+            // em ordem alfabética a de 10 dígitos aparecia antes da de 9
+            'artigos' => Item::where('is_active', true)
+                ->orderByRaw('CAST(reference AS UNSIGNED) = 0')
+                ->orderByRaw('CAST(reference AS UNSIGNED)')
+                ->orderBy('reference')
+                ->get(['id', 'reference', 'name']),
             'tipos' => ToolDelivery::TIPOS,
         ]);
     }

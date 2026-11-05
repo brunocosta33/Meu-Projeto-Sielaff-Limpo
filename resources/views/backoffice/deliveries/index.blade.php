@@ -94,6 +94,9 @@
                     <a href="#ent-novo" data-toggle="collapse" class="small d-inline-block mt-1">
                         <i class="fa fa-plus"></i> {{ __('Não está na lista? Criar artigo') }}
                     </a>
+                    <a href="{{ route('backoffice.stock.items.index') }}" class="small d-inline-block mt-1 ml-2 text-muted">
+                        <i class="fa fa-pencil-alt"></i> {{ __('Corrigir ou apagar artigos') }}
+                    </a>
                 </div>
                 <div class="form-group col-md-1">
                     <label>{{ __('Qtd') }}</label>

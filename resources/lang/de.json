@@ -2353,5 +2353,12 @@
     "Já existe um artigo com esse código.": "Ein Artikel mit diesem Code existiert bereits.",
     "Nome do artigo novo": "Name des neuen Artikels",
     "Não está na lista? Criar artigo": "Nicht in der Liste? Artikel anlegen",
-    "Procurar por código ou nome…": "Nach Code oder Name suchen…"
+    "Procurar por código ou nome…": "Nach Code oder Name suchen…",
+    "Apagar este artigo do catálogo? Só é possível se nunca tiver sido usado.": "Diesen Artikel aus dem Katalog löschen? Nur möglich, wenn er nie verwendet wurde.",
+    "Artigo :artigo apagado do catálogo.": "Artikel :artigo aus dem Katalog gelöscht.",
+    "Corrigir ou apagar artigos": "Artikel korrigieren oder löschen",
+    "Não dá para apagar :artigo: já tem :usos. Pode marcá-la como inativa.": ":artigo kann nicht gelöscht werden: bereits :usos vorhanden. Sie können ihn stattdessen als inaktiv markieren.",
+    "entregas a técnicos": "Ausgaben an Techniker",
+    "movimentos de stock": "Bestandsbewegungen",
+    "stock com técnicos": "Bestand bei Technikern"
 }

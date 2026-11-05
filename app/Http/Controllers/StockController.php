@@ -11,6 +11,7 @@ use App\Models\Item;
 use App\Models\Machine;
 use App\Models\StockMovement;
 use App\Models\TechnicianItemStock;
+use App\Models\ToolDelivery;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -104,6 +105,34 @@ class StockController extends Controller
         flash(__('Peça atualizada com sucesso.'))->success();
 
         return redirect()->route('backoffice.stock.items.index');
+    }
+
+    /** Apagar um artigo do catálogo. Só enquanto não tiver sido usado em lado nenhum. */
+    public function destroyItem(Item $item)
+    {
+        abort_unless($this->canManageWarehouse(), 403);
+
+        $usos = [
+            __('movimentos de stock') => $item->stockMovements()->count(),
+            __('entregas a técnicos') => ToolDelivery::where('item_id', $item->id)->count(),
+            __('stock com técnicos') => $item->technicianStocks()->where('quantity', '>', 0)->count(),
+        ];
+        $impedimentos = array_filter($usos);
+
+        if ($impedimentos) {
+            $texto = collect($impedimentos)->map(fn ($n, $onde) => $n . ' ' . $onde)->implode(', ');
+            flash(__('Não dá para apagar :artigo: já tem :usos. Pode marcá-la como inativa.', [
+                'artigo' => $item->name, 'usos' => $texto,
+            ]))->error();
+
+            return back();
+        }
+
+        $nome = $item->name;
+        $item->delete();
+        flash(__('Artigo :artigo apagado do catálogo.', ['artigo' => $nome]))->success();
+
+        return back();
     }
 
     public function movements(Request $request)
