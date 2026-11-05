@@ -26,10 +26,7 @@ class ToolDeliveryController extends Controller
                 ->orderByDesc('ocorrido_em')->orderByDesc('id')
                 ->paginate(40)->withQueryString(),
             'technicians' => $this->technicians(),
-            // Sugestões para o campo do artigo: o que já se entregou antes e o catálogo do armazém
-            'sugestoes' => ToolDelivery::select('artigo')->distinct()->orderBy('artigo')->pluck('artigo')
-                ->merge(Item::where('is_active', true)->orderBy('name')->pluck('name'))
-                ->unique()->sort()->values(),
+            'artigos' => Item::where('is_active', true)->orderBy('name')->get(['id', 'reference', 'name']),
             'tipos' => ToolDelivery::TIPOS,
         ]);
     }
@@ -41,21 +38,38 @@ class ToolDeliveryController extends Controller
         $data = $request->validate([
             'tipo' => ['required', Rule::in(array_keys(ToolDelivery::TIPOS))],
             'technician_id' => ['required', 'exists:users,id'],
-            'artigo' => ['required', 'string', 'max:255'],
+            'item_id' => ['nullable', 'required_without:novo_nome', 'exists:items,id'],
+            'novo_nome' => ['nullable', 'required_without:item_id', 'string', 'max:255'],
+            'novo_codigo' => ['nullable', 'required_with:novo_nome', 'string', 'max:100', 'unique:items,reference'],
             'quantidade' => ['required', 'integer', 'min:1', 'max:9999'],
             'ocorrido_em' => ['required', 'date', 'before_or_equal:now'],
             'observacoes' => ['nullable', 'string', 'max:2000'],
         ], [
             'technician_id.required' => __('Escolha o técnico.'),
-            'artigo.required' => __('Escreva a peça ou ferramenta.'),
+            'item_id.required_without' => __('Escolha o artigo da lista ou crie um novo.'),
+            'novo_nome.required_without' => __('Dê um nome ao artigo novo.'),
+            'novo_codigo.required_with' => __('Dê um código ao artigo novo.'),
+            'novo_codigo.unique' => __('Já existe um artigo com esse código.'),
             'quantidade.min' => __('A quantidade tem de ser pelo menos 1.'),
             'ocorrido_em.required' => __('Indique a data e a hora.'),
             'ocorrido_em.before_or_equal' => __('A data e hora não podem ser no futuro.'),
         ]);
 
-        $entrega = ToolDelivery::create($data + [
-            // Se o nome bater certo com um artigo do armazém, fica a ligação; se não, não faz falta
-            'item_id' => Item::where('name', $data['artigo'])->value('id'),
+        // Criar aqui o artigo acrescenta-o ao catálogo com stock zero; não mexe em quantidades
+        $artigo = empty($data['item_id'])
+            ? Item::create(['reference' => $data['novo_codigo'], 'name' => $data['novo_nome'], 'is_active' => true])
+            : Item::findOrFail($data['item_id']);
+
+        $entrega = ToolDelivery::create([
+            'tipo' => $data['tipo'],
+            'technician_id' => $data['technician_id'],
+            'quantidade' => $data['quantidade'],
+            'ocorrido_em' => $data['ocorrido_em'],
+            'observacoes' => $data['observacoes'] ?? null,
+            // Nome e código ficam escritos no registo, para a linha valer por si
+            'item_id' => $artigo->id,
+            'artigo' => $artigo->name,
+            'codigo' => $artigo->reference,
             'created_by' => auth()->id(),
         ]);
 
@@ -96,6 +110,7 @@ class ToolDeliveryController extends Controller
             ->when($request->filled('q'), function ($q) use ($request) {
                 $termo = '%' . trim($request->q) . '%';
                 $q->where(fn ($w) => $w->where('artigo', 'like', $termo)
+                    ->orWhere('codigo', 'like', $termo)
                     ->orWhere('observacoes', 'like', $termo)
                     ->orWhereHas('technician', fn ($t) => $t->where('name', 'like', $termo)));
             });

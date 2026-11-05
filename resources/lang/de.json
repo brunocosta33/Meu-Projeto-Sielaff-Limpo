@@ -2343,5 +2343,15 @@
     "Indique a data e a hora.": "Geben Sie Datum und Uhrzeit an.",
     "Os técnicos não registam entregas.": "Techniker erfassen keine Ausgaben.",
     "Quem levou que peça ou ferramenta, quando e porquê.": "Wer welches Teil oder Werkzeug mitgenommen hat, wann und warum.",
-    "Registo apagado.": "Eintrag gelöscht."
+    "Registo apagado.": "Eintrag gelöscht.",
+    "Código": "Code",
+    "Código do artigo novo": "Code des neuen Artikels",
+    "Dê um código ao artigo novo.": "Geben Sie dem neuen Artikel einen Code.",
+    "Escolha o artigo da lista ou crie um novo.": "Wählen Sie den Artikel aus der Liste oder legen Sie einen neuen an.",
+    "Ex.: 699015800": "z. B. 699015800",
+    "Fica no catálogo de artigos, com stock zero. Esta página nunca mexe em quantidades.": "Er kommt mit Bestand null in den Artikelkatalog. Diese Seite ändert keine Mengen.",
+    "Já existe um artigo com esse código.": "Ein Artikel mit diesem Code existiert bereits.",
+    "Nome do artigo novo": "Name des neuen Artikels",
+    "Não está na lista? Criar artigo": "Nicht in der Liste? Artikel anlegen",
+    "Procurar por código ou nome…": "Nach Code oder Name suchen…"
 }

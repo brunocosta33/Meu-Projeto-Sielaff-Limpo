@@ -84,11 +84,16 @@
                 </div>
                 <div class="form-group col-md-4">
                     <label>{{ __('Peça ou ferramenta') }}</label>
-                    <input type="text" name="artigo" class="form-control" list="ent-sugestoes" value="{{ old('artigo') }}"
-                           maxlength="255" required placeholder="{{ __('Escreva ou escolha das sugestões') }}">
-                    <datalist id="ent-sugestoes">
-                        @foreach($sugestoes as $s)<option value="{{ $s }}">@endforeach
-                    </datalist>
+                    <select name="item_id" class="form-control selectpicker" data-live-search="true"
+                            title="{{ __('Procurar por código ou nome…') }}">
+                        <option value="">{{ __('Procurar por código ou nome…') }}</option>
+                        @foreach($artigos as $a)
+                            <option value="{{ $a->id }}" @selected(old('item_id') == $a->id)>{{ $a->reference }} — {{ $a->name }}</option>
+                        @endforeach
+                    </select>
+                    <a href="#ent-novo" data-toggle="collapse" class="small d-inline-block mt-1">
+                        <i class="fa fa-plus"></i> {{ __('Não está na lista? Criar artigo') }}
+                    </a>
                 </div>
                 <div class="form-group col-md-1">
                     <label>{{ __('Qtd') }}</label>
@@ -100,6 +105,22 @@
                            value="{{ old('ocorrido_em', now()->format('Y-m-d\TH:i')) }}" max="{{ now()->format('Y-m-d\TH:i') }}" required>
                 </div>
             </div>
+            <div class="collapse {{ old('novo_nome') || old('novo_codigo') ? 'show' : '' }}" id="ent-novo">
+                <div class="form-row">
+                    <div class="form-group col-md-3">
+                        <label>{{ __('Código do artigo novo') }}</label>
+                        <input type="text" name="novo_codigo" class="form-control" value="{{ old('novo_codigo') }}" maxlength="100"
+                               placeholder="{{ __('Ex.: 699015800') }}">
+                    </div>
+                    <div class="form-group col-md-9">
+                        <label>{{ __('Nome do artigo novo') }}</label>
+                        <input type="text" name="novo_nome" class="form-control" value="{{ old('novo_nome') }}" maxlength="255"
+                               placeholder="{{ __('Ex.: chave dinamométrica') }}">
+                        <small class="form-text text-muted">{{ __('Fica no catálogo de artigos, com stock zero. Esta página nunca mexe em quantidades.') }}</small>
+                    </div>
+                </div>
+            </div>
+
             <div class="form-row align-items-end">
                 <div class="form-group col-md-10 mb-0">
                     <label>{{ __('Observações') }} <span class="text-muted font-weight-normal" style="text-transform: none">({{ __('opcional') }})</span></label>
@@ -152,7 +173,7 @@
                             <th>{{ __('Quando') }}</th>
                             <th>{{ __('Tipo') }}</th>
                             <th>{{ __('Técnico') }}</th>
-                            <th>{{ __('Peça ou ferramenta') }}</th>
+                            <th>{{ __('Artigo') }}</th>
                             <th class="text-right">{{ __('Qtd') }}</th>
                             <th>{{ __('Observações') }}</th>
                             <th>{{ __('Registado por') }}</th>
@@ -169,7 +190,10 @@
                                 </td>
                                 <td><span class="ent-tag" style="--c: {{ $t['color'] }}; --bg: {{ $t['bg'] }}"><i class="fa {{ $t['icon'] }}"></i> {{ $e->tipoLabel() }}</span></td>
                                 <td>{{ $e->technician->name ?? '—' }}</td>
-                                <td class="ent-artigo">{{ $e->artigo }}</td>
+                                <td class="ent-artigo">
+                                    {{ $e->artigo }}
+                                    @if($e->codigo)<small class="d-block" style="font-weight: 400; color: #94a3b8; font-family: ui-monospace, Menlo, monospace">{{ $e->codigo }}</small>@endif
+                                </td>
                                 <td class="ent-qtd">{{ (int) $e->quantidade }}</td>
                                 <td class="ent-obs">{{ $e->observacoes }}</td>
                                 <td class="ent-obs">{{ $e->creator->name ?? '—' }}</td>
@@ -198,6 +222,7 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        if (window.jQuery && $.fn.selectpicker) $('.selectpicker').selectpicker();
         document.querySelectorAll('.ent-tipo input').forEach(function (r) {
             r.addEventListener('change', function () {
                 document.querySelectorAll('.ent-tipo label').forEach(function (l) { l.classList.toggle('active', l.contains(r) && r.checked); });

@@ -13,7 +13,7 @@ class ToolDelivery extends Model
     ];
 
     protected $fillable = [
-        'technician_id', 'tipo', 'artigo', 'item_id', 'quantidade', 'ocorrido_em', 'observacoes', 'created_by',
+        'technician_id', 'tipo', 'artigo', 'codigo', 'item_id', 'quantidade', 'ocorrido_em', 'observacoes', 'created_by',
     ];
 
     protected $casts = ['ocorrido_em' => 'datetime'];
@@ -36,6 +36,12 @@ class ToolDelivery extends Model
     public function tipoLabel(): string
     {
         return __($this->tipoConfig()['label']);
+    }
+
+    /** "699015800 — Sensor", ou só o nome se o artigo não tiver código. */
+    public function artigoCompleto(): string
+    {
+        return $this->codigo ? $this->codigo . ' — ' . $this->artigo : $this->artigo;
     }
 
     public function isEntrega(): bool

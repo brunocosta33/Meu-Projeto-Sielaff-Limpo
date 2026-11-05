@@ -24,6 +24,7 @@ class ToolDeliveriesExport implements FromCollection, WithHeadings, WithStyles
                 optional($e->ocorrido_em)->format('H:i'),
                 $e->tipoLabel(),
                 $e->technician->name ?? '',
+                $e->codigo,
                 $e->artigo,
                 (int) $e->quantidade,
                 $e->observacoes,
@@ -34,7 +35,7 @@ class ToolDeliveriesExport implements FromCollection, WithHeadings, WithStyles
     public function headings(): array
     {
         return [
-            __('Data'), __('Hora'), __('Tipo'), __('Técnico'), __('Peça ou ferramenta'),
+            __('Data'), __('Hora'), __('Tipo'), __('Técnico'), __('Código'), __('Peça ou ferramenta'),
             __('Quantidade'), __('Observações'), __('Registado por'),
         ];
     }

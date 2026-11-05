@@ -1753,5 +1753,15 @@
     "Os técnicos não registam entregas.": "Los técnicos no registran entregas.",
     "Qtd": "Cant.",
     "Quem levou que peça ou ferramenta, quando e porquê.": "Quién se llevó qué pieza o herramienta, cuándo y por qué.",
-    "Registo apagado.": "Registro eliminado."
+    "Registo apagado.": "Registro eliminado.",
+    "Código": "Código",
+    "Código do artigo novo": "Código del artículo nuevo",
+    "Dê um código ao artigo novo.": "Dé un código al artículo nuevo.",
+    "Escolha o artigo da lista ou crie um novo.": "Elija el artículo de la lista o cree uno nuevo.",
+    "Ex.: 699015800": "P. ej., 699015800",
+    "Fica no catálogo de artigos, com stock zero. Esta página nunca mexe em quantidades.": "Pasa al catálogo de artículos con stock cero. Esta página nunca toca las cantidades.",
+    "Já existe um artigo com esse código.": "Ya existe un artículo con ese código.",
+    "Nome do artigo novo": "Nombre del artículo nuevo",
+    "Não está na lista? Criar artigo": "¿No está en la lista? Cree el artículo",
+    "Procurar por código ou nome…": "Buscar por código o nombre…"
 }
