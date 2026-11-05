@@ -57,13 +57,13 @@
             <div>
                 <h4 class="mb-1"><i class="fas fa-receipt text-success"></i> {{ __('Despesas') }}</h4>
                 <p class="text-muted small mb-0">
-                    {{ $isManager ? __('Despesas de toda a equipa. A direção aprova e marca o pagamento.') : __('As suas despesas. Anexe sempre o comprovativo.') }}
+                    {{ $verTodas ? __('Despesas de toda a equipa. A direção aprova e marca o pagamento.') : __('As suas despesas. Anexe sempre o comprovativo.') }}
                 </p>
             </div>
             <div class="d-flex flex-wrap align-items-center" style="gap: .5rem">
                 <form method="GET" class="form-inline" style="gap: .5rem">
                     @if(request('estado'))<input type="hidden" name="estado" value="{{ request('estado') }}">@endif
-                    @if($isManager)
+                    @if($verTodas)
                         <select name="colaborador" class="form-control form-control-sm" onchange="this.form.submit()">
                             <option value="">{{ __('Todos os colaboradores') }}</option>
                             @foreach($staff as $s)
@@ -122,7 +122,7 @@
             <form method="POST" action="{{ route('backoffice.hr.expenses.store') }}" enctype="multipart/form-data">
                 @csrf
                 <div class="form-row">
-                    @if($isManager)
+                    @if($verTodas)
                         <div class="form-group col-md-4">
                             <label class="small font-weight-bold mb-1">{{ __('Colaborador') }}</label>
                             <select name="hr_staff_id" class="form-control" required>
@@ -218,7 +218,7 @@
                                 <span class="nome">{{ $ficheiro->nome }}</span>
                                 <span class="tam">{{ $ficheiro->sizeLabel() }}</span>
                             </a>
-                            @if(($meu && $e->isOpen()) || $isManager)
+                            @if(($meu && $e->isOpen()) || $verTodas)
                                 <form method="POST" action="{{ route('backoffice.hr.expenses.files.delete', $ficheiro->id) }}"
                                       onsubmit="return confirm({{ \Illuminate\Support\Js::from(__('Remover este comprovativo?')) }})">
                                     @csrf
@@ -234,7 +234,7 @@
             @endif
 
             {{-- Ações --}}
-            @php($podeAnexar = ($meu && $e->isOpen()) || $isManager)
+            @php($podeAnexar = ($meu && $e->isOpen()) || $verTodas)
             @if($canApprove || $podeAnexar)
                 <div class="ex-acoes">
                     @if($podeAnexar)
@@ -267,7 +267,7 @@
                         </form>
                     @endif
 
-                    @if(($meu && $e->isOpen()) || $isManager)
+                    @if(($meu && $e->isOpen()) || $verTodas)
                         <form method="POST" action="{{ route('backoffice.hr.expenses.destroy', $e->id) }}" class="ml-auto"
                               onsubmit="return confirm({{ \Illuminate\Support\Js::from(__('Apagar esta despesa? Os comprovativos também são apagados.')) }})">
                             @csrf

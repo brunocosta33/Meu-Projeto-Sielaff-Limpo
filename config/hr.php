@@ -56,6 +56,11 @@ return [
     // Funções com acesso a Assistência > Fora da Garantia (cotações e ordens de compra)
     'warranty_functions' => ['coordenador', 'country_manager'],
 
+    // Despesas: quem vê as de toda a gente (os restantes só veem e lançam as suas).
+    // Propositadamente à parte de manager_functions: mexer na gestão de RH não deve
+    // dar acesso ao dinheiro dos outros sem se reparar.
+    'expense_viewer_functions' => ['coordenador', 'country_manager', 'administrativa'],
+
     // Despesas: quem aprova, rejeita e marca como paga
     'expense_approver_functions' => ['coordenador', 'country_manager'],
 

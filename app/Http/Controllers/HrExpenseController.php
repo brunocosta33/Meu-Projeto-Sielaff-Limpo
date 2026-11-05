@@ -25,7 +25,7 @@ class HrExpenseController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $manager = HrAccess::isManager($user);
+        $manager = HrAccess::canSeeAllExpenses($user);
         $ownStaffId = HrAccess::staffOf($user)?->id;
 
         $base = $this->filteredQuery($request);
@@ -50,7 +50,7 @@ class HrExpenseController extends Controller
             'categories' => config('hr.expense_categories'),
             'paymentMethods' => config('hr.expense_payment_methods'),
             'staff' => $manager ? HrStaff::with('user')->where('ativo', true)->get()->sortBy(fn ($s) => $s->user->name ?? '') : collect(),
-            'isManager' => $manager,
+            'verTodas' => $manager,
             'canApprove' => HrAccess::canApproveExpenses($user),
             'ownStaffId' => $ownStaffId,
         ]);
@@ -100,7 +100,7 @@ class HrExpenseController extends Controller
     {
         $expense = HrExpense::with('files')->findOrFail($id);
         $this->authorizeOwn($expense);
-        abort_unless($expense->isOpen() || HrAccess::isManager(auth()->user()), 422, __('Esta despesa já foi decidida e não pode ser apagada.'));
+        abort_unless($expense->isOpen() || HrAccess::canSeeAllExpenses(auth()->user()), 422, __('Esta despesa já foi decidida e não pode ser apagada.'));
 
         foreach ($expense->files as $file) {
             Storage::disk(self::DISK)->delete($file->path);
@@ -202,7 +202,7 @@ class HrExpenseController extends Controller
     {
         $file = HrExpenseFile::with('expense')->findOrFail($fileId);
         $this->authorizeOwn($file->expense);
-        abort_unless($file->expense->isOpen() || HrAccess::isManager(auth()->user()), 422, __('Esta despesa já foi decidida.'));
+        abort_unless($file->expense->isOpen() || HrAccess::canSeeAllExpenses(auth()->user()), 422, __('Esta despesa já foi decidida.'));
 
         Storage::disk(self::DISK)->delete($file->path);
         $file->delete();
@@ -215,7 +215,7 @@ class HrExpenseController extends Controller
 
     private function validateExpense(Request $request, ?HrExpense $expense = null): array
     {
-        $manager = HrAccess::isManager(auth()->user());
+        $manager = HrAccess::canSeeAllExpenses(auth()->user());
         $ownStaffId = HrAccess::staffOf(auth()->user())?->id;
 
         $data = $request->validate([
@@ -245,7 +245,7 @@ class HrExpenseController extends Controller
     /** Filtros da página (sem o estado): quem não é gestão de RH só vê as suas. */
     private function filteredQuery(Request $request)
     {
-        $manager = HrAccess::isManager(auth()->user());
+        $manager = HrAccess::canSeeAllExpenses(auth()->user());
         $ownStaffId = HrAccess::staffOf(auth()->user())?->id;
 
         return HrExpense::query()
@@ -268,7 +268,7 @@ class HrExpenseController extends Controller
     private function authorizeOwn(HrExpense $expense): void
     {
         abort_unless(
-            HrAccess::isManager(auth()->user()) || $expense->hr_staff_id === HrAccess::staffOf(auth()->user())?->id,
+            HrAccess::canSeeAllExpenses(auth()->user()) || $expense->hr_staff_id === HrAccess::staffOf(auth()->user())?->id,
             403
         );
     }
