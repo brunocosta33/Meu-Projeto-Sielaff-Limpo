@@ -56,8 +56,8 @@ return [
     // Funções com acesso a Assistência > Fora da Garantia (cotações e ordens de compra)
     'warranty_functions' => ['coordenador', 'country_manager'],
 
-    // Despesas: quem aprova, rejeita e marca como paga (a direção)
-    'expense_approver_functions' => ['country_manager'],
+    // Despesas: quem aprova, rejeita e marca como paga
+    'expense_approver_functions' => ['coordenador', 'country_manager'],
 
     'expense_categories' => [
         'deslocacao' => 'Deslocação / combustível',
