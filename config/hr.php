@@ -62,7 +62,7 @@ return [
     'expense_viewer_functions' => ['coordenador', 'country_manager', 'administrativa'],
 
     // Despesas: quem aprova ou rejeita
-    'expense_approver_functions' => ['coordenador', 'country_manager'],
+    'expense_approver_functions' => ['coordenador', 'country_manager', 'administrativa'],
 
     // Despesas: quem confirma o pagamento (passo a parte da aprovacao: tambem a Administrativa,
     // que e quem trata dos pagamentos)
