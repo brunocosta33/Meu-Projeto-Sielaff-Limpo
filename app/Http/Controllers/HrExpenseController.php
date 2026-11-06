@@ -14,8 +14,9 @@ use Maatwebsite\Excel\Facades\Excel;
 
 /**
  * Recursos Humanos > Despesas.
- * Cada colaborador lança as suas e anexa os comprovativos; a direção aprova ou rejeita,
- * e marca como paga (hr.expense_approver_functions). A gestão de RH vê as de todos.
+ * Cada colaborador lança as suas e anexa os comprovativos; a direção aprova ou rejeita
+ * (hr.expense_approver_functions) e quem trata dos pagamentos confirma a paga
+ * (hr.expense_payer_functions). A gestão de RH vê as de todos.
  */
 class HrExpenseController extends Controller
 {
@@ -52,6 +53,7 @@ class HrExpenseController extends Controller
             'staff' => $manager ? HrStaff::with('user')->where('ativo', true)->get()->sortBy(fn ($s) => $s->user->name ?? '') : collect(),
             'verTodas' => $manager,
             'canApprove' => HrAccess::canApproveExpenses($user),
+            'canPay' => HrAccess::canPayExpenses($user),
             'ownStaffId' => $ownStaffId,
         ]);
     }
@@ -149,7 +151,7 @@ class HrExpenseController extends Controller
     /** Marcar que já foi paga (passo à parte da aprovação). */
     public function pay(Request $request, $id)
     {
-        $expense = $this->forDecision($id);
+        $expense = $this->forPayment($id);
         abort_unless($expense->estado === 'aprovada', 422, __('Só se paga uma despesa aprovada.'));
 
         $data = $request->validate([
@@ -166,7 +168,7 @@ class HrExpenseController extends Controller
     /** Afinal não estava paga. */
     public function unpay($id)
     {
-        $expense = $this->forDecision($id);
+        $expense = $this->forPayment($id);
         $expense->update(['pago_em' => null, 'pago_como' => null, 'pago_por' => null]);
         flash(__('Pagamento desmarcado.'))->success();
 
@@ -281,6 +283,14 @@ class HrExpenseController extends Controller
     private function forDecision($id): HrExpense
     {
         abort_unless(HrAccess::canApproveExpenses(auth()->user()), 403, __('Só a direção decide sobre despesas.'));
+
+        return HrExpense::findOrFail($id);
+    }
+
+    /** Confirmar ou desmarcar o pagamento (à parte de aprovar: também a Administrativa). */
+    private function forPayment($id): HrExpense
+    {
+        abort_unless(HrAccess::canPayExpenses(auth()->user()), 403, __('Não tem autorização para confirmar pagamentos.'));
 
         return HrExpense::findOrFail($id);
     }

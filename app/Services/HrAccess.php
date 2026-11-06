@@ -63,10 +63,16 @@ class HrAccess
         return in_array(self::staffOf($user)?->funcao, config('hr.expense_viewer_functions', []), true);
     }
 
-    /** Despesas: quem aprova, rejeita e marca como paga (por agora: a direção). */
+    /** Despesas: quem aprova e rejeita (por agora: a direção). */
     public static function canApproveExpenses(?User $user): bool
     {
         return in_array(self::staffOf($user)?->funcao, config('hr.expense_approver_functions', []), true);
+    }
+
+    /** Despesas: quem confirma (ou desmarca) o pagamento. */
+    public static function canPayExpenses(?User $user): bool
+    {
+        return in_array(self::staffOf($user)?->funcao, config('hr.expense_payer_functions', []), true);
     }
 
     /** Id do colaborador do utilizador, ou null se for gestão (vê todos). */

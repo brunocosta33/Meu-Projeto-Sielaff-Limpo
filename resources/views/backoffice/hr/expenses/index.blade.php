@@ -235,7 +235,7 @@
 
             {{-- Ações --}}
             @php($podeAnexar = ($meu && $e->isOpen()) || $verTodas)
-            @if($canApprove || $podeAnexar)
+            @if($canApprove || $canPay || $podeAnexar)
                 <div class="ex-acoes">
                     @if($podeAnexar)
                         <a href="#ex-anexar-{{ $e->id }}" data-toggle="collapse" class="btn btn-sm btn-outline-secondary">
@@ -253,13 +253,13 @@
                         </a>
                     @endif
 
-                    @if($canApprove && $e->canBePaid())
+                    @if($canPay && $e->canBePaid())
                         <a href="#ex-pagar-{{ $e->id }}" data-toggle="collapse" class="btn btn-sm btn-primary">
                             <i class="fa fa-euro-sign"></i> {{ __('Marcar como paga') }}
                         </a>
                     @endif
 
-                    @if($canApprove && $e->isPaid())
+                    @if($canPay && $e->isPaid())
                         <form method="POST" action="{{ route('backoffice.hr.expenses.unpay', $e->id) }}"
                               onsubmit="return confirm({{ \Illuminate\Support\Js::from(__('Desmarcar o pagamento desta despesa?')) }})">
                             @csrf
@@ -302,7 +302,7 @@
                 </div>
             @endif
 
-            @if($canApprove && $e->canBePaid())
+            @if($canPay && $e->canBePaid())
                 <div class="collapse mt-2" id="ex-pagar-{{ $e->id }}">
                     <form method="POST" action="{{ route('backoffice.hr.expenses.pay', $e->id) }}" class="form-inline" style="gap: .5rem">
                         @csrf
