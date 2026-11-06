@@ -33,6 +33,7 @@ use App\Http\Controllers\TaskScheduleController;
 use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\MachineController;
 use App\Http\Controllers\StockController;
+use App\Http\Controllers\StockImportController;
 use App\Http\Controllers\ToolDeliveryController;
 use App\Http\Controllers\TechnicalRequestController;
 use App\Http\Controllers\TechnicalScheduleController;
@@ -325,6 +326,11 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
     Route::prefix('backoffice/stock')->name('backoffice.stock.')->group(function () {
         Route::redirect('/', '/backoffice/stock/items')->name('index');
         Route::get('/items', [StockController::class, 'index'])->name('items.index');
+        Route::get('/importar', [StockImportController::class, 'index'])->name('import.index');
+        Route::get('/importar/modelo', [StockImportController::class, 'template'])->name('import.template');
+        Route::post('/importar/prever', [StockImportController::class, 'preview'])->name('import.preview');
+        Route::post('/importar/aplicar', [StockImportController::class, 'apply'])->name('import.apply');
+        Route::post('/importar/cancelar', [StockImportController::class, 'cancel'])->name('import.cancel');
         Route::get('/items/create', [StockController::class, 'create'])->name('items.create');
         Route::post('/items', [StockController::class, 'store'])->name('items.store');
         Route::get('/items/{item}/edit', [StockController::class, 'edit'])->name('items.edit');

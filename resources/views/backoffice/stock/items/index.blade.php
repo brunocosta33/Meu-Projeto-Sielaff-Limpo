@@ -34,6 +34,9 @@
                             <a href="{{ route('backoffice.stock.items.create') }}" class="btn btn-primary">
                                 <i class="fas fa-plus mr-1"></i>{{ __('Nova peça') }}
                             </a>
+                            <a href="{{ route('backoffice.stock.import.index') }}" class="btn btn-outline-primary">
+                                <i class="fas fa-file-import mr-1"></i>{{ __('Importar') }}
+                            </a>
                             <a href="{{ route('backoffice.stock.export.items', request()->only(['q', 'is_active', 'low_stock'])) }}" class="btn btn-outline-success">
                                 <i class="fas fa-file-excel mr-1"></i>{{ __('Exportar armazém') }}
                             </a>
