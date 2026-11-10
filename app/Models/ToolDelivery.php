@@ -13,10 +13,11 @@ class ToolDelivery extends Model
     ];
 
     protected $fillable = [
-        'technician_id', 'tipo', 'artigo', 'codigo', 'item_id', 'quantidade', 'ocorrido_em', 'observacoes', 'created_by',
+        'technician_id', 'tipo', 'artigo', 'codigo', 'item_id', 'quantidade', 'ocorrido_em', 'observacoes',
+        'proalpha_em', 'proalpha_por', 'created_by',
     ];
 
-    protected $casts = ['ocorrido_em' => 'datetime'];
+    protected $casts = ['ocorrido_em' => 'datetime', 'proalpha_em' => 'datetime'];
 
     public function technician()
     {
@@ -26,6 +27,29 @@ class ToolDelivery extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /** Quem passou o movimento no ProAlpha. */
+    public function proalphaUser()
+    {
+        return $this->belongsTo(User::class, 'proalpha_por');
+    }
+
+    /** Já foi passado no ProAlpha? */
+    public function isProalpha(): bool
+    {
+        return $this->proalpha_em !== null;
+    }
+
+    /** Ainda por lançar no ProAlpha. */
+    public function scopePorLancar($query)
+    {
+        return $query->whereNull('proalpha_em');
+    }
+
+    public function scopeLancadas($query)
+    {
+        return $query->whereNotNull('proalpha_em');
     }
 
     public function tipoConfig(): array

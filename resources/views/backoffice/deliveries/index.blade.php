@@ -5,7 +5,7 @@
 @endsection
 
 @php(\Carbon\Carbon::setLocale(app()->getLocale()))
-@php($filtros = request()->only(['technician_id', 'tipo', 'de', 'ate', 'q']))
+@php($filtros = request()->only(['technician_id', 'tipo', 'proalpha', 'de', 'ate', 'q']))
 
 @push('styles')
 <style>
@@ -30,6 +30,39 @@
     .ent-qtd { font-weight: 800; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
     .ent-apagar { border: 0; background: none; color: #cbd5e1; padding: 0; }
     .ent-apagar:hover { color: #c62828; }
+
+    /* ProAlpha: o que falta passar no programa */
+    .ent-aviso { display: flex; align-items: center; gap: .75rem; background: #fff7ed; border: 1px solid #fed7aa;
+                 border-left: 5px solid #ea580c; border-radius: 10px; padding: .7rem 1rem; margin-bottom: 1rem;
+                 color: #7c2d12; text-decoration: none !important; }
+    .ent-aviso:hover { background: #ffedd5; color: #7c2d12; }
+    .ent-aviso .n { font-size: 1.6rem; font-weight: 800; line-height: 1; color: #ea580c; }
+    .ent-aviso .txt { font-size: .88rem; font-weight: 600; }
+    .ent-aviso .txt small { display: block; font-weight: 400; opacity: .8; }
+    .ent-aviso.ok { background: #f0fdf4; border-color: #bbf7d0; border-left-color: #16a34a; color: #14532d; }
+    .ent-aviso.ok .n { color: #16a34a; }
+
+    .ent-pa-sim { display: inline-flex; align-items: center; gap: .3rem; font-size: .76rem; font-weight: 700; color: #15803d; white-space: nowrap; }
+    .ent-pa-sim small { font-weight: 400; color: #94a3b8; }
+    .ent-pa-btn { font-size: .74rem; font-weight: 700; padding: .12rem .5rem; border-radius: 999px;
+                  border: 1px solid #fdba74; background: #fff7ed; color: #c2410c; white-space: nowrap; }
+    .ent-pa-btn:hover { background: #ea580c; border-color: #ea580c; color: #fff; }
+    .ent-pa-desfazer { border: 0; background: none; color: #cbd5e1; font-size: .72rem; padding: 0 0 0 .2rem; }
+    .ent-pa-desfazer:hover { color: #64748b; }
+    tr.por-lancar td { background: #fffbf5; }
+
+    .ent-lote { display: none; align-items: center; gap: .6rem; background: #0f172a; color: #fff; border-radius: 10px;
+                padding: .5rem .9rem; margin-bottom: .75rem; font-size: .86rem; }
+    .ent-lote.show { display: flex; }
+    .ent-lote .btn { font-size: .8rem; }
+    .ent-check { width: 1px; }
+    .ent-check input { cursor: pointer; }
+
+    /* A caixa do ProAlpha no formulario: tem de dar nas vistas */
+    .ent-pa-campo { display: flex; align-items: center; gap: .5rem; height: 100%; padding: .45rem .7rem;
+                    border: 2px dashed #cbd5e1; border-radius: 9px; cursor: pointer; margin: 0; }
+    .ent-pa-campo:hover { border-color: #ea580c; }
+    .ent-pa-campo span { font-size: .8rem; font-weight: 600; color: #475569; text-transform: none; letter-spacing: 0; }
     @media (max-width: 767px) { .ent-tabela, .ent-tabela tbody, .ent-tabela tr, .ent-tabela td { display: block; width: 100%; }
         .ent-tabela thead { display: none; } .ent-tabela tr { border-bottom: 2px solid #e2e8f0; padding: .4rem 0; }
         .ent-tabela td { border: 0; padding: .15rem .5rem; } }
@@ -50,6 +83,31 @@
         </div>
     </div>
 </div>
+
+{{-- O que falta passar no ProAlpha: é isto que evita o esquecimento --}}
+@if($numPorLancar)
+    @php($dias = $maisAntigaPorLancar ? (int) \Carbon\Carbon::parse($maisAntigaPorLancar)->startOfDay()->diffInDays(now()->startOfDay()) : 0)
+    <a href="{{ route('backoffice.deliveries.index', ['proalpha' => 'por_lancar']) }}" class="ent-aviso">
+        <i class="fas fa-exclamation-triangle fa-lg"></i>
+        <span class="n">{{ $numPorLancar }}</span>
+        <span class="txt">
+            {{ trans_choice('registo por lançar no ProAlpha|registos por lançar no ProAlpha', $numPorLancar) }}
+            <small>
+                @if($dias > 0)
+                    {{ trans_choice('O mais antigo é de há :count dia.|O mais antigo é de há :count dias.', $dias, ['count' => $dias]) }}
+                @else
+                    {{ __('Todos de hoje.') }}
+                @endif
+                {{ __('Clique para ver só esses.') }}
+            </small>
+        </span>
+    </a>
+@else
+    <div class="ent-aviso ok">
+        <i class="fas fa-check-circle fa-lg"></i>
+        <span class="txt">{{ __('Está tudo lançado no ProAlpha.') }}</span>
+    </div>
+@endif
 
 @if($errors->any())
     <div class="alert alert-danger"><ul class="mb-0">@foreach($errors->all() as $erro)<li>{{ $erro }}</li>@endforeach</ul></div>
@@ -125,10 +183,17 @@
             </div>
 
             <div class="form-row align-items-end">
-                <div class="form-group col-md-10 mb-0">
+                <div class="form-group col-md-7 mb-0">
                     <label>{{ __('Observações') }} <span class="text-muted font-weight-normal" style="text-transform: none">({{ __('opcional') }})</span></label>
                     <input type="text" name="observacoes" class="form-control" value="{{ old('observacoes') }}" maxlength="2000"
                            placeholder="{{ __('Ex.: levou para a reparação da loja 229') }}">
+                </div>
+                <div class="form-group col-md-3 mb-0">
+                    <label>{{ __('ProAlpha') }}</label>
+                    <label class="ent-pa-campo">
+                        <input type="checkbox" name="proalpha" value="1" @checked(old('proalpha'))>
+                        <span>{{ __('Já lancei no ProAlpha') }}</span>
+                    </label>
                 </div>
                 <div class="form-group col-md-2 mb-0">
                     <button type="submit" class="btn btn-primary btn-block"><i class="fa fa-check"></i> {{ __('Registar') }}</button>
@@ -156,6 +221,11 @@
                         <option value="{{ $valor }}" @selected(request('tipo') === $valor)>{{ __($t['label']) }}</option>
                     @endforeach
                 </select>
+                <select name="proalpha" class="form-control form-control-sm" onchange="this.form.submit()">
+                    <option value="">{{ __('ProAlpha: todos') }}</option>
+                    <option value="por_lancar" @selected(request('proalpha') === 'por_lancar')>{{ __('Por lançar no ProAlpha') }}</option>
+                    <option value="lancadas" @selected(request('proalpha') === 'lancadas')>{{ __('Já lançados no ProAlpha') }}</option>
+                </select>
                 <input type="date" name="de" class="form-control form-control-sm" value="{{ request('de') }}" title="{{ __('De') }}" onchange="this.form.submit()">
                 <input type="date" name="ate" class="form-control form-control-sm" value="{{ request('ate') }}" title="{{ __('Até') }}" onchange="this.form.submit()">
                 <input type="search" name="q" class="form-control form-control-sm" value="{{ request('q') }}"
@@ -169,15 +239,28 @@
                 <p class="mb-0">{{ __('Ainda não há nada registado.') }}</p>
             </div>
         @else
+            {{-- Fora da tabela de proposito: as caixinhas ligam-se a este formulario pelo atributo form= --}}
+            <form method="POST" action="{{ route('backoffice.deliveries.proalpha.bulk') }}" id="ent-lote-form">@csrf</form>
+
+            <div class="ent-lote" id="ent-lote">
+                <i class="fas fa-check-double"></i>
+                <span><strong id="ent-lote-n">0</strong> {{ __('escolhidos') }}</span>
+                <button type="submit" form="ent-lote-form" class="btn btn-sm btn-warning ml-auto">
+                    <i class="fa fa-check"></i> {{ __('Marcar como lançados no ProAlpha') }}
+                </button>
+            </div>
+
             <div class="table-responsive">
                 <table class="ent-tabela">
                     <thead>
                         <tr>
+                            <th class="ent-check"><input type="checkbox" id="ent-todos" title="{{ __('Escolher todos os que estão por lançar') }}"></th>
                             <th>{{ __('Quando') }}</th>
                             <th>{{ __('Tipo') }}</th>
                             <th>{{ __('Técnico') }}</th>
                             <th>{{ __('Artigo') }}</th>
                             <th class="text-right">{{ __('Qtd') }}</th>
+                            <th>{{ __('ProAlpha') }}</th>
                             <th>{{ __('Observações') }}</th>
                             <th>{{ __('Registado por') }}</th>
                             <th></th>
@@ -186,7 +269,12 @@
                     <tbody>
                         @foreach($deliveries as $e)
                             @php($t = $e->tipoConfig())
-                            <tr>
+                            <tr class="{{ $e->isProalpha() ? '' : 'por-lancar' }}">
+                                <td class="ent-check">
+                                    @unless($e->isProalpha())
+                                        <input type="checkbox" name="ids[]" value="{{ $e->id }}" form="ent-lote-form" class="ent-um">
+                                    @endunless
+                                </td>
                                 <td class="ent-quando">
                                     {{ optional($e->ocorrido_em)->format('d/m/Y') }}
                                     <small>{{ optional($e->ocorrido_em)->format('H:i') }}</small>
@@ -198,6 +286,25 @@
                                     @if($e->codigo)<small class="d-block" style="font-weight: 400; color: #94a3b8; font-family: ui-monospace, Menlo, monospace">{{ $e->codigo }}</small>@endif
                                 </td>
                                 <td class="ent-qtd">{{ (int) $e->quantidade }}</td>
+                                <td>
+                                    @if($e->isProalpha())
+                                        <span class="ent-pa-sim" title="{{ $e->proalphaUser->name ?? '' }}">
+                                            <i class="fas fa-check-circle"></i> {{ __('Lançado') }}
+                                            <small>{{ $e->proalpha_em->format('d/m') }}</small>
+                                        </span>
+                                        <form method="POST" action="{{ route('backoffice.deliveries.proalpha', $e->id) }}" class="d-inline"
+                                              onsubmit="return confirm({{ \Illuminate\Support\Js::from(__('Afinal ainda não foi lançado no ProAlpha?')) }})">
+                                            @csrf
+                                            <input type="hidden" name="desmarcar" value="1">
+                                            <button class="ent-pa-desfazer" title="{{ __('Afinal não foi lançado') }}"><i class="fa fa-undo"></i></button>
+                                        </form>
+                                    @else
+                                        <form method="POST" action="{{ route('backoffice.deliveries.proalpha', $e->id) }}">
+                                            @csrf
+                                            <button class="ent-pa-btn"><i class="fa fa-check"></i> {{ __('Lançar') }}</button>
+                                        </form>
+                                    @endif
+                                </td>
                                 <td class="ent-obs">{{ $e->observacoes }}</td>
                                 <td class="ent-obs">{{ $e->creator->name ?? '—' }}</td>
                                 <td class="text-right">
@@ -226,6 +333,25 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         if (window.jQuery && $.fn.selectpicker) $('.selectpicker').selectpicker();
+        // Marcacao em lote: a barra preta so aparece quando ha alguma escolhida
+        var barra = document.getElementById('ent-lote');
+        var conta = document.getElementById('ent-lote-n');
+        var todos = document.getElementById('ent-todos');
+        var uns = Array.prototype.slice.call(document.querySelectorAll('.ent-um'));
+
+        function atualiza() {
+            var n = uns.filter(function (c) { return c.checked; }).length;
+            if (conta) conta.textContent = n;
+            if (barra) barra.classList.toggle('show', n > 0);
+            if (todos) todos.checked = n > 0 && n === uns.length;
+        }
+        uns.forEach(function (c) { c.addEventListener('change', atualiza); });
+        if (todos) todos.addEventListener('change', function () {
+            uns.forEach(function (c) { c.checked = todos.checked; });
+            atualiza();
+        });
+        atualiza();
+
         document.querySelectorAll('.ent-tipo input').forEach(function (r) {
             r.addEventListener('change', function () {
                 document.querySelectorAll('.ent-tipo label').forEach(function (l) { l.classList.toggle('active', l.contains(r) && r.checked); });

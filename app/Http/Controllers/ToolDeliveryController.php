@@ -21,10 +21,16 @@ class ToolDeliveryController extends Controller
     {
         $this->guard();
 
+        // O aviso do ProAlpha conta tudo o que está por lançar, nao so o que o filtro mostra:
+        // é um lembrete, nao um resultado de pesquisa
+        $porLancar = ToolDelivery::porLancar();
+
         return view('backoffice.deliveries.index', [
-            'deliveries' => $this->filtered($request)->with(['technician', 'creator'])
+            'deliveries' => $this->filtered($request)->with(['technician', 'creator', 'proalphaUser'])
                 ->orderByDesc('ocorrido_em')->orderByDesc('id')
                 ->paginate(40)->withQueryString(),
+            'numPorLancar' => (clone $porLancar)->count(),
+            'maisAntigaPorLancar' => (clone $porLancar)->min('ocorrido_em'),
             'technicians' => $this->technicians(),
             // Por número, não por texto: as referências têm 9, 10 e 12 dígitos e
             // em ordem alfabética a de 10 dígitos aparecia antes da de 9
@@ -50,6 +56,7 @@ class ToolDeliveryController extends Controller
             'quantidade' => ['required', 'integer', 'min:1', 'max:9999'],
             'ocorrido_em' => ['required', 'date', 'before_or_equal:now'],
             'observacoes' => ['nullable', 'string', 'max:2000'],
+            'proalpha' => ['nullable', 'boolean'],
         ], [
             'technician_id.required' => __('Escolha o técnico.'),
             'item_id.required_without' => __('Escolha o artigo da lista ou crie um novo.'),
@@ -72,6 +79,9 @@ class ToolDeliveryController extends Controller
             'quantidade' => $data['quantidade'],
             'ocorrido_em' => $data['ocorrido_em'],
             'observacoes' => $data['observacoes'] ?? null,
+            // Normalmente lança-se no ProAlpha mais tarde; quem o fizer na hora marca já aqui
+            'proalpha_em' => $request->boolean('proalpha') ? now() : null,
+            'proalpha_por' => $request->boolean('proalpha') ? auth()->id() : null,
             // Nome e código ficam escritos no registo, para a linha valer por si
             'item_id' => $artigo->id,
             'artigo' => $artigo->name,
@@ -82,6 +92,44 @@ class ToolDeliveryController extends Controller
         flash($entrega->isEntrega()
             ? __('Entregue :qtd x :artigo a :quem.', ['qtd' => $entrega->quantidade, 'artigo' => $entrega->artigo, 'quem' => $entrega->technician->name])
             : __('Devolvido :qtd x :artigo por :quem.', ['qtd' => $entrega->quantidade, 'artigo' => $entrega->artigo, 'quem' => $entrega->technician->name]))->success();
+
+        return back();
+    }
+
+    /** Marcar (ou desmarcar) um registo como lançado no ProAlpha. */
+    public function proalpha(Request $request, $id)
+    {
+        $this->guard();
+
+        $entrega = ToolDelivery::findOrFail($id);
+        $lancar = !$request->boolean('desmarcar');
+
+        $entrega->update([
+            'proalpha_em' => $lancar ? now() : null,
+            'proalpha_por' => $lancar ? auth()->id() : null,
+        ]);
+
+        flash($lancar ? __('Marcado como lançado no ProAlpha.') : __('Voltou a ficar por lançar no ProAlpha.'))->success();
+
+        return back();
+    }
+
+    /** Lançar vários de uma vez: na prática passa-se um lote no ProAlpha e marca-se tudo junto. */
+    public function proalphaBulk(Request $request)
+    {
+        $this->guard();
+
+        $ids = $request->validate([
+            'ids' => ['required', 'array'],
+            'ids.*' => ['integer'],
+        ], ['ids.required' => __('Escolha pelo menos um registo.')])['ids'];
+
+        $total = ToolDelivery::whereIn('id', $ids)->porLancar()
+            ->update(['proalpha_em' => now(), 'proalpha_por' => auth()->id()]);
+
+        flash($total
+            ? trans_choice(':count registo marcado como lançado no ProAlpha.|:count registos marcados como lançados no ProAlpha.', $total, ['count' => $total])
+            : __('Nada a marcar: já estavam todos lançados.'))->success();
 
         return back();
     }
@@ -111,6 +159,9 @@ class ToolDeliveryController extends Controller
         return ToolDelivery::query()
             ->when($request->filled('technician_id'), fn ($q) => $q->where('technician_id', $request->technician_id))
             ->when($request->filled('tipo'), fn ($q) => $q->where('tipo', $request->tipo))
+            ->when($request->filled('proalpha'), fn ($q) => $request->proalpha === 'por_lancar'
+                ? $q->porLancar()
+                : $q->lancadas())
             ->when($request->filled('de'), fn ($q) => $q->whereDate('ocorrido_em', '>=', $request->de))
             ->when($request->filled('ate'), fn ($q) => $q->whereDate('ocorrido_em', '<=', $request->ate))
             ->when($request->filled('q'), function ($q) use ($request) {
