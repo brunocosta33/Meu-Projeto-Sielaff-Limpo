@@ -24,6 +24,10 @@
     .ent-quando { white-space: nowrap; font-variant-numeric: tabular-nums; }
     .ent-quando small { display: block; color: #94a3b8; font-size: .74rem; }
     .ent-artigo { font-weight: 600; color: #0f172a; }
+    /* O codigo e o que se procura no ProAlpha: fica a ler-se bem, nao em letra miuda */
+    .ent-codigo { display: block; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+                  font-size: 1rem; font-weight: 700; color: #0f172a; letter-spacing: .02em; }
+    .ent-artigo .nome { display: block; font-weight: 400; font-size: .84rem; color: #64748b; margin-top: .1rem; }
     .ent-obs { color: #64748b; font-size: .82rem; }
     .ent-tag { display: inline-flex; align-items: center; gap: .3rem; font-size: .72rem; font-weight: 700;
                padding: .12rem .5rem; border-radius: 999px; background: var(--bg); color: var(--c); white-space: nowrap; }
@@ -282,8 +286,12 @@
                                 <td><span class="ent-tag" style="--c: {{ $t['color'] }}; --bg: {{ $t['bg'] }}"><i class="fa {{ $t['icon'] }}"></i> {{ $e->tipoLabel() }}</span></td>
                                 <td>{{ $e->technician->name ?? '—' }}</td>
                                 <td class="ent-artigo">
-                                    {{ $e->artigo }}
-                                    @if($e->codigo)<small class="d-block" style="font-weight: 400; color: #94a3b8; font-family: ui-monospace, Menlo, monospace">{{ $e->codigo }}</small>@endif
+                                    @if($e->codigo)
+                                        <span class="ent-codigo">{{ $e->codigo }}</span>
+                                        <span class="nome">{{ $e->artigo }}</span>
+                                    @else
+                                        {{ $e->artigo }}
+                                    @endif
                                 </td>
                                 <td class="ent-qtd">{{ (int) $e->quantidade }}</td>
                                 <td>
