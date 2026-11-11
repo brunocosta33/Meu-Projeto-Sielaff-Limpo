@@ -38,6 +38,7 @@ class RestrictTechnicianAccess
         'backoffice.board.store',
         'backoffice.board.update',
         'backoffice.board.move',
+        'backoffice.board.reassign',
         'backoffice.board.comment',
         'backoffice.board.destroy',
         'backoffice.hr.expenses.index',

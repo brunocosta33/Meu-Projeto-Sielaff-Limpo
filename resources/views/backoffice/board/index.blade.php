@@ -65,6 +65,28 @@
     .qd-escrever textarea { font-size: .8rem; resize: vertical; min-height: 44px; }
     .qd-escrever .ajuda { font-size: .68rem; color: #94a3b8; }
 
+    /* A equipa em cima: quem é quem e quanto tem em mãos */
+    .qd-equipa { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem 1.1rem; }
+    .qd-grupo { display: flex; align-items: center; gap: .35rem; }
+    .qd-grupo > .rotulo { font-size: .64rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em;
+                          color: #94a3b8; white-space: nowrap; }
+    .qd-chip { display: inline-flex; align-items: center; gap: .35rem; border: 1px solid #e2e8f0; background: #fff;
+               border-radius: 999px; padding: .15rem .55rem .15rem .15rem; font-size: .78rem; color: #334155;
+               text-decoration: none !important; white-space: nowrap; }
+    .qd-chip:hover { border-color: #0f4c81; color: #0f4c81; }
+    .qd-chip.on { border-color: #0f4c81; background: #0f4c81; color: #fff; box-shadow: 0 1px 4px rgba(15, 76, 129, .3); }
+    .qd-chip .n { font-size: .7rem; font-weight: 800; background: #f1f5f9; color: #475569; border-radius: 999px; padding: 0 .35rem; }
+    .qd-chip.on .n { background: rgba(255, 255, 255, .25); color: #fff; }
+    .qd-chip.zero { opacity: .55; }
+    .qd-chip-todos { padding-left: .55rem; }
+
+    .qd-quem.trocar { cursor: pointer; border: 0; background: none; padding: 0; }
+    .qd-quem.trocar:hover { color: #0f4c81; }
+    .qd-quem.trocar .seta { font-size: .6rem; color: #cbd5e1; }
+    .qd-quem.trocar:hover .seta { color: #0f4c81; }
+    .qd-passar { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 9px; padding: .45rem .55rem; margin-top: .45rem; }
+    .qd-passar .rotulo { font-size: .66rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: #64748b; }
+
     .qd-vazia { text-align: center; color: #cbd5e1; font-size: .82rem; padding: 1.2rem .5rem; }
     .qd-nova input, .qd-nova select { font-size: .9rem; }
 </style>
@@ -80,18 +102,40 @@
             </div>
             <form method="GET" class="form-inline" style="gap: .5rem">
                 @if($verTudo)<input type="hidden" name="tudo" value="1">@endif
-                <select name="quem" class="form-control form-control-sm" onchange="this.form.submit()">
-                    <option value="">{{ __('Toda a gente') }}</option>
-                    @foreach($pessoas as $p)
-                        <option value="{{ $p->id }}" @selected(request('quem') == $p->id)>{{ $p->name ?: $p->email }}</option>
-                    @endforeach
-                </select>
+                @if(request('quem'))<input type="hidden" name="quem" value="{{ request('quem') }}">@endif
                 <label class="btn btn-sm {{ $soMinhas ? 'btn-primary' : 'btn-outline-secondary' }} mb-0">
                     <input type="checkbox" name="minhas" value="1" class="d-none" @checked($soMinhas) onchange="this.form.submit()">
                     <i class="fa fa-user"></i> {{ __('Só as minhas') }}
                 </label>
                 @unless($soMinhas)<input type="hidden" name="minhas" value="0">@endunless
             </form>
+        </div>
+
+        {{-- A equipa, arrumada pela função. O número é o que cada um tem em mãos. --}}
+        <div class="qd-equipa mt-3">
+            <a href="{{ route('backoffice.board.index', collect($filtros)->except('quem')->all()) }}"
+               class="qd-chip qd-chip-todos {{ request('quem') ? '' : 'on' }}">
+                <i class="fas fa-users"></i> {{ __('Todos') }}
+                <span class="n">{{ $totalAbertas }}</span>
+            </a>
+
+            @foreach($equipa as $funcao => $gente)
+                <div class="qd-grupo">
+                    <span class="rotulo">{{ __(config('hr.functions.' . $funcao, 'Outros')) }}</span>
+                    @foreach($gente as $p)
+                        @php($n = (int) ($porPessoa[$p->id] ?? 0))
+                        <a href="{{ route('backoffice.board.index', collect($filtros)->merge(['quem' => $p->id, 'minhas' => 0])->all()) }}"
+                           class="qd-chip {{ request('quem') == $p->id ? 'on' : '' }} {{ $n ? '' : 'zero' }}"
+                           title="{{ $p->name ?: $p->email }}">
+                            <span class="qd-bola" style="--c: {{ ['#0f4c81','#b91c1c','#15803d','#6d28d9','#b45309','#0e7490','#be185d','#4d7c0f'][$p->id % 8] }}">
+                                {{ \Illuminate\Support\Str::of($p->name ?: '?')->explode(' ')->map(fn ($x) => mb_substr($x, 0, 1))->take(2)->implode('') }}
+                            </span>
+                            {{ $p->id === $eu ? __('Eu') : \Illuminate\Support\Str::of($p->name ?: $p->email)->explode(' ')->first() }}
+                            <span class="n">{{ $n }}</span>
+                        </a>
+                    @endforeach
+                </div>
+            @endforeach
         </div>
     </div>
 </div>
@@ -145,10 +189,12 @@
                     @if($t->descricao)<div class="qd-desc">{{ $t->descricao }}</div>@endif
 
                     <div class="qd-rodape">
-                        <span class="qd-quem" title="{{ $t->responsavel->name ?? '' }}">
+                        <button type="button" class="qd-quem trocar" data-toggle="collapse" data-target="#qd-passar-{{ $t->id }}"
+                                title="{{ __('Passar a outra pessoa') }}">
                             <span class="qd-bola" style="--c: {{ $t->corDoResponsavel() }}">{{ $t->iniciais() }}</span>
                             {{ $meu ? __('Eu') : \Illuminate\Support\Str::of($t->responsavel->name ?? '—')->explode(' ')->first() }}
-                        </span>
+                            <i class="fa fa-exchange-alt seta"></i>
+                        </button>
 
                         @if($t->prazo && !$t->isFeito())
                             <span class="qd-prazo {{ $t->atrasada() ? 'atrasado' : ($t->paraHoje() ? 'hoje' : '') }}">
@@ -176,6 +222,25 @@
                                 </form>
                             @endunless
                         </span>
+                    </div>
+
+                    <div class="collapse qd-passar" id="qd-passar-{{ $t->id }}">
+                        <form method="POST" action="{{ route('backoffice.board.reassign', $t->id) }}">
+                            @csrf
+                            <div class="rotulo mb-1">{{ __('Passar a') }}</div>
+                            <div class="d-flex" style="gap: .35rem">
+                                <select name="assigned_to" class="form-control form-control-sm" required>
+                                    @foreach($equipa as $funcao => $gente)
+                                        <optgroup label="{{ __(config('hr.functions.' . $funcao, 'Outros')) }}">
+                                            @foreach($gente as $p)
+                                                <option value="{{ $p->id }}" @selected($t->assigned_to == $p->id)>{{ $p->name ?: $p->email }}</option>
+                                            @endforeach
+                                        </optgroup>
+                                    @endforeach
+                                </select>
+                                <button class="btn btn-sm btn-primary"><i class="fa fa-paper-plane"></i></button>
+                            </div>
+                        </form>
                     </div>
 
                     @if($t->isFeito() && $t->concluido_em)

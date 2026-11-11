@@ -322,6 +322,7 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
         Route::post('/', [BoardTaskController::class, 'store'])->name('store');
         Route::put('/{id}', [BoardTaskController::class, 'update'])->name('update');
         Route::post('/{id}/mover', [BoardTaskController::class, 'move'])->name('move');
+        Route::post('/{id}/passar', [BoardTaskController::class, 'reassign'])->name('reassign');
         Route::post('/{id}/responder', [BoardTaskController::class, 'comment'])->name('comment');
         Route::delete('/{id}', [BoardTaskController::class, 'destroy'])->name('destroy');
     });

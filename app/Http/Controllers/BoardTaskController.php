@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BoardTask;
+use App\Models\HrStaff;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -52,6 +53,11 @@ class BoardTaskController extends Controller
             'colunas' => $colunas,
             'estados' => BoardTask::ESTADOS,
             'pessoas' => $this->pessoas(),
+            'equipa' => $this->equipa(),
+            'porPessoa' => BoardTask::where('estado', '!=', 'feito')
+                ->selectRaw('assigned_to, COUNT(*) as total')
+                ->groupBy('assigned_to')->pluck('total', 'assigned_to'),
+            'totalAbertas' => BoardTask::where('estado', '!=', 'feito')->count(),
             'soMinhas' => $sofilter,
             'verTudo' => $request->boolean('tudo'),
             'feitasEscondidas' => $request->boolean('tudo')
@@ -142,6 +148,44 @@ class BoardTaskController extends Controller
         return back();
     }
 
+    /** Passar o ticket a outra pessoa, com nota no fio para não se perder o rasto. */
+    public function reassign(Request $request, $id)
+    {
+        $tarefa = BoardTask::findOrFail($id);
+        $this->podeMexer($tarefa);
+
+        $novo = User::findOrFail($request->validate([
+            'assigned_to' => ['required', 'exists:users,id'],
+        ], ['assigned_to.required' => __('Escolha para quem passa.')])['assigned_to']);
+
+        if ($novo->id === $tarefa->assigned_to) {
+            flash(__('A tarefa já era de :quem.', ['quem' => $novo->name]))->warning();
+
+            return back();
+        }
+
+        $antigo = $tarefa->responsavel->name ?? '—';
+
+        // Quem recebe ainda não pegou nela: volta a Por fazer
+        if ($tarefa->estado === 'em_curso') {
+            $tarefa->estado = 'por_fazer';
+            $tarefa->iniciado_em = null;
+            $tarefa->iniciado_por = null;
+        }
+
+        $tarefa->assigned_to = $novo->id;
+        $tarefa->save();
+
+        $tarefa->comments()->create([
+            'user_id' => auth()->id(),
+            'texto' => __('Passou de :antigo para :novo.', ['antigo' => $antigo, 'novo' => $novo->name]),
+        ]);
+
+        flash(__('Tarefa passada a :quem.', ['quem' => $novo->name]))->success();
+
+        return back();
+    }
+
     public function comment(Request $request, $id)
     {
         $tarefa = BoardTask::findOrFail($id);
@@ -192,5 +236,23 @@ class BoardTaskController extends Controller
     private function pessoas()
     {
         return User::where('is_active', true)->orderBy('name')->get(['id', 'name', 'email']);
+    }
+
+    /**
+     * As mesmas pessoas, mas arrumadas pela função que têm em RH
+     * (Coordenador, Country Manager, Administrativa, Hotline, Técnicos).
+     */
+    private function equipa()
+    {
+        $ordem = ['coordenador', 'country_manager', 'administrativa', 'hotliner', 'tecnico'];
+        $funcoes = HrStaff::where('ativo', true)->pluck('funcao', 'user_id');
+
+        return $this->pessoas()
+            ->groupBy(fn (User $u) => $funcoes[$u->id] ?? 'outros')
+            ->sortBy(function ($grupo, $funcao) use ($ordem) {
+                $i = array_search($funcao, $ordem, true);
+
+                return $i === false ? count($ordem) : $i;
+            });
     }
 }
