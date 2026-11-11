@@ -26,7 +26,7 @@ class ToolDeliveryController extends Controller
         $porLancar = ToolDelivery::porLancar();
 
         return view('backoffice.deliveries.index', [
-            'deliveries' => $this->filtered($request)->with(['technician', 'creator', 'proalphaUser'])
+            'deliveries' => $this->filtered($request)->with(['technician', 'creator', 'proalphaUser', 'editor'])
                 ->orderByDesc('ocorrido_em')->orderByDesc('id')
                 ->paginate(40)->withQueryString(),
             'numPorLancar' => (clone $porLancar)->count(),
@@ -92,6 +92,65 @@ class ToolDeliveryController extends Controller
         flash($entrega->isEntrega()
             ? __('Entregue :qtd x :artigo a :quem.', ['qtd' => $entrega->quantidade, 'artigo' => $entrega->artigo, 'quem' => $entrega->technician->name])
             : __('Devolvido :qtd x :artigo por :quem.', ['qtd' => $entrega->quantidade, 'artigo' => $entrega->artigo, 'quem' => $entrega->technician->name]))->success();
+
+        return back();
+    }
+
+    /**
+     * Corrigir um registo já gravado.
+     * Fica escrito quem corrigiu e quando; e se mexer no que vai para o ProAlpha,
+     * a entrega volta a ficar por lançar, porque o ProAlpha deixou de estar certo.
+     */
+    public function update(Request $request, $id)
+    {
+        $this->guard();
+
+        $entrega = ToolDelivery::findOrFail($id);
+
+        $data = $request->validate([
+            'tipo' => ['required', Rule::in(array_keys(ToolDelivery::TIPOS))],
+            'technician_id' => ['required', 'exists:users,id'],
+            'item_id' => ['required', 'exists:items,id'],
+            'quantidade' => ['required', 'integer', 'min:1', 'max:9999'],
+            'ocorrido_em' => ['required', 'date', 'before_or_equal:now'],
+            'observacoes' => ['nullable', 'string', 'max:2000'],
+        ], [
+            'technician_id.required' => __('Escolha o técnico.'),
+            'item_id.required' => __('Escolha o artigo.'),
+            'quantidade.min' => __('A quantidade tem de ser pelo menos 1.'),
+            'ocorrido_em.required' => __('Indique a data e a hora.'),
+            'ocorrido_em.before_or_equal' => __('A data e hora não podem ser no futuro.'),
+        ]);
+
+        $artigo = Item::findOrFail($data['item_id']);
+
+        $entrega->fill([
+            'tipo' => $data['tipo'],
+            'technician_id' => $data['technician_id'],
+            'quantidade' => $data['quantidade'],
+            'ocorrido_em' => $data['ocorrido_em'],
+            'observacoes' => $data['observacoes'] ?? null,
+            'item_id' => $artigo->id,
+            'artigo' => $artigo->name,
+            'codigo' => $artigo->reference,
+        ]);
+
+        // Corrigir só as observações (ou a hora) não desfaz o lançamento no ProAlpha
+        $mexeuNoProalpha = (bool) array_intersect(ToolDelivery::CAMPOS_PROALPHA, array_keys($entrega->getDirty()));
+        $desfezLancamento = $mexeuNoProalpha && $entrega->isProalpha();
+
+        if ($desfezLancamento) {
+            $entrega->proalpha_em = null;
+            $entrega->proalpha_por = null;
+        }
+
+        $entrega->editado_em = now();
+        $entrega->editado_por = auth()->id();
+        $entrega->save();
+
+        flash($desfezLancamento
+            ? __('Entrega corrigida. Como mudou o que vai para o ProAlpha, voltou a ficar por lançar.')
+            : __('Entrega corrigida.'))->success();
 
         return back();
     }

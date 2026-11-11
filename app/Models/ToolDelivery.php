@@ -14,10 +14,17 @@ class ToolDelivery extends Model
 
     protected $fillable = [
         'technician_id', 'tipo', 'artigo', 'codigo', 'item_id', 'quantidade', 'ocorrido_em', 'observacoes',
-        'proalpha_em', 'proalpha_por', 'created_by',
+        'proalpha_em', 'proalpha_por', 'editado_em', 'editado_por', 'created_by',
     ];
 
-    protected $casts = ['ocorrido_em' => 'datetime', 'proalpha_em' => 'datetime'];
+    /** Campos que vão parar ao ProAlpha: mexer neles obriga a lançar lá outra vez. */
+    public const CAMPOS_PROALPHA = ['tipo', 'technician_id', 'item_id', 'quantidade'];
+
+    protected $casts = [
+        'ocorrido_em' => 'datetime',
+        'proalpha_em' => 'datetime',
+        'editado_em' => 'datetime',
+    ];
 
     public function technician()
     {
@@ -33,6 +40,17 @@ class ToolDelivery extends Model
     public function proalphaUser()
     {
         return $this->belongsTo(User::class, 'proalpha_por');
+    }
+
+    /** Quem corrigiu o registo depois de gravado. */
+    public function editor()
+    {
+        return $this->belongsTo(User::class, 'editado_por');
+    }
+
+    public function foiEditado(): bool
+    {
+        return $this->editado_em !== null;
     }
 
     /** Já foi passado no ProAlpha? */

@@ -321,6 +321,7 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
         Route::post('/', [ToolDeliveryController::class, 'store'])->name('store');
         Route::get('/exportar', [ToolDeliveryController::class, 'export'])->name('export');
         Route::post('/proalpha', [ToolDeliveryController::class, 'proalphaBulk'])->name('proalpha.bulk');
+        Route::put('/{id}', [ToolDeliveryController::class, 'update'])->name('update');
         Route::post('/{id}/proalpha', [ToolDeliveryController::class, 'proalpha'])->name('proalpha');
         Route::delete('/{id}', [ToolDeliveryController::class, 'destroy'])->name('destroy');
     });

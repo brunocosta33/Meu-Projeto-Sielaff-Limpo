@@ -34,6 +34,12 @@
     .ent-qtd { font-weight: 800; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
     .ent-apagar { border: 0; background: none; color: #cbd5e1; padding: 0; }
     .ent-apagar:hover { color: #c62828; }
+    .ent-tabela td > form { display: inline-block; margin: 0; vertical-align: middle; }
+    .ent-corrigir { border: 0; background: none; color: #cbd5e1; padding: 0 .4rem 0 0; vertical-align: middle; }
+    .ent-corrigir:hover { color: #0f4c81; }
+    .ent-editado { display: block; font-size: .72rem; color: #b45309; font-style: italic; margin-top: .15rem; }
+    .ent-aviso-proalpha { font-size: .8rem; color: #9a3412; background: #fff7ed; border: 1px solid #fed7aa;
+                          border-radius: 8px; padding: .45rem .7rem; margin: 0; }
 
     /* ProAlpha: o que falta passar no programa */
     .ent-aviso { display: flex; align-items: center; gap: .75rem; background: #fff7ed; border: 1px solid #fed7aa;
@@ -314,8 +320,29 @@
                                     @endif
                                 </td>
                                 <td class="ent-obs">{{ $e->observacoes }}</td>
-                                <td class="ent-obs">{{ $e->creator->name ?? '—' }}</td>
-                                <td class="text-right">
+                                <td class="ent-obs">
+                                    {{ $e->creator->name ?? '—' }}
+                                    @if($e->foiEditado())
+                                        <span class="ent-editado">
+                                            <i class="fa fa-pencil-alt"></i>
+                                            {{ __('corrigido a :data por :quem', ['data' => $e->editado_em->format('d/m H:i'), 'quem' => $e->editor->name ?? '—']) }}
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="text-right text-nowrap">
+                                    <button type="button" class="ent-corrigir" title="{{ __('Corrigir') }}"
+                                            data-toggle="modal" data-target="#ent-corrigir"
+                                            data-id="{{ $e->id }}"
+                                            data-tipo="{{ $e->tipo }}"
+                                            data-tecnico="{{ $e->technician_id }}"
+                                            data-artigo="{{ $e->item_id }}"
+                                            data-artigo-nome="{{ $e->artigoCompleto() }}"
+                                            data-qtd="{{ (int) $e->quantidade }}"
+                                            data-quando="{{ optional($e->ocorrido_em)->format('Y-m-d\TH:i') }}"
+                                            data-obs="{{ $e->observacoes }}"
+                                            data-proalpha="{{ $e->isProalpha() ? 1 : 0 }}">
+                                        <i class="fa fa-pencil-alt"></i>
+                                    </button>
                                     <form method="POST" action="{{ route('backoffice.deliveries.destroy', $e->id) }}"
                                           onsubmit="return confirm({{ \Illuminate\Support\Js::from(__('Apagar este registo?')) }})">
                                         @csrf
@@ -335,12 +362,118 @@
         @endif
     </div>
 </div>
+
+{{-- Corrigir uma entrega já gravada --}}
+<div class="modal fade" id="ent-corrigir" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <form method="POST" id="ent-corrigir-form" class="ent-form">
+                @csrf
+                @method('PUT')
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fa fa-pencil-alt text-primary"></i> {{ __('Corrigir entrega') }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="{{ __('Fechar') }}"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <p class="ent-aviso-proalpha d-none" id="ent-corrigir-aviso">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        {{ __('Esta entrega já foi lançada no ProAlpha. Se mudar o técnico, o artigo, a quantidade ou o tipo, volta a ficar por lançar — e tem de a passar lá outra vez.') }}
+                    </p>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-3">
+                            <label>{{ __('Tipo') }}</label>
+                            <select name="tipo" class="form-control" id="ent-corrigir-tipo" required>
+                                @foreach($tipos as $valor => $t)
+                                    <option value="{{ $valor }}">{{ __($t['label']) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group col-md-5">
+                            <label>{{ __('Técnico') }}</label>
+                            <select name="technician_id" class="form-control" id="ent-corrigir-tecnico" required>
+                                @foreach($technicians as $t)
+                                    <option value="{{ $t->id }}">{{ $t->name ?: $t->email }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label>{{ __('Qtd') }}</label>
+                            <input type="number" name="quantidade" class="form-control" id="ent-corrigir-qtd" min="1" required>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label>{{ __('Data e hora') }}</label>
+                            <input type="datetime-local" name="ocorrido_em" class="form-control" id="ent-corrigir-quando"
+                                   max="{{ now()->format('Y-m-d\TH:i') }}" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ __('Peça ou ferramenta') }}</label>
+                        <select name="item_id" class="form-control selectpicker" id="ent-corrigir-artigo" required
+                                data-live-search="true" data-container="body" data-size="10"
+                                title="{{ __('Procurar por código ou nome…') }}">
+                            @foreach($artigos as $a)
+                                <option value="{{ $a->id }}">{{ $a->reference }} — {{ $a->name }}</option>
+                            @endforeach
+                        </select>
+                        <small class="form-text text-muted">{{ __('Para criar um artigo novo, use o formulário da página.') }}</small>
+                    </div>
+
+                    <div class="form-group mb-0">
+                        <label>{{ __('Observações') }}</label>
+                        <input type="text" name="observacoes" class="form-control" id="ent-corrigir-obs" maxlength="2000">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-link text-secondary" data-dismiss="modal">{{ __('Cancelar') }}</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa fa-check"></i> {{ __('Guardar correção') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         if (window.jQuery && $.fn.selectpicker) $('.selectpicker').selectpicker();
+        // Corrigir: um modal só, preenchido a partir do botão da linha
+        var modal = document.getElementById('ent-corrigir');
+        if (modal && window.jQuery) {
+            $(modal).on('show.bs.modal', function (ev) {
+                var b = ev.relatedTarget;
+                if (!b) return;
+                var val = function (id, v) { var el = document.getElementById(id); if (el) el.value = v; };
+
+                document.getElementById('ent-corrigir-form').action =
+                    {{ \Illuminate\Support\Js::from(route('backoffice.deliveries.index')) }} + '/' + b.dataset.id;
+
+                val('ent-corrigir-tipo', b.dataset.tipo);
+                val('ent-corrigir-tecnico', b.dataset.tecnico);
+                val('ent-corrigir-qtd', b.dataset.qtd);
+                val('ent-corrigir-quando', b.dataset.quando);
+                val('ent-corrigir-obs', b.dataset.obs || '');
+
+                // O artigo pode ter saído do catálogo: nesse caso acrescenta-se à lista para não se perder
+                var artigo = document.getElementById('ent-corrigir-artigo');
+                if (artigo) {
+                    if (!artigo.querySelector('option[value="' + b.dataset.artigo + '"]')) {
+                        var o = document.createElement('option');
+                        o.value = b.dataset.artigo;
+                        o.textContent = b.dataset.artigoNome;
+                        artigo.appendChild(o);
+                    }
+                    artigo.value = b.dataset.artigo;
+                    if ($.fn.selectpicker) $(artigo).selectpicker('refresh');
+                }
+
+                document.getElementById('ent-corrigir-aviso')
+                    .classList.toggle('d-none', b.dataset.proalpha !== '1');
+            });
+        }
+
         // Marcacao em lote: a barra preta so aparece quando ha alguma escolhida
         var barra = document.getElementById('ent-lote');
         var conta = document.getElementById('ent-lote-n');
