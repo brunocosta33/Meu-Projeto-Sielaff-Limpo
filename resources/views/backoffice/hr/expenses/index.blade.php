@@ -47,6 +47,15 @@
 
     .ex-acoes { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .6rem; padding-top: .6rem; border-top: 1px dashed #e2e8f0; }
     .ex-acoes form { margin: 0; }
+
+    /* Confirmar o pagamento: cada campo com o seu nome, que a data não é sempre a de hoje */
+    .ex-pagar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: .75rem;
+                background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 10px; padding: .7rem .9rem; margin: 0; }
+    .ex-pagar .campo { display: flex; flex-direction: column; }
+    .ex-pagar label { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+                      color: #0369a1; margin: 0 0 .2rem; }
+    .ex-pagar .dica { flex-basis: 100%; font-size: .76rem; color: #0369a1; opacity: .85; margin-top: -.1rem; }
+    .ex-pagar .dica i { margin-right: .3rem; }
 </style>
 @endpush
 
@@ -309,16 +318,27 @@
 
             @if($canPay && $e->canBePaid())
                 <div class="collapse mt-2" id="ex-pagar-{{ $e->id }}">
-                    <form method="POST" action="{{ route('backoffice.hr.expenses.pay', $e->id) }}" class="form-inline" style="gap: .5rem">
+                    <form method="POST" action="{{ route('backoffice.hr.expenses.pay', $e->id) }}" class="ex-pagar">
                         @csrf
-                        <input type="date" name="pago_em" class="form-control form-control-sm" value="{{ now()->toDateString() }}" max="{{ now()->toDateString() }}" required>
-                        <select name="pago_como" class="form-control form-control-sm">
-                            <option value="">{{ __('Como foi paga…') }}</option>
-                            @foreach($paymentMethods as $valor => $label)
-                                <option value="{{ $valor }}">{{ __($label) }}</option>
-                            @endforeach
-                        </select>
+                        <div class="campo">
+                            <label for="ex-pago-em-{{ $e->id }}">{{ __('Quando foi paga') }}</label>
+                            <input type="date" id="ex-pago-em-{{ $e->id }}" name="pago_em" class="form-control form-control-sm"
+                                   value="{{ now()->toDateString() }}" max="{{ now()->toDateString() }}" required>
+                        </div>
+                        <div class="campo">
+                            <label for="ex-pago-como-{{ $e->id }}">{{ __('Como foi paga') }}</label>
+                            <select id="ex-pago-como-{{ $e->id }}" name="pago_como" class="form-control form-control-sm">
+                                <option value="">{{ __('Escolha…') }}</option>
+                                @foreach($paymentMethods as $valor => $label)
+                                    <option value="{{ $valor }}">{{ __($label) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                         <button class="btn btn-sm btn-primary"><i class="fa fa-check"></i> {{ __('Confirmar pagamento') }}</button>
+                        <div class="dica">
+                            <i class="fas fa-info-circle"></i>
+                            {{ __('A data é a do pagamento, não a de hoje: se já foi paga noutro dia, mude-a.') }}
+                        </div>
                     </form>
                 </div>
             @endif
