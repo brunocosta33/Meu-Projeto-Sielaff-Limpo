@@ -17,6 +17,7 @@ use App\Models\Base;
     <ul class="list-unstyled components" id="menu-left">
 
         @php($isTechnician = Auth::user()->hasRole('user'))
+        @php($quadroPorFazer = \App\Models\BoardTask::where('assigned_to', Auth::id())->where('estado', '!=', 'feito')->count())
 
         @if($isTechnician)
         <li>
@@ -32,6 +33,13 @@ use App\Models\Base;
             </a>
         </li>
         <li>
+            <a href="{{ route('backoffice.board.index') }}">
+                <i class="fas fa-clipboard-check me-2"></i>
+                <span class="hidden-sm-down">{{ __('Quadro') }}</span>
+                @if($quadroPorFazer)<span class="badge badge-pill badge-danger ml-1">{{ $quadroPorFazer }}</span>@endif
+            </a>
+        </li>
+        <li>
             <a href="{{ route('backoffice.stores.index') }}">
                 <i class="fas fa-store me-2"></i>
                 <span class="hidden-sm-down">{{ __('Lojas') }}</span>
@@ -42,6 +50,13 @@ use App\Models\Base;
             <a href="{{ route('backoffice.index') }}" class="collapsed" data-parent="#sidebar">
                 <i class="fas fa-tachometer-alt"></i>
                 <span class="hidden-sm-down"> {{ __('Dashboard') }} </span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ route('backoffice.board.index') }}">
+                <i class="fas fa-clipboard-check me-2"></i>
+                <span class="hidden-sm-down">{{ __('Quadro') }}</span>
+                @if($quadroPorFazer)<span class="badge badge-pill badge-danger ml-1">{{ $quadroPorFazer }}</span>@endif
             </a>
         </li>
         <li>

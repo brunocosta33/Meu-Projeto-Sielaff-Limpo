@@ -29,6 +29,7 @@ use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\BoardTaskController;
 use App\Http\Controllers\TaskScheduleController;
 use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\MachineController;
@@ -313,6 +314,16 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
             Route::post('/feriados', [HrHolidayController::class, 'store'])->name('holidays.store');
             Route::delete('/feriados/{id}', [HrHolidayController::class, 'destroy'])->name('holidays.destroy');
         });
+    });
+
+    // Quadro: tarefas dadas a pessoas, com respostas. Nada a ver com as tarefas recorrentes.
+    Route::prefix('backoffice/quadro')->name('backoffice.board.')->group(function () {
+        Route::get('/', [BoardTaskController::class, 'index'])->name('index');
+        Route::post('/', [BoardTaskController::class, 'store'])->name('store');
+        Route::put('/{id}', [BoardTaskController::class, 'update'])->name('update');
+        Route::post('/{id}/mover', [BoardTaskController::class, 'move'])->name('move');
+        Route::post('/{id}/responder', [BoardTaskController::class, 'comment'])->name('comment');
+        Route::delete('/{id}', [BoardTaskController::class, 'destroy'])->name('destroy');
     });
 
     // Entregas a Tecnicos: registo proprio de pecas e ferramentas, independente do stock

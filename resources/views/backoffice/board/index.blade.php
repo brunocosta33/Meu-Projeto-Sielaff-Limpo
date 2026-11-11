@@ -1,0 +1,248 @@
+@extends('layouts.backoffice_master')
+
+@section('head-meta')
+    <title>{{ config('app.name') }} - {{ __('Quadro') }}</title>
+@endsection
+
+@php(\Carbon\Carbon::setLocale(app()->getLocale()))
+@php($filtros = request()->only(['minhas', 'quem', 'tudo']))
+
+@push('styles')
+<style>
+    .qd-colunas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; align-items: start; }
+    @media (max-width: 991px) { .qd-colunas { grid-template-columns: 1fr; } }
+
+    .qd-coluna { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: .75rem; min-height: 120px; }
+    .qd-coluna > header { display: flex; align-items: center; gap: .45rem; margin-bottom: .7rem; padding: 0 .2rem; }
+    .qd-coluna > header .nome { font-size: .78rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--c); }
+    .qd-coluna > header .conta { margin-left: auto; font-size: .74rem; font-weight: 700; color: var(--c);
+                                 background: var(--bg); border-radius: 999px; padding: .05rem .5rem; }
+
+    .qd-cartao { background: #fff; border: 1px solid #e2e8f0; border-radius: 11px; padding: .65rem .75rem;
+                 margin-bottom: .6rem; box-shadow: 0 1px 2px rgba(15, 23, 42, .05); }
+    .qd-cartao.feito { opacity: .72; }
+    .qd-cartao.atrasada { border-left: 4px solid #dc2626; }
+    .qd-titulo { font-weight: 600; color: #0f172a; line-height: 1.3; word-break: break-word; }
+    .qd-cartao.feito .qd-titulo { text-decoration: line-through; text-decoration-color: #94a3b8; }
+    .qd-desc { font-size: .8rem; color: #64748b; margin-top: .25rem; white-space: pre-wrap; word-break: break-word; }
+
+    .qd-rodape { display: flex; align-items: center; gap: .4rem; margin-top: .55rem; }
+    .qd-quem { display: inline-flex; align-items: center; gap: .35rem; font-size: .76rem; color: #475569; }
+    .qd-bola { width: 22px; height: 22px; border-radius: 50%; background: var(--c); color: #fff; font-size: .64rem;
+               font-weight: 800; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 22px; }
+    .qd-prazo { font-size: .72rem; font-weight: 700; padding: .05rem .4rem; border-radius: 5px;
+                background: #f1f5f9; color: #64748b; white-space: nowrap; }
+    .qd-prazo.atrasado { background: #fee2e2; color: #b91c1c; }
+    .qd-prazo.hoje { background: #fef3c7; color: #92400e; }
+
+    .qd-botoes { margin-left: auto; display: flex; gap: .25rem; }
+    .qd-botoes form { margin: 0; }
+    .qd-btn { border: 1px solid #e2e8f0; background: #fff; border-radius: 7px; font-size: .72rem; font-weight: 700;
+              padding: .12rem .45rem; color: #475569; white-space: nowrap; }
+    .qd-btn:hover { border-color: #0f4c81; color: #0f4c81; }
+    .qd-btn.ok { border-color: #bbf7d0; background: #f0fdf4; color: #15803d; }
+    .qd-btn.ok:hover { background: #15803d; border-color: #15803d; color: #fff; }
+
+    .qd-conversa { margin-top: .55rem; border-top: 1px dashed #e2e8f0; padding-top: .5rem; }
+    .qd-link { font-size: .74rem; font-weight: 700; color: #0f4c81; background: none; border: 0; padding: 0; }
+    .qd-link:hover { text-decoration: underline; }
+    .qd-ultimo { font-size: .76rem; color: #475569; background: #f8fafc; border-radius: 7px; padding: .3rem .5rem; margin-top: .35rem; }
+    .qd-ultimo b { color: #0f172a; }
+    .qd-ultimo .quando { color: #94a3b8; font-size: .7rem; }
+    .qd-msg { font-size: .78rem; color: #334155; padding: .3rem 0; border-bottom: 1px solid #f1f5f9; white-space: pre-wrap; word-break: break-word; }
+    .qd-msg:last-of-type { border-bottom: 0; }
+    .qd-msg .cab { font-size: .7rem; color: #94a3b8; }
+
+    .qd-vazia { text-align: center; color: #cbd5e1; font-size: .82rem; padding: 1.2rem .5rem; }
+    .qd-nova input, .qd-nova select { font-size: .9rem; }
+</style>
+@endpush
+
+@section('content')
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="d-flex flex-wrap align-items-center justify-content-between" style="gap: .75rem">
+            <div>
+                <h4 class="mb-1"><i class="fas fa-clipboard-check text-primary"></i> {{ __('Quadro') }}</h4>
+                <p class="text-muted small mb-0">{{ __('Dê uma coisa a alguém, veja quem pegou nela e o que respondeu.') }}</p>
+            </div>
+            <form method="GET" class="form-inline" style="gap: .5rem">
+                @if($verTudo)<input type="hidden" name="tudo" value="1">@endif
+                <select name="quem" class="form-control form-control-sm" onchange="this.form.submit()">
+                    <option value="">{{ __('Toda a gente') }}</option>
+                    @foreach($pessoas as $p)
+                        <option value="{{ $p->id }}" @selected(request('quem') == $p->id)>{{ $p->name ?: $p->email }}</option>
+                    @endforeach
+                </select>
+                <label class="btn btn-sm {{ $soMinhas ? 'btn-primary' : 'btn-outline-secondary' }} mb-0">
+                    <input type="checkbox" name="minhas" value="1" class="d-none" @checked($soMinhas) onchange="this.form.submit()">
+                    <i class="fa fa-user"></i> {{ __('Só as minhas') }}
+                </label>
+                @unless($soMinhas)<input type="hidden" name="minhas" value="0">@endunless
+            </form>
+        </div>
+    </div>
+</div>
+
+@if($errors->any())
+    <div class="alert alert-danger"><ul class="mb-0">@foreach($errors->all() as $erro)<li>{{ $erro }}</li>@endforeach</ul></div>
+@endif
+
+{{-- Dar uma tarefa: uma linha, nada mais --}}
+<div class="card mb-3">
+    <div class="card-body py-2 qd-nova">
+        <form method="POST" action="{{ route('backoffice.board.store') }}">
+            @csrf
+            <div class="form-row align-items-center">
+                <div class="col-md-6 mb-2 mb-md-0">
+                    <input type="text" name="titulo" class="form-control" maxlength="255" required
+                           value="{{ old('titulo') }}" placeholder="{{ __('O que é para fazer?') }}">
+                </div>
+                <div class="col-md-3 mb-2 mb-md-0">
+                    <select name="assigned_to" class="form-control" required>
+                        <option value="">{{ __('Para quem?') }}</option>
+                        @foreach($pessoas as $p)
+                            <option value="{{ $p->id }}" @selected(old('assigned_to') == $p->id)>{{ $p->name ?: $p->email }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2 mb-2 mb-md-0">
+                    <input type="date" name="prazo" class="form-control" value="{{ old('prazo') }}" title="{{ __('Prazo (opcional)') }}">
+                </div>
+                <div class="col-md-1">
+                    <button class="btn btn-primary btn-block" title="{{ __('Dar a tarefa') }}"><i class="fa fa-plus"></i></button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="qd-colunas">
+    @foreach($estados as $chave => $estado)
+        <section class="qd-coluna" style="--c: {{ $estado['color'] }}; --bg: {{ $estado['bg'] }}">
+            <header>
+                <i class="fas {{ $estado['icon'] }}" style="color: {{ $estado['color'] }}"></i>
+                <span class="nome">{{ __($estado['label']) }}</span>
+                <span class="conta">{{ $colunas[$chave]->count() }}</span>
+            </header>
+
+            @forelse($colunas[$chave] as $t)
+                @php($meu = $t->assigned_to === $eu)
+                <article class="qd-cartao {{ $t->isFeito() ? 'feito' : '' }} {{ $t->atrasada() ? 'atrasada' : '' }}">
+                    <div class="qd-titulo">{{ $t->titulo }}</div>
+                    @if($t->descricao)<div class="qd-desc">{{ $t->descricao }}</div>@endif
+
+                    <div class="qd-rodape">
+                        <span class="qd-quem" title="{{ $t->responsavel->name ?? '' }}">
+                            <span class="qd-bola" style="--c: {{ $t->corDoResponsavel() }}">{{ $t->iniciais() }}</span>
+                            {{ $meu ? __('Eu') : \Illuminate\Support\Str::of($t->responsavel->name ?? '—')->explode(' ')->first() }}
+                        </span>
+
+                        @if($t->prazo && !$t->isFeito())
+                            <span class="qd-prazo {{ $t->atrasada() ? 'atrasado' : ($t->paraHoje() ? 'hoje' : '') }}">
+                                <i class="fa fa-clock"></i>
+                                {{ $t->paraHoje() ? __('hoje') : $t->prazo->format('d/m') }}
+                            </span>
+                        @endif
+
+                        <span class="qd-botoes">
+                            @if($chave !== 'em_curso' && !$t->isFeito())
+                                <form method="POST" action="{{ route('backoffice.board.move', $t->id) }}">
+                                    @csrf<input type="hidden" name="estado" value="em_curso">
+                                    <button class="qd-btn" title="{{ __('Fico eu com isto') }}"><i class="fa fa-play"></i> {{ __('Pegar') }}</button>
+                                </form>
+                            @endif
+                            @unless($t->isFeito())
+                                <form method="POST" action="{{ route('backoffice.board.move', $t->id) }}">
+                                    @csrf<input type="hidden" name="estado" value="feito">
+                                    <button class="qd-btn ok" title="{{ __('Dar por concluída') }}"><i class="fa fa-check"></i></button>
+                                </form>
+                            @else
+                                <form method="POST" action="{{ route('backoffice.board.move', $t->id) }}">
+                                    @csrf<input type="hidden" name="estado" value="por_fazer">
+                                    <button class="qd-btn" title="{{ __('Afinal não está feita') }}"><i class="fa fa-undo"></i></button>
+                                </form>
+                            @endunless
+                        </span>
+                    </div>
+
+                    @if($t->isFeito() && $t->concluido_em)
+                        <div class="qd-ultimo">
+                            <i class="fas fa-check-circle text-success"></i>
+                            {{ __('Feita por :quem', ['quem' => $t->concluidor->name ?? '—']) }}
+                            <span class="quando">· {{ $t->concluido_em->format('d/m H:i') }}</span>
+                        </div>
+                    @endif
+
+                    <div class="qd-conversa">
+                        <button type="button" class="qd-link" data-toggle="collapse" data-target="#qd-fio-{{ $t->id }}">
+                            <i class="fa fa-comment-dots"></i>
+                            {{ $t->comments_count
+                                ? trans_choice(':count resposta|:count respostas', $t->comments_count, ['count' => $t->comments_count])
+                                : __('Responder') }}
+                        </button>
+
+                        <div class="collapse" id="qd-fio-{{ $t->id }}">
+                            @foreach($t->comments as $c)
+                                <div class="qd-msg">
+                                    <div class="cab">{{ $c->user->name ?? '—' }} · {{ $c->created_at->format('d/m H:i') }}</div>
+                                    {{ $c->texto }}
+                                </div>
+                            @endforeach
+                            <form method="POST" action="{{ route('backoffice.board.comment', $t->id) }}" class="mt-2">
+                                @csrf
+                                <div class="input-group input-group-sm">
+                                    <input type="text" name="texto" class="form-control" maxlength="2000" required
+                                           placeholder="{{ __('Escrever uma resposta…') }}">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-outline-primary"><i class="fa fa-paper-plane"></i></button>
+                                    </div>
+                                </div>
+                            </form>
+
+                            <div class="d-flex mt-2" style="gap: .4rem">
+                                <button type="button" class="qd-link" data-toggle="collapse" data-target="#qd-editar-{{ $t->id }}">
+                                    <i class="fa fa-pencil-alt"></i> {{ __('Alterar') }}
+                                </button>
+                                <form method="POST" action="{{ route('backoffice.board.destroy', $t->id) }}" class="ml-auto"
+                                      onsubmit="return confirm({{ \Illuminate\Support\Js::from(__('Apagar esta tarefa e as respostas?')) }})">
+                                    @csrf @method('DELETE')
+                                    <button class="qd-link text-danger"><i class="fa fa-trash"></i> {{ __('Apagar') }}</button>
+                                </form>
+                            </div>
+
+                            <div class="collapse mt-2" id="qd-editar-{{ $t->id }}">
+                                <form method="POST" action="{{ route('backoffice.board.update', $t->id) }}">
+                                    @csrf @method('PUT')
+                                    <input type="text" name="titulo" class="form-control form-control-sm mb-1" maxlength="255" required value="{{ $t->titulo }}">
+                                    <textarea name="descricao" class="form-control form-control-sm mb-1" rows="2"
+                                              placeholder="{{ __('Detalhe (opcional)') }}">{{ $t->descricao }}</textarea>
+                                    <div class="d-flex" style="gap: .35rem">
+                                        <select name="assigned_to" class="form-control form-control-sm" required>
+                                            @foreach($pessoas as $p)
+                                                <option value="{{ $p->id }}" @selected($t->assigned_to == $p->id)>{{ $p->name ?: $p->email }}</option>
+                                            @endforeach
+                                        </select>
+                                        <input type="date" name="prazo" class="form-control form-control-sm" value="{{ optional($t->prazo)->format('Y-m-d') }}">
+                                        <button class="btn btn-sm btn-primary"><i class="fa fa-check"></i></button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            @empty
+                <div class="qd-vazia"><i class="fas {{ $estado['icon'] }}"></i> {{ __('Nada aqui.') }}</div>
+            @endforelse
+
+            @if($chave === 'feito' && $feitasEscondidas)
+                <div class="text-center">
+                    <a href="{{ route('backoffice.board.index', $filtros + ['tudo' => 1]) }}" class="qd-link">
+                        {{ trans_choice('ver mais :count antiga|ver mais :count antigas', $feitasEscondidas, ['count' => $feitasEscondidas]) }}
+                    </a>
+                </div>
+            @endif
+        </section>
+    @endforeach
+</div>
+@endsection
