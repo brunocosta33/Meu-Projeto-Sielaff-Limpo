@@ -74,6 +74,24 @@ class BoardTask extends Model
         return $this->prazo !== null && !$this->isFeito() && $this->prazo->isToday();
     }
 
+    /**
+     * "Bruno C." em vez de "Bruno": a equipa tem dois Brunos e dois Pedros,
+     * e o primeiro nome sozinho não chega para se saber de quem é o cartão.
+     */
+    public static function nomeCurto(?string $nome): string
+    {
+        $nome = trim((string) $nome);
+        if ($nome === '') {
+            return '—';
+        }
+
+        $partes = preg_split('/\s+/', $nome);
+
+        return count($partes) > 1
+            ? $partes[0] . ' ' . mb_strtoupper(mb_substr(end($partes), 0, 1)) . '.'
+            : $partes[0];
+    }
+
     /** Iniciais para a bolinha do cartão. */
     public function iniciais(): string
     {

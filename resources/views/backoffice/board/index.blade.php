@@ -34,9 +34,11 @@
     .qd-desc { font-size: .8rem; color: #64748b; margin-top: .25rem; white-space: pre-wrap; word-break: break-word; }
 
     .qd-rodape { display: flex; align-items: center; gap: .4rem; margin-top: .55rem; }
-    .qd-quem { display: inline-flex; align-items: center; gap: .35rem; font-size: .76rem; color: #475569; }
-    .qd-bola { width: 22px; height: 22px; border-radius: 50%; background: var(--c); color: #fff; font-size: .64rem;
-               font-weight: 800; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 22px; }
+    .qd-quem { display: inline-flex; align-items: center; gap: .4rem; font-size: .85rem; font-weight: 700;
+               color: var(--dono, #475569); letter-spacing: -.01em; }
+    .qd-bola { width: 26px; height: 26px; border-radius: 50%; background: var(--c); color: #fff; font-size: .68rem;
+               font-weight: 800; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 26px;
+               box-shadow: 0 1px 3px rgba(15, 23, 42, .2); }
     .qd-prazo { font-size: .72rem; font-weight: 700; padding: .05rem .4rem; border-radius: 5px;
                 background: #f1f5f9; color: #64748b; white-space: nowrap; }
     .qd-prazo.atrasado { background: #fee2e2; color: #b91c1c; }
@@ -167,7 +169,7 @@
                             <span class="qd-bola" style="--c: {{ $cores[$p->id] ?? '#94a3b8' }}">
                                 {{ \Illuminate\Support\Str::of($p->name ?: '?')->explode(' ')->map(fn ($x) => mb_substr($x, 0, 1))->take(2)->implode('') }}
                             </span>
-                            {{ $p->id === $eu ? __('Eu') : \Illuminate\Support\Str::of($p->name ?: $p->email)->explode(' ')->first() }}
+                            {{ $p->id === $eu ? __('Eu') : \App\Models\BoardTask::nomeCurto($p->name ?: $p->email) }}
                             <span class="n">{{ $n }}</span>
                         </a>
                     @endforeach
@@ -233,7 +235,7 @@
                         <button type="button" class="qd-quem trocar" data-toggle="collapse" data-target="#qd-passar-{{ $t->id }}"
                                 title="{{ __('Passar a outra pessoa') }}">
                             <span class="qd-bola" style="--c: {{ $cores[$t->assigned_to] ?? '#94a3b8' }}">{{ $t->iniciais() }}</span>
-                            {{ $meu ? __('Eu') : \Illuminate\Support\Str::of($t->responsavel->name ?? '—')->explode(' ')->first() }}
+                            {{ $meu ? __('Eu') : \App\Models\BoardTask::nomeCurto($t->responsavel->name ?? null) }}
                             <i class="fa fa-exchange-alt seta"></i>
                         </button>
 
@@ -303,7 +305,7 @@
                         @php($ultima = $t->comments->last())
                         @if($ultima)
                             <div class="qd-ultimo">
-                                <b>{{ \Illuminate\Support\Str::of($ultima->user->name ?? '—')->explode(' ')->first() }}:</b>
+                                <b>{{ \App\Models\BoardTask::nomeCurto($ultima->user->name ?? null) }}:</b>
                                 {{ \Illuminate\Support\Str::limit($ultima->texto, 90) }}
                                 <span class="quando">· {{ $ultima->created_at->format('d/m H:i') }}</span>
                             </div>
