@@ -62,6 +62,10 @@
     .qd-balao .cab .quando { font-weight: 400; color: #94a3b8; margin-left: auto; white-space: nowrap; }
     .qd-balao .texto { font-size: .79rem; color: #1e293b; white-space: pre-wrap; word-break: break-word; line-height: 1.4; }
 
+    .qd-passagem { display: flex; align-items: center; gap: .35rem; font-size: .72rem; color: #64748b;
+                   background: #f8fafc; border-radius: 6px; padding: .2rem .45rem; margin-bottom: .45rem; }
+    .qd-passagem .quando { margin-left: auto; color: #cbd5e1; white-space: nowrap; }
+
     .qd-escrever textarea { font-size: .8rem; resize: vertical; min-height: 44px; }
     .qd-escrever .ajuda { font-size: .68rem; color: #94a3b8; }
 
@@ -272,6 +276,14 @@
                             @if($t->comments->isNotEmpty())
                                 <div class="qd-fio" data-fio>
                                     @foreach($t->comments as $c)
+                                        @if($c->isPassagem())
+                                            <div class="qd-passagem">
+                                                <i class="fa fa-exchange-alt"></i>
+                                                {{ $c->texto }}
+                                                <span class="quando">{{ $c->created_at->format('d/m H:i') }}</span>
+                                            </div>
+                                            @continue
+                                        @endif
                                         <div class="qd-msg {{ $c->user_id === $eu ? 'meu' : '' }}">
                                             <span class="qd-bola" style="--c: {{ $c->user_id ? ['#0f4c81','#b91c1c','#15803d','#6d28d9','#b45309','#0e7490','#be185d','#4d7c0f'][$c->user_id % 8] : '#94a3b8' }}">
                                                 {{ \Illuminate\Support\Str::of($c->user->name ?? '?')->explode(' ')->map(fn ($p) => mb_substr($p, 0, 1))->take(2)->implode('') }}

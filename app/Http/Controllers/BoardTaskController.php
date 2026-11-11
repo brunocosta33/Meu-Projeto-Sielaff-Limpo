@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BoardTask;
 use App\Models\HrStaff;
 use App\Models\User;
+use App\Services\HrAccess;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -24,7 +25,8 @@ class BoardTaskController extends Controller
         $eu = auth()->id();
         $sofilter = $request->boolean('minhas');
 
-        $base = BoardTask::with(['responsavel', 'creator', 'concluidor', 'comments.user'])
+        $base = $this->apenasVisiveis(BoardTask::query())
+            ->with(['responsavel', 'creator', 'concluidor', 'comments.user'])
             ->withCount('comments')
             ->when($sofilter, fn ($q) => $q->where('assigned_to', $eu))
             ->when($request->filled('quem'), fn ($q) => $q->where('assigned_to', $request->quem));
@@ -50,10 +52,10 @@ class BoardTaskController extends Controller
             'estados' => BoardTask::ESTADOS,
             'pessoas' => $this->pessoas(),
             'equipa' => $this->equipa(),
-            'porPessoa' => BoardTask::where('estado', '!=', 'feito')
+            'porPessoa' => $this->apenasVisiveis(BoardTask::where('estado', '!=', 'feito'))
                 ->selectRaw('assigned_to, COUNT(*) as total')
                 ->groupBy('assigned_to')->pluck('total', 'assigned_to'),
-            'totalAbertas' => BoardTask::where('estado', '!=', 'feito')->count(),
+            'totalAbertas' => $this->apenasVisiveis(BoardTask::where('estado', '!=', 'feito'))->count(),
             'soMinhas' => $sofilter,
             'verTudo' => $request->boolean('tudo'),
             'feitasEscondidas' => $request->boolean('tudo')
@@ -86,7 +88,7 @@ class BoardTaskController extends Controller
     public function update(Request $request, $id)
     {
         $this->guard();
-        $tarefa = BoardTask::findOrFail($id);
+        $tarefa = $this->tarefa($id);
 
         $tarefa->update($request->validate([
             'titulo' => ['required', 'string', 'max:255'],
@@ -106,7 +108,7 @@ class BoardTaskController extends Controller
     public function move(Request $request, $id)
     {
         $this->guard();
-        $tarefa = BoardTask::findOrFail($id);
+        $tarefa = $this->tarefa($id);
 
         $estado = $request->validate([
             'estado' => ['required', Rule::in(array_keys(BoardTask::ESTADOS))],
@@ -148,7 +150,7 @@ class BoardTaskController extends Controller
     public function reassign(Request $request, $id)
     {
         $this->guard();
-        $tarefa = BoardTask::findOrFail($id);
+        $tarefa = $this->tarefa($id);
 
         $novo = User::findOrFail($request->validate(
             ['assigned_to' => $this->regraPessoa()],
@@ -175,6 +177,7 @@ class BoardTaskController extends Controller
 
         $tarefa->comments()->create([
             'user_id' => auth()->id(),
+            'tipo' => 'passagem',
             'texto' => __('Passou de :antigo para :novo.', ['antigo' => $antigo, 'novo' => $novo->name]),
         ]);
 
@@ -186,7 +189,7 @@ class BoardTaskController extends Controller
     public function comment(Request $request, $id)
     {
         $this->guard();
-        $tarefa = BoardTask::findOrFail($id);
+        $tarefa = $this->tarefa($id);
 
         $texto = $request->validate(
             ['texto' => ['required', 'string', 'max:5000']],
@@ -205,7 +208,7 @@ class BoardTaskController extends Controller
     {
         $this->guard();
 
-        BoardTask::findOrFail($id)->delete();
+        $this->tarefa($id)->delete();
         flash(__('Tarefa apagada.'))->success();
 
         return back();
@@ -231,6 +234,35 @@ class BoardTaskController extends Controller
     private function guard(): void
     {
         abort_if(auth()->user()->hasRole('user'), 403, __('O Quadro não é da sua área.'));
+    }
+
+    /**
+     * A Hotline só vê os tickets da Hotline — mais os que deu ou passou a outra pessoa,
+     * para não perder de vista o que entregou. O resto do escritório vê tudo.
+     */
+    private function apenasVisiveis($query)
+    {
+        if (HrAccess::staffOf(auth()->user())?->funcao !== 'hotliner') {
+            return $query;
+        }
+
+        $eu = auth()->id();
+        $hotline = HrStaff::where('ativo', true)->where('funcao', 'hotliner')->pluck('user_id');
+
+        return $query->where(fn ($q) => $q
+            ->whereIn('assigned_to', $hotline)
+            ->orWhere('created_by', $eu)
+            ->orWhereHas('comments', fn ($c) => $c->where('tipo', 'passagem')->where('user_id', $eu)));
+    }
+
+    /** A tarefa existe e quem está a ver pode mesmo vê-la. */
+    private function tarefa($id): BoardTask
+    {
+        $tarefa = $this->apenasVisiveis(BoardTask::query())->find($id);
+
+        abort_unless($tarefa, 404);
+
+        return $tarefa;
     }
 
     /** A quem se podem dar tarefas: o escritório, sem os técnicos. */
