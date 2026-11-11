@@ -79,6 +79,7 @@ return [
 
     'expense_payment_methods' => [
         'transferencia' => 'Transferência',
+        'mbway' => 'MB WAY',
         'numerario' => 'Numerário',
         'vencimento' => 'Com o vencimento',
         'cartao' => 'Cartão da empresa',
