@@ -17,7 +17,7 @@ use App\Models\Base;
     <ul class="list-unstyled components" id="menu-left">
 
         @php($isTechnician = Auth::user()->hasRole('user'))
-        @php($quadroPorFazer = \App\Models\BoardTask::where('assigned_to', Auth::id())->where('estado', '!=', 'feito')->count())
+        @php($quadroPorFazer = $isTechnician ? 0 : \App\Models\BoardTask::where('assigned_to', Auth::id())->where('estado', '!=', 'feito')->count())
 
         @if($isTechnician)
         <li>
@@ -30,13 +30,6 @@ use App\Models\Base;
             <a href="{{ route('backoffice.task_schedules.minhas') }}">
                 <i class="fas fa-tasks me-2"></i>
                 <span class="hidden-sm-down">{{ __('Minhas Tarefas') }}</span>
-            </a>
-        </li>
-        <li>
-            <a href="{{ route('backoffice.board.index') }}">
-                <i class="fas fa-clipboard-check me-2"></i>
-                <span class="hidden-sm-down">{{ __('Quadro') }}</span>
-                @if($quadroPorFazer)<span class="badge badge-pill badge-danger ml-1">{{ $quadroPorFazer }}</span>@endif
             </a>
         </li>
         <li>

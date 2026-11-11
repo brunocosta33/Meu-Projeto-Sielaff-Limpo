@@ -10,8 +10,8 @@ use Illuminate\Validation\Rule;
 
 /**
  * Quadro: dar uma coisa a alguém para fazer, ver quem pegou nela, responder e dar por feita.
- * Toda a gente vê o quadro todo — é a graça de ser um quadro. Os técnicos entram,
- * senão não havia a quem dar tarefas; só não mexem nas dos outros.
+ * É do escritório — Coordenador, Country Manager, Administrativa e Hotline. Os técnicos
+ * não entram nisto nem aparecem na lista de quem recebe tarefas.
  */
 class BoardTaskController extends Controller
 {
@@ -20,13 +20,9 @@ class BoardTaskController extends Controller
 
     public function index(Request $request)
     {
+        $this->guard();
         $eu = auth()->id();
-        $tecnico = auth()->user()->hasRole('user');
-
-        // Os técnicos abrem no "só as minhas"; os outros veem tudo
-        $sofilter = $request->has('minhas')
-            ? $request->boolean('minhas')
-            : $tecnico;
+        $sofilter = $request->boolean('minhas');
 
         $base = BoardTask::with(['responsavel', 'creator', 'concluidor', 'comments.user'])
             ->withCount('comments')
@@ -69,14 +65,15 @@ class BoardTaskController extends Controller
 
     public function store(Request $request)
     {
+        $this->guard();
+
         $data = $request->validate([
             'titulo' => ['required', 'string', 'max:255'],
-            'assigned_to' => ['required', 'exists:users,id'],
+            'assigned_to' => $this->regraPessoa(),
             'prazo' => ['nullable', 'date'],
             'descricao' => ['nullable', 'string', 'max:5000'],
-        ], [
+        ], $this->mensagensPessoa() + [
             'titulo.required' => __('Escreva o que é para fazer.'),
-            'assigned_to.required' => __('Escolha para quem é.'),
         ]);
 
         $tarefa = BoardTask::create($data + ['estado' => 'por_fazer', 'created_by' => auth()->id()]);
@@ -88,17 +85,16 @@ class BoardTaskController extends Controller
 
     public function update(Request $request, $id)
     {
+        $this->guard();
         $tarefa = BoardTask::findOrFail($id);
-        $this->podeMexer($tarefa);
 
         $tarefa->update($request->validate([
             'titulo' => ['required', 'string', 'max:255'],
-            'assigned_to' => ['required', 'exists:users,id'],
+            'assigned_to' => $this->regraPessoa(),
             'prazo' => ['nullable', 'date'],
             'descricao' => ['nullable', 'string', 'max:5000'],
-        ], [
+        ], $this->mensagensPessoa() + [
             'titulo.required' => __('Escreva o que é para fazer.'),
-            'assigned_to.required' => __('Escolha para quem é.'),
         ]));
 
         flash(__('Tarefa alterada.'))->success();
@@ -109,8 +105,8 @@ class BoardTaskController extends Controller
     /** Mudar de coluna: pegar nela, dar por feita, ou voltar atrás. */
     public function move(Request $request, $id)
     {
+        $this->guard();
         $tarefa = BoardTask::findOrFail($id);
-        $this->podeMexer($tarefa);
 
         $estado = $request->validate([
             'estado' => ['required', Rule::in(array_keys(BoardTask::ESTADOS))],
@@ -151,12 +147,13 @@ class BoardTaskController extends Controller
     /** Passar o ticket a outra pessoa, com nota no fio para não se perder o rasto. */
     public function reassign(Request $request, $id)
     {
+        $this->guard();
         $tarefa = BoardTask::findOrFail($id);
-        $this->podeMexer($tarefa);
 
-        $novo = User::findOrFail($request->validate([
-            'assigned_to' => ['required', 'exists:users,id'],
-        ], ['assigned_to.required' => __('Escolha para quem passa.')])['assigned_to']);
+        $novo = User::findOrFail($request->validate(
+            ['assigned_to' => $this->regraPessoa()],
+            $this->mensagensPessoa(__('Escolha para quem passa.'))
+        )['assigned_to']);
 
         if ($novo->id === $tarefa->assigned_to) {
             flash(__('A tarefa já era de :quem.', ['quem' => $novo->name]))->warning();
@@ -188,6 +185,7 @@ class BoardTaskController extends Controller
 
     public function comment(Request $request, $id)
     {
+        $this->guard();
         $tarefa = BoardTask::findOrFail($id);
 
         $texto = $request->validate(
@@ -205,10 +203,9 @@ class BoardTaskController extends Controller
 
     public function destroy($id)
     {
-        $tarefa = BoardTask::findOrFail($id);
-        $this->podeMexer($tarefa, true);
+        $this->guard();
 
-        $tarefa->delete();
+        BoardTask::findOrFail($id)->delete();
         flash(__('Tarefa apagada.'))->success();
 
         return back();
@@ -216,26 +213,33 @@ class BoardTaskController extends Controller
 
     // ----------------------------------------------------------------------
 
-    /**
-     * Mexer numa tarefa: quem a tem, quem a deu, ou quem não é técnico
-     * (para o coordenador poder arrumar o quadro).
-     */
-    private function podeMexer(BoardTask $tarefa, bool $apagar = false): void
+    /** Só se dão tarefas a quem entra no Quadro — nunca a um técnico, nem por pedido forjado. */
+    private function regraPessoa(): array
     {
-        $eu = auth()->id();
-        $tecnico = auth()->user()->hasRole('user');
-
-        $pode = !$tecnico
-            || $tarefa->created_by === $eu
-            || (!$apagar && $tarefa->assigned_to === $eu);
-
-        abort_unless($pode, 403, __('Esta tarefa não é sua.'));
+        return ['required', Rule::in($this->pessoas()->pluck('id')->all())];
     }
 
-    /** A quem se podem dar tarefas: toda a gente que entra no backoffice. */
+    private function mensagensPessoa(?string $obrigatorio = null): array
+    {
+        return [
+            'assigned_to.required' => $obrigatorio ?? __('Escolha para quem é.'),
+            'assigned_to.in' => __('Essa pessoa não entra no Quadro.'),
+        ];
+    }
+
+    /** O Quadro é do escritório; os técnicos não entram. */
+    private function guard(): void
+    {
+        abort_if(auth()->user()->hasRole('user'), 403, __('O Quadro não é da sua área.'));
+    }
+
+    /** A quem se podem dar tarefas: o escritório, sem os técnicos. */
     private function pessoas()
     {
-        return User::where('is_active', true)->orderBy('name')->get(['id', 'name', 'email']);
+        return User::where('is_active', true)
+            ->whereDoesntHave('role', fn ($q) => $q->where('name', 'user'))
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
     }
 
     /**
@@ -244,7 +248,7 @@ class BoardTaskController extends Controller
      */
     private function equipa()
     {
-        $ordem = ['coordenador', 'country_manager', 'administrativa', 'hotliner', 'tecnico'];
+        $ordem = ['coordenador', 'country_manager', 'administrativa', 'hotliner'];
         $funcoes = HrStaff::where('ativo', true)->pluck('funcao', 'user_id');
 
         return $this->pessoas()
