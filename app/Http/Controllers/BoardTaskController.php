@@ -27,7 +27,7 @@ class BoardTaskController extends Controller
             ? $request->boolean('minhas')
             : $tecnico;
 
-        $base = BoardTask::with(['responsavel', 'creator', 'concluidor'])
+        $base = BoardTask::with(['responsavel', 'creator', 'concluidor', 'comments.user'])
             ->withCount('comments')
             ->when($sofilter, fn ($q) => $q->where('assigned_to', $eu))
             ->when($request->filled('quem'), fn ($q) => $q->where('assigned_to', $request->quem));
@@ -147,7 +147,7 @@ class BoardTaskController extends Controller
         $tarefa = BoardTask::findOrFail($id);
 
         $texto = $request->validate(
-            ['texto' => ['required', 'string', 'max:2000']],
+            ['texto' => ['required', 'string', 'max:5000']],
             ['texto.required' => __('Escreva a resposta.')]
         )['texto'];
 

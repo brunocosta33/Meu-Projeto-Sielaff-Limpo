@@ -49,9 +49,21 @@
     .qd-ultimo { font-size: .76rem; color: #475569; background: #f8fafc; border-radius: 7px; padding: .3rem .5rem; margin-top: .35rem; }
     .qd-ultimo b { color: #0f172a; }
     .qd-ultimo .quando { color: #94a3b8; font-size: .7rem; }
-    .qd-msg { font-size: .78rem; color: #334155; padding: .3rem 0; border-bottom: 1px solid #f1f5f9; white-space: pre-wrap; word-break: break-word; }
-    .qd-msg:last-of-type { border-bottom: 0; }
-    .qd-msg .cab { font-size: .7rem; color: #94a3b8; }
+    /* O fio cresce com a conversa: rola por dentro para o cartão não ficar infinito */
+    .qd-fio { max-height: 260px; overflow-y: auto; margin: .4rem 0 .5rem; padding-right: .2rem; }
+    .qd-fio::-webkit-scrollbar { width: 6px; }
+    .qd-fio::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+    .qd-msg { display: flex; gap: .4rem; margin-bottom: .45rem; }
+    .qd-msg .qd-bola { width: 20px; height: 20px; flex: 0 0 20px; font-size: .6rem; margin-top: .1rem; }
+    .qd-balao { background: #f1f5f9; border-radius: 3px 10px 10px 10px; padding: .3rem .55rem; min-width: 0; flex: 1; }
+    .qd-msg.meu .qd-balao { background: #e0f2fe; }
+    .qd-balao .cab { font-size: .68rem; color: #64748b; font-weight: 700; display: flex; gap: .35rem; }
+    .qd-balao .cab .quando { font-weight: 400; color: #94a3b8; margin-left: auto; white-space: nowrap; }
+    .qd-balao .texto { font-size: .79rem; color: #1e293b; white-space: pre-wrap; word-break: break-word; line-height: 1.4; }
+
+    .qd-escrever textarea { font-size: .8rem; resize: vertical; min-height: 44px; }
+    .qd-escrever .ajuda { font-size: .68rem; color: #94a3b8; }
 
     .qd-vazia { text-align: center; color: #cbd5e1; font-size: .82rem; padding: 1.2rem .5rem; }
     .qd-nova input, .qd-nova select { font-size: .9rem; }
@@ -182,21 +194,44 @@
                                 : __('Responder') }}
                         </button>
 
+                        @php($ultima = $t->comments->last())
+                        @if($ultima)
+                            <div class="qd-ultimo">
+                                <b>{{ \Illuminate\Support\Str::of($ultima->user->name ?? '—')->explode(' ')->first() }}:</b>
+                                {{ \Illuminate\Support\Str::limit($ultima->texto, 90) }}
+                                <span class="quando">· {{ $ultima->created_at->format('d/m H:i') }}</span>
+                            </div>
+                        @endif
+
                         <div class="collapse" id="qd-fio-{{ $t->id }}">
-                            @foreach($t->comments as $c)
-                                <div class="qd-msg">
-                                    <div class="cab">{{ $c->user->name ?? '—' }} · {{ $c->created_at->format('d/m H:i') }}</div>
-                                    {{ $c->texto }}
+                            @if($t->comments->isNotEmpty())
+                                <div class="qd-fio" data-fio>
+                                    @foreach($t->comments as $c)
+                                        <div class="qd-msg {{ $c->user_id === $eu ? 'meu' : '' }}">
+                                            <span class="qd-bola" style="--c: {{ $c->user_id ? ['#0f4c81','#b91c1c','#15803d','#6d28d9','#b45309','#0e7490','#be185d','#4d7c0f'][$c->user_id % 8] : '#94a3b8' }}">
+                                                {{ \Illuminate\Support\Str::of($c->user->name ?? '?')->explode(' ')->map(fn ($p) => mb_substr($p, 0, 1))->take(2)->implode('') }}
+                                            </span>
+                                            <div class="qd-balao">
+                                                <div class="cab">
+                                                    <span>{{ $c->user_id === $eu ? __('Eu') : ($c->user->name ?? '—') }}</span>
+                                                    <span class="quando">{{ $c->created_at->format('d/m H:i') }}</span>
+                                                </div>
+                                                <div class="texto">{{ $c->texto }}</div>
+                                            </div>
+                                        </div>
+                                    @endforeach
                                 </div>
-                            @endforeach
-                            <form method="POST" action="{{ route('backoffice.board.comment', $t->id) }}" class="mt-2">
+                            @endif
+
+                            <form method="POST" action="{{ route('backoffice.board.comment', $t->id) }}" class="qd-escrever">
                                 @csrf
-                                <div class="input-group input-group-sm">
-                                    <input type="text" name="texto" class="form-control" maxlength="2000" required
-                                           placeholder="{{ __('Escrever uma resposta…') }}">
-                                    <div class="input-group-append">
-                                        <button class="btn btn-outline-primary"><i class="fa fa-paper-plane"></i></button>
-                                    </div>
+                                <textarea name="texto" class="form-control form-control-sm" rows="2" maxlength="5000" required
+                                          placeholder="{{ __('Escrever uma resposta…') }}"></textarea>
+                                <div class="d-flex align-items-center mt-1" style="gap: .5rem">
+                                    <span class="ajuda">{{ __('Enter muda de linha · Ctrl+Enter envia') }}</span>
+                                    <button class="btn btn-sm btn-outline-primary ml-auto">
+                                        <i class="fa fa-paper-plane"></i> {{ __('Responder') }}
+                                    </button>
                                 </div>
                             </form>
 
@@ -246,3 +281,37 @@
     @endforeach
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Ao abrir um fio, mostrar o fim: numa conversa comprida o que interessa e a ultima resposta
+        document.querySelectorAll('[id^="qd-fio-"]').forEach(function (fio) {
+            if (window.jQuery) {
+                $(fio).on('shown.bs.collapse', function () {
+                    var lista = fio.querySelector('[data-fio]');
+                    if (lista) lista.scrollTop = lista.scrollHeight;
+                    var caixa = fio.querySelector('textarea[name="texto"]');
+                    if (caixa) caixa.focus();
+                });
+            }
+        });
+
+        document.querySelectorAll('.qd-escrever textarea').forEach(function (caixa) {
+            // Cresce com o que se escreve, ate um limite
+            caixa.addEventListener('input', function () {
+                caixa.style.height = 'auto';
+                caixa.style.height = Math.min(caixa.scrollHeight, 200) + 'px';
+            });
+
+            // Enter muda de linha; Ctrl/Cmd+Enter envia
+            caixa.addEventListener('keydown', function (ev) {
+                if (ev.key === 'Enter' && (ev.ctrlKey || ev.metaKey)) {
+                    ev.preventDefault();
+                    if (caixa.form.requestSubmit) { caixa.form.requestSubmit(); } else { caixa.form.submit(); }
+                }
+            });
+        });
+    });
+</script>
+@endpush
