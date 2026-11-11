@@ -35,7 +35,8 @@
 
     .qd-rodape { display: flex; align-items: center; gap: .4rem; margin-top: .55rem; }
     .qd-quem { display: inline-flex; align-items: center; gap: .4rem; font-size: .85rem; font-weight: 700;
-               color: var(--dono, #475569); letter-spacing: -.01em; }
+               color: var(--dono, #475569); letter-spacing: -.01em; min-width: 0; }
+    .qd-quem .nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .qd-bola { width: 26px; height: 26px; border-radius: 50%; background: var(--c); color: #fff; font-size: .68rem;
                font-weight: 800; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 26px;
                box-shadow: 0 1px 3px rgba(15, 23, 42, .2); }
@@ -82,10 +83,7 @@
     .qd-escrever .ajuda { font-size: .68rem; color: #94a3b8; }
 
     /* A equipa em cima: quem é quem e quanto tem em mãos */
-    .qd-equipa { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem 1.1rem; }
-    .qd-grupo { display: flex; align-items: center; gap: .35rem; }
-    .qd-grupo > .rotulo { font-size: .64rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em;
-                          color: #94a3b8; white-space: nowrap; }
+    .qd-equipa { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .45rem; }
     .qd-chip { display: inline-flex; align-items: center; gap: .35rem; border: 1px solid #e2e8f0; background: #fff;
                border-radius: 999px; padding: .15rem .55rem .15rem .15rem; font-size: .78rem; color: #334155;
                text-decoration: none !important; white-space: nowrap; }
@@ -157,23 +155,19 @@
                 </a>
             @endif
 
-            @foreach($equipa as $funcao => $gente)
-                <div class="qd-grupo">
-                    <span class="rotulo">{{ __(config('hr.functions.' . $funcao, 'Outros')) }}</span>
-                    @foreach($gente as $p)
-                        @php($n = (int) ($porPessoa[$p->id] ?? 0))
-                        <a href="{{ route('backoffice.board.index', collect($filtros)->merge(['quem' => $p->id, 'minhas' => 0])->all()) }}"
-                           class="qd-chip {{ request('quem') == $p->id ? 'on' : '' }} {{ $n ? '' : 'zero' }}"
-                           style="--dono: {{ $cores[$p->id] ?? '#94a3b8' }}"
-                           title="{{ $p->name ?: $p->email }}">
-                            <span class="qd-bola" style="--c: {{ $cores[$p->id] ?? '#94a3b8' }}">
-                                {{ \Illuminate\Support\Str::of($p->name ?: '?')->explode(' ')->map(fn ($x) => mb_substr($x, 0, 1))->take(2)->implode('') }}
-                            </span>
-                            {{ $p->id === $eu ? __('Eu') : \App\Models\BoardTask::nomeCurto($p->name ?: $p->email) }}
-                            <span class="n">{{ $n }}</span>
-                        </a>
-                    @endforeach
-                </div>
+            {{-- Sem os nomes das funções: a ordem já é essa (escritório primeiro, Hotline depois) --}}
+            @foreach($equipa->flatten(1) as $p)
+                @php($n = (int) ($porPessoa[$p->id] ?? 0))
+                <a href="{{ route('backoffice.board.index', collect($filtros)->merge(['quem' => $p->id, 'minhas' => 0])->all()) }}"
+                   class="qd-chip {{ request('quem') == $p->id ? 'on' : '' }} {{ $n ? '' : 'zero' }}"
+                   style="--dono: {{ $cores[$p->id] ?? '#94a3b8' }}"
+                   title="{{ $p->name ?: $p->email }}">
+                    <span class="qd-bola" style="--c: {{ $cores[$p->id] ?? '#94a3b8' }}">
+                        {{ \Illuminate\Support\Str::of($p->name ?: '?')->explode(' ')->map(fn ($x) => mb_substr($x, 0, 1))->take(2)->implode('') }}
+                    </span>
+                    {{ $p->id === $eu ? __('Eu') : ($p->name ?: $p->email) }}
+                    <span class="n">{{ $n }}</span>
+                </a>
             @endforeach
         </div>
     </div>
@@ -235,7 +229,7 @@
                         <button type="button" class="qd-quem trocar" data-toggle="collapse" data-target="#qd-passar-{{ $t->id }}"
                                 title="{{ __('Passar a outra pessoa') }}">
                             <span class="qd-bola" style="--c: {{ $cores[$t->assigned_to] ?? '#94a3b8' }}">{{ $t->iniciais() }}</span>
-                            {{ $meu ? __('Eu') : \App\Models\BoardTask::nomeCurto($t->responsavel->name ?? null) }}
+                            <span class="nome">{{ $meu ? __('Eu') : ($t->responsavel->name ?? '—') }}</span>
                             <i class="fa fa-exchange-alt seta"></i>
                         </button>
 
