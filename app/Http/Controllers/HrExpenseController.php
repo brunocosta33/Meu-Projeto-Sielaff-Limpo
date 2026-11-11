@@ -254,6 +254,10 @@ class HrExpenseController extends Controller
             ->when(!$manager, fn ($q) => $q->where('hr_staff_id', $ownStaffId ?? 0))
             ->when($request->filled('colaborador'), fn ($q) => $q->where('hr_staff_id', $request->colaborador))
             ->when($request->filled('categoria'), fn ($q) => $q->where('categoria', $request->categoria))
+            // 'por_pagar' aqui quer dizer o mesmo que no cartao la de cima: aprovada e ainda nao paga
+            ->when($request->filled('pagamento'), fn ($q) => $request->pagamento === 'pagas'
+                ? $q->whereNotNull('pago_em')
+                : $q->toPay())
             ->when($request->filled('de'), fn ($q) => $q->whereDate('data', '>=', $request->de))
             ->when($request->filled('ate'), fn ($q) => $q->whereDate('data', '<=', $request->ate));
     }

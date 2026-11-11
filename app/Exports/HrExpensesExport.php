@@ -33,6 +33,7 @@ class HrExpensesExport implements FromCollection, WithHeadings, WithStyles
                 $e->decider->name ?? '',
                 $date($e->decided_at),
                 $e->motivo_rejeicao,
+                $e->isPaid() ? __('Sim') : __('Não'),
                 $date($e->pago_em),
                 $e->paymentLabel(),
                 $e->payer->name ?? '',
@@ -45,7 +46,7 @@ class HrExpensesExport implements FromCollection, WithHeadings, WithStyles
         return [
             __('Nº'), __('Data'), __('Colaborador'), __('Categoria'), __('Descrição'), __('Valor'), __('Estado'),
             __('Decidida por'), __('Decidida em'), __('Motivo da rejeição'),
-            __('Paga em'), __('Forma de pagamento'), __('Paga por'), __('Comprovativos'),
+            __('Já paga'), __('Paga em'), __('Forma de pagamento'), __('Paga por'), __('Comprovativos'),
         ];
     }
 
