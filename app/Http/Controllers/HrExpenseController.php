@@ -34,6 +34,7 @@ class HrExpenseController extends Controller
         // Os totais ignoram o filtro do estado, para se poder saltar entre eles
         $counts = (clone $base)->toBase()->selectRaw('estado, COUNT(*) as total, SUM(valor) as soma')->groupBy('estado')->get()->keyBy('estado');
         $porPagar = (clone $base)->toPay();
+        $pagas = (clone $base)->whereNotNull('pago_em');
 
         $expenses = $this->withStateFilter(clone $base, $request)
             ->with(['staff.user', 'files', 'decider', 'payer'])
@@ -47,6 +48,8 @@ class HrExpenseController extends Controller
             'counts' => $counts,
             'totalPorPagar' => (clone $porPagar)->sum('valor'),
             'numPorPagar' => (clone $porPagar)->count(),
+            'totalPagas' => (clone $pagas)->sum('valor'),
+            'numPagas' => (clone $pagas)->count(),
             'states' => HrExpense::STATES,
             'categories' => config('hr.expense_categories'),
             'paymentMethods' => config('hr.expense_payment_methods'),
@@ -254,20 +257,20 @@ class HrExpenseController extends Controller
             ->when(!$manager, fn ($q) => $q->where('hr_staff_id', $ownStaffId ?? 0))
             ->when($request->filled('colaborador'), fn ($q) => $q->where('hr_staff_id', $request->colaborador))
             ->when($request->filled('categoria'), fn ($q) => $q->where('categoria', $request->categoria))
-            // 'por_pagar' aqui quer dizer o mesmo que no cartao la de cima: aprovada e ainda nao paga
-            ->when($request->filled('pagamento'), fn ($q) => $request->pagamento === 'pagas'
-                ? $q->whereNotNull('pago_em')
-                : $q->toPay())
             ->when($request->filled('de'), fn ($q) => $q->whereDate('data', '>=', $request->de))
             ->when($request->filled('ate'), fn ($q) => $q->whereDate('data', '<=', $request->ate));
     }
 
-    /** 'por_pagar' não é um estado: são as aprovadas que ainda não foram pagas. */
+    /** 'por_pagar' e 'pagas' não são estados: olham ao pagamento, não à decisão. */
     private function withStateFilter($query, Request $request)
     {
-        return $query->when($request->filled('estado'), fn ($q) => $request->estado === 'por_pagar'
-            ? $q->where('estado', 'aprovada')->whereNull('pago_em')
-            : $q->where('estado', $request->estado));
+        return $query->when($request->filled('estado'), function ($q) use ($request) {
+            return match ($request->estado) {
+                'por_pagar' => $q->toPay(),
+                'pagas' => $q->whereNotNull('pago_em'),
+                default => $q->where('estado', $request->estado),
+            };
+        });
     }
 
     /** A despesa existe e quem está a ver pode mexer-lhe (o próprio ou a gestão de RH). */

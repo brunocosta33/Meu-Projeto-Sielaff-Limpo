@@ -5,7 +5,7 @@
 @endsection
 
 @php(\Carbon\Carbon::setLocale(app()->getLocale()))
-@php($filtros = request()->only(['colaborador', 'categoria', 'pagamento', 'de', 'ate']))
+@php($filtros = request()->only(['colaborador', 'categoria', 'de', 'ate']))
 @php($euros = fn ($v) => number_format((float) $v, 2, ',', ' ') . ' €')
 
 @push('styles')
@@ -77,15 +77,10 @@
                             <option value="{{ $valor }}" @selected(request('categoria') === $valor)>{{ __($label) }}</option>
                         @endforeach
                     </select>
-                    <select name="pagamento" class="form-control form-control-sm" onchange="this.form.submit()">
-                        <option value="">{{ __('Pagas e por pagar') }}</option>
-                        <option value="pagas" @selected(request('pagamento') === 'pagas')>{{ __('Só as já pagas') }}</option>
-                        <option value="por_pagar" @selected(request('pagamento') === 'por_pagar')>{{ __('Só as que faltam pagar') }}</option>
-                    </select>
                     <input type="date" name="de" class="form-control form-control-sm" value="{{ request('de') }}" title="{{ __('De') }}" onchange="this.form.submit()">
                     <input type="date" name="ate" class="form-control form-control-sm" value="{{ request('ate') }}" title="{{ __('Até') }}" onchange="this.form.submit()">
                 </form>
-                <a href="{{ route('backoffice.hr.expenses.export', request()->only(['colaborador', 'categoria', 'pagamento', 'de', 'ate', 'estado'])) }}"
+                <a href="{{ route('backoffice.hr.expenses.export', request()->only(['colaborador', 'categoria', 'de', 'ate', 'estado'])) }}"
                    class="btn btn-outline-success btn-sm"><i class="fa fa-file-excel"></i> {{ __('Exportar Excel') }}</a>
                 <button type="button" class="btn btn-success btn-sm" data-toggle="collapse" data-target="#ex-nova">
                     <i class="fa fa-plus"></i> {{ __('Nova despesa') }}
@@ -103,6 +98,11 @@
                 <div class="num">{{ $numPorPagar }}</div>
                 <div class="lbl"><i class="fas fa-hand-holding-usd"></i> {{ __('Por pagar') }}</div>
                 <div class="sub">{{ $euros($totalPorPagar) }}</div>
+            </a>
+            <a href="{{ route('backoffice.hr.expenses.index', ['estado' => 'pagas'] + $filtros) }}" class="ex-stat {{ request('estado') === 'pagas' ? 'is-active' : '' }}" style="--bg: #ccfbf1; --fg: #0f766e">
+                <div class="num">{{ $numPagas }}</div>
+                <div class="lbl"><i class="fas fa-money-bill-wave"></i> {{ __('Já pagas') }}</div>
+                <div class="sub">{{ $euros($totalPagas) }}</div>
             </a>
             @foreach($states as $chave => $estado)
                 <a href="{{ route('backoffice.hr.expenses.index', ['estado' => $chave] + $filtros) }}" class="ex-stat {{ request('estado') === $chave ? 'is-active' : '' }}" style="--bg: {{ $estado['bg'] }}; --fg: {{ $estado['text'] }}">
