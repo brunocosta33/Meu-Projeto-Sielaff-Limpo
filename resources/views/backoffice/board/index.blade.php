@@ -93,6 +93,17 @@
 
     .qd-vazia { text-align: center; color: #cbd5e1; font-size: .82rem; padding: 1.2rem .5rem; }
     .qd-nova input, .qd-nova select { font-size: .9rem; }
+    .qd-prazo-campo { position: relative; }
+    .qd-prazo-campo label { position: absolute; top: -.62rem; left: .5rem; z-index: 2; margin: 0; padding: 0 .3rem;
+                            background: #fff; font-size: .62rem; font-weight: 800; text-transform: uppercase;
+                            letter-spacing: .05em; color: #94a3b8; }
+
+    /* O prazo só vale alguma coisa se o atraso saltar à vista */
+    .qd-chip-atraso { border-color: #fecaca; background: #fff1f1; color: #b91c1c; }
+    .qd-chip-atraso:hover { border-color: #b91c1c; color: #b91c1c; }
+    .qd-chip-atraso .n { background: #fee2e2; color: #b91c1c; }
+    .qd-chip-atraso.on { background: #b91c1c; border-color: #b91c1c; color: #fff; }
+    .qd-chip-atraso.on .n { background: rgba(255, 255, 255, .25); color: #fff; }
 </style>
 @endpush
 
@@ -122,6 +133,14 @@
                 <i class="fas fa-users"></i> {{ __('Todos') }}
                 <span class="n">{{ $totalAbertas }}</span>
             </a>
+
+            @if($numAtrasadas)
+                <a href="{{ route('backoffice.board.index', collect($filtros)->merge(['atraso' => 1])->except('quem')->all()) }}"
+                   class="qd-chip qd-chip-atraso {{ request('atraso') ? 'on' : '' }}">
+                    <i class="fas fa-exclamation-triangle"></i> {{ __('Fora de prazo') }}
+                    <span class="n">{{ $numAtrasadas }}</span>
+                </a>
+            @endif
 
             @foreach($equipa as $funcao => $gente)
                 <div class="qd-grupo">
@@ -167,7 +186,10 @@
                     </select>
                 </div>
                 <div class="col-md-2 mb-2 mb-md-0">
-                    <input type="date" name="prazo" class="form-control" value="{{ old('prazo') }}" title="{{ __('Prazo (opcional)') }}">
+                    <div class="qd-prazo-campo">
+                        <label for="qd-prazo-novo">{{ __('Para quando') }}</label>
+                        <input type="date" id="qd-prazo-novo" name="prazo" class="form-control" value="{{ old('prazo') }}">
+                    </div>
                 </div>
                 <div class="col-md-1">
                     <button class="btn btn-primary btn-block" title="{{ __('Dar a tarefa') }}"><i class="fa fa-plus"></i></button>

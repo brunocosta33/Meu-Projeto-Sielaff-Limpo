@@ -29,7 +29,10 @@ class BoardTaskController extends Controller
             ->with(['responsavel', 'creator', 'concluidor', 'comments.user'])
             ->withCount('comments')
             ->when($sofilter, fn ($q) => $q->where('assigned_to', $eu))
-            ->when($request->filled('quem'), fn ($q) => $q->where('assigned_to', $request->quem));
+            ->when($request->filled('quem'), fn ($q) => $q->where('assigned_to', $request->quem))
+            ->when($request->boolean('atraso'), fn ($q) => $q->whereNotNull('prazo')
+                ->whereDate('prazo', '<', today())
+                ->where('estado', '!=', 'feito'));
 
         $colunas = [];
         foreach (BoardTask::ESTADOS as $chave => $estado) {
@@ -56,6 +59,9 @@ class BoardTaskController extends Controller
                 ->selectRaw('assigned_to, COUNT(*) as total')
                 ->groupBy('assigned_to')->pluck('total', 'assigned_to'),
             'totalAbertas' => $this->apenasVisiveis(BoardTask::where('estado', '!=', 'feito'))->count(),
+            // O prazo só serve para alguma coisa se o atraso saltar à vista
+            'numAtrasadas' => $this->apenasVisiveis(BoardTask::where('estado', '!=', 'feito'))
+                ->whereNotNull('prazo')->whereDate('prazo', '<', today())->count(),
             'soMinhas' => $sofilter,
             'verTudo' => $request->boolean('tudo'),
             'feitasEscondidas' => $request->boolean('tudo')
@@ -72,10 +78,11 @@ class BoardTaskController extends Controller
         $data = $request->validate([
             'titulo' => ['required', 'string', 'max:255'],
             'assigned_to' => $this->regraPessoa(),
-            'prazo' => ['nullable', 'date'],
+            'prazo' => ['nullable', 'date', 'after_or_equal:today'],
             'descricao' => ['nullable', 'string', 'max:5000'],
         ], $this->mensagensPessoa() + [
             'titulo.required' => __('Escreva o que é para fazer.'),
+            'prazo.after_or_equal' => __('A data limite já passou.'),
         ]);
 
         $tarefa = BoardTask::create($data + ['estado' => 'por_fazer', 'created_by' => auth()->id()]);
