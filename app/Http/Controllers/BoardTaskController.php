@@ -54,6 +54,7 @@ class BoardTaskController extends Controller
             'colunas' => $colunas,
             'estados' => BoardTask::ESTADOS,
             'pessoas' => $this->pessoas(),
+            'cores' => $this->cores(),
             'equipa' => $this->equipa(),
             'porPessoa' => $this->apenasVisiveis(BoardTask::where('estado', '!=', 'feito'))
                 ->selectRaw('assigned_to, COUNT(*) as total')
@@ -270,6 +271,17 @@ class BoardTaskController extends Controller
         abort_unless($tarefa, 404);
 
         return $tarefa;
+    }
+
+    /**
+     * Uma cor por pessoa, atribuída pela ordem em que entram no Quadro.
+     * Pelo id dava colisões (o 1 e o 9 calhavam na mesma cor).
+     */
+    private function cores()
+    {
+        return $this->pessoas()->values()->mapWithKeys(
+            fn (User $p, int $i) => [$p->id => BoardTask::CORES[$i % count(BoardTask::CORES)]]
+        );
     }
 
     /** A quem se podem dar tarefas: o escritório, sem os técnicos. */

@@ -7,10 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 /** Um cartão do Quadro: uma coisa dada a alguém para fazer. */
 class BoardTask extends Model
 {
+    // color = a cor da coluna; col/borda = o fundo e o contorno dela, na mesma família
     public const ESTADOS = [
-        'por_fazer' => ['label' => 'Por fazer', 'icon' => 'fa-inbox', 'color' => '#475569', 'bg' => '#f1f5f9'],
-        'em_curso' => ['label' => 'Em curso', 'icon' => 'fa-running', 'color' => '#b45309', 'bg' => '#fff7ed'],
-        'feito' => ['label' => 'Feito', 'icon' => 'fa-check', 'color' => '#15803d', 'bg' => '#dcfce7'],
+        'por_fazer' => ['label' => 'Por fazer', 'icon' => 'fa-inbox', 'color' => '#475569', 'bg' => '#f1f5f9',
+                        'col' => '#f6f8fb', 'borda' => '#dfe6ee'],
+        'em_curso' => ['label' => 'Em curso', 'icon' => 'fa-running', 'color' => '#c2740b', 'bg' => '#fff7ed',
+                       'col' => '#fffaf3', 'borda' => '#f6e2c6'],
+        'feito' => ['label' => 'Feito', 'icon' => 'fa-check', 'color' => '#15803d', 'bg' => '#dcfce7',
+                    'col' => '#f6fdf8', 'borda' => '#cfeeda'],
     ];
 
     protected $fillable = [
@@ -83,11 +87,6 @@ class BoardTask extends Model
         return mb_strtoupper(mb_substr($partes[0], 0, 1) . (count($partes) > 1 ? mb_substr(end($partes), 0, 1) : ''));
     }
 
-    /** Cor estável por pessoa, para se reconhecer o cartão de longe. */
-    public function corDoResponsavel(): string
-    {
-        $cores = ['#0f4c81', '#b91c1c', '#15803d', '#6d28d9', '#b45309', '#0e7490', '#be185d', '#4d7c0f'];
-
-        return $cores[($this->assigned_to ?? 0) % count($cores)];
-    }
+    /** As cores das pessoas, por ordem de quem entra no Quadro (ver BoardTaskController::cores). */
+    public const CORES = ['#0f4c81', '#b91c1c', '#15803d', '#6d28d9', '#b45309', '#0e7490', '#be185d', '#4d7c0f'];
 }

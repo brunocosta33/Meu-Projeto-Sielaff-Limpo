@@ -12,16 +12,23 @@
     .qd-colunas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; align-items: start; }
     @media (max-width: 991px) { .qd-colunas { grid-template-columns: 1fr; } }
 
-    .qd-coluna { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: .75rem; min-height: 120px; }
-    .qd-coluna > header { display: flex; align-items: center; gap: .45rem; margin-bottom: .7rem; padding: 0 .2rem; }
-    .qd-coluna > header .nome { font-size: .78rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--c); }
-    .qd-coluna > header .conta { margin-left: auto; font-size: .74rem; font-weight: 700; color: var(--c);
-                                 background: var(--bg); border-radius: 999px; padding: .05rem .5rem; }
+    /* Cada coluna tem a sua cor: a do estado. A barra de cima dá-lhe a cara. */
+    .qd-coluna { background: var(--bg); border: 1px solid var(--borda); border-radius: 16px; padding: 0 .7rem .7rem;
+                 min-height: 130px; overflow: hidden; }
+    .qd-coluna > header { display: flex; align-items: center; gap: .45rem; margin: 0 -.7rem .75rem;
+                          padding: .55rem .9rem; background: var(--c); color: #fff;
+                          box-shadow: inset 0 -2px 6px rgba(0, 0, 0, .12); }
+    .qd-coluna > header .nome { font-size: .76rem; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; }
+    .qd-coluna > header .conta { margin-left: auto; font-size: .74rem; font-weight: 800; color: var(--c);
+                                 background: #fff; border-radius: 999px; padding: .02rem .55rem; min-width: 1.6rem; text-align: center; }
 
-    .qd-cartao { background: #fff; border: 1px solid #e2e8f0; border-radius: 11px; padding: .65rem .75rem;
-                 margin-bottom: .6rem; box-shadow: 0 1px 2px rgba(15, 23, 42, .05); }
-    .qd-cartao.feito { opacity: .72; }
-    .qd-cartao.atrasada { border-left: 4px solid #dc2626; }
+    /* O cartão traz a cor de quem o tem, na barra da esquerda */
+    .qd-cartao { position: relative; background: #fff; border: 1px solid #e8edf3; border-left: 4px solid var(--dono, #cbd5e1);
+                 border-radius: 10px; padding: .65rem .75rem; margin-bottom: .6rem;
+                 box-shadow: 0 1px 3px rgba(15, 23, 42, .06); transition: box-shadow .15s, transform .15s; }
+    .qd-cartao:hover { box-shadow: 0 4px 12px rgba(15, 23, 42, .11); transform: translateY(-1px); }
+    .qd-cartao.feito { background: linear-gradient(#fff, #f6fdf8); border-color: #d6efdd; opacity: .85; }
+    .qd-cartao.atrasada { border-left-color: #dc2626; background: linear-gradient(#fff, #fff6f6); border-color: #fcdcdc; }
     .qd-titulo { font-weight: 600; color: #0f172a; line-height: 1.3; word-break: break-word; }
     .qd-cartao.feito .qd-titulo { text-decoration: line-through; text-decoration-color: #94a3b8; }
     .qd-desc { font-size: .8rem; color: #64748b; margin-top: .25rem; white-space: pre-wrap; word-break: break-word; }
@@ -37,11 +44,14 @@
 
     .qd-botoes { margin-left: auto; display: flex; gap: .25rem; }
     .qd-botoes form { margin: 0; }
-    .qd-btn { border: 1px solid #e2e8f0; background: #fff; border-radius: 7px; font-size: .72rem; font-weight: 700;
-              padding: .12rem .45rem; color: #475569; white-space: nowrap; }
-    .qd-btn:hover { border-color: #0f4c81; color: #0f4c81; }
+    /* O botão tem a cor da coluna para onde manda o cartão */
+    .qd-btn { border: 1px solid #fde3c2; background: #fff8ef; border-radius: 7px; font-size: .72rem; font-weight: 700;
+              padding: .12rem .45rem; color: #b45309; white-space: nowrap; transition: all .12s; }
+    .qd-btn:hover { background: #b45309; border-color: #b45309; color: #fff; }
     .qd-btn.ok { border-color: #bbf7d0; background: #f0fdf4; color: #15803d; }
     .qd-btn.ok:hover { background: #15803d; border-color: #15803d; color: #fff; }
+    .qd-btn.voltar { border-color: #e2e8f0; background: #fff; color: #64748b; }
+    .qd-btn.voltar:hover { background: #64748b; border-color: #64748b; color: #fff; }
 
     .qd-conversa { margin-top: .55rem; border-top: 1px dashed #e2e8f0; padding-top: .5rem; }
     .qd-link { font-size: .74rem; font-weight: 700; color: #0f4c81; background: none; border: 0; padding: 0; }
@@ -78,7 +88,9 @@
                border-radius: 999px; padding: .15rem .55rem .15rem .15rem; font-size: .78rem; color: #334155;
                text-decoration: none !important; white-space: nowrap; }
     .qd-chip:hover { border-color: #0f4c81; color: #0f4c81; }
-    .qd-chip.on { border-color: #0f4c81; background: #0f4c81; color: #fff; box-shadow: 0 1px 4px rgba(15, 76, 129, .3); }
+    .qd-chip.on { border-color: var(--dono, #0f4c81); background: var(--dono, #0f4c81); color: #fff;
+                  box-shadow: 0 2px 6px rgba(15, 23, 42, .22); }
+    .qd-chip.on .qd-bola { background: rgba(255, 255, 255, .28) !important; }
     .qd-chip .n { font-size: .7rem; font-weight: 800; background: #f1f5f9; color: #475569; border-radius: 999px; padding: 0 .35rem; }
     .qd-chip.on .n { background: rgba(255, 255, 255, .25); color: #fff; }
     .qd-chip.zero { opacity: .55; }
@@ -91,7 +103,8 @@
     .qd-passar { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 9px; padding: .45rem .55rem; margin-top: .45rem; }
     .qd-passar .rotulo { font-size: .66rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: #64748b; }
 
-    .qd-vazia { text-align: center; color: #cbd5e1; font-size: .82rem; padding: 1.2rem .5rem; }
+    .qd-vazia { text-align: center; color: var(--c); opacity: .35; font-size: .82rem; padding: 1.4rem .5rem; }
+    .qd-vazia i { display: block; font-size: 1.6rem; margin-bottom: .3rem; }
     .qd-nova input, .qd-nova select { font-size: .9rem; }
     .qd-prazo-campo { position: relative; }
     .qd-prazo-campo label { position: absolute; top: -.62rem; left: .5rem; z-index: 2; margin: 0; padding: 0 .3rem;
@@ -149,8 +162,9 @@
                         @php($n = (int) ($porPessoa[$p->id] ?? 0))
                         <a href="{{ route('backoffice.board.index', collect($filtros)->merge(['quem' => $p->id, 'minhas' => 0])->all()) }}"
                            class="qd-chip {{ request('quem') == $p->id ? 'on' : '' }} {{ $n ? '' : 'zero' }}"
+                           style="--dono: {{ $cores[$p->id] ?? '#94a3b8' }}"
                            title="{{ $p->name ?: $p->email }}">
-                            <span class="qd-bola" style="--c: {{ ['#0f4c81','#b91c1c','#15803d','#6d28d9','#b45309','#0e7490','#be185d','#4d7c0f'][$p->id % 8] }}">
+                            <span class="qd-bola" style="--c: {{ $cores[$p->id] ?? '#94a3b8' }}">
                                 {{ \Illuminate\Support\Str::of($p->name ?: '?')->explode(' ')->map(fn ($x) => mb_substr($x, 0, 1))->take(2)->implode('') }}
                             </span>
                             {{ $p->id === $eu ? __('Eu') : \Illuminate\Support\Str::of($p->name ?: $p->email)->explode(' ')->first() }}
@@ -201,7 +215,7 @@
 
 <div class="qd-colunas">
     @foreach($estados as $chave => $estado)
-        <section class="qd-coluna" style="--c: {{ $estado['color'] }}; --bg: {{ $estado['bg'] }}">
+        <section class="qd-coluna" style="--c: {{ $estado['color'] }}; --bg: {{ $estado['col'] }}; --borda: {{ $estado['borda'] }}">
             <header>
                 <i class="fas {{ $estado['icon'] }}" style="color: {{ $estado['color'] }}"></i>
                 <span class="nome">{{ __($estado['label']) }}</span>
@@ -210,14 +224,15 @@
 
             @forelse($colunas[$chave] as $t)
                 @php($meu = $t->assigned_to === $eu)
-                <article class="qd-cartao {{ $t->isFeito() ? 'feito' : '' }} {{ $t->atrasada() ? 'atrasada' : '' }}">
+                <article class="qd-cartao {{ $t->isFeito() ? 'feito' : '' }} {{ $t->atrasada() ? 'atrasada' : '' }}"
+                         style="--dono: {{ $cores[$t->assigned_to] ?? '#94a3b8' }}">
                     <div class="qd-titulo">{{ $t->titulo }}</div>
                     @if($t->descricao)<div class="qd-desc">{{ $t->descricao }}</div>@endif
 
                     <div class="qd-rodape">
                         <button type="button" class="qd-quem trocar" data-toggle="collapse" data-target="#qd-passar-{{ $t->id }}"
                                 title="{{ __('Passar a outra pessoa') }}">
-                            <span class="qd-bola" style="--c: {{ $t->corDoResponsavel() }}">{{ $t->iniciais() }}</span>
+                            <span class="qd-bola" style="--c: {{ $cores[$t->assigned_to] ?? '#94a3b8' }}">{{ $t->iniciais() }}</span>
                             {{ $meu ? __('Eu') : \Illuminate\Support\Str::of($t->responsavel->name ?? '—')->explode(' ')->first() }}
                             <i class="fa fa-exchange-alt seta"></i>
                         </button>
@@ -244,7 +259,7 @@
                             @else
                                 <form method="POST" action="{{ route('backoffice.board.move', $t->id) }}">
                                     @csrf<input type="hidden" name="estado" value="por_fazer">
-                                    <button class="qd-btn" title="{{ __('Afinal não está feita') }}"><i class="fa fa-undo"></i></button>
+                                    <button class="qd-btn voltar" title="{{ __('Afinal não está feita') }}"><i class="fa fa-undo"></i></button>
                                 </form>
                             @endunless
                         </span>
@@ -307,7 +322,7 @@
                                             @continue
                                         @endif
                                         <div class="qd-msg {{ $c->user_id === $eu ? 'meu' : '' }}">
-                                            <span class="qd-bola" style="--c: {{ $c->user_id ? ['#0f4c81','#b91c1c','#15803d','#6d28d9','#b45309','#0e7490','#be185d','#4d7c0f'][$c->user_id % 8] : '#94a3b8' }}">
+                                            <span class="qd-bola" style="--c: {{ $cores[$c->user_id] ?? '#94a3b8' }}">
                                                 {{ \Illuminate\Support\Str::of($c->user->name ?? '?')->explode(' ')->map(fn ($p) => mb_substr($p, 0, 1))->take(2)->implode('') }}
                                             </span>
                                             <div class="qd-balao">
