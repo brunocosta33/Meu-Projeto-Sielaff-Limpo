@@ -14,7 +14,14 @@ class HotlineChecklistItem extends Model
         'tarde' => ['label' => 'Turno da tarde', 'curto' => 'Tarde', 'icon' => 'fa-moon', 'cor' => '#4338ca'],
     ];
 
-    protected $fillable = ['titulo', 'nota', 'turno', 'ordem', 'ativo', 'created_by'];
+    /** Em que dias é que a tarefa se faz. Ao fim de semana o trabalho é outro. */
+    public const DIAS = [
+        'todos' => ['label' => 'Todos os dias', 'curto' => 'Todos os dias', 'icon' => 'fa-calendar-day', 'cor' => '#475569'],
+        'semana' => ['label' => 'Só de segunda a sexta', 'curto' => 'Dias de semana', 'icon' => 'fa-briefcase', 'cor' => '#0369a1'],
+        'fim_de_semana' => ['label' => 'Só ao fim de semana', 'curto' => 'Fim de semana', 'icon' => 'fa-umbrella-beach', 'cor' => '#0d9488'],
+    ];
+
+    protected $fillable = ['titulo', 'nota', 'turno', 'dias', 'ordem', 'ativo', 'created_by'];
 
     protected $casts = ['ativo' => 'boolean'];
 
@@ -43,6 +50,21 @@ class HotlineChecklistItem extends Model
     public function doTurno(?string $turno): bool
     {
         return $turno !== null && ($this->turno === 'ambos' || $this->turno === $turno);
+    }
+
+    /** Esta tarefa faz-se neste dia? */
+    public function noDia(\Carbon\Carbon $dia): bool
+    {
+        return match ($this->dias) {
+            'semana' => $dia->dayOfWeekIso <= 5,
+            'fim_de_semana' => $dia->dayOfWeekIso >= 6,
+            default => true,
+        };
+    }
+
+    public function diasConfig(): array
+    {
+        return self::DIAS[$this->dias] ?? self::DIAS['todos'];
     }
 
     public function turnoConfig(): array

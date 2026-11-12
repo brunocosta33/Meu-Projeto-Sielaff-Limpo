@@ -158,10 +158,12 @@ class HotlineChecklist
             ->map(fn (array $c) => $c['turno']);
     }
 
-    /** As tarefas que se aplicam a um turno, pela ordem da lista. */
-    public static function itensDoTurno(Collection $itens, ?string $turno): Collection
+    /** As tarefas que se aplicam àquele turno e àquele dia, pela ordem da lista. */
+    public static function aplicaveis(Collection $itens, ?string $turno, Carbon $dia): Collection
     {
-        return $itens->filter(fn (HotlineChecklistItem $i) => $i->doTurno($turno))->values();
+        return $itens
+            ->filter(fn (HotlineChecklistItem $i) => $i->doTurno($turno) && $i->noDia($dia))
+            ->values();
     }
 
     /**
@@ -181,7 +183,7 @@ class HotlineChecklist
             return 0;
         }
 
-        $itens = self::itensDoTurno(HotlineChecklistItem::ativos()->ordenados()->get(), $turno);
+        $itens = self::aplicaveis(HotlineChecklistItem::ativos()->ordenados()->get(), $turno, $dia);
 
         $feitos = HotlineChecklistCheck::whereDate('data', $dia)
             ->where('user_id', $user->id)
@@ -237,7 +239,7 @@ class HotlineChecklist
                 $pessoas[$uid] ??= $col['user'];
 
                 $feitas = collect($checks->get($data->toDateString() . '_' . $uid, []));
-                $esperadas = self::itensDoTurno($daAltura, $col['turno']);
+                $esperadas = self::aplicaveis($daAltura, $col['turno'], $data);
                 $ids = $esperadas->pluck('id');
 
                 $linhas[$uid] = [

@@ -35,9 +35,11 @@ class HotlineChecklistController extends Controller
         $escala = (new HotlineRotation())->schedule($dia, $dia)[0];
         $todos = HotlineChecklistItem::ativos()->ordenados()->get();
 
-        // Ao olhar para trás, a lista é a que existia nesse dia: uma tarefa criada hoje
-        // não pode aparecer como "por validar" na semana passada
-        $itens = $todos->filter(fn (HotlineChecklistItem $i) => $i->created_at <= $dia->copy()->endOfDay())->values();
+        // A lista do dia: só o que se faz nesse dia (ao fim de semana o trabalho é outro)
+        // e só o que já existia nessa altura — uma tarefa criada hoje não pode
+        // aparecer como "por validar" na semana passada
+        $itens = $todos->filter(fn (HotlineChecklistItem $i) => $i->created_at <= $dia->copy()->endOfDay()
+            && $i->noDia($dia))->values();
 
         $checks = HotlineChecklistCheck::whereDate('data', $dia)->with('user')->get()
             ->keyBy(fn (HotlineChecklistCheck $c) => $c->item_id . '_' . $c->user_id);
@@ -46,8 +48,8 @@ class HotlineChecklistController extends Controller
         $colunas = HotlineChecklist::colunas($escala);
 
         // Quanto é que cada um já validou nesse dia, do que lhe tocava
-        $resumo = $colunas->map(function (array $col) use ($itens, $checks) {
-            $aplica = HotlineChecklist::itensDoTurno($itens, $col['turno']);
+        $resumo = $colunas->map(function (array $col) use ($itens, $checks, $dia) {
+            $aplica = HotlineChecklist::aplicaveis($itens, $col['turno'], $dia);
             $feitas = $col['turno']
                 ? $aplica->filter(fn (HotlineChecklistItem $i) => $checks->has($i->id . '_' . $col['user']->id))
                 : collect();
@@ -84,10 +86,13 @@ class HotlineChecklistController extends Controller
             'colunas' => $colunas,
             'resumo' => $resumo,
             'itens' => $itens,
+            // A chefia gere a lista toda num sítio só, fora da grelha do dia
+            'listaToda' => $this->podeGerir() ? $todos : collect(),
             'estados' => $estados,
             'notas' => $notas,
             'checks' => $checks,
             'turnos' => HotlineChecklistItem::TURNOS,
+            'diasPossiveis' => HotlineChecklistItem::DIAS,
             // O turno de quem está a ver: null se hoje não é dia dele
             'meuTurno' => $quemValida->get(auth()->id()),
             'gestor' => $this->podeGerir(),
@@ -182,6 +187,7 @@ class HotlineChecklistController extends Controller
         $turno = $this->meuTurnoHoje();
 
         abort_unless($turno, 403, __('Hoje não está de serviço na Hotline.'));
+        abort_unless($item->noDia(today()), 403, __('Esta tarefa não é de hoje.'));
         abort_unless($item->doTurno($turno), 403, __('Esta tarefa não é do seu turno de hoje.'));
 
         $dados = $request->validate([
@@ -229,9 +235,11 @@ class HotlineChecklistController extends Controller
             'titulo' => ['required', 'string', 'max:255'],
             'nota' => ['nullable', 'string', 'max:1000'],
             'turno' => ['required', Rule::in(array_keys(HotlineChecklistItem::TURNOS))],
+            'dias' => ['required', Rule::in(array_keys(HotlineChecklistItem::DIAS))],
         ], [
-            'titulo.required' => __('Escreva o que é para fazer todos os dias.'),
+            'titulo.required' => __('Escreva o que é para fazer.'),
             'turno.required' => __('Escolha o turno.'),
+            'dias.required' => __('Escolha os dias.'),
         ]);
     }
 
@@ -247,9 +255,9 @@ class HotlineChecklistController extends Controller
 
         return HotlineChecklist::colunas($escala)
             ->filter(fn (array $c) => $c['turno'])
-            ->map(function (array $c) use ($daAltura, $checks) {
+            ->map(function (array $c) use ($daAltura, $checks, $dia) {
                 $feitos = ($checks->get($c['user']->id) ?? collect())->pluck('item_id');
-                $faltam = HotlineChecklist::itensDoTurno($daAltura, $c['turno'])->whereNotIn('id', $feitos);
+                $faltam = HotlineChecklist::aplicaveis($daAltura, $c['turno'], $dia)->whereNotIn('id', $feitos);
 
                 return [
                     'nome' => $c['user']->name,
