@@ -103,6 +103,7 @@ class HotlineChecklist
                 'turno' => null,
                 'horas' => null,
                 'motivo' => $s['motivo'] ?? __('Folga'),
+                'curto' => $s['motivo'] ?? __('Folga'),
                 'porConta' => null,
             ];
         }
@@ -119,6 +120,7 @@ class HotlineChecklist
                 'turno' => null,
                 'horas' => null,
                 'motivo' => null,
+                'curto' => null,
                 'porConta' => null,
             ];
 
@@ -127,6 +129,7 @@ class HotlineChecklist
             $col['turno'] = $col['turno'] && $col['turno'] !== $s['turno'] ? 'ambos' : $s['turno'];
             $col['horas'] = $col['horas'] ? $col['horas'] . ' + ' . $s['horas'] : $s['horas'];
             $col['motivo'] = null;
+            $col['curto'] = null;
 
             if ($s['quem']->id !== $s['titular']->id) {
                 $col['porConta'] = $s['titular'];
@@ -135,6 +138,7 @@ class HotlineChecklist
                 $cols[$s['titular']->id]['motivo'] = $s['troca']
                     ? __('Trocou com :nome', ['nome' => $s['quem']->name])
                     : __('Substituído por :nome', ['nome' => $s['quem']->name]);
+                $cols[$s['titular']->id]['curto'] = $s['troca'] ? __('Trocou') : __('Substituído');
             }
 
             $cols[$s['quem']->id] = $col;
@@ -152,12 +156,6 @@ class HotlineChecklist
         return self::colunas($diaEscala, $dia)
             ->filter(fn (array $c) => $c['turno'])
             ->map(fn (array $c) => $c['turno']);
-    }
-
-    /** As colunas fixas do histórico: os hotliners da escala, staff_id => pessoa. */
-    public static function titulares(): Collection
-    {
-        return HotlineRotation::staffFor('hotline')->mapWithKeys(fn ($s) => [$s->id => $s->user]);
     }
 
     /** As tarefas que se aplicam a um turno, pela ordem da lista. */
@@ -212,8 +210,11 @@ class HotlineChecklist
     }
 
     /**
-     * Resumo de um intervalo de dias, para o histórico:
-     * por cada dia, e por cada hotliner, quantas fez de quantas — ou porque não fez nenhuma.
+     * Resumo de um intervalo de dias, para o histórico: por cada dia e por cada pessoa,
+     * quantas validou de quantas — ou porque não tinha nenhuma (folga, troca, férias).
+     *
+     * É por pessoa, não por turno da escala: num dia trocado quem está de folga é quem
+     * trocou, e a linha tem de dizer isso mesmo.
      */
     public static function historico(Carbon $de, Carbon $ate, Collection $itens): array
     {
@@ -221,7 +222,9 @@ class HotlineChecklist
             ->get()
             ->groupBy(fn (HotlineChecklistCheck $c) => $c->data->toDateString() . '_' . $c->user_id);
 
+        $pessoas = [];
         $dias = [];
+
         foreach ((new HotlineRotation())->schedule($de, $ate) as $diaEscala) {
             $data = $diaEscala['date'];
             // A lista de hoje não se aplica ao passado: uma tarefa criada ontem
@@ -229,22 +232,27 @@ class HotlineChecklist
             $daAltura = $itens->filter(fn (HotlineChecklistItem $i) => $i->created_at <= $data->copy()->endOfDay());
 
             $linhas = [];
-            foreach (self::slots($diaEscala) as $staffId => $col) {
-                $feitas = collect($checks->get($data->toDateString() . '_' . ($col['quem']->id ?? 0), []));
-                $esperadas = self::itensDoTurno($daAltura, $col['turno']);
+            foreach (self::colunas($diaEscala) as $uid => $col) {
+                // A coluna existe no mapa mesmo que a pessoa só apareça num dos dias
+                $pessoas[$uid] ??= $col['user'];
 
-                $linhas[$staffId] = [
-                    'quem' => $col['quem'],
+                $feitas = collect($checks->get($data->toDateString() . '_' . $uid, []));
+                $esperadas = self::itensDoTurno($daAltura, $col['turno']);
+                $ids = $esperadas->pluck('id');
+
+                $linhas[$uid] = [
+                    'turno' => $col['turno'],
                     'motivo' => $col['motivo'],
+                    'curto' => $col['curto'],
                     'total' => $esperadas->count(),
-                    'feitas' => $feitas->whereIn('item_id', $esperadas->pluck('id'))->count(),
-                    'problemas' => $feitas->where('estado', 'problema')->whereIn('item_id', $esperadas->pluck('id'))->count(),
+                    'feitas' => $feitas->whereIn('item_id', $ids)->count(),
+                    'problemas' => $feitas->where('estado', 'problema')->whereIn('item_id', $ids)->count(),
                 ];
             }
 
             $dias[] = ['data' => $data->copy(), 'linhas' => $linhas];
         }
 
-        return array_reverse($dias);
+        return ['pessoas' => collect($pessoas), 'dias' => array_reverse($dias)];
     }
 }

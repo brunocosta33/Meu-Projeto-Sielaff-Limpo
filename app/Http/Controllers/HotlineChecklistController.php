@@ -59,9 +59,6 @@ class HotlineChecklistController extends Controller
             'dia' => $dia,
             'hoje' => $dia->isToday(),
             'colunas' => $colunas,
-            // O histórico é por turno da escala: olhando para trás o que interessa
-            // é se o turno foi feito, mesmo que por outra pessoa
-            'titulares' => HotlineChecklist::titulares(),
             'resumo' => $resumo,
             'itens' => $itens,
             'checks' => $checks,

@@ -282,40 +282,35 @@
 <div class="card">
     <div class="card-body">
         <h6 class="text-uppercase text-muted mb-3" style="font-size: .75rem; letter-spacing: .06em">
-            <i class="fa fa-history"></i> {{ __('Últimos :n dias', ['n' => count($historico)]) }}
+            <i class="fa fa-history"></i> {{ __('Últimos :n dias', ['n' => count($historico['dias'])]) }}
         </h6>
         <div class="table-responsive">
             <table class="table table-sm mb-0 ck-hist">
                 <thead>
                     <tr>
                         <th>{{ __('Dia') }}</th>
-                        @foreach($titulares as $titular)
-                            <th>{{ $titular->name }}</th>
+                        @foreach($historico['pessoas'] as $uid => $pessoa)
+                            <th>{{ $uid === $eu ? __('Eu') : $pessoa->name }}</th>
                         @endforeach
                     </tr>
                 </thead>
                 <tbody>
-                @foreach($historico as $linha)
+                @foreach($historico['dias'] as $linha)
                     <tr class="{{ $linha['data']->isToday() ? 'hoje' : '' }}">
                         <td>
                             <a href="{{ route('backoffice.checklist.index', ['dia' => $linha['data']->toDateString()]) }}">
                                 {{ $linha['data']->isoFormat('ddd D/MM') }}
                             </a>
                         </td>
-                        @foreach($titulares as $sid => $titular)
-                            @php($c = $linha['linhas'][$sid] ?? null)
+                        @foreach($historico['pessoas'] as $uid => $pessoa)
+                            @php($c = $linha['linhas'][$uid] ?? null)
                             <td>
-                                @if(!$c || !$c['quem'])
-                                    <span class="folga">{{ $c['motivo'] ?? '—' }}</span>
+                                @if(!$c || !$c['turno'])
+                                    <span class="folga" title="{{ $c['motivo'] ?? '' }}">{{ $c['curto'] ?? '—' }}</span>
                                 @elseif($c['total'] === 0)
                                     <span class="folga">—</span>
                                 @else
                                     <span class="{{ $c['feitas'] >= $c['total'] ? 'ok' : 'mau' }}">{{ $c['feitas'] }}/{{ $c['total'] }}</span>
-                                    @if($c['quem']->id !== $titular->id)
-                                        <span class="folga" title="{{ __('Quem fez o turno: :nome', ['nome' => $c['quem']->name]) }}">
-                                            {{ \App\Services\HotlineChecklist::iniciais($c['quem']->name) }}
-                                        </span>
-                                    @endif
                                     @if($c['problemas'])
                                         <i class="fas fa-exclamation-triangle text-warning" title="{{ trans_choice(':count problema|:count problemas', $c['problemas'], ['count' => $c['problemas']]) }}"></i>
                                     @endif
