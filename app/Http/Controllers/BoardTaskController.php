@@ -13,6 +13,8 @@ use Illuminate\Validation\Rule;
  * Quadro: dar uma coisa a alguém para fazer, ver quem pegou nela, responder e dar por feita.
  * É do escritório — Coordenador, Country Manager, Administrativa e Hotline. Os técnicos
  * não entram nisto nem aparecem na lista de quem recebe tarefas.
+ *
+ * O que cada um vê é só o seu: ver apenasVisiveis().
  */
 class BoardTaskController extends Controller
 {
@@ -245,20 +247,26 @@ class BoardTaskController extends Controller
     }
 
     /**
-     * A Hotline só vê os tickets da Hotline — mais os que deu ou passou a outra pessoa,
-     * para não perder de vista o que entregou. O resto do escritório vê tudo.
+     * Cada um vê o que é seu. Ninguém vê as tarefas dos outros só por ser chefia:
+     * uma tarefa passa a ser vista por outra pessoa quando lha dão ou lha passam.
+     *
+     * Em concreto, vê-se uma tarefa se:
+     *  - está em mãos de quem a está a ver (a Hotline conta como equipa: veem-se uns aos outros);
+     *  - foi essa pessoa que a deu a alguém;
+     *  - foi essa pessoa que a passou a alguém — para não perder de vista o que entregou.
      */
     private function apenasVisiveis($query)
     {
-        if (HrAccess::staffOf(auth()->user())?->funcao !== 'hotliner') {
-            return $query;
-        }
-
         $eu = auth()->id();
-        $hotline = HrStaff::where('ativo', true)->where('funcao', 'hotliner')->pluck('user_id');
+
+        // A Hotline trabalha em equipa e pega nos tickets uns dos outros;
+        // o resto do escritório só vê o que lhe está nas mãos
+        $meus = HrAccess::staffOf(auth()->user())?->funcao === 'hotliner'
+            ? HrStaff::where('ativo', true)->where('funcao', 'hotliner')->pluck('user_id')->all()
+            : [$eu];
 
         return $query->where(fn ($q) => $q
-            ->whereIn('assigned_to', $hotline)
+            ->whereIn('assigned_to', $meus)
             ->orWhere('created_by', $eu)
             ->orWhereHas('comments', fn ($c) => $c->where('tipo', 'passagem')->where('user_id', $eu)));
     }
