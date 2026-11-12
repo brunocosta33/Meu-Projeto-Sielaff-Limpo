@@ -1,4 +1,8 @@
 {
+    "no turno de :nome": "covering for :nome",
+    "Trocou com :nome": "Swapped with :nome",
+    "Substituído por :nome": "Covered by :nome",
+    "Quem fez o turno: :nome": "Who did this shift: :nome",
     ":count problema|:count problemas": ":count problem|:count problems",
     "A checklist ainda está vazia.": "The checklist is still empty.",
     "A checklist da Hotline não é da sua área.": "The Hotline checklist is not your area.",

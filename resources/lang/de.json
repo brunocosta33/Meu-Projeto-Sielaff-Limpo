@@ -1,4 +1,8 @@
 {
+  "no turno de :nome": "in der Schicht von :nome",
+  "Trocou com :nome": "Hat mit :nome getauscht",
+  "Substituído por :nome": "Vertreten durch :nome",
+  "Quem fez o turno: :nome": "Wer die Schicht gemacht hat: :nome",
   ":count problema|:count problemas": ":count Problem|:count Probleme",
   "A checklist ainda está vazia.": "Die Checkliste ist noch leer.",
   "A checklist da Hotline não é da sua área.": "Die Hotline-Checkliste gehört nicht zu Ihrem Bereich.",

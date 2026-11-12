@@ -18,7 +18,7 @@ use App\Models\Base;
 
         @php($isTechnician = Auth::user()->hasRole('user'))
         @php($quadroPorFazer = $isTechnician ? 0 : \App\Models\BoardTask::where('assigned_to', Auth::id())->where('estado', '!=', 'feito')->count())
-        @php($checklistPorValidar = (!$isTechnician && \App\Services\HrAccess::staffOf(Auth::user())?->funcao === 'hotliner') ? \App\Services\HotlineChecklist::porValidar(Auth::user()) : 0)
+        @php($checklistPorValidar = $isTechnician ? 0 : \App\Services\HotlineChecklist::badge(Auth::user()))
 
         @if($isTechnician)
         <li>

@@ -1,4 +1,8 @@
 {
+    "no turno de :nome": "en el turno de :nome",
+    "Trocou com :nome": "Cambió con :nome",
+    "Substituído por :nome": "Sustituido por :nome",
+    "Quem fez o turno: :nome": "Quién hizo el turno: :nome",
     ":count problema|:count problemas": ":count problema|:count problemas",
     "A checklist ainda está vazia.": "La lista todavía está vacía.",
     "A checklist da Hotline não é da sua área.": "La lista de la Hotline no es de su área.",

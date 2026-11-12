@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\HotlineChecklistCheck;
 use App\Models\HotlineChecklistItem;
+use App\Models\HrShiftOverride;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -38,10 +39,10 @@ class HotlineChecklist
     }
 
     /**
-     * Um dia da escala pronto para a checklist: uma coluna por hotliner.
-     * 'quem' é quem lá está mesmo nesse dia — pode ser um substituto.
+     * Os turnos desse dia, tal como estão na escala: um por hotliner titular.
+     * 'quem' é quem o faz mesmo — pode ser outra pessoa, por troca ou substituição.
      */
-    public static function colunas(?array $diaEscala = null, ?Carbon $dia = null): Collection
+    public static function slots(?array $diaEscala = null, ?Carbon $dia = null): Collection
     {
         $diaEscala ??= (new HotlineRotation())->schedule($dia, $dia)[0];
 
@@ -55,12 +56,12 @@ class HotlineChecklist
                 'turno' => $trabalha ? self::turnoDe($c['shift']) : null,
                 'horas' => $c['shift'] ? HotlineRotation::formatHours($c['shift']) : null,
                 'motivo' => self::motivo($c),
-                'substituto' => (bool) ($c['override']?->substitute_user_id) && $c['shift'],
+                'troca' => $c['override']?->motivo === 'troca',
             ];
         });
     }
 
-    /** Porque é que não está de serviço (ou quem o substitui). */
+    /** Porque é que este turno não é feito por quem está escalado. */
     private static function motivo(array $c): ?string
     {
         if (!$c['shift']) {
@@ -83,15 +84,80 @@ class HotlineChecklist
     }
 
     /**
+     * As colunas da checklist: uma por pessoa, não uma por turno da escala.
+     *
+     * É aqui que as trocas ficam certas. Se o Bruno faz o dia do Pedro, a coluna do
+     * Bruno mostra o turno que ele está mesmo a fazer e a do Pedro diz que trocou —
+     * em vez de o Bruno aparecer duas vezes, uma delas a dizer "Folga".
+     */
+    public static function colunas(?array $diaEscala = null, ?Carbon $dia = null): Collection
+    {
+        $slots = self::slots($diaEscala, $dia);
+
+        // Uma coluna por hotliner, pela ordem da escala
+        $cols = [];
+        foreach ($slots as $s) {
+            $cols[$s['titular']->id] = [
+                'user' => $s['titular'],
+                'daCasa' => true,
+                'turno' => null,
+                'horas' => null,
+                'motivo' => $s['motivo'] ?? __('Folga'),
+                'porConta' => null,
+            ];
+        }
+
+        foreach ($slots as $s) {
+            if (!$s['quem']) {
+                continue;
+            }
+
+            // Quem vem de fora da escala (uma substituição) ganha coluna própria
+            $cols[$s['quem']->id] ??= [
+                'user' => $s['quem'],
+                'daCasa' => false,
+                'turno' => null,
+                'horas' => null,
+                'motivo' => null,
+                'porConta' => null,
+            ];
+
+            $col = $cols[$s['quem']->id];
+            // Pode estar a fazer os dois turnos (o seu e o de quem substitui)
+            $col['turno'] = $col['turno'] && $col['turno'] !== $s['turno'] ? 'ambos' : $s['turno'];
+            $col['horas'] = $col['horas'] ? $col['horas'] . ' + ' . $s['horas'] : $s['horas'];
+            $col['motivo'] = null;
+
+            if ($s['quem']->id !== $s['titular']->id) {
+                $col['porConta'] = $s['titular'];
+
+                // E o dono do turno fica com a razão por que não o faz
+                $cols[$s['titular']->id]['motivo'] = $s['troca']
+                    ? __('Trocou com :nome', ['nome' => $s['quem']->name])
+                    : __('Substituído por :nome', ['nome' => $s['quem']->name]);
+            }
+
+            $cols[$s['quem']->id] = $col;
+        }
+
+        return collect($cols);
+    }
+
+    /**
      * Quem tem de validar nesse dia: user_id => turno.
      * Se a mesma pessoa cobrir os dois turnos, fica com a lista toda.
      */
     public static function quemValida(Carbon $dia, ?array $diaEscala = null): Collection
     {
         return self::colunas($diaEscala, $dia)
-            ->filter(fn (array $c) => $c['quem'] && $c['turno'])
-            ->groupBy(fn (array $c) => $c['quem']->id)
-            ->map(fn (Collection $g) => $g->pluck('turno')->unique()->count() > 1 ? 'ambos' : $g->first()['turno']);
+            ->filter(fn (array $c) => $c['turno'])
+            ->map(fn (array $c) => $c['turno']);
+    }
+
+    /** As colunas fixas do histórico: os hotliners da escala, staff_id => pessoa. */
+    public static function titulares(): Collection
+    {
+        return HotlineRotation::staffFor('hotline')->mapWithKeys(fn ($s) => [$s->id => $s->user]);
     }
 
     /** As tarefas que se aplicam a um turno, pela ordem da lista. */
@@ -127,6 +193,25 @@ class HotlineChecklist
     }
 
     /**
+     * O número do menu. Só se calcula a escala a quem pode mesmo ter checklist hoje
+     * (a Hotline, ou quem lá está a cobrir um turno); aos outros fica em zero sem contas.
+     */
+    public static function badge(?User $user): int
+    {
+        if (!$user) {
+            return 0;
+        }
+
+        $daHotline = HrAccess::staffOf($user)?->funcao === 'hotliner';
+
+        $cobre = !$daHotline && HrShiftOverride::whereDate('data', today())
+            ->where('substitute_user_id', $user->id)
+            ->exists();
+
+        return $daHotline || $cobre ? self::porValidar($user) : 0;
+    }
+
+    /**
      * Resumo de um intervalo de dias, para o histórico:
      * por cada dia, e por cada hotliner, quantas fez de quantas — ou porque não fez nenhuma.
      */
@@ -144,7 +229,7 @@ class HotlineChecklist
             $daAltura = $itens->filter(fn (HotlineChecklistItem $i) => $i->created_at <= $data->copy()->endOfDay());
 
             $linhas = [];
-            foreach (self::colunas($diaEscala) as $staffId => $col) {
+            foreach (self::slots($diaEscala) as $staffId => $col) {
                 $feitas = collect($checks->get($data->toDateString() . '_' . ($col['quem']->id ?? 0), []));
                 $esperadas = self::itensDoTurno($daAltura, $col['turno']);
 

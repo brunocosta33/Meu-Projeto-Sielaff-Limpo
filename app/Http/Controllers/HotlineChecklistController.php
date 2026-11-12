@@ -48,8 +48,8 @@ class HotlineChecklistController extends Controller
         // Quanto é que cada um já validou nesse dia, do que lhe tocava
         $resumo = $colunas->map(function (array $col) use ($itens, $checks) {
             $aplica = HotlineChecklist::itensDoTurno($itens, $col['turno']);
-            $feitas = $col['quem']
-                ? $aplica->filter(fn (HotlineChecklistItem $i) => $checks->has($i->id . '_' . $col['quem']->id))
+            $feitas = $col['turno']
+                ? $aplica->filter(fn (HotlineChecklistItem $i) => $checks->has($i->id . '_' . $col['user']->id))
                 : collect();
 
             return ['total' => $aplica->count(), 'feitas' => $feitas->count()];
@@ -59,6 +59,9 @@ class HotlineChecklistController extends Controller
             'dia' => $dia,
             'hoje' => $dia->isToday(),
             'colunas' => $colunas,
+            // O histórico é por turno da escala: olhando para trás o que interessa
+            // é se o turno foi feito, mesmo que por outra pessoa
+            'titulares' => HotlineChecklist::titulares(),
             'resumo' => $resumo,
             'itens' => $itens,
             'checks' => $checks,
@@ -221,13 +224,13 @@ class HotlineChecklistController extends Controller
         $checks = HotlineChecklistCheck::whereDate('data', $dia)->get()->groupBy('user_id');
 
         return HotlineChecklist::colunas($escala)
-            ->filter(fn (array $c) => $c['quem'] && $c['turno'])
+            ->filter(fn (array $c) => $c['turno'])
             ->map(function (array $c) use ($daAltura, $checks) {
-                $feitos = ($checks->get($c['quem']->id) ?? collect())->pluck('item_id');
+                $feitos = ($checks->get($c['user']->id) ?? collect())->pluck('item_id');
                 $faltam = HotlineChecklist::itensDoTurno($daAltura, $c['turno'])->whereNotIn('id', $feitos);
 
                 return [
-                    'nome' => $c['quem']->name,
+                    'nome' => $c['user']->name,
                     'tarefas' => $faltam->pluck('titulo')->implode(' · '),
                     'n' => $faltam->count(),
                 ];

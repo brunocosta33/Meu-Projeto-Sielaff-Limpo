@@ -99,33 +99,28 @@
         </div>
 
         <div class="ck-pessoas">
-            @foreach($colunas as $sid => $col)
-                @php($cor = $col['quem'] ? \App\Services\HotlineRotation::COLORS[$loop->index % count(\App\Services\HotlineRotation::COLORS)] : '#cbd5e1')
-                <div class="ck-pessoa {{ $col['quem'] ? '' : 'folga' }}" style="--c: {{ $cor }}">
-                    <span class="ck-bola" style="--c: {{ $cor }}">{{ \App\Services\HotlineChecklist::iniciais($col['quem']->name ?? $col['titular']->name ?? '?') }}</span>
+            @foreach($colunas as $uid => $col)
+                @php($cor = $col['turno'] ? \App\Services\HotlineRotation::COLORS[$loop->index % count(\App\Services\HotlineRotation::COLORS)] : '#cbd5e1')
+                <div class="ck-pessoa {{ $col['turno'] ? '' : 'folga' }}" style="--c: {{ $cor }}">
+                    <span class="ck-bola" style="--c: {{ $cor }}">{{ \App\Services\HotlineChecklist::iniciais($col['user']->name) }}</span>
                     <div>
-                        <div class="nome">
-                            {{ ($col['quem']->id ?? null) === $eu ? __('Eu') : ($col['quem']->name ?? $col['titular']->name ?? '—') }}
-                        </div>
+                        <div class="nome">{{ $uid === $eu ? __('Eu') : $col['user']->name }}</div>
                         <div class="horas">
-                            @if($col['quem'])
-                                {{ $col['horas'] }} · {{ __(\App\Models\HotlineChecklistItem::TURNOS[$col['turno']]['curto']) }}
-                                @if($col['substituto'])
-                                    <span class="text-muted">({{ __('substitui :nome', ['nome' => $col['titular']->name ?? '—']) }})</span>
+                            @if($col['turno'])
+                                {{ $col['horas'] }}@if($col['turno'] !== 'ambos') · {{ __(\App\Models\HotlineChecklistItem::TURNOS[$col['turno']]['curto']) }}@endif
+                                @if($col['porConta'])
+                                    <span class="text-muted">({{ __('no turno de :nome', ['nome' => $col['porConta']->name]) }})</span>
                                 @endif
                             @else
                                 {{ $col['motivo'] ?? __('Sem turno') }}
-                                @if($col['titular'] && $col['motivo'] !== __('Folga'))
-                                    · {{ $col['titular']->name }}
-                                @endif
                             @endif
                         </div>
                     </div>
-                    @if($col['quem'])
+                    @if($col['turno'])
                         <div class="ck-conta">
-                            <span class="n">{{ $resumo[$sid]['feitas'] }}/{{ $resumo[$sid]['total'] }}</span>
-                            <div class="ck-barra {{ $resumo[$sid]['feitas'] < $resumo[$sid]['total'] ? 'falta' : '' }}">
-                                <span style="width: {{ $resumo[$sid]['total'] ? round(100 * $resumo[$sid]['feitas'] / $resumo[$sid]['total']) : 0 }}%"></span>
+                            <span class="n">{{ $resumo[$uid]['feitas'] }}/{{ $resumo[$uid]['total'] }}</span>
+                            <div class="ck-barra {{ $resumo[$uid]['feitas'] < $resumo[$uid]['total'] ? 'falta' : '' }}">
+                                <span style="width: {{ $resumo[$uid]['total'] ? round(100 * $resumo[$uid]['feitas'] / $resumo[$uid]['total']) : 0 }}%"></span>
                             </div>
                         </div>
                     @endif
@@ -154,8 +149,11 @@
             <thead>
                 <tr>
                     <th>{{ __('Tarefa') }}</th>
-                    @foreach($colunas as $col)
-                        <th class="ck-col">{{ ($col['quem']->id ?? null) === $eu ? __('Eu') : ($col['quem']->name ?? $col['titular']->name ?? '—') }}</th>
+                    @foreach($colunas as $uid => $col)
+                        <th class="ck-col">
+                            {{ $uid === $eu ? __('Eu') : $col['user']->name }}
+                            @unless($col['turno'])<i class="fa fa-moon text-muted ml-1" title="{{ $col['motivo'] }}"></i>@endunless
+                        </th>
                     @endforeach
                 </tr>
             </thead>
@@ -198,7 +196,7 @@
                     </td>
 
                     @foreach($colunas as $col)
-                        @php($quem = $col['quem'])
+                        @php($quem = $col['turno'] ? $col['user'] : null)
                         @php($check = $quem ? ($checks[$item->id . '_' . $quem->id] ?? null) : null)
                         @php($souEu = $hoje && $quem && $quem->id === $eu && $meuTurno)
                         <td class="ck-col">
@@ -291,8 +289,8 @@
                 <thead>
                     <tr>
                         <th>{{ __('Dia') }}</th>
-                        @foreach($colunas as $col)
-                            <th>{{ $col['titular']->name ?? '—' }}</th>
+                        @foreach($titulares as $titular)
+                            <th>{{ $titular->name }}</th>
                         @endforeach
                     </tr>
                 </thead>
@@ -304,7 +302,7 @@
                                 {{ $linha['data']->isoFormat('ddd D/MM') }}
                             </a>
                         </td>
-                        @foreach($colunas as $sid => $col)
+                        @foreach($titulares as $sid => $titular)
                             @php($c = $linha['linhas'][$sid] ?? null)
                             <td>
                                 @if(!$c || !$c['quem'])
@@ -313,6 +311,11 @@
                                     <span class="folga">—</span>
                                 @else
                                     <span class="{{ $c['feitas'] >= $c['total'] ? 'ok' : 'mau' }}">{{ $c['feitas'] }}/{{ $c['total'] }}</span>
+                                    @if($c['quem']->id !== $titular->id)
+                                        <span class="folga" title="{{ __('Quem fez o turno: :nome', ['nome' => $c['quem']->name]) }}">
+                                            {{ \App\Services\HotlineChecklist::iniciais($c['quem']->name) }}
+                                        </span>
+                                    @endif
                                     @if($c['problemas'])
                                         <i class="fas fa-exclamation-triangle text-warning" title="{{ trans_choice(':count problema|:count problemas', $c['problemas'], ['count' => $c['problemas']]) }}"></i>
                                     @endif
