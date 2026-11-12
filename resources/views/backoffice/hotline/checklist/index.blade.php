@@ -9,9 +9,10 @@
 @push('styles')
 <style>
     /* ---- Cabeçalho: faixa de cor com o dia que se está a ver ---- */
-    .ck-cabeca { overflow: hidden; border: 0; box-shadow: 0 2px 10px rgba(15, 23, 42, .07); }
+    .ck-cabeca { overflow: hidden; border: 0; border-radius: 14px; box-shadow: 0 3px 14px rgba(15, 76, 129, .13); }
+    .ck-cartao { border: 1px solid #e9eff6; border-radius: 14px; box-shadow: 0 1px 3px rgba(15, 23, 42, .05); }
     .ck-faixa { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .6rem;
-                padding: .7rem 1.1rem; color: #fff; background: linear-gradient(120deg, #0f4c81, #1f7bb6 65%, #2a94c9); }
+                padding: .8rem 1.15rem; color: #fff; background: linear-gradient(115deg, #0b3f6e, #1f7bb6 55%, #38b0dd); }
     .ck-faixa .t { font-size: 1.12rem; font-weight: 800; letter-spacing: -.01em; }
     .ck-faixa .t i { opacity: .85; margin-right: .3rem; }
     .ck-faixa .sub { display: block; font-size: .76rem; font-weight: 500; opacity: .8; letter-spacing: 0; }
@@ -26,8 +27,10 @@
     /* ---- Quem está de serviço: uma roda com o que já validou ---- */
     .ck-pessoas { display: flex; flex-wrap: wrap; gap: .6rem; }
     .ck-pessoa { display: flex; align-items: center; gap: .7rem; flex: 1 1 17rem; max-width: 26rem;
-                 border: 1px solid #e8edf3; border-left: 5px solid var(--c, #cbd5e1); border-radius: 12px;
-                 padding: .55rem .8rem; background: linear-gradient(#fff, #fcfdff); }
+                 border: 1px solid #e8edf3; border-left: 5px solid var(--c, #cbd5e1); border-radius: 13px;
+                 padding: .6rem .85rem; background: #fff;
+                 /* um toque da cor da pessoa no fundo; onde não houver suporte fica branco */
+                 background: linear-gradient(110deg, color-mix(in srgb, var(--c) 13%, #fff), #fff 70%); }
     .ck-pessoa.folga { background: #f8fafc; border-left-color: #e2e8f0; }
     .ck-roda { width: 52px; height: 52px; flex: 0 0 52px; border-radius: 50%; display: grid; place-items: center;
                background: conic-gradient(var(--c) calc(var(--p) * 1%), #e8eef5 0); }
@@ -39,45 +42,46 @@
     .ck-pessoa .horas { font-size: .78rem; color: #64748b; margin-top: .1rem; }
     .ck-pessoa .horas b { color: var(--c); font-weight: 700; }
 
-    .ck-dica { display: flex; align-items: center; gap: .45rem; margin-top: .8rem; border-radius: 10px;
-               padding: .5rem .85rem; font-size: .88rem; font-weight: 600;
-               background: #eff6ff; color: #1d4ed8; border: 1px solid #dbeafe; }
-    .ck-dica.ok { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+    .ck-dica { display: flex; align-items: center; gap: .5rem; margin-top: .85rem; border-radius: 11px;
+               padding: .55rem .9rem; font-size: .89rem; font-weight: 700;
+               background: linear-gradient(100deg, #dbeafe, #eff6ff 60%); color: #1d4ed8; border: 1px solid #c7ddfb; }
+    .ck-dica.ok { background: linear-gradient(100deg, #d1fae5, #f0fdf4 60%); color: #15803d; border-color: #a7f3d0; }
+    .ck-dica i { font-size: 1.05rem; }
 
-    /* ---- A grelha do dia ---- */
-    .ck-tabela { background: #fff; border-collapse: separate; border-spacing: 0; }
-    .ck-tabela thead th { border-top: 0; border-bottom: 2px solid #eef2f7; background: #fff; padding: .5rem .6rem;
-                          font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: #64748b; }
-    .ck-tabela thead th .t { display: block; margin-top: .1rem; font-size: .68rem; font-weight: 600;
-                             text-transform: none; letter-spacing: 0; color: #94a3b8; }
-    .ck-tabela thead th.minha { color: #0f4c81; }
-    .ck-tabela thead th.fora { color: #cbd5e1; }
-    .ck-tabela .ck-col { text-align: center; width: 17rem; border-left: 1px solid #f1f5f9; }
-    @media (max-width: 991px) { .ck-tabela .ck-col { width: 11rem; } }
+    /* ---- A grelha do dia: cada tarefa é um cartão ---- */
+    .ck-grelha { --n: 2; }
+    .ck-cab, .ck-linha { display: grid; grid-template-columns: minmax(0, 1fr) repeat(var(--n), 11.5rem); align-items: center; }
+    .ck-cab { padding: 0 .9rem .45rem calc(.9rem + 5px); }
+    .ck-cab .pessoa { text-align: center; font-size: .74rem; font-weight: 800; text-transform: uppercase;
+                      letter-spacing: .05em; color: #64748b; }
+    .ck-cab .pessoa .t { display: block; font-size: .68rem; font-weight: 600; text-transform: none;
+                         letter-spacing: 0; color: #a9b6c6; }
+    .ck-cab .pessoa.minha { color: #0f4c81; }
+    .ck-cab .pessoa.fora { color: #c6d0dc; }
+    .ck-cab .nl { display: flex; align-items: center; justify-content: center; gap: .32rem; }
+    .ck-cab .ponto { width: 9px; height: 9px; border-radius: 50%; background: var(--c); flex: 0 0 9px; }
+    .ck-cab .tarefa { font-size: .74rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: #64748b; }
 
-    .ck-tabela tbody tr { --fundo: #fff; }
-    .ck-tabela tbody tr.feita { --fundo: #f6fdf8; }
-    .ck-tabela tbody tr.problema { --fundo: #fffbf2; }
-    .ck-tabela tbody tr:hover { --fundo: #f7fbff; }
-    .ck-tabela tbody td { background: var(--fundo); border-top: 1px solid #eef2f7; vertical-align: middle;
-                          transition: background .12s; }
-    .ck-tabela td.minha { --fundo: #f2f8ff; }
-    .ck-tabela tr.feita td.minha { --fundo: #edfaf1; }
-    .ck-tabela tr.problema td.minha { --fundo: #fff6e7; }
-    /* O nome da tarefa fica à vista quando se arrasta a tabela ao lado, no telemóvel */
-    .ck-tabela th:first-child, .ck-tabela td:first-child { position: sticky; left: 0; z-index: 2; min-width: 14rem; }
-    /* A barra da esquerda tem a cor do turno */
-    .ck-tabela td.ck-tarefa { border-left: 5px solid var(--turno, #e2e8f0); }
-
-    .ck-tarefa .titulo { font-weight: 600; color: #0f172a; }
-    .ck-tabela tr.feita .ck-tarefa .titulo { color: #166534; }
-    /* Tarefa de um turno que hoje ninguém faz: não deve competir com as que interessam */
-    .ck-tabela tr.nada .ck-tarefa .titulo { color: #94a3b8; font-weight: 500; }
-    .ck-tabela tr.nada td.ck-tarefa { border-left-color: #eef2f7; }
-    .ck-tarefa .nota { display: inline-block; max-width: 38rem; font-size: .82rem; color: #475569; background: #f1f5f9;
-                       border-left: 3px solid #cbd5e1; border-radius: 0 7px 7px 0; padding: .22rem .55rem;
-                       margin-top: .35rem; white-space: pre-wrap; }
-    .ck-tarefa .nota i { color: #94a3b8; margin-right: .15rem; }
+    .ck-linha { position: relative; background: #fff; border: 1px solid #e9eff6; border-left: 5px solid var(--turno, #cbd5e1);
+                border-radius: 13px; padding: .6rem .9rem; margin-bottom: .55rem;
+                box-shadow: 0 1px 2px rgba(15, 23, 42, .05); transition: box-shadow .15s, transform .15s; }
+    .ck-linha:hover { box-shadow: 0 7px 18px rgba(15, 23, 42, .09); transform: translateY(-1px); }
+    .ck-linha.feita { background: linear-gradient(100deg, #eefbf2, #fff 45%); border-color: #d8f0e1; }
+    .ck-linha.problema { background: linear-gradient(100deg, #fff7e8, #fff 45%); border-color: #fbe6bf; }
+    .ck-linha.nada { background: #fbfcfe; border-color: #eef2f7; border-left-color: #e8edf3; }
+    .ck-linha .tarefa { min-width: 0; padding-right: .8rem; }
+    .ck-linha .titulo { font-weight: 700; color: #0f172a; }
+    .ck-linha.feita .titulo { color: #15803d; }
+    .ck-linha.nada .titulo { color: #9fb0c2; font-weight: 600; }
+    .ck-linha .nota { display: inline-block; max-width: 40rem; font-size: .81rem; color: #475569;
+                      background: #f1f5f9; border-left: 3px solid #cbd5e1; border-radius: 0 7px 7px 0;
+                      padding: .2rem .55rem; margin-top: .35rem; white-space: pre-wrap; }
+    .ck-linha .nota i { color: #94a3b8; margin-right: .15rem; }
+    .ck-celula { text-align: center; border-left: 1px dashed #eef2f7; padding: .15rem .3rem; align-self: stretch;
+                 display: flex; align-items: center; justify-content: center; gap: .2rem; }
+    .ck-celula.minha { background: #f1f7ff; border-radius: 10px; border-left-color: #dceaf8; }
+    .ck-linha.feita .ck-celula.minha { background: #eafaf0; }
+    .ck-linha.problema .ck-celula.minha { background: #fff5e4; }
 
     /* Etiquetas de turno e de dias: cheias de cor, para se lerem de longe */
     .ck-eti { display: inline-flex; align-items: center; gap: .22rem; font-size: .67rem; font-weight: 800;
@@ -85,33 +89,49 @@
               color: #fff; background: var(--c, #64748b); white-space: nowrap; vertical-align: middle; }
     .ck-eti.clara { color: var(--c); background: #fff; border: 1px solid currentColor; }
 
-    /* ---- As células ---- */
+    /* ---- O estado de cada célula ---- */
     .ck-feito, .ck-problema, .ck-falhou { display: inline-flex; align-items: center; gap: .3rem; font-size: .8rem;
                                           font-weight: 700; border-radius: 8px; padding: .18rem .55rem; }
     .ck-feito { background: #dcfce7; color: #15803d; }
     .ck-problema { background: #fef3c7; color: #b45309; }
     .ck-falhou { background: #fee2e2; color: #b91c1c; }
     .ck-vazio { color: #cbd5e1; }
-    .ck-btn { border: 1px solid #bbf7d0; background: #f0fdf4; color: #15803d; border-radius: 8px; font-size: .8rem;
-              font-weight: 700; padding: .25rem .75rem; box-shadow: 0 1px 2px rgba(15, 23, 42, .07); transition: all .12s; }
-    .ck-btn:hover { background: #15803d; border-color: #15803d; color: #fff; }
-    .ck-btn.prob { border-color: #fde68a; background: #fffbeb; color: #b45309; padding: .25rem .5rem; margin-left: .2rem; }
-    .ck-btn.prob:hover { background: #b45309; border-color: #b45309; color: #fff; }
-    .ck-desfazer { border: 0; background: none; color: #cbd5e1; font-size: .7rem; padding: 0 .2rem; }
+    .ck-btn { border: 0; background: linear-gradient(#22c55e, #16a34a); color: #fff; border-radius: 9px; font-size: .8rem;
+              font-weight: 700; padding: .3rem .8rem; box-shadow: 0 2px 5px rgba(22, 163, 74, .3); transition: all .13s; }
+    .ck-btn:hover { background: linear-gradient(#16a34a, #15803d); box-shadow: 0 4px 10px rgba(22, 163, 74, .4); color: #fff; }
+    .ck-btn.prob { background: #fff; border: 1px solid #fbbf24; color: #b45309; padding: .3rem .55rem;
+                   box-shadow: none; }
+    .ck-btn.prob:hover { background: #f59e0b; border-color: #f59e0b; color: #fff; }
+    .ck-desfazer { border: 0; background: none; color: #cbd5e1; font-size: .72rem; padding: 0 .1rem; }
     .ck-desfazer:hover { color: #dc2626; }
-    .ck-tabela form { display: inline-block; margin: 0; }
+    .ck-linha form { display: inline-block; margin: 0; }
 
-    /* O que correu mal fica numa faixa por baixo da linha, não espremido na célula */
-    .ck-notas td { border-top: 0 !important; padding-top: 0 !important; }
+    /* O que correu mal ocupa a largura toda do cartão */
+    .ck-notas { grid-column: 1 / -1; margin-top: .55rem; }
     .ck-nota-prob { display: flex; flex-wrap: wrap; gap: .1rem .5rem; align-items: baseline; font-size: .85rem;
                     color: #92400e; background: #fffbeb; border: 1px solid #fde68a; border-left: 4px solid #f59e0b;
-                    border-radius: 8px; padding: .4rem .7rem; margin-bottom: .35rem; }
+                    border-radius: 9px; padding: .4rem .7rem; }
+    .ck-nota-prob + .ck-nota-prob { margin-top: .3rem; }
     .ck-nota-prob i { color: #f59e0b; }
     .ck-nota-prob .quem { font-weight: 800; white-space: nowrap; }
     .ck-nota-prob .texto { white-space: pre-wrap; word-break: break-word; }
 
-    .ck-legenda { display: flex; flex-wrap: wrap; gap: .2rem 1.1rem; padding: .45rem .9rem;
-                  border-top: 1px solid #eef2f7; font-size: .74rem; color: #94a3b8; }
+    .ck-nada { text-align: center; color: #94a3b8; padding: 2rem 1rem; background: #fff; border: 1px dashed #dbe3ec;
+               border-radius: 13px; }
+
+    /* No telemóvel os cartões empilham e cada célula diz de quem é */
+    @media (max-width: 767px) {
+        .ck-cab { display: none; }
+        .ck-linha { grid-template-columns: 1fr; }
+        .ck-celula { border-left: 0; border-top: 1px dashed #e9eff6; justify-content: space-between;
+                     margin-top: .45rem; padding-top: .45rem; border-radius: 0; }
+        .ck-celula::before { content: attr(data-quem); font-size: .72rem; font-weight: 800; text-transform: uppercase;
+                             letter-spacing: .04em; color: #94a3b8; }
+        .ck-celula.minha { background: none; }
+    }
+
+    .ck-legenda { display: flex; flex-wrap: wrap; gap: .2rem 1.1rem; padding: .1rem .9rem;
+                  font-size: .74rem; color: #94a3b8; }
     .ck-legenda i { margin-right: .15rem; }
 
     /* ---- A lista toda, só para a chefia ---- */
@@ -141,8 +161,9 @@
     /* ---- Histórico ---- */
     .ck-hist td, .ck-hist th { padding: .3rem .5rem; font-size: .82rem; text-align: center; }
     .ck-hist td:first-child, .ck-hist th:first-child { text-align: left; white-space: nowrap; }
-    .ck-hist .ok { color: #15803d; font-weight: 700; }
-    .ck-hist .mau { color: #b91c1c; font-weight: 700; }
+    .ck-hist .ok, .ck-hist .mau { display: inline-block; border-radius: 999px; padding: .02rem .5rem; font-weight: 800; font-size: .78rem; }
+    .ck-hist .ok { color: #15803d; background: #dcfce7; }
+    .ck-hist .mau { color: #b91c1c; background: #fee2e2; }
     .ck-hist .folga { color: #cbd5e1; }
     .ck-hist tr.hoje { background: #f2f8ff; }
     .ck-hist tr.fds td:first-child { color: #0d9488; font-weight: 700; }
@@ -230,102 +251,97 @@
     </div>
 @endif
 
-<div class="card mb-3">
-    <div class="table-responsive">
-        <table class="table table-sm mb-0 ck-tabela">
-            <thead>
-                <tr>
-                    <th>{{ __('Tarefa') }}</th>
-                    @foreach($colunas as $uid => $col)
-                        <th class="ck-col {{ $uid === $eu && $col['turno'] ? 'minha' : '' }} {{ $col['turno'] ? '' : 'fora' }}">
-                            {{ $uid === $eu ? __('Eu') : $col['user']->name }}
-                            <span class="t">{{ $col['turno'] ? $col['horas'] : ($col['curto'] ?? __('Sem turno')) }}</span>
-                        </th>
-                    @endforeach
-                </tr>
-            </thead>
-            <tbody>
-            @forelse($itens as $item)
-                <tr class="{{ $estados[$item->id] ?? 'nada' }}">
-                    <td class="ck-tarefa" style="--turno: {{ $item->turnoConfig()['cor'] }}">
-                        <span class="titulo">{{ $item->titulo }}</span>
-                        @if($item->turno !== 'ambos')
-                            <span class="ck-eti" style="--c: {{ $item->turnoConfig()['cor'] }}">
-                                <i class="fas {{ $item->turnoConfig()['icon'] }}"></i> {{ __($item->turnoConfig()['curto']) }}
-                            </span>
-                        @endif
-                        @if($item->nota)
-                            <div class="nota"><i class="fas fa-info-circle"></i> {{ $item->nota }}</div>
-                        @endif
-                    </td>
-
-                    @foreach($colunas as $uid => $col)
-                        @php($quem = $col['turno'] ? $col['user'] : null)
-                        @php($check = $quem ? ($checks[$item->id . '_' . $quem->id] ?? null) : null)
-                        @php($souEu = $hoje && $quem && $quem->id === $eu && $meuTurno)
-                        <td class="ck-col {{ $uid === $eu && $col['turno'] ? 'minha' : '' }}">
-                            @if(!$quem)
-                                <span class="ck-vazio">—</span>
-                            @elseif(!$item->doTurno($col['turno']))
-                                <span class="ck-vazio" title="{{ __('Não é do turno dele hoje') }}">·</span>
-                            @elseif($check)
-                                <span class="{{ $check->isProblema() ? 'ck-problema' : 'ck-feito' }}"
-                                      title="{{ $check->isProblema() ? __('Houve um problema') : __('Validada.') }} {{ $check->hora() }}">
-                                    <i class="fas {{ $check->isProblema() ? 'fa-exclamation-triangle' : 'fa-check' }}"></i> {{ $check->hora() }}
-                                </span>
-                                @if($souEu)
-                                    <form method="POST" action="{{ route('backoffice.checklist.desfazer', $item->id) }}">
-                                        @csrf
-                                        <button type="submit" class="ck-desfazer" title="{{ __('Desfazer') }}"><i class="fa fa-times"></i></button>
-                                    </form>
-                                @endif
-                            @elseif($souEu)
-                                <form method="POST" action="{{ route('backoffice.checklist.validar', $item->id) }}">
-                                    @csrf<input type="hidden" name="estado" value="feito">
-                                    <button type="submit" class="ck-btn"><i class="fa fa-check"></i> {{ __('Validar') }}</button>
-                                </form>
-                                <button type="button" class="ck-btn prob" data-toggle="modal" data-target="#ck-problema"
-                                        data-id="{{ $item->id }}" data-titulo="{{ $item->titulo }}"
-                                        title="{{ __('Houve um problema') }}"><i class="fa fa-exclamation-triangle"></i></button>
-                            @elseif($dia->isPast() && !$dia->isToday())
-                                <span class="ck-falhou"><i class="fa fa-times"></i> {{ __('Por validar') }}</span>
-                            @else
-                                <span class="ck-vazio">—</span>
-                            @endif
-                        </td>
-                    @endforeach
-                </tr>
-                @if(isset($notas[$item->id]))
-                    <tr class="ck-notas">
-                        <td colspan="{{ 1 + $colunas->count() }}">
-                            @foreach($notas[$item->id] as $nota)
-                                <div class="ck-nota-prob">
-                                    <i class="fas fa-exclamation-triangle"></i>
-                                    <span class="quem">{{ $nota->user->name ?? '—' }}, {{ $nota->hora() }}</span>
-                                    <span class="texto">{{ $nota->nota }}</span>
-                                </div>
-                            @endforeach
-                        </td>
-                    </tr>
-                @endif
-            @empty
-                <tr>
-                    <td colspan="{{ 1 + $colunas->count() }}" class="text-center text-muted py-4">
-                        @if($dia->isPast() && !$hoje)
-                            {{ __('Nesse dia ainda não havia nada na checklist.') }}
-                        @elseif($listaToda->isNotEmpty())
-                            {{ __('Não há nada para este dia.') }}
-                            @if($dia->isWeekend()) {{ __('As tarefas da lista são para dias de semana.') }} @endif
-                        @else
-                            {{ __('A checklist ainda está vazia.') }}
-                            @if($gestor) {{ __('Acrescente a primeira tarefa aqui em baixo.') }} @endif
-                        @endif
-                    </td>
-                </tr>
-            @endforelse
-            </tbody>
-        </table>
+<div class="ck-grelha mb-3" style="--n: {{ $colunas->count() }}">
+    <div class="ck-cab">
+        <div class="tarefa">{{ __('Tarefa') }}</div>
+        @foreach($colunas as $uid => $col)
+            <div class="pessoa {{ $uid === $eu && $col['turno'] ? 'minha' : '' }} {{ $col['turno'] ? '' : 'fora' }}">
+                <span class="nl">
+                    <span class="ponto" style="--c: {{ $col['turno'] ? \App\Services\HotlineRotation::COLORS[$loop->index % count(\App\Services\HotlineRotation::COLORS)] : '#dbe3ec' }}"></span>
+                    {{ $uid === $eu ? __('Eu') : $col['user']->name }}
+                </span>
+                <span class="t">{{ $col['turno'] ? $col['horas'] : ($col['curto'] ?? __('Sem turno')) }}</span>
+            </div>
+        @endforeach
     </div>
+
+    @forelse($itens as $item)
+        <div class="ck-linha {{ $estados[$item->id] ?? 'nada' }}" style="--turno: {{ $item->turnoConfig()['cor'] }}">
+            <div class="tarefa">
+                <span class="titulo">{{ $item->titulo }}</span>
+                @if($item->turno !== 'ambos')
+                    <span class="ck-eti" style="--c: {{ $item->turnoConfig()['cor'] }}">
+                        <i class="fas {{ $item->turnoConfig()['icon'] }}"></i> {{ __($item->turnoConfig()['curto']) }}
+                    </span>
+                @endif
+                @if($item->nota)
+                    <div class="nota"><i class="fas fa-info-circle"></i> {{ $item->nota }}</div>
+                @endif
+            </div>
+
+            @foreach($colunas as $uid => $col)
+                @php($quem = $col['turno'] ? $col['user'] : null)
+                @php($check = $quem ? ($checks[$item->id . '_' . $quem->id] ?? null) : null)
+                @php($souEu = $hoje && $quem && $quem->id === $eu && $meuTurno)
+                <div class="ck-celula {{ $uid === $eu && $col['turno'] ? 'minha' : '' }}"
+                     data-quem="{{ $uid === $eu ? __('Eu') : $col['user']->name }}">
+                    @if(!$quem)
+                        <span class="ck-vazio">—</span>
+                    @elseif(!$item->doTurno($col['turno']))
+                        <span class="ck-vazio" title="{{ __('Não é do turno dele hoje') }}">·</span>
+                    @elseif($check)
+                        <span class="{{ $check->isProblema() ? 'ck-problema' : 'ck-feito' }}"
+                              title="{{ $check->isProblema() ? __('Houve um problema') : __('Validada.') }} {{ $check->hora() }}">
+                            <i class="fas {{ $check->isProblema() ? 'fa-exclamation-triangle' : 'fa-check' }}"></i> {{ $check->hora() }}
+                        </span>
+                        @if($souEu)
+                            <form method="POST" action="{{ route('backoffice.checklist.desfazer', $item->id) }}">
+                                @csrf
+                                <button type="submit" class="ck-desfazer" title="{{ __('Desfazer') }}"><i class="fa fa-times"></i></button>
+                            </form>
+                        @endif
+                    @elseif($souEu)
+                        <form method="POST" action="{{ route('backoffice.checklist.validar', $item->id) }}">
+                            @csrf<input type="hidden" name="estado" value="feito">
+                            <button type="submit" class="ck-btn"><i class="fa fa-check"></i> {{ __('Validar') }}</button>
+                        </form>
+                        <button type="button" class="ck-btn prob" data-toggle="modal" data-target="#ck-problema"
+                                data-id="{{ $item->id }}" data-titulo="{{ $item->titulo }}"
+                                title="{{ __('Houve um problema') }}"><i class="fa fa-exclamation-triangle"></i></button>
+                    @elseif($dia->isPast() && !$dia->isToday())
+                        <span class="ck-falhou"><i class="fa fa-times"></i> {{ __('Por validar') }}</span>
+                    @else
+                        <span class="ck-vazio">—</span>
+                    @endif
+                </div>
+            @endforeach
+
+            @if(isset($notas[$item->id]))
+                <div class="ck-notas">
+                    @foreach($notas[$item->id] as $nota)
+                        <div class="ck-nota-prob">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span class="quem">{{ $nota->user->name ?? '—' }}, {{ $nota->hora() }}</span>
+                            <span class="texto">{{ $nota->nota }}</span>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+    @empty
+        <div class="ck-nada">
+            @if($dia->isPast() && !$hoje)
+                {{ __('Nesse dia ainda não havia nada na checklist.') }}
+            @elseif($listaToda->isNotEmpty())
+                {{ __('Não há nada para este dia.') }}
+                @if($dia->isWeekend()) {{ __('As tarefas da lista são para dias de semana.') }} @endif
+            @else
+                {{ __('A checklist ainda está vazia.') }}
+                @if($gestor) {{ __('Acrescente a primeira tarefa aqui em baixo.') }} @endif
+            @endif
+        </div>
+    @endforelse
+
     @if($itens->isNotEmpty())
         <div class="ck-legenda">
             <span><i class="fa fa-check text-success"></i> {{ __('validada') }}</span>
@@ -337,7 +353,7 @@
 </div>
 
 @if($gestor)
-    <div class="card mb-3">
+    <div class="card ck-cartao mb-3">
         <div class="card-body">
             <div class="ck-titulo-cartao">
                 <i class="fa fa-list-check"></i> {{ __('A lista toda') }}
@@ -427,7 +443,7 @@
     </div>
 @endif
 
-<div class="card">
+<div class="card ck-cartao">
     <div class="card-body">
         <div class="ck-titulo-cartao"><i class="fa fa-history"></i> {{ __('Últimos :n dias', ['n' => count($historico['dias'])]) }}</div>
         <p class="ck-sub-cartao">{{ __('Clique num dia para o ver em pormenor.') }}</p>

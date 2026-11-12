@@ -9,9 +9,9 @@ class HotlineChecklistItem extends Model
 {
     /** A que turno se aplica. Quem entra às 08:00 não faz o fecho das 20:00. */
     public const TURNOS = [
-        'ambos' => ['label' => 'Os dois turnos', 'curto' => 'Sempre', 'icon' => 'fa-clock', 'cor' => '#475569'],
-        'manha' => ['label' => 'Turno da manhã', 'curto' => 'Manhã', 'icon' => 'fa-sun', 'cor' => '#b45309'],
-        'tarde' => ['label' => 'Turno da tarde', 'curto' => 'Tarde', 'icon' => 'fa-moon', 'cor' => '#4338ca'],
+        'ambos' => ['label' => 'Os dois turnos', 'curto' => 'Sempre', 'icon' => 'fa-clock', 'cor' => '#0f4c81'],
+        'manha' => ['label' => 'Turno da manhã', 'curto' => 'Manhã', 'icon' => 'fa-sun', 'cor' => '#ea8c00'],
+        'tarde' => ['label' => 'Turno da tarde', 'curto' => 'Tarde', 'icon' => 'fa-moon', 'cor' => '#7c3aed'],
     ];
 
     /** Em que dias é que a tarefa se faz. Ao fim de semana o trabalho é outro. */
