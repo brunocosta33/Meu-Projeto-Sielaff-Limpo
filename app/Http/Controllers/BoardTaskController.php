@@ -21,6 +21,9 @@ class BoardTaskController extends Controller
     /** Quantos dias de tarefas feitas ficam à vista antes de se pedir "ver tudo". */
     private const DIAS_FEITAS = 14;
 
+    /** Quem acompanha a Hotline toda, além da própria Hotline. */
+    private const ACOMPANHAM_HOTLINE = ['coordenador', 'country_manager'];
+
     public function index(Request $request)
     {
         $this->guard();
@@ -251,7 +254,7 @@ class BoardTaskController extends Controller
      * uma tarefa passa a ser vista por outra pessoa quando lha dão ou lha passam.
      *
      * Em concreto, vê-se uma tarefa se:
-     *  - está em mãos de quem a está a ver (a Hotline conta como equipa: veem-se uns aos outros);
+     *  - está em mãos de quem a está a ver, ou da equipa que acompanha (ver abaixo);
      *  - foi essa pessoa que a deu a alguém;
      *  - foi essa pessoa que a passou a alguém — para não perder de vista o que entregou.
      */
@@ -259,16 +262,27 @@ class BoardTaskController extends Controller
     {
         $eu = auth()->id();
 
-        // A Hotline trabalha em equipa e pega nos tickets uns dos outros;
-        // o resto do escritório só vê o que lhe está nas mãos
-        $meus = HrAccess::staffOf(auth()->user())?->funcao === 'hotliner'
-            ? HrStaff::where('ativo', true)->where('funcao', 'hotliner')->pluck('user_id')->all()
-            : [$eu];
+        // A Hotline trabalha em equipa e pega nos tickets uns dos outros, e a chefia
+        // acompanha a Hotline toda. Fora disso, cada um só vê o que tem nas mãos:
+        // as tarefas da Administrativa, por exemplo, são só dela.
+        $funcao = HrAccess::staffOf(auth()->user())?->funcao;
+
+        $meus = match (true) {
+            $funcao === 'hotliner' => $this->hotline(),
+            in_array($funcao, self::ACOMPANHAM_HOTLINE, true) => array_merge([$eu], $this->hotline()),
+            default => [$eu],
+        };
 
         return $query->where(fn ($q) => $q
             ->whereIn('assigned_to', $meus)
             ->orWhere('created_by', $eu)
             ->orWhereHas('comments', fn ($c) => $c->where('tipo', 'passagem')->where('user_id', $eu)));
+    }
+
+    /** Quem está na Hotline, por utilizador. */
+    private function hotline(): array
+    {
+        return HrStaff::where('ativo', true)->where('funcao', 'hotliner')->pluck('user_id')->all();
     }
 
     /** A tarefa existe e quem está a ver pode mesmo vê-la. */
