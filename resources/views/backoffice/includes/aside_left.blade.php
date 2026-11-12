@@ -18,6 +18,7 @@ use App\Models\Base;
 
         @php($isTechnician = Auth::user()->hasRole('user'))
         @php($quadroPorFazer = $isTechnician ? 0 : \App\Models\BoardTask::where('assigned_to', Auth::id())->where('estado', '!=', 'feito')->count())
+        @php($checklistPorValidar = (!$isTechnician && \App\Services\HrAccess::staffOf(Auth::user())?->funcao === 'hotliner') ? \App\Services\HotlineChecklist::porValidar(Auth::user()) : 0)
 
         @if($isTechnician)
         <li>
@@ -50,6 +51,13 @@ use App\Models\Base;
                 <i class="fas fa-clipboard-check me-2"></i>
                 <span class="hidden-sm-down">{{ __('Quadro') }}</span>
                 @if($quadroPorFazer)<span class="badge badge-pill badge-danger ml-1">{{ $quadroPorFazer }}</span>@endif
+            </a>
+        </li>
+        <li>
+            <a href="{{ route('backoffice.checklist.index') }}">
+                <i class="fas fa-clipboard-list me-2"></i>
+                <span class="hidden-sm-down">{{ __('Checklist') }}</span>
+                @if($checklistPorValidar)<span class="badge badge-pill badge-danger ml-1">{{ $checklistPorValidar }}</span>@endif
             </a>
         </li>
         <li>

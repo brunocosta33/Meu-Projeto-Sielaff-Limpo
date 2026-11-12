@@ -30,6 +30,7 @@ use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\BoardTaskController;
+use App\Http\Controllers\HotlineChecklistController;
 use App\Http\Controllers\TaskScheduleController;
 use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\MachineController;
@@ -325,6 +326,17 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
         Route::post('/{id}/passar', [BoardTaskController::class, 'reassign'])->name('reassign');
         Route::post('/{id}/responder', [BoardTaskController::class, 'comment'])->name('comment');
         Route::delete('/{id}', [BoardTaskController::class, 'destroy'])->name('destroy');
+    });
+
+    // Checklist diaria da Hotline: a lista e da chefia, a validacao e de quem esta de servico
+    Route::prefix('backoffice/checklist')->name('backoffice.checklist.')->group(function () {
+        Route::get('/', [HotlineChecklistController::class, 'index'])->name('index');
+        Route::post('/', [HotlineChecklistController::class, 'store'])->name('store');
+        Route::put('/{id}', [HotlineChecklistController::class, 'update'])->name('update');
+        Route::post('/{id}/ordem', [HotlineChecklistController::class, 'ordem'])->name('ordem');
+        Route::post('/{id}/validar', [HotlineChecklistController::class, 'validar'])->name('validar');
+        Route::post('/{id}/desfazer', [HotlineChecklistController::class, 'desfazer'])->name('desfazer');
+        Route::delete('/{id}', [HotlineChecklistController::class, 'destroy'])->name('destroy');
     });
 
     // Entregas a Tecnicos: registo proprio de pecas e ferramentas, independente do stock
