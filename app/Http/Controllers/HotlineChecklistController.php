@@ -55,12 +55,37 @@ class HotlineChecklistController extends Controller
             return ['total' => $aplica->count(), 'feitas' => $feitas->count()];
         });
 
+        // O estado de cada linha, para a tabela se ler de relance: tudo feito,
+        // feito mas com problema, ou ainda por validar
+        $estados = $itens->mapWithKeys(function (HotlineChecklistItem $i) use ($colunas, $checks) {
+            $deQuem = $colunas->filter(fn (array $c) => $c['turno'] && $i->doTurno($c['turno']));
+
+            if ($deQuem->isEmpty()) {
+                return [$i->id => 'nada'];
+            }
+
+            $feitas = $deQuem->map(fn (array $c) => $checks->get($i->id . '_' . $c['user']->id));
+
+            return [$i->id => match (true) {
+                $feitas->contains(null) => 'aberta',
+                $feitas->contains(fn ($ch) => $ch->isProblema()) => 'problema',
+                default => 'feita',
+            }];
+        });
+
+        // Os problemas do dia saem da célula e vão para uma faixa debaixo da linha,
+        // que é onde se leem mesmo
+        $notas = $checks->filter(fn (HotlineChecklistCheck $c) => $c->isProblema() && $c->nota)
+            ->groupBy('item_id');
+
         return view('backoffice.hotline.checklist.index', [
             'dia' => $dia,
             'hoje' => $dia->isToday(),
             'colunas' => $colunas,
             'resumo' => $resumo,
             'itens' => $itens,
+            'estados' => $estados,
+            'notas' => $notas,
             'checks' => $checks,
             'turnos' => HotlineChecklistItem::TURNOS,
             // O turno de quem está a ver: null se hoje não é dia dele

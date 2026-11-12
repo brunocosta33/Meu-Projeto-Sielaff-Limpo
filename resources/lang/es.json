@@ -1,4 +1,13 @@
 {
+    "Hoje não tem nada na sua lista.": "Hoy no tiene nada en su lista.",
+    "Falta :n por validar — vá validando à medida que for fazendo.|Faltam :n por validar — vá validando à medida que for fazendo.": "Falta :n por validar — vaya validando a medida que lo haga.|Faltan :n por validar — vaya validando a medida que lo haga.",
+    "Está tudo validado. Bom trabalho.": "Está todo validado. Buen trabajo.",
+    "validada": "validada",
+    "com problema": "con problema",
+    "não é do turno dessa pessoa": "no es del turno de esa persona",
+    "não está de serviço": "no está de servicio",
+    "Nova tarefa na checklist": "Nueva tarea en la lista",
+    "Fica a aparecer todos os dias a quem estiver no turno escolhido.": "Aparecerá todos los días a quien esté en el turno elegido.",
     "Trocou": "Cambió",
     "Substituído": "Sustituido",
     "no turno de :nome": "en el turno de :nome",

@@ -1,4 +1,13 @@
 {
+  "Hoje não tem nada na sua lista.": "Heute steht nichts auf Ihrer Liste.",
+  "Falta :n por validar — vá validando à medida que for fazendo.|Faltam :n por validar — vá validando à medida que for fazendo.": "Noch :n abzuhaken — haken Sie ab, sobald es erledigt ist.|Noch :n abzuhaken — haken Sie ab, sobald es erledigt ist.",
+  "Está tudo validado. Bom trabalho.": "Alles abgehakt. Gute Arbeit.",
+  "validada": "abgehakt",
+  "com problema": "mit Problem",
+  "não é do turno dessa pessoa": "nicht in der Schicht dieser Person",
+  "não está de serviço": "kein Dienst",
+  "Nova tarefa na checklist": "Neue Aufgabe in der Checkliste",
+  "Fica a aparecer todos os dias a quem estiver no turno escolhido.": "Sie erscheint täglich für alle in der gewählten Schicht.",
   "Trocou": "Getauscht",
   "Substituído": "Vertreten",
   "no turno de :nome": "in der Schicht von :nome",

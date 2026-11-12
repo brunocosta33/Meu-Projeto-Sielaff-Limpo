@@ -10,7 +10,7 @@
 <style>
     .ck-topo { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; }
     .ck-dias { display: flex; align-items: center; gap: .35rem; }
-    .ck-dias .data { font-weight: 700; color: #0f172a; min-width: 12.5rem; text-align: center; text-transform: capitalize; }
+    .ck-dias .data { font-weight: 700; color: #0f172a; min-width: 12.5rem; text-align: center; }
     .ck-seta { border: 1px solid #e2e8f0; background: #fff; color: #475569; border-radius: 8px; padding: .15rem .5rem; }
     .ck-seta:hover { background: #f1f5f9; color: #0f172a; }
 
@@ -29,45 +29,93 @@
     .ck-barra span { display: block; height: 100%; background: #16a34a; }
     .ck-barra.falta span { background: #f59e0b; }
 
-    .ck-tabela { background: #fff; }
-    .ck-tabela th { border-top: 0; font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: #64748b; }
-    .ck-tabela td { vertical-align: middle; }
-    .ck-tabela .ck-col { text-align: center; width: 14rem; }
-    .ck-tabela tr.arrastada td { background: #f8fafc; }
+    /* A tabela do dia */
+    .ck-tabela { background: #fff; border-collapse: separate; border-spacing: 0; }
+    .ck-tabela thead th { border-top: 0; border-bottom: 2px solid #eef2f7; background: #fff; padding: .45rem .6rem;
+                          font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: #64748b; }
+    .ck-tabela thead th .t { display: block; margin-top: .1rem; font-size: .68rem; font-weight: 600;
+                             text-transform: none; letter-spacing: 0; color: #94a3b8; }
+    .ck-tabela thead th.minha { color: #0f4c81; }
+    .ck-tabela thead th.fora { color: #cbd5e1; }
+    .ck-tabela .ck-col { text-align: center; width: 17rem; border-left: 1px solid #f1f5f9; }
+    @media (max-width: 991px) { .ck-tabela .ck-col { width: 11rem; } }
+
+    /* A linha diz-se de relance pela cor: feita, com problema, ou ainda aberta */
+    .ck-tabela tbody tr { --fundo: #fff; }
+    .ck-tabela tbody tr.feita { --fundo: #f7fdf9; }
+    .ck-tabela tbody tr.problema { --fundo: #fffbf2; }
+    .ck-tabela tbody tr:hover { --fundo: #f7fbff; }
+    .ck-tabela tbody td { background: var(--fundo); border-top: 1px solid #eef2f7; vertical-align: middle;
+                          transition: background .12s; }
+    .ck-tabela td.minha { --fundo: #f2f8ff; }
+    .ck-tabela tr.feita td.minha { --fundo: #eefaf1; }
+    .ck-tabela tr.problema td.minha { --fundo: #fff6e7; }
+    /* O nome da tarefa fica à vista quando se arrasta a tabela ao lado, no telemóvel */
+    .ck-tabela th:first-child, .ck-tabela td:first-child { position: sticky; left: 0; z-index: 2; min-width: 14rem; }
+
     .ck-tarefa .titulo { font-weight: 600; color: #0f172a; }
-    .ck-tarefa .nota { font-size: .79rem; color: #64748b; white-space: pre-wrap; margin-top: .15rem; }
+    .ck-tabela tr.feita .ck-tarefa .titulo { color: #166534; }
+    .ck-tabela tr.nada .ck-tarefa .titulo { color: #94a3b8; font-weight: 500; }
+    .ck-tarefa .nota { display: inline-block; max-width: 38rem; font-size: .82rem; color: #475569; background: #f1f5f9;
+                       border-left: 3px solid #cbd5e1; border-radius: 0 7px 7px 0; padding: .22rem .55rem;
+                       margin-top: .35rem; white-space: pre-wrap; }
+    .ck-tarefa .nota i { color: #94a3b8; margin-right: .15rem; }
     .ck-turno { font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em;
-                border-radius: 5px; padding: .05rem .35rem; background: #f1f5f9; color: var(--c, #475569); border: 1px solid currentColor; }
+                border-radius: 5px; padding: .05rem .35rem; background: #f8fafc; color: var(--c, #475569);
+                border: 1px solid currentColor; white-space: nowrap; }
     .ck-ordem { display: inline-flex; flex-direction: column; gap: 1px; margin-right: .5rem; vertical-align: middle; }
     .ck-ordem button { border: 1px solid #e2e8f0; background: #fff; color: #94a3b8; line-height: 1; padding: 0 .3rem; font-size: .6rem; }
     .ck-ordem button:hover { color: #0f4c81; border-color: #0f4c81; }
-    .ck-linha-acoes { display: inline-flex; gap: .3rem; margin-left: .4rem; }
-    .ck-linha-acoes button { border: 0; background: none; color: #cbd5e1; padding: 0 .15rem; }
+    /* Discretos, mas sempre à vista: escondidos até passar o rato ninguém dava por eles */
+    .ck-linha-acoes { display: inline-flex; gap: .3rem; margin-left: .5rem; opacity: .45; transition: opacity .12s; }
+    .ck-tabela tr:hover .ck-linha-acoes { opacity: 1; }
+    .ck-linha-acoes button { border: 0; background: none; color: #94a3b8; padding: 0 .15rem; }
     .ck-linha-acoes button:hover { color: #0f4c81; }
     .ck-linha-acoes .apagar:hover { color: #dc2626; }
     .ck-tabela form { display: inline-block; margin: 0; }
 
-    /* A célula: o estado da tarefa para aquela pessoa, naquele dia */
-    .ck-feito, .ck-problema, .ck-falhou { display: inline-flex; align-items: center; gap: .3rem; font-size: .8rem; font-weight: 700;
-                                          border-radius: 7px; padding: .15rem .5rem; }
+    /* A célula: o estado daquela tarefa, para aquela pessoa, naquele dia */
+    .ck-feito, .ck-problema, .ck-falhou { display: inline-flex; align-items: center; gap: .3rem; font-size: .8rem;
+                                          font-weight: 700; border-radius: 7px; padding: .15rem .5rem; }
     .ck-feito { background: #dcfce7; color: #15803d; }
     .ck-problema { background: #fef3c7; color: #b45309; }
     .ck-falhou { background: #fee2e2; color: #b91c1c; }
     .ck-vazio { color: #cbd5e1; }
-    .ck-nota-prob { font-size: .75rem; color: #92400e; margin-top: .2rem; text-align: left; white-space: pre-wrap; }
-    .ck-btn { border: 1px solid #bbf7d0; background: #f0fdf4; color: #15803d; border-radius: 7px; font-size: .78rem;
-              font-weight: 700; padding: .18rem .6rem; }
+    .ck-btn { border: 1px solid #bbf7d0; background: #f0fdf4; color: #15803d; border-radius: 8px; font-size: .8rem;
+              font-weight: 700; padding: .25rem .75rem; box-shadow: 0 1px 2px rgba(15, 23, 42, .07); transition: all .12s; }
     .ck-btn:hover { background: #15803d; border-color: #15803d; color: #fff; }
-    .ck-btn.prob { border-color: #fde68a; background: #fffbeb; color: #b45309; padding: .18rem .45rem; }
+    .ck-btn.prob { border-color: #fde68a; background: #fffbeb; color: #b45309; padding: .25rem .5rem; margin-left: .2rem; }
     .ck-btn.prob:hover { background: #b45309; border-color: #b45309; color: #fff; }
     .ck-desfazer { border: 0; background: none; color: #cbd5e1; font-size: .7rem; padding: 0 .2rem; }
     .ck-desfazer:hover { color: #dc2626; }
+
+    /* O que correu mal fica numa faixa por baixo da linha, não espremido na célula */
+    .ck-notas td { border-top: 0 !important; padding-top: 0 !important; }
+    .ck-nota-prob { display: flex; flex-wrap: wrap; gap: .1rem .5rem; align-items: baseline; font-size: .85rem;
+                    color: #92400e; background: #fffbeb; border: 1px solid #fde68a; border-left: 4px solid #f59e0b;
+                    border-radius: 8px; padding: .4rem .7rem; margin-bottom: .35rem; }
+    .ck-nota-prob i { color: #f59e0b; }
+    .ck-nota-prob .quem { font-weight: 800; white-space: nowrap; }
+    .ck-nota-prob .texto { white-space: pre-wrap; word-break: break-word; }
+
+    /* A dica de quem está de serviço, e a legenda dos sinais */
+    .ck-dica { display: flex; align-items: center; gap: .45rem; margin-top: .9rem; border-radius: 10px;
+               padding: .5rem .85rem; font-size: .88rem; font-weight: 600;
+               background: #eff6ff; color: #1d4ed8; border: 1px solid #dbeafe; }
+    .ck-dica.ok { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+    .ck-legenda { display: flex; flex-wrap: wrap; gap: .2rem 1.1rem; padding: .45rem .9rem;
+                  border-top: 1px solid #eef2f7; font-size: .74rem; color: #94a3b8; }
+    .ck-legenda i { margin-right: .15rem; }
+    .ck-nova-titulo { font-size: .76rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em;
+                      color: #0f4c81; margin: .35rem 0 .5rem; }
+    .ck-nova-titulo span { display: block; font-size: .78rem; font-weight: 500; text-transform: none;
+                           letter-spacing: 0; color: #94a3b8; margin-top: .1rem; }
 
     .ck-aviso { border: 1px solid #fecaca; background: #fff5f5; color: #991b1b; border-radius: 10px; padding: .6rem .85rem; }
     .ck-aviso .t { font-weight: 800; }
 
     .ck-hist td, .ck-hist th { padding: .3rem .5rem; font-size: .82rem; text-align: center; }
-    .ck-hist td:first-child, .ck-hist th:first-child { text-align: left; text-transform: capitalize; white-space: nowrap; }
+    .ck-hist td:first-child, .ck-hist th:first-child { text-align: left; white-space: nowrap; }
     .ck-hist .ok { color: #15803d; font-weight: 700; }
     .ck-hist .mau { color: #b91c1c; font-weight: 700; }
     .ck-hist .folga { color: #cbd5e1; }
@@ -89,7 +137,7 @@
             <div class="ck-dias">
                 <a class="ck-seta" href="{{ route('backoffice.checklist.index', ['dia' => $dia->copy()->subDay()->toDateString()]) }}"
                    title="{{ __('Dia anterior') }}"><i class="fa fa-chevron-left"></i></a>
-                <span class="data">{{ $dia->isoFormat('dddd, D MMM YYYY') }}</span>
+                <span class="data">{{ \Illuminate\Support\Str::ucfirst($dia->isoFormat('dddd, D [de] MMMM')) }}</span>
                 <a class="ck-seta" href="{{ route('backoffice.checklist.index', ['dia' => $dia->copy()->addDay()->toDateString()]) }}"
                    title="{{ __('Dia seguinte') }}"><i class="fa fa-chevron-right"></i></a>
                 @unless($hoje)
@@ -127,6 +175,21 @@
                 </div>
             @endforeach
         </div>
+
+        @if($hoje && $meuTurno && isset($resumo[$eu]))
+            @php($meu = $resumo[$eu])
+            @php($faltam = $meu['total'] - $meu['feitas'])
+            <div class="ck-dica {{ $faltam > 0 ? '' : 'ok' }}">
+                @if($meu['total'] === 0)
+                    <i class="fas fa-mug-hot"></i> {{ __('Hoje não tem nada na sua lista.') }}
+                @elseif($faltam > 0)
+                    <i class="fas fa-hand-point-right"></i>
+                    {{ trans_choice('Falta :n por validar — vá validando à medida que for fazendo.|Faltam :n por validar — vá validando à medida que for fazendo.', $faltam, ['n' => $faltam]) }}
+                @else
+                    <i class="fas fa-check-circle"></i> {{ __('Está tudo validado. Bom trabalho.') }}
+                @endif
+            </div>
+        @endif
     </div>
 </div>
 
@@ -150,16 +213,20 @@
                 <tr>
                     <th>{{ __('Tarefa') }}</th>
                     @foreach($colunas as $uid => $col)
-                        <th class="ck-col">
+                        <th class="ck-col {{ $uid === $eu && $col['turno'] ? 'minha' : '' }} {{ $col['turno'] ? '' : 'fora' }}">
                             {{ $uid === $eu ? __('Eu') : $col['user']->name }}
-                            @unless($col['turno'])<i class="fa fa-moon text-muted ml-1" title="{{ $col['motivo'] }}"></i>@endunless
+                            @if($col['turno'])
+                                <span class="t">{{ $col['horas'] }}</span>
+                            @else
+                                <span class="t">{{ $col['curto'] ?? __('Sem turno') }}</span>
+                            @endif
                         </th>
                     @endforeach
                 </tr>
             </thead>
             <tbody>
             @forelse($itens as $item)
-                <tr>
+                <tr class="{{ $estados[$item->id] ?? 'nada' }}">
                     <td class="ck-tarefa">
                         @if($gestor)
                             <span class="ck-ordem">
@@ -192,20 +259,23 @@
                                 </form>
                             </span>
                         @endif
-                        @if($item->nota)<div class="nota">{{ $item->nota }}</div>@endif
+                        @if($item->nota)
+                            <div class="nota"><i class="fas fa-info-circle"></i> {{ $item->nota }}</div>
+                        @endif
                     </td>
 
-                    @foreach($colunas as $col)
+                    @foreach($colunas as $uid => $col)
                         @php($quem = $col['turno'] ? $col['user'] : null)
                         @php($check = $quem ? ($checks[$item->id . '_' . $quem->id] ?? null) : null)
                         @php($souEu = $hoje && $quem && $quem->id === $eu && $meuTurno)
-                        <td class="ck-col">
+                        <td class="ck-col {{ $uid === $eu && $col['turno'] ? 'minha' : '' }}">
                             @if(!$quem)
                                 <span class="ck-vazio">—</span>
                             @elseif(!$item->doTurno($col['turno']))
                                 <span class="ck-vazio" title="{{ __('Não é do turno dele hoje') }}">·</span>
                             @elseif($check)
-                                <span class="{{ $check->isProblema() ? 'ck-problema' : 'ck-feito' }}">
+                                <span class="{{ $check->isProblema() ? 'ck-problema' : 'ck-feito' }}"
+                                      title="{{ $check->isProblema() ? __('Houve um problema') : __('Validada.') }} {{ $check->hora() }}">
                                     <i class="fas {{ $check->isProblema() ? 'fa-exclamation-triangle' : 'fa-check' }}"></i> {{ $check->hora() }}
                                 </span>
                                 @if($souEu)
@@ -214,7 +284,7 @@
                                         <button type="submit" class="ck-desfazer" title="{{ __('Desfazer') }}"><i class="fa fa-times"></i></button>
                                     </form>
                                 @endif
-                                @if($check->nota)<div class="ck-nota-prob">{{ $check->nota }}</div>@endif
+
                             @elseif($souEu)
                                 <form method="POST" action="{{ route('backoffice.checklist.validar', $item->id) }}">
                                     @csrf<input type="hidden" name="estado" value="feito">
@@ -231,6 +301,19 @@
                         </td>
                     @endforeach
                 </tr>
+                @if(isset($notas[$item->id]))
+                    <tr class="ck-notas">
+                        <td colspan="{{ 1 + $colunas->count() }}">
+                            @foreach($notas[$item->id] as $nota)
+                                <div class="ck-nota-prob">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <span class="quem">{{ $nota->user->name ?? '—' }}, {{ $nota->hora() }}</span>
+                                    <span class="texto">{{ $nota->nota }}</span>
+                                </div>
+                            @endforeach
+                        </td>
+                    </tr>
+                @endif
             @empty
                 <tr>
                     <td colspan="{{ 1 + $colunas->count() }}" class="text-center text-muted py-4">
@@ -246,11 +329,23 @@
             </tbody>
         </table>
     </div>
+    @if($itens->isNotEmpty())
+        <div class="ck-legenda">
+            <span><i class="fa fa-check text-success"></i> {{ __('validada') }}</span>
+            <span><i class="fa fa-exclamation-triangle text-warning"></i> {{ __('com problema') }}</span>
+            <span><strong>·</strong> {{ __('não é do turno dessa pessoa') }}</span>
+            <span><strong>—</strong> {{ __('não está de serviço') }}</span>
+        </div>
+    @endif
 </div>
 
 @if($gestor)
     <div class="card mb-3">
         <div class="card-body py-2">
+            <div class="ck-nova-titulo">
+                <i class="fa fa-plus-circle"></i> {{ __('Nova tarefa na checklist') }}
+                <span>{{ __('Fica a aparecer todos os dias a quem estiver no turno escolhido.') }}</span>
+            </div>
             <form method="POST" action="{{ route('backoffice.checklist.store') }}">
                 @csrf
                 <div class="form-row align-items-center">
@@ -299,7 +394,7 @@
                     <tr class="{{ $linha['data']->isToday() ? 'hoje' : '' }}">
                         <td>
                             <a href="{{ route('backoffice.checklist.index', ['dia' => $linha['data']->toDateString()]) }}">
-                                {{ $linha['data']->isoFormat('ddd D/MM') }}
+                                {{ \Illuminate\Support\Str::ucfirst($linha['data']->isoFormat('ddd D/MM')) }}
                             </a>
                         </td>
                         @foreach($historico['pessoas'] as $uid => $pessoa)
