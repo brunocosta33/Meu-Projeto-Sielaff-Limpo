@@ -22,7 +22,7 @@ class BoardTaskController extends Controller
     private const DIAS_FEITAS = 14;
 
     /** Quem acompanha a Hotline toda, além da própria Hotline. */
-    private const ACOMPANHAM_HOTLINE = ['coordenador', 'country_manager'];
+    private const ACOMPANHAM_HOTLINE = ['coordenador', 'country_manager', 'administrativa'];
 
     public function index(Request $request)
     {
