@@ -10,9 +10,12 @@
 <style>
     /* ---- Cabeçalho: faixa de cor com o dia que se está a ver ---- */
     .ck-cabeca { overflow: hidden; border: 0; border-radius: 14px; box-shadow: 0 3px 14px rgba(15, 76, 129, .13); }
-    .ck-cartao { border: 1px solid #e9eff6; border-radius: 14px; box-shadow: 0 1px 3px rgba(15, 23, 42, .05); }
+    .ck-cartao { position: relative; overflow: hidden; border: 1px solid #e9eff6; border-radius: 14px;
+                 box-shadow: 0 1px 3px rgba(15, 23, 42, .05); }
+    .ck-cartao::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 4px;
+                         background: linear-gradient(90deg, #0ea5e9, #8b5cf6 45%, #f59e0b); }
     .ck-faixa { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .6rem;
-                padding: .8rem 1.15rem; color: #fff; background: linear-gradient(115deg, #0b3f6e, #1f7bb6 55%, #38b0dd); }
+                padding: .8rem 1.15rem; color: #fff; background: linear-gradient(115deg, #0a3f72, #1b86c6 48%, #24c2e0); }
     .ck-faixa .t { font-size: 1.12rem; font-weight: 800; letter-spacing: -.01em; }
     .ck-faixa .t i { opacity: .85; margin-right: .3rem; }
     .ck-faixa .sub { display: block; font-size: .76rem; font-weight: 500; opacity: .8; letter-spacing: 0; }
@@ -30,11 +33,11 @@
                  border: 1px solid #e8edf3; border-left: 5px solid var(--c, #cbd5e1); border-radius: 13px;
                  padding: .6rem .85rem; background: #fff;
                  /* um toque da cor da pessoa no fundo; onde não houver suporte fica branco */
-                 background: linear-gradient(110deg, color-mix(in srgb, var(--c) 13%, #fff), #fff 70%); }
+                 background: linear-gradient(110deg, color-mix(in srgb, var(--c) 22%, #fff), #fff 72%); }
     .ck-pessoa.folga { background: #f8fafc; border-left-color: #e2e8f0; }
     .ck-roda { width: 52px; height: 52px; flex: 0 0 52px; border-radius: 50%; display: grid; place-items: center;
                background: conic-gradient(var(--c) calc(var(--p) * 1%), #e8eef5 0); }
-    .ck-roda::after { content: ''; grid-area: 1 / 1; width: 40px; height: 40px; border-radius: 50%; background: #fff; }
+    .ck-roda::after { content: ''; grid-area: 1 / 1; width: 38px; height: 38px; border-radius: 50%; background: #fff; }
     .ck-roda .n { grid-area: 1 / 1; z-index: 1; font-size: .78rem; font-weight: 800; color: var(--c); }
     .ck-roda.folga { background: #eef2f7; }
     .ck-roda.folga .n { color: #94a3b8; font-size: 1rem; }
@@ -67,22 +70,23 @@
                 border-radius: 14px; padding: .7rem .95rem; margin-bottom: .55rem;
                 box-shadow: 0 1px 2px rgba(15, 23, 42, .05); transition: box-shadow .15s, transform .15s;
                 background: #fff;
-                background: linear-gradient(100deg, color-mix(in srgb, var(--turno) 13%, #fff), #fff 58%); }
+                background: linear-gradient(100deg, color-mix(in srgb, var(--turno) 24%, #fff), #fff 56%); }
     .ck-linha:hover { box-shadow: 0 8px 20px rgba(15, 23, 42, .1); transform: translateY(-1px); }
     .ck-linha.feita { border-color: #d3eedd; }
-    .ck-linha.feita { background: linear-gradient(265deg, rgba(34, 197, 94, .17), rgba(34, 197, 94, 0) 44%),
-                                  linear-gradient(100deg, color-mix(in srgb, var(--turno) 13%, #fff), #fff 58%); }
+    .ck-linha.feita { background: linear-gradient(265deg, rgba(34, 197, 94, .3), rgba(34, 197, 94, 0) 46%),
+                                  linear-gradient(100deg, color-mix(in srgb, var(--turno) 24%, #fff), #fff 56%); }
     .ck-linha.problema { border-color: #f8e0b4; }
-    .ck-linha.problema { background: linear-gradient(265deg, rgba(245, 158, 11, .2), rgba(245, 158, 11, 0) 44%),
-                                     linear-gradient(100deg, color-mix(in srgb, var(--turno) 13%, #fff), #fff 58%); }
+    .ck-linha.problema { background: linear-gradient(265deg, rgba(245, 158, 11, .34), rgba(245, 158, 11, 0) 46%),
+                                     linear-gradient(100deg, color-mix(in srgb, var(--turno) 24%, #fff), #fff 56%); }
     .ck-linha.nada { background: #fbfcfe; border-color: #eef2f7; border-left-color: #e3e9f1; }
 
     .ck-linha .tarefa { min-width: 0; padding-right: .8rem; display: flex; align-items: flex-start; gap: .65rem; }
-    .ck-icone { width: 34px; height: 34px; flex: 0 0 34px; border-radius: 11px; display: inline-flex;
-                align-items: center; justify-content: center; color: #fff; font-size: .9rem; margin-top: .05rem;
-                box-shadow: 0 2px 6px rgba(15, 23, 42, .2);
+    .ck-icone { width: 37px; height: 37px; flex: 0 0 37px; border-radius: 12px; display: inline-flex;
+                align-items: center; justify-content: center; color: #fff; font-size: .98rem; margin-top: .02rem;
+                box-shadow: 0 3px 9px rgba(15, 23, 42, .22);
+                box-shadow: 0 3px 9px color-mix(in srgb, var(--c) 48%, transparent);
                 background: var(--c, #94a3b8);
-                background: linear-gradient(145deg, var(--c), color-mix(in srgb, var(--c) 70%, #000)); }
+                background: linear-gradient(145deg, color-mix(in srgb, var(--c) 82%, #fff), color-mix(in srgb, var(--c) 78%, #000)); }
     .ck-linha.nada .ck-icone { box-shadow: none; opacity: .4; }
     .ck-linha .texto { min-width: 0; padding-top: .15rem; }
     .ck-linha .titulo { font-weight: 700; color: #0f172a; }
@@ -131,6 +135,13 @@
     .ck-nota-prob .quem { font-weight: 800; white-space: nowrap; }
     .ck-nota-prob .texto { white-space: pre-wrap; word-break: break-word; }
 
+    .ck-aviso { display: flex; flex-wrap: wrap; align-items: center; gap: .1rem .5rem; margin-bottom: .9rem;
+                border: 1px solid #fca5a5; border-left: 5px solid #ef4444; border-radius: 12px; padding: .5rem .85rem;
+                background: linear-gradient(100deg, #fee2e2, #fff7f7 60%); color: #991b1b; font-size: .87rem; }
+    .ck-aviso:hover { background: linear-gradient(100deg, #fecaca, #fff5f5 60%); color: #7f1d1d; text-decoration: none; }
+    .ck-aviso b { background: #fff; border: 1px solid #fecaca; border-radius: 999px; padding: .02rem .5rem; font-weight: 800; }
+    .ck-aviso .ver { margin-left: auto; font-weight: 700; font-size: .8rem; }
+
     .ck-nada { text-align: center; color: #94a3b8; padding: 2rem 1rem; background: #fff; border: 1px dashed #dbe3ec;
                border-radius: 13px; }
 
@@ -150,8 +161,10 @@
     .ck-legenda i { margin-right: .15rem; }
 
     /* ---- A lista toda, só para a chefia ---- */
-    .ck-titulo-cartao { display: flex; align-items: center; gap: .4rem; font-size: .76rem; font-weight: 800;
-                        text-transform: uppercase; letter-spacing: .06em; color: #0f4c81; margin-bottom: .1rem; }
+    .ck-titulo-cartao { display: flex; align-items: center; gap: .45rem; font-size: .78rem; font-weight: 800;
+                        text-transform: uppercase; letter-spacing: .06em; color: #0f4c81; margin: .15rem 0 .1rem; }
+    .ck-titulo-cartao i { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px;
+                          border-radius: 8px; background: linear-gradient(145deg, #1b86c6, #0a3f72); color: #fff; font-size: .8rem; }
     .ck-titulo-cartao .conta { background: #e8f1f8; color: #0f4c81; border-radius: 999px; padding: 0 .5rem; font-size: .72rem; }
     .ck-sub-cartao { font-size: .8rem; color: #94a3b8; margin-bottom: .8rem; }
     .ck-gerir { width: 100%; }
@@ -178,7 +191,9 @@
     .ck-hist .mau { color: #b91c1c; background: #fee2e2; }
     .ck-hist .folga { color: #cbd5e1; }
     .ck-hist tr.hoje { background: #f2f8ff; }
-    .ck-hist tr.fds td:first-child { color: #0d9488; font-weight: 700; }
+    .ck-hist tr.fds { background: #f0fdfa; }
+    .ck-hist tr.fds td:first-child { color: #0d9488; font-weight: 800; }
+    .ck-hist tr.hoje td { font-weight: 700; }
 </style>
 @endpush
 
@@ -252,6 +267,17 @@
 
 @if($errors->any())
     <div class="alert alert-danger"><ul class="mb-0">@foreach($errors->all() as $erro)<li>{{ $erro }}</li>@endforeach</ul></div>
+@endif
+
+@if($gestor && $falhasDeOntem->isNotEmpty())
+    <a class="ck-aviso" href="{{ route('backoffice.checklist.index', ['dia' => today()->subDay()->toDateString()]) }}">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span>{{ __('Ontem ficou por validar') }}:</span>
+        @foreach($falhasDeOntem as $falha)
+            <b>{{ $falha['nome'] }} {{ $falha['n'] }}</b>
+        @endforeach
+        <span class="ver">{{ __('ver o dia') }} <i class="fa fa-chevron-right"></i></span>
+    </a>
 @endif
 
 <div class="ck-grelha mb-3" style="--n: {{ $colunas->count() }}">

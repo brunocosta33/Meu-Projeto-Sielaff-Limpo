@@ -91,6 +91,8 @@ class HotlineChecklistController extends Controller
             'estados' => $estados,
             'notas' => $notas,
             'checks' => $checks,
+            // Para a chefia: quantas ficaram por validar ontem, que é quando já não se pode emendar
+            'falhasDeOntem' => $this->podeGerir() ? $this->falhasDe(today()->subDay(), $todos) : collect(),
             'turnos' => HotlineChecklistItem::TURNOS,
             'diasPossiveis' => HotlineChecklistItem::DIAS,
             // O turno de quem está a ver: null se hoje não é dia dele
@@ -239,6 +241,30 @@ class HotlineChecklistController extends Controller
             'turno.required' => __('Escolha o turno.'),
             'dias.required' => __('Escolha os dias.'),
         ]);
+    }
+
+    /** Quantas tarefas cada um deixou por validar num dia. Só a conta: os nomes enchiam a página. */
+    private function falhasDe(Carbon $dia, Collection $itens): Collection
+    {
+        $escala = (new HotlineRotation())->schedule($dia, $dia)[0];
+
+        // Uma tarefa criada hoje não pode contar como falhada ontem
+        $daAltura = $itens->filter(fn (HotlineChecklistItem $i) => $i->created_at <= $dia->copy()->endOfDay());
+
+        $checks = HotlineChecklistCheck::whereDate('data', $dia)->get()->groupBy('user_id');
+
+        return HotlineChecklist::colunas($escala)
+            ->filter(fn (array $c) => $c['turno'])
+            ->map(function (array $c) use ($daAltura, $checks, $dia) {
+                $feitos = ($checks->get($c['user']->id) ?? collect())->pluck('item_id');
+
+                return [
+                    'nome' => $c['user']->name,
+                    'n' => HotlineChecklist::aplicaveis($daAltura, $c['turno'], $dia)->whereNotIn('id', $feitos)->count(),
+                ];
+            })
+            ->filter(fn (array $f) => $f['n'] > 0)
+            ->values();
     }
 
     /** O dia que se está a ver. Por omissão, hoje. */

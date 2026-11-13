@@ -9,16 +9,16 @@ class HotlineChecklistItem extends Model
 {
     /** A que turno se aplica. Quem entra às 08:00 não faz o fecho das 20:00. */
     public const TURNOS = [
-        'ambos' => ['label' => 'Os dois turnos', 'curto' => 'Sempre', 'icon' => 'fa-clock', 'cor' => '#0f4c81'],
-        'manha' => ['label' => 'Turno da manhã', 'curto' => 'Manhã', 'icon' => 'fa-sun', 'cor' => '#ea8c00'],
-        'tarde' => ['label' => 'Turno da tarde', 'curto' => 'Tarde', 'icon' => 'fa-moon', 'cor' => '#7c3aed'],
+        'ambos' => ['label' => 'Os dois turnos', 'curto' => 'Sempre', 'icon' => 'fa-clock', 'cor' => '#0ea5e9'],
+        'manha' => ['label' => 'Turno da manhã', 'curto' => 'Manhã', 'icon' => 'fa-sun', 'cor' => '#f59e0b'],
+        'tarde' => ['label' => 'Turno da tarde', 'curto' => 'Tarde', 'icon' => 'fa-moon', 'cor' => '#8b5cf6'],
     ];
 
     /** Em que dias é que a tarefa se faz. Ao fim de semana o trabalho é outro. */
     public const DIAS = [
         'todos' => ['label' => 'Todos os dias', 'curto' => 'Todos os dias', 'icon' => 'fa-calendar-day', 'cor' => '#475569'],
-        'semana' => ['label' => 'Só de segunda a sexta', 'curto' => 'Dias de semana', 'icon' => 'fa-briefcase', 'cor' => '#0369a1'],
-        'fim_de_semana' => ['label' => 'Só ao fim de semana', 'curto' => 'Fim de semana', 'icon' => 'fa-umbrella-beach', 'cor' => '#0d9488'],
+        'semana' => ['label' => 'Só de segunda a sexta', 'curto' => 'Dias de semana', 'icon' => 'fa-briefcase', 'cor' => '#0284c7'],
+        'fim_de_semana' => ['label' => 'Só ao fim de semana', 'curto' => 'Fim de semana', 'icon' => 'fa-umbrella-beach', 'cor' => '#14b8a6'],
     ];
 
     protected $fillable = ['titulo', 'nota', 'turno', 'dias', 'ordem', 'ativo', 'created_by'];
