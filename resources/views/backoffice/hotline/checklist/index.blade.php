@@ -62,14 +62,29 @@
     .ck-cab .ponto { width: 9px; height: 9px; border-radius: 50%; background: var(--c); flex: 0 0 9px; }
     .ck-cab .tarefa { font-size: .74rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: #64748b; }
 
-    .ck-linha { position: relative; background: #fff; border: 1px solid #e9eff6; border-left: 5px solid var(--turno, #cbd5e1);
-                border-radius: 13px; padding: .6rem .9rem; margin-bottom: .55rem;
-                box-shadow: 0 1px 2px rgba(15, 23, 42, .05); transition: box-shadow .15s, transform .15s; }
-    .ck-linha:hover { box-shadow: 0 7px 18px rgba(15, 23, 42, .09); transform: translateY(-1px); }
-    .ck-linha.feita { background: linear-gradient(100deg, #eefbf2, #fff 45%); border-color: #d8f0e1; }
-    .ck-linha.problema { background: linear-gradient(100deg, #fff7e8, #fff 45%); border-color: #fbe6bf; }
-    .ck-linha.nada { background: #fbfcfe; border-color: #eef2f7; border-left-color: #e8edf3; }
-    .ck-linha .tarefa { min-width: 0; padding-right: .8rem; }
+    /* O cartão apanha a cor do turno à esquerda e a do estado à direita */
+    .ck-linha { position: relative; border: 1px solid #e9eff6; border-left: 5px solid var(--turno, #cbd5e1);
+                border-radius: 14px; padding: .7rem .95rem; margin-bottom: .55rem;
+                box-shadow: 0 1px 2px rgba(15, 23, 42, .05); transition: box-shadow .15s, transform .15s;
+                background: #fff;
+                background: linear-gradient(100deg, color-mix(in srgb, var(--turno) 13%, #fff), #fff 58%); }
+    .ck-linha:hover { box-shadow: 0 8px 20px rgba(15, 23, 42, .1); transform: translateY(-1px); }
+    .ck-linha.feita { border-color: #d3eedd; }
+    .ck-linha.feita { background: linear-gradient(265deg, rgba(34, 197, 94, .17), rgba(34, 197, 94, 0) 44%),
+                                  linear-gradient(100deg, color-mix(in srgb, var(--turno) 13%, #fff), #fff 58%); }
+    .ck-linha.problema { border-color: #f8e0b4; }
+    .ck-linha.problema { background: linear-gradient(265deg, rgba(245, 158, 11, .2), rgba(245, 158, 11, 0) 44%),
+                                     linear-gradient(100deg, color-mix(in srgb, var(--turno) 13%, #fff), #fff 58%); }
+    .ck-linha.nada { background: #fbfcfe; border-color: #eef2f7; border-left-color: #e3e9f1; }
+
+    .ck-linha .tarefa { min-width: 0; padding-right: .8rem; display: flex; align-items: flex-start; gap: .65rem; }
+    .ck-icone { width: 34px; height: 34px; flex: 0 0 34px; border-radius: 11px; display: inline-flex;
+                align-items: center; justify-content: center; color: #fff; font-size: .9rem; margin-top: .05rem;
+                box-shadow: 0 2px 6px rgba(15, 23, 42, .2);
+                background: var(--c, #94a3b8);
+                background: linear-gradient(145deg, var(--c), color-mix(in srgb, var(--c) 70%, #000)); }
+    .ck-linha.nada .ck-icone { box-shadow: none; opacity: .4; }
+    .ck-linha .texto { min-width: 0; padding-top: .15rem; }
     .ck-linha .titulo { font-weight: 700; color: #0f172a; }
     .ck-linha.feita .titulo { color: #15803d; }
     .ck-linha.nada .titulo { color: #9fb0c2; font-weight: 600; }
@@ -268,15 +283,19 @@
     @forelse($itens as $item)
         <div class="ck-linha {{ $estados[$item->id] ?? 'nada' }}" style="--turno: {{ $item->turnoConfig()['cor'] }}">
             <div class="tarefa">
-                <span class="titulo">{{ $item->titulo }}</span>
-                @if($item->turno !== 'ambos')
-                    <span class="ck-eti" style="--c: {{ $item->turnoConfig()['cor'] }}">
-                        <i class="fas {{ $item->turnoConfig()['icon'] }}"></i> {{ __($item->turnoConfig()['curto']) }}
-                    </span>
-                @endif
-                @if($item->nota)
-                    <div class="nota"><i class="fas fa-info-circle"></i> {{ $item->nota }}</div>
-                @endif
+                <span class="ck-icone" style="--c: {{ $item->turnoConfig()['cor'] }}"
+                      title="{{ $item->turnoLabel() }}">
+                    <i class="fas {{ $item->turnoConfig()['icon'] }}"></i>
+                </span>
+                <div class="texto">
+                    <span class="titulo">{{ $item->titulo }}</span>
+                    @if($item->turno !== 'ambos')
+                        <span class="ck-eti" style="--c: {{ $item->turnoConfig()['cor'] }}">{{ __($item->turnoConfig()['curto']) }}</span>
+                    @endif
+                    @if($item->nota)
+                        <div class="nota"><i class="fas fa-info-circle"></i> {{ $item->nota }}</div>
+                    @endif
+                </div>
             </div>
 
             @foreach($colunas as $uid => $col)
