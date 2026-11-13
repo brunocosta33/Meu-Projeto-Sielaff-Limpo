@@ -71,6 +71,8 @@ class HotlineChecklistController extends Controller
             // A chefia gere a lista toda num sítio só, fora da grelha do dia
             'listaToda' => $this->podeGerir() ? $todos : collect(),
             'listas' => $listas,
+            // Para explicar um dia vazio: a lista pode não existir ainda, ou não ser desse dia
+            'totalAtivas' => $todos->count(),
             'checks' => $checks,
             // Para a chefia: quantas ficaram por validar ontem, que é quando já não se pode emendar
             'falhasDeOntem' => $this->podeGerir() ? $this->falhasDe(today()->subDay(), $todos) : collect(),

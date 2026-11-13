@@ -328,10 +328,15 @@
                     </div>
                 @empty
                     <div class="ck-vazio-col">
-                        @if($listaToda->isNotEmpty() || !$gestor)
-                            {{ __('Não há nada para este dia.') }}
-                        @else
+                        @if($totalAtivas === 0)
                             {{ __('A checklist ainda está vazia.') }}
+                        @elseif($itens->isNotEmpty())
+                            {{ __('Nada para este turno.') }}
+                        @elseif($dia->isPast() && !$hoje)
+                            {{ __('A checklist ainda não existia neste dia.') }}
+                        @else
+                            {{ __('Não há nada para este dia.') }}
+                            @if($dia->isWeekend()) {{ __('As tarefas da lista são para dias de semana.') }} @endif
                         @endif
                     </div>
                 @endforelse
