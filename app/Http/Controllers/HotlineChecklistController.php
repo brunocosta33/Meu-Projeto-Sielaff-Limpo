@@ -96,8 +96,6 @@ class HotlineChecklistController extends Controller
             // O turno de quem está a ver: null se hoje não é dia dele
             'meuTurno' => $quemValida->get(auth()->id()),
             'gestor' => $this->podeGerir(),
-            // Para a chefia: o que ficou por validar ontem, que é quando já não se pode emendar
-            'falhasDeOntem' => $this->podeGerir() ? $this->falhasDe(today()->subDay(), $todos) : collect(),
             'historico' => HotlineChecklist::historico(
                 today()->subDays(self::DIAS_HISTORICO - 1),
                 today(),
@@ -241,32 +239,6 @@ class HotlineChecklistController extends Controller
             'turno.required' => __('Escolha o turno.'),
             'dias.required' => __('Escolha os dias.'),
         ]);
-    }
-
-    /** Quem deixou tarefas por validar num dia, e quais. */
-    private function falhasDe(Carbon $dia, Collection $itens): Collection
-    {
-        $escala = (new HotlineRotation())->schedule($dia, $dia)[0];
-
-        // Uma tarefa criada hoje não pode contar como falhada ontem
-        $daAltura = $itens->filter(fn (HotlineChecklistItem $i) => $i->created_at <= $dia->copy()->endOfDay());
-
-        $checks = HotlineChecklistCheck::whereDate('data', $dia)->get()->groupBy('user_id');
-
-        return HotlineChecklist::colunas($escala)
-            ->filter(fn (array $c) => $c['turno'])
-            ->map(function (array $c) use ($daAltura, $checks, $dia) {
-                $feitos = ($checks->get($c['user']->id) ?? collect())->pluck('item_id');
-                $faltam = HotlineChecklist::aplicaveis($daAltura, $c['turno'], $dia)->whereNotIn('id', $feitos);
-
-                return [
-                    'nome' => $c['user']->name,
-                    'tarefas' => $faltam->pluck('titulo')->implode(' · '),
-                    'n' => $faltam->count(),
-                ];
-            })
-            ->filter(fn (array $f) => $f['n'] > 0)
-            ->values();
     }
 
     /** O dia que se está a ver. Por omissão, hoje. */

@@ -170,9 +170,6 @@
     .ck-acao.apagar:hover { color: #dc2626; }
     .ck-nova { background: #f7fafd; border: 1px dashed #cfe0ee; border-radius: 12px; padding: .7rem .8rem; margin-bottom: .9rem; }
 
-    .ck-aviso { border: 1px solid #fecaca; background: #fff5f5; color: #991b1b; border-radius: 10px; padding: .6rem .85rem; }
-    .ck-aviso .t { font-weight: 800; }
-
     /* ---- Histórico ---- */
     .ck-hist td, .ck-hist th { padding: .3rem .5rem; font-size: .82rem; text-align: center; }
     .ck-hist td:first-child, .ck-hist th:first-child { text-align: left; white-space: nowrap; }
@@ -255,15 +252,6 @@
 
 @if($errors->any())
     <div class="alert alert-danger"><ul class="mb-0">@foreach($errors->all() as $erro)<li>{{ $erro }}</li>@endforeach</ul></div>
-@endif
-
-@if($gestor && $falhasDeOntem->isNotEmpty())
-    <div class="ck-aviso mb-3">
-        <span class="t"><i class="fas fa-exclamation-triangle"></i> {{ __('Ontem ficou por validar') }}</span>
-        @foreach($falhasDeOntem as $falha)
-            <div class="small mt-1">{{ $falha['nome'] }} — {{ $falha['tarefas'] }}</div>
-        @endforeach
-    </div>
 @endif
 
 <div class="ck-grelha mb-3" style="--n: {{ $colunas->count() }}">
