@@ -82,7 +82,8 @@
 
     .ck-linha .tarefa { min-width: 0; padding-right: .8rem; display: flex; align-items: flex-start; gap: .65rem; }
     .ck-icone { width: 37px; height: 37px; flex: 0 0 37px; border-radius: 12px; display: inline-flex;
-                align-items: center; justify-content: center; color: #fff; font-size: .98rem; margin-top: .02rem;
+                align-items: center; justify-content: center; color: #fff; font-size: 1rem; font-weight: 800;
+                margin-top: .02rem;
                 box-shadow: 0 3px 9px rgba(15, 23, 42, .22);
                 box-shadow: 0 3px 9px color-mix(in srgb, var(--c) 48%, transparent);
                 background: var(--c, #94a3b8);
@@ -108,21 +109,31 @@
               color: #fff; background: var(--c, #64748b); white-space: nowrap; vertical-align: middle; }
     .ck-eti.clara { color: var(--c); background: #fff; border: 1px solid currentColor; }
 
-    /* ---- O estado de cada célula ---- */
-    .ck-feito, .ck-problema, .ck-falhou { display: inline-flex; align-items: center; gap: .3rem; font-size: .8rem;
-                                          font-weight: 700; border-radius: 8px; padding: .18rem .55rem; }
-    .ck-feito { background: #dcfce7; color: #15803d; }
-    .ck-problema { background: #fef3c7; color: #b45309; }
-    .ck-falhou { background: #fee2e2; color: #b91c1c; }
-    .ck-vazio { color: #cbd5e1; }
-    .ck-btn { border: 0; background: linear-gradient(#22c55e, #16a34a); color: #fff; border-radius: 9px; font-size: .8rem;
-              font-weight: 700; padding: .3rem .8rem; box-shadow: 0 2px 5px rgba(22, 163, 74, .3); transition: all .13s; }
-    .ck-btn:hover { background: linear-gradient(#16a34a, #15803d); box-shadow: 0 4px 10px rgba(22, 163, 74, .4); color: #fff; }
-    .ck-btn.prob { background: #fff; border: 1px solid #fbbf24; color: #b45309; padding: .3rem .55rem;
-                   box-shadow: none; }
-    .ck-btn.prob:hover { background: #f59e0b; border-color: #f59e0b; color: #fff; }
-    .ck-desfazer { border: 0; background: none; color: #cbd5e1; font-size: .72rem; padding: 0 .1rem; }
-    .ck-desfazer:hover { color: #dc2626; }
+    /* ---- O estado de cada célula: um círculo para tocar ---- */
+    .ck-celula { flex-direction: column; gap: .15rem !important; }
+    .ck-tique { width: 36px; height: 36px; border-radius: 50%; border: 2px dashed #b9dcc6; background: #f5fdf8;
+                color: #9ed0b1; display: inline-flex; align-items: center; justify-content: center; font-size: .95rem;
+                padding: 0; transition: all .15s; }
+    .ck-tique:hover { border-style: solid; border-color: #16a34a; background: #16a34a; color: #fff;
+                      transform: scale(1.09); box-shadow: 0 5px 14px rgba(22, 163, 74, .35); }
+    .ck-tique.ok { border: 0; color: #fff; background: linear-gradient(145deg, #34d399, #15803d);
+                   box-shadow: 0 4px 11px rgba(22, 163, 74, .38); }
+    .ck-tique.ok:hover { transform: scale(1.09); filter: saturate(1.2); }
+    .ck-tique.prob { border: 0; color: #fff; background: linear-gradient(145deg, #fbbf24, #d97706);
+                     box-shadow: 0 4px 11px rgba(217, 119, 6, .38); }
+    .ck-tique.prob:hover { background: linear-gradient(145deg, #fbbf24, #d97706); border-color: transparent;
+                           transform: scale(1.09); filter: saturate(1.2); }
+    .ck-tique.parado { cursor: default; }
+    .ck-tique.parado:hover { transform: none; filter: none; }
+    .ck-hora { font-size: .72rem; font-weight: 800; letter-spacing: -.01em; }
+    .ck-hora.ok { color: #15803d; }
+    .ck-hora.prob { color: #b45309; }
+    .ck-prob-link { border: 0; background: none; color: #c7913a; font-size: .7rem; font-weight: 700; padding: 0;
+                    text-transform: uppercase; letter-spacing: .03em; opacity: .75; }
+    .ck-prob-link:hover { color: #b45309; opacity: 1; text-decoration: underline; }
+    .ck-falhou { display: inline-flex; align-items: center; gap: .3rem; font-size: .78rem; font-weight: 700;
+                 border-radius: 8px; padding: .18rem .55rem; background: #fee2e2; color: #b91c1c; }
+    .ck-vazio { color: #cdd8e5; }
     .ck-linha form { display: inline-block; margin: 0; }
 
     /* O que correu mal ocupa a largura toda do cartão */
@@ -298,13 +309,13 @@
         <div class="ck-linha {{ $estados[$item->id] ?? 'nada' }}" style="--turno: {{ $item->turnoConfig()['cor'] }}">
             <div class="tarefa">
                 <span class="ck-icone" style="--c: {{ $item->turnoConfig()['cor'] }}"
-                      title="{{ $item->turnoLabel() }}">
-                    <i class="fas {{ $item->turnoConfig()['icon'] }}"></i>
-                </span>
+                      title="{{ $item->turnoLabel() }}">{{ $loop->iteration }}</span>
                 <div class="texto">
                     <span class="titulo">{{ $item->titulo }}</span>
                     @if($item->turno !== 'ambos')
-                        <span class="ck-eti" style="--c: {{ $item->turnoConfig()['cor'] }}">{{ __($item->turnoConfig()['curto']) }}</span>
+                        <span class="ck-eti" style="--c: {{ $item->turnoConfig()['cor'] }}">
+                            <i class="fas {{ $item->turnoConfig()['icon'] }}"></i> {{ __($item->turnoConfig()['curto']) }}
+                        </span>
                     @endif
                     @if($item->nota)
                         <div class="nota"><i class="fas fa-info-circle"></i> {{ $item->nota }}</div>
@@ -322,25 +333,33 @@
                         <span class="ck-vazio">—</span>
                     @elseif(!$item->doTurno($col['turno']))
                         <span class="ck-vazio" title="{{ __('Não é do turno dele hoje') }}">·</span>
+                    @elseif($check && $souEu)
+                        {{-- Tocar outra vez desfaz: é o gesto que toda a gente espera --}}
+                        <form method="POST" action="{{ route('backoffice.checklist.desfazer', $item->id) }}">
+                            @csrf
+                            <button type="submit" class="ck-tique {{ $check->isProblema() ? 'prob' : 'ok' }}"
+                                    title="{{ __('Clique para desfazer') }}">
+                                <i class="fas {{ $check->isProblema() ? 'fa-exclamation' : 'fa-check' }}"></i>
+                            </button>
+                        </form>
+                        <span class="ck-hora {{ $check->isProblema() ? 'prob' : 'ok' }}">{{ $check->hora() }}</span>
                     @elseif($check)
-                        <span class="{{ $check->isProblema() ? 'ck-problema' : 'ck-feito' }}"
-                              title="{{ $check->isProblema() ? __('Houve um problema') : __('Validada.') }} {{ $check->hora() }}">
-                            <i class="fas {{ $check->isProblema() ? 'fa-exclamation-triangle' : 'fa-check' }}"></i> {{ $check->hora() }}
+                        <span class="ck-tique {{ $check->isProblema() ? 'prob' : 'ok' }} parado"
+                              title="{{ $check->isProblema() ? __('Houve um problema') : __('Validada.') }}">
+                            <i class="fas {{ $check->isProblema() ? 'fa-exclamation' : 'fa-check' }}"></i>
                         </span>
-                        @if($souEu)
-                            <form method="POST" action="{{ route('backoffice.checklist.desfazer', $item->id) }}">
-                                @csrf
-                                <button type="submit" class="ck-desfazer" title="{{ __('Desfazer') }}"><i class="fa fa-times"></i></button>
-                            </form>
-                        @endif
+                        <span class="ck-hora {{ $check->isProblema() ? 'prob' : 'ok' }}">{{ $check->hora() }}</span>
                     @elseif($souEu)
                         <form method="POST" action="{{ route('backoffice.checklist.validar', $item->id) }}">
                             @csrf<input type="hidden" name="estado" value="feito">
-                            <button type="submit" class="ck-btn"><i class="fa fa-check"></i> {{ __('Validar') }}</button>
+                            <button type="submit" class="ck-tique" title="{{ __('Clique quando estiver feita') }}">
+                                <i class="fa fa-check"></i>
+                            </button>
                         </form>
-                        <button type="button" class="ck-btn prob" data-toggle="modal" data-target="#ck-problema"
-                                data-id="{{ $item->id }}" data-titulo="{{ $item->titulo }}"
-                                title="{{ __('Houve um problema') }}"><i class="fa fa-exclamation-triangle"></i></button>
+                        <button type="button" class="ck-prob-link" data-toggle="modal" data-target="#ck-problema"
+                                data-id="{{ $item->id }}" data-titulo="{{ $item->titulo }}">
+                            <i class="fa fa-exclamation-triangle"></i> {{ __('problema') }}
+                        </button>
                     @elseif($dia->isPast() && !$dia->isToday())
                         <span class="ck-falhou"><i class="fa fa-times"></i> {{ __('Por validar') }}</span>
                     @else
@@ -377,6 +396,7 @@
 
     @if($itens->isNotEmpty())
         <div class="ck-legenda">
+            <span><i class="far fa-circle" style="color: #9ed0b1"></i> {{ __('toque no círculo para validar') }}</span>
             <span><i class="fa fa-check text-success"></i> {{ __('validada') }}</span>
             <span><i class="fa fa-exclamation-triangle text-warning"></i> {{ __('com problema') }}</span>
             <span><strong>·</strong> {{ __('não é do turno dessa pessoa') }}</span>
