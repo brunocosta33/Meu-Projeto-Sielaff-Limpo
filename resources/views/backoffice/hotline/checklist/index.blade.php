@@ -51,66 +51,48 @@
     .ck-dica.ok { background: linear-gradient(100deg, #d1fae5, #f0fdf4 60%); color: #15803d; border-color: #a7f3d0; }
     .ck-dica i { font-size: 1.05rem; }
 
-    /* ---- A grelha do dia: cada tarefa é um cartão ---- */
-    .ck-grelha { --n: 2; }
-    .ck-cab, .ck-linha { display: grid; grid-template-columns: minmax(0, 1fr) repeat(var(--n), 11.5rem); align-items: center; }
-    .ck-cab { padding: 0 .9rem .45rem calc(.9rem + 5px); }
-    .ck-cab .pessoa { text-align: center; font-size: .74rem; font-weight: 800; text-transform: uppercase;
-                      letter-spacing: .05em; color: #64748b; }
-    .ck-cab .pessoa .t { display: block; font-size: .68rem; font-weight: 600; text-transform: none;
-                         letter-spacing: 0; color: #a9b6c6; }
-    .ck-cab .pessoa.minha { color: #0f4c81; }
-    .ck-cab .pessoa.fora { color: #c6d0dc; }
-    .ck-cab .nl { display: flex; align-items: center; justify-content: center; gap: .32rem; }
-    .ck-cab .ponto { width: 9px; height: 9px; border-radius: 50%; background: var(--c); flex: 0 0 9px; }
-    .ck-cab .tarefa { font-size: .74rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: #64748b; }
+    /* ---- Uma coluna por pessoa de serviço ---- */
+    .ck-colunas { display: grid; grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr)); gap: .9rem; margin-bottom: 1rem; }
+    .ck-coluna { max-width: 46rem; background: #fff; border: 1px solid #e9eff6; border-radius: 15px; overflow: hidden;
+                 box-shadow: 0 2px 8px rgba(15, 23, 42, .07); }
+    .ck-coluna > header { display: flex; align-items: center; gap: .65rem; padding: .75rem .95rem; color: #fff;
+                          background: var(--c, #475569);
+                          background: linear-gradient(120deg, color-mix(in srgb, var(--c) 88%, #fff), color-mix(in srgb, var(--c) 72%, #000)); }
+    .ck-coluna > header .bola { width: 40px; height: 40px; flex: 0 0 40px; border-radius: 50%; display: grid;
+                                place-items: center; font-weight: 800; font-size: .8rem;
+                                background: rgba(255, 255, 255, .22); border: 1px solid rgba(255, 255, 255, .35); }
+    .ck-coluna > header .nome { font-weight: 800; line-height: 1.15; }
+    .ck-coluna > header .horas { font-size: .76rem; opacity: .88; }
+    .ck-coluna > header .conta { margin-left: auto; text-align: right; }
+    .ck-coluna > header .conta b { display: block; font-size: 1.15rem; font-weight: 800; line-height: 1; }
+    .ck-coluna > header .conta span { font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; opacity: .85; }
+    .ck-prog { height: 6px; background: #eef2f7; }
+    .ck-prog span { display: block; height: 100%; background: linear-gradient(90deg, #4ade80, #16a34a); transition: width .3s; }
 
-    /* O cartão apanha a cor do turno à esquerda e a do estado à direita */
-    .ck-linha { position: relative; border: 1px solid #e9eff6; border-left: 5px solid var(--turno, #cbd5e1);
-                border-radius: 14px; padding: .7rem .95rem; margin-bottom: .55rem;
-                box-shadow: 0 1px 2px rgba(15, 23, 42, .05); transition: box-shadow .15s, transform .15s;
-                background: #fff;
-                background: linear-gradient(100deg, color-mix(in srgb, var(--turno) 24%, #fff), #fff 56%); }
-    .ck-linha:hover { box-shadow: 0 8px 20px rgba(15, 23, 42, .1); transform: translateY(-1px); }
-    .ck-linha.feita { border-color: #d3eedd; }
-    .ck-linha.feita { background: linear-gradient(265deg, rgba(34, 197, 94, .3), rgba(34, 197, 94, 0) 46%),
-                                  linear-gradient(100deg, color-mix(in srgb, var(--turno) 24%, #fff), #fff 56%); }
-    .ck-linha.problema { border-color: #f8e0b4; }
-    .ck-linha.problema { background: linear-gradient(265deg, rgba(245, 158, 11, .34), rgba(245, 158, 11, 0) 46%),
-                                     linear-gradient(100deg, color-mix(in srgb, var(--turno) 24%, #fff), #fff 56%); }
-    .ck-linha.nada { background: #fbfcfe; border-color: #eef2f7; border-left-color: #e3e9f1; }
+    .ck-item { display: flex; align-items: flex-start; gap: .7rem; padding: .62rem .9rem; border-top: 1px solid #f1f5f9; }
+    .ck-item:hover { background: #f9fbfe; }
+    .ck-item.feito { background: linear-gradient(90deg, #f2fcf6, #fff 65%); }
+    .ck-item.prob { background: linear-gradient(90deg, #fff8ec, #fff 65%); }
+    .ck-item.falhou { background: #fffafa; }
+    .ck-item .txt { flex: 1; min-width: 0; padding-top: .3rem; }
+    .ck-item .num { display: inline-block; min-width: 1.1rem; font-size: .78rem; font-weight: 800; color: #b6c2d1; }
+    .ck-item .titulo { font-weight: 600; color: #0f172a; }
+    .ck-item.feito .titulo { color: #15803d; }
+    .ck-item .nota { font-size: .8rem; color: #64748b; margin-top: .2rem; white-space: pre-wrap; }
+    .ck-item .nota i { color: #a9b6c6; margin-right: .15rem; }
+    .ck-item .dir { text-align: right; padding-top: .45rem; white-space: nowrap; }
 
-    .ck-linha .tarefa { min-width: 0; padding-right: .8rem; display: flex; align-items: flex-start; gap: .65rem; }
-    .ck-icone { width: 37px; height: 37px; flex: 0 0 37px; border-radius: 12px; display: inline-flex;
-                align-items: center; justify-content: center; color: #fff; font-size: 1rem; font-weight: 800;
-                margin-top: .02rem;
-                box-shadow: 0 3px 9px rgba(15, 23, 42, .22);
-                box-shadow: 0 3px 9px color-mix(in srgb, var(--c) 48%, transparent);
-                background: var(--c, #94a3b8);
-                background: linear-gradient(145deg, color-mix(in srgb, var(--c) 82%, #fff), color-mix(in srgb, var(--c) 78%, #000)); }
-    .ck-linha.nada .ck-icone { box-shadow: none; opacity: .4; }
-    .ck-linha .texto { min-width: 0; padding-top: .15rem; }
-    .ck-linha .titulo { font-weight: 700; color: #0f172a; }
-    .ck-linha.feita .titulo { color: #15803d; }
-    .ck-linha.nada .titulo { color: #9fb0c2; font-weight: 600; }
-    .ck-linha .nota { display: inline-block; max-width: 40rem; font-size: .81rem; color: #475569;
-                      background: #f1f5f9; border-left: 3px solid #cbd5e1; border-radius: 0 7px 7px 0;
-                      padding: .2rem .55rem; margin-top: .35rem; white-space: pre-wrap; }
-    .ck-linha .nota i { color: #94a3b8; margin-right: .15rem; }
-    .ck-celula { text-align: center; border-left: 1px dashed #eef2f7; padding: .15rem .3rem; align-self: stretch;
-                 display: flex; align-items: center; justify-content: center; gap: .2rem; }
-    .ck-celula.minha { background: #f1f7ff; border-radius: 10px; border-left-color: #dceaf8; }
-    .ck-linha.feita .ck-celula.minha { background: #eafaf0; }
-    .ck-linha.problema .ck-celula.minha { background: #fff5e4; }
-
-    /* Etiquetas de turno e de dias: cheias de cor, para se lerem de longe */
+    /* Etiquetas de turno e de dias, na lista da chefia */
     .ck-eti { display: inline-flex; align-items: center; gap: .22rem; font-size: .67rem; font-weight: 800;
               text-transform: uppercase; letter-spacing: .04em; border-radius: 999px; padding: .1rem .5rem;
               color: #fff; background: var(--c, #64748b); white-space: nowrap; vertical-align: middle; }
     .ck-eti.clara { color: var(--c); background: #fff; border: 1px solid currentColor; }
 
+    .ck-vazio-col { padding: 1.6rem .9rem; text-align: center; color: #94a3b8; font-size: .86rem; }
+    .ck-nada { text-align: center; color: #94a3b8; padding: 2rem 1rem; background: #fff; border: 1px dashed #dbe3ec;
+               border-radius: 14px; margin-bottom: 1rem; }
+
     /* ---- O estado de cada célula: um círculo para tocar ---- */
-    .ck-celula { flex-direction: column; gap: .15rem !important; }
     .ck-tique { width: 36px; height: 36px; border-radius: 50%; border: 2px dashed #b9dcc6; background: #f5fdf8;
                 color: #9ed0b1; display: inline-flex; align-items: center; justify-content: center; font-size: .95rem;
                 padding: 0; transition: all .15s; }
@@ -152,20 +134,6 @@
     .ck-aviso:hover { background: linear-gradient(100deg, #fecaca, #fff5f5 60%); color: #7f1d1d; text-decoration: none; }
     .ck-aviso b { background: #fff; border: 1px solid #fecaca; border-radius: 999px; padding: .02rem .5rem; font-weight: 800; }
     .ck-aviso .ver { margin-left: auto; font-weight: 700; font-size: .8rem; }
-
-    .ck-nada { text-align: center; color: #94a3b8; padding: 2rem 1rem; background: #fff; border: 1px dashed #dbe3ec;
-               border-radius: 13px; }
-
-    /* No telemóvel os cartões empilham e cada célula diz de quem é */
-    @media (max-width: 767px) {
-        .ck-cab { display: none; }
-        .ck-linha { grid-template-columns: 1fr; }
-        .ck-celula { border-left: 0; border-top: 1px dashed #e9eff6; justify-content: space-between;
-                     margin-top: .45rem; padding-top: .45rem; border-radius: 0; }
-        .ck-celula::before { content: attr(data-quem); font-size: .72rem; font-weight: 800; text-transform: uppercase;
-                             letter-spacing: .04em; color: #94a3b8; }
-        .ck-celula.minha { background: none; }
-    }
 
     .ck-legenda { display: flex; flex-wrap: wrap; gap: .2rem 1.1rem; padding: .1rem .9rem;
                   font-size: .74rem; color: #94a3b8; }
@@ -228,32 +196,17 @@
         </div>
     </div>
 
+    @php($forasDeServico = $colunas->filter(fn ($c) => !$c['turno']))
+    @if($forasDeServico->isNotEmpty() || ($hoje && $meuTurno && isset($resumo[$eu])))
     <div class="card-body">
+        {{-- Só quem não está de serviço: quem está tem a sua coluna, com o mesmo resumo --}}
         <div class="ck-pessoas">
-            @foreach($colunas as $uid => $col)
-                @php($cor = $col['turno'] ? \App\Services\HotlineRotation::COLORS[$loop->index % count(\App\Services\HotlineRotation::COLORS)] : '#94a3b8')
-                @php($r = $resumo[$uid] ?? ['total' => 0, 'feitas' => 0])
-                <div class="ck-pessoa {{ $col['turno'] ? '' : 'folga' }}" style="--c: {{ $cor }}">
-                    @if($col['turno'])
-                        <div class="ck-roda" style="--c: {{ $cor }}; --p: {{ $r['total'] ? round(100 * $r['feitas'] / $r['total']) : 100 }}">
-                            <span class="n">{{ $r['feitas'] }}/{{ $r['total'] }}</span>
-                        </div>
-                    @else
-                        <div class="ck-roda folga"><span class="n">{{ \App\Services\HotlineChecklist::iniciais($col['user']->name) }}</span></div>
-                    @endif
+            @foreach($forasDeServico as $uid => $col)
+                <div class="ck-pessoa folga">
+                    <div class="ck-roda folga"><span class="n">{{ \App\Services\HotlineChecklist::iniciais($col['user']->name) }}</span></div>
                     <div>
                         <div class="nome">{{ $uid === $eu ? __('Eu') : $col['user']->name }}</div>
-                        <div class="horas">
-                            @if($col['turno'])
-                                <b>{{ $col['horas'] }}</b>
-                                @if($col['turno'] !== 'ambos') · {{ __(\App\Models\HotlineChecklistItem::TURNOS[$col['turno']]['curto']) }}@endif
-                                @if($col['porConta'])
-                                    <br>{{ __('no turno de :nome', ['nome' => $col['porConta']->name]) }}
-                                @endif
-                            @else
-                                {{ $col['motivo'] ?? __('Sem turno') }}
-                            @endif
-                        </div>
+                        <div class="horas">{{ $col['motivo'] ?? __('Sem turno') }}</div>
                     </div>
                 </div>
             @endforeach
@@ -274,6 +227,7 @@
             </div>
         @endif
     </div>
+    @endif
 </div>
 
 @if($errors->any())
@@ -291,119 +245,100 @@
     </a>
 @endif
 
-<div class="ck-grelha mb-3" style="--n: {{ $colunas->count() }}">
-    <div class="ck-cab">
-        <div class="tarefa">{{ __('Tarefa') }}</div>
-        @foreach($colunas as $uid => $col)
-            <div class="pessoa {{ $uid === $eu && $col['turno'] ? 'minha' : '' }} {{ $col['turno'] ? '' : 'fora' }}">
-                <span class="nl">
-                    <span class="ponto" style="--c: {{ $col['turno'] ? \App\Services\HotlineRotation::COLORS[$loop->index % count(\App\Services\HotlineRotation::COLORS)] : '#dbe3ec' }}"></span>
-                    {{ $uid === $eu ? __('Eu') : $col['user']->name }}
-                </span>
-                <span class="t">{{ $col['turno'] ? $col['horas'] : ($col['curto'] ?? __('Sem turno')) }}</span>
-            </div>
+@if($listas->isEmpty())
+    <div class="ck-nada">
+        <i class="fas fa-mug-hot fa-lg d-block mb-2" style="color: #cbd5e1"></i>
+        {{ __('Ninguém está de serviço na Hotline neste dia.') }}
+    </div>
+@else
+    <div class="ck-colunas">
+        @foreach($listas as $uid => $lista)
+            @php($col = $colunas[$uid])
+            @php($r = $resumo[$uid] ?? ['total' => 0, 'feitas' => 0])
+            @php($cor = \App\Services\HotlineRotation::COLORS[$loop->index % count(\App\Services\HotlineRotation::COLORS)])
+            @php($souEu = $hoje && $uid === $eu && $meuTurno)
+
+            <section class="ck-coluna" style="--c: {{ $cor }}">
+                <header>
+                    <span class="bola">{{ \App\Services\HotlineChecklist::iniciais($col['user']->name) }}</span>
+                    <div>
+                        <div class="nome">{{ $uid === $eu ? __('Eu') : $col['user']->name }}</div>
+                        <div class="horas">
+                            {{ $col['horas'] }}@if($col['turno'] !== 'ambos') · {{ __(\App\Models\HotlineChecklistItem::TURNOS[$col['turno']]['curto']) }}@endif
+                            @if($col['porConta'])
+                                · {{ __('no turno de :nome', ['nome' => $col['porConta']->name]) }}
+                            @endif
+                        </div>
+                    </div>
+                    <div class="conta">
+                        <b>{{ $r['feitas'] }}/{{ $r['total'] }}</b>
+                        <span>{{ __('validadas') }}</span>
+                    </div>
+                </header>
+                <div class="ck-prog">
+                    <span style="width: {{ $r['total'] ? round(100 * $r['feitas'] / $r['total']) : 0 }}%"></span>
+                </div>
+
+                @forelse($lista as $item)
+                    @php($check = $checks[$item->id . '_' . $uid] ?? null)
+                    @php($falhou = !$check && $dia->isPast() && !$hoje)
+                    <div class="ck-item {{ $check ? ($check->isProblema() ? 'prob' : 'feito') : ($falhou ? 'falhou' : '') }}">
+                        @if($souEu)
+                            <form method="POST" action="{{ $check
+                                ? route('backoffice.checklist.desfazer', $item->id)
+                                : route('backoffice.checklist.validar', $item->id) }}">
+                                @csrf
+                                @unless($check)<input type="hidden" name="estado" value="feito">@endunless
+                                <button type="submit"
+                                        class="ck-tique {{ $check ? ($check->isProblema() ? 'prob' : 'ok') : '' }}"
+                                        title="{{ $check ? __('Clique para desfazer') : __('Clique quando estiver feita') }}">
+                                    <i class="fas {{ $check && $check->isProblema() ? 'fa-exclamation' : 'fa-check' }}"></i>
+                                </button>
+                            </form>
+                        @else
+                            <span class="ck-tique parado {{ $check ? ($check->isProblema() ? 'prob' : 'ok') : ($falhou ? 'falhou' : '') }}">
+                                <i class="fas {{ $check && $check->isProblema() ? 'fa-exclamation' : ($falhou ? 'fa-times' : 'fa-check') }}"></i>
+                            </span>
+                        @endif
+
+                        <div class="txt">
+                            <span class="num">{{ $loop->iteration }}</span>
+                            <span class="titulo">{{ $item->titulo }}</span>
+                            @if($item->nota)
+                                <div class="nota"><i class="fas fa-info-circle"></i> {{ $item->nota }}</div>
+                            @endif
+                            @if($check && $check->nota)
+                                <div class="ck-nota-prob">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <span class="texto">{{ $check->nota }}</span>
+                                </div>
+                            @endif
+                        </div>
+
+                        <div class="dir">
+                            @if($check)
+                                <span class="ck-hora {{ $check->isProblema() ? 'prob' : 'ok' }}">{{ $check->hora() }}</span>
+                            @elseif($souEu)
+                                <button type="button" class="ck-prob-link" data-toggle="modal" data-target="#ck-problema"
+                                        data-id="{{ $item->id }}" data-titulo="{{ $item->titulo }}">
+                                    <i class="fa fa-exclamation-triangle"></i> {{ __('problema') }}
+                                </button>
+                            @endif
+                        </div>
+                    </div>
+                @empty
+                    <div class="ck-vazio-col">
+                        @if($listaToda->isNotEmpty() || !$gestor)
+                            {{ __('Não há nada para este dia.') }}
+                        @else
+                            {{ __('A checklist ainda está vazia.') }}
+                        @endif
+                    </div>
+                @endforelse
+            </section>
         @endforeach
     </div>
-
-    @forelse($itens as $item)
-        <div class="ck-linha {{ $estados[$item->id] ?? 'nada' }}" style="--turno: {{ $item->turnoConfig()['cor'] }}">
-            <div class="tarefa">
-                <span class="ck-icone" style="--c: {{ $item->turnoConfig()['cor'] }}"
-                      title="{{ $item->turnoLabel() }}">{{ $loop->iteration }}</span>
-                <div class="texto">
-                    <span class="titulo">{{ $item->titulo }}</span>
-                    @if($item->turno !== 'ambos')
-                        <span class="ck-eti" style="--c: {{ $item->turnoConfig()['cor'] }}">
-                            <i class="fas {{ $item->turnoConfig()['icon'] }}"></i> {{ __($item->turnoConfig()['curto']) }}
-                        </span>
-                    @endif
-                    @if($item->nota)
-                        <div class="nota"><i class="fas fa-info-circle"></i> {{ $item->nota }}</div>
-                    @endif
-                </div>
-            </div>
-
-            @foreach($colunas as $uid => $col)
-                @php($quem = $col['turno'] ? $col['user'] : null)
-                @php($check = $quem ? ($checks[$item->id . '_' . $quem->id] ?? null) : null)
-                @php($souEu = $hoje && $quem && $quem->id === $eu && $meuTurno)
-                <div class="ck-celula {{ $uid === $eu && $col['turno'] ? 'minha' : '' }}"
-                     data-quem="{{ $uid === $eu ? __('Eu') : $col['user']->name }}">
-                    @if(!$quem)
-                        <span class="ck-vazio">—</span>
-                    @elseif(!$item->doTurno($col['turno']))
-                        <span class="ck-vazio" title="{{ __('Não é do turno dele hoje') }}">·</span>
-                    @elseif($check && $souEu)
-                        {{-- Tocar outra vez desfaz: é o gesto que toda a gente espera --}}
-                        <form method="POST" action="{{ route('backoffice.checklist.desfazer', $item->id) }}">
-                            @csrf
-                            <button type="submit" class="ck-tique {{ $check->isProblema() ? 'prob' : 'ok' }}"
-                                    title="{{ __('Clique para desfazer') }}">
-                                <i class="fas {{ $check->isProblema() ? 'fa-exclamation' : 'fa-check' }}"></i>
-                            </button>
-                        </form>
-                        <span class="ck-hora {{ $check->isProblema() ? 'prob' : 'ok' }}">{{ $check->hora() }}</span>
-                    @elseif($check)
-                        <span class="ck-tique {{ $check->isProblema() ? 'prob' : 'ok' }} parado"
-                              title="{{ $check->isProblema() ? __('Houve um problema') : __('Validada.') }}">
-                            <i class="fas {{ $check->isProblema() ? 'fa-exclamation' : 'fa-check' }}"></i>
-                        </span>
-                        <span class="ck-hora {{ $check->isProblema() ? 'prob' : 'ok' }}">{{ $check->hora() }}</span>
-                    @elseif($souEu)
-                        <form method="POST" action="{{ route('backoffice.checklist.validar', $item->id) }}">
-                            @csrf<input type="hidden" name="estado" value="feito">
-                            <button type="submit" class="ck-tique" title="{{ __('Clique quando estiver feita') }}">
-                                <i class="fa fa-check"></i>
-                            </button>
-                        </form>
-                        <button type="button" class="ck-prob-link" data-toggle="modal" data-target="#ck-problema"
-                                data-id="{{ $item->id }}" data-titulo="{{ $item->titulo }}">
-                            <i class="fa fa-exclamation-triangle"></i> {{ __('problema') }}
-                        </button>
-                    @elseif($dia->isPast() && !$dia->isToday())
-                        <span class="ck-falhou"><i class="fa fa-times"></i> {{ __('Por validar') }}</span>
-                    @else
-                        <span class="ck-vazio">—</span>
-                    @endif
-                </div>
-            @endforeach
-
-            @if(isset($notas[$item->id]))
-                <div class="ck-notas">
-                    @foreach($notas[$item->id] as $nota)
-                        <div class="ck-nota-prob">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <span class="quem">{{ $nota->user->name ?? '—' }}, {{ $nota->hora() }}</span>
-                            <span class="texto">{{ $nota->nota }}</span>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
-        </div>
-    @empty
-        <div class="ck-nada">
-            @if($dia->isPast() && !$hoje)
-                {{ __('Nesse dia ainda não havia nada na checklist.') }}
-            @elseif($listaToda->isNotEmpty())
-                {{ __('Não há nada para este dia.') }}
-                @if($dia->isWeekend()) {{ __('As tarefas da lista são para dias de semana.') }} @endif
-            @else
-                {{ __('A checklist ainda está vazia.') }}
-                @if($gestor) {{ __('Acrescente a primeira tarefa aqui em baixo.') }} @endif
-            @endif
-        </div>
-    @endforelse
-
-    @if($itens->isNotEmpty())
-        <div class="ck-legenda">
-            <span><i class="far fa-circle" style="color: #9ed0b1"></i> {{ __('toque no círculo para validar') }}</span>
-            <span><i class="fa fa-check text-success"></i> {{ __('validada') }}</span>
-            <span><i class="fa fa-exclamation-triangle text-warning"></i> {{ __('com problema') }}</span>
-            <span><strong>·</strong> {{ __('não é do turno dessa pessoa') }}</span>
-            <span><strong>—</strong> {{ __('não está de serviço') }}</span>
-        </div>
-    @endif
-</div>
+@endif
 
 @if($gestor)
     <div class="card ck-cartao mb-3">

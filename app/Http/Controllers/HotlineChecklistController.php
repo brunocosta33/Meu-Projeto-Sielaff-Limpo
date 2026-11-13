@@ -57,28 +57,10 @@ class HotlineChecklistController extends Controller
             return ['total' => $aplica->count(), 'feitas' => $feitas->count()];
         });
 
-        // O estado de cada linha, para a tabela se ler de relance: tudo feito,
-        // feito mas com problema, ou ainda por validar
-        $estados = $itens->mapWithKeys(function (HotlineChecklistItem $i) use ($colunas, $checks) {
-            $deQuem = $colunas->filter(fn (array $c) => $c['turno'] && $i->doTurno($c['turno']));
-
-            if ($deQuem->isEmpty()) {
-                return [$i->id => 'nada'];
-            }
-
-            $feitas = $deQuem->map(fn (array $c) => $checks->get($i->id . '_' . $c['user']->id));
-
-            return [$i->id => match (true) {
-                $feitas->contains(null) => 'aberta',
-                $feitas->contains(fn ($ch) => $ch->isProblema()) => 'problema',
-                default => 'feita',
-            }];
-        });
-
-        // Os problemas do dia saem da célula e vão para uma faixa debaixo da linha,
-        // que é onde se leem mesmo
-        $notas = $checks->filter(fn (HotlineChecklistCheck $c) => $c->isProblema() && $c->nota)
-            ->groupBy('item_id');
+        // Cada pessoa de serviço tem a sua lista: só o que é do turno dela
+        $listas = $colunas
+            ->filter(fn (array $col) => $col['turno'])
+            ->map(fn (array $col) => HotlineChecklist::aplicaveis($itens, $col['turno'], $dia));
 
         return view('backoffice.hotline.checklist.index', [
             'dia' => $dia,
@@ -88,8 +70,7 @@ class HotlineChecklistController extends Controller
             'itens' => $itens,
             // A chefia gere a lista toda num sítio só, fora da grelha do dia
             'listaToda' => $this->podeGerir() ? $todos : collect(),
-            'estados' => $estados,
-            'notas' => $notas,
+            'listas' => $listas,
             'checks' => $checks,
             // Para a chefia: quantas ficaram por validar ontem, que é quando já não se pode emendar
             'falhasDeOntem' => $this->podeGerir() ? $this->falhasDe(today()->subDay(), $todos) : collect(),
