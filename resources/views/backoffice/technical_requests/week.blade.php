@@ -80,6 +80,14 @@
     .sm-grupo .bola { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center;
                       background: var(--c); color: #fff; font-size: .64rem; }
     .sm-grupo .n { background: #eef2f7; color: #475569; border-radius: 999px; padding: 0 .5rem; font-size: .74rem; }
+    .sm-grupo .fora { font-size: .68rem; font-weight: 600; color: #94a3b8; text-transform: none; }
+    .sm-zonas { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: .8rem; }
+    .sm-zona { border: 1px solid #dde5ef; background: #fff; color: #475569; border-radius: 999px;
+               padding: .18rem .7rem; font-size: .78rem; font-weight: 700; }
+    .sm-zona:hover { border-color: var(--c, #94a3b8); color: var(--c, #334155); }
+    .sm-zona.on { background: var(--c, #0b5ed7); border-color: var(--c, #0b5ed7); color: #fff; }
+    .sm-zona span { opacity: .7; font-weight: 800; }
+    .sm-grupo.escondido, .sm-fila.escondida { display: none; }
     .sm-ajuda { font-size: .8rem; color: #6c7a89; }
 </style>
 @endpush
@@ -158,14 +166,33 @@
         <h6 class="text-uppercase text-muted mb-2" style="font-size: .75rem; letter-spacing: .06em">
             <i class="fa fa-inbox"></i> {{ __('Por agendar') }} ({{ $totalPorAgendar }})
         </h6>
-        <p class="sm-ajuda">{{ __('Pedidos em aberto que ainda não têm dia, pelo técnico que já lhes foi atribuído. Arraste um para a semana, ou use o lápis para escolher o técnico e o dia.') }}</p>
+        <p class="sm-ajuda">{{ __('Pedidos em aberto que ainda não têm dia, pelo técnico que já lhes foi atribuído e com a mesma zona junta. Arraste um para a semana, ou use o lápis para escolher o técnico e o dia.') }}</p>
+
+        @if($totalPorAgendar)
+            <div class="sm-zonas">
+                <button type="button" class="sm-zona on" data-zona="">{{ __('Todas as zonas') }} <span>{{ $totalPorAgendar }}</span></button>
+                @foreach(\App\Http\Controllers\TechnicalRequestController::ZONES as $chave => $nome)
+                    @if($zonasDaFila[$chave] ?? 0)
+                        <button type="button" class="sm-zona" data-zona="{{ $chave }}"
+                                style="--c: {{ ['norte' => '#0f766e', 'centro' => '#b45309', 'sul' => '#be185d'][$chave] ?? '#64748b' }}">
+                            {{ __($nome) }} <span>{{ $zonasDaFila[$chave] }}</span>
+                        </button>
+                    @endif
+                @endforeach
+                @if($zonasDaFila['sem_zona'] ?? 0)
+                    <button type="button" class="sm-zona" data-zona="sem_zona">{{ __('Sem zona') }} <span>{{ $zonasDaFila['sem_zona'] }}</span></button>
+                @endif
+            </div>
+        @endif
 
         @forelse($porAgendar as $tecnicoId => $grupo)
-            @php($dono = $tecnicos->firstWhere('id', $tecnicoId))
-            @php($cor = $dono ? \App\Services\HotlineRotation::PIQUETE_COLORS[$tecnicos->search(fn ($t) => $t->id === $tecnicoId) % count(\App\Services\HotlineRotation::PIQUETE_COLORS)] : '#94a3b8')
-            <div class="sm-grupo" style="--c: {{ $cor }}">
+            @php($dono = $tecnicos->firstWhere('id', $tecnicoId) ?? $grupo->first()->assignedTechnician)
+            @php($naEscala = $tecnicos->search(fn ($t) => $t->id === $tecnicoId))
+            @php($cor = $naEscala === false ? '#64748b' : \App\Services\HotlineRotation::PIQUETE_COLORS[$naEscala % count(\App\Services\HotlineRotation::PIQUETE_COLORS)])
+            <div class="sm-grupo" style="--c: {{ $tecnicoId ? $cor : '#94a3b8' }}">
                 <span class="bola">{{ $dono ? \App\Services\HotlineChecklist::iniciais($dono->name) : '?' }}</span>
                 {{ $dono->name ?? __('Por atribuir') }}
+                @if($dono && $naEscala === false)<span class="fora">{{ __('não é técnico') }}</span>@endif
                 <span class="n">{{ $grupo->count() }}</span>
             </div>
             <div class="sm-fila mb-3">
@@ -278,6 +305,29 @@
                 document.getElementById('sm-mover-tec').value = card.dataset.tec || '';
                 document.getElementById('sm-mover-dia').value = card.dataset.dia || '';
                 if (window.jQuery) $('#sm-mover').modal('show');
+            });
+        });
+
+        // Filtro por zona na fila dos por agendar
+        document.querySelectorAll('.sm-zona').forEach(function (b) {
+            b.addEventListener('click', function () {
+                var zona = b.dataset.zona;
+                document.querySelectorAll('.sm-zona').forEach(function (o) { o.classList.toggle('on', o === b); });
+
+                document.querySelectorAll('.card .sm-fila').forEach(function (fila) {
+                    var visiveis = 0;
+                    fila.querySelectorAll('.sm-pedido').forEach(function (card) {
+                        var mostra = !zona || card.dataset.zona === zona;
+                        card.style.display = mostra ? '' : 'none';
+                        if (mostra) visiveis++;
+                    });
+                    // Um técnico sem nada nesta zona desaparece, com o seu título
+                    fila.classList.toggle('escondida', visiveis === 0);
+                    var titulo = fila.previousElementSibling;
+                    if (titulo && titulo.classList.contains('sm-grupo')) {
+                        titulo.classList.toggle('escondido', visiveis === 0);
+                    }
+                });
             });
         });
 

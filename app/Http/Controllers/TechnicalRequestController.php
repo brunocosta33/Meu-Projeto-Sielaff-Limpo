@@ -814,14 +814,24 @@ class TechnicalRequestController extends Controller
         // dos Pedidos Abertos, aqui só falta dizer em que dia é que ele os faz
         $ordemTecnicos = $tecnicos->pluck('id')->push(0)->values()->flip();
 
-        $porAgendar = TechnicalRequest::with(['store', 'machine', 'machines.machine', 'assignedTechnician'])
+        $fila = TechnicalRequest::with(['store', 'machine', 'machines.machine', 'assignedTechnician'])
             ->whereNull('data_agendamento')
             ->whereIn('estado', ['pendente', 'agendado', 'aguarda_peca'])
-            ->orderByRaw("FIELD(prioridade, 'alta', 'media', 'baixa')")
-            ->orderBy('data_pedido')
             ->get()
+            // Dentro de cada técnico, a mesma zona fica junta: é assim que se enche um dia
+            ->sortBy(fn (TechnicalRequest $p) => sprintf(
+                '%s-%d-%s',
+                $p->zona ?: 'zzz',
+                array_search($p->prioridade, ['alta', 'media', 'baixa'], true),
+                $p->data_pedido?->format('Ymd') ?? ''
+            ));
+
+        $porAgendar = $fila
             ->groupBy(fn (TechnicalRequest $p) => (int) ($p->assigned_technician_id ?? 0))
             ->sortBy(fn ($grupo, $tecnicoId) => $ordemTecnicos[$tecnicoId] ?? 999);
+
+        // Quantos por zona, para o filtro rápido da fila
+        $zonasDaFila = $fila->countBy(fn (TechnicalRequest $p) => $p->zona ?: 'sem_zona');
 
         return view('backoffice.technical_requests.week', [
             'inicio' => $inicio,
@@ -831,7 +841,8 @@ class TechnicalRequestController extends Controller
             'celulas' => $celulas,
             'semAgendar' => $agendados->whereNull('assigned_technician_id'),
             'porAgendar' => $porAgendar,
-            'totalPorAgendar' => $porAgendar->sum(fn ($g) => $g->count()),
+            'totalPorAgendar' => $fila->count(),
+            'zonasDaFila' => $zonasDaFila,
             'statuses' => self::translatedLabels(self::STATUSES),
             'priorities' => self::translatedLabels(self::PRIORITIES),
             'tipos' => self::translatedLabels(self::SERVICE_TYPES),

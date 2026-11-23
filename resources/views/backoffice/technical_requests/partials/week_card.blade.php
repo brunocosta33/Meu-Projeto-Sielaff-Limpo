@@ -7,6 +7,7 @@
    data-tec="{{ $p->assigned_technician_id }}"
    data-dia="{{ $p->data_agendamento?->toDateString() }}"
    data-titulo="#{{ $p->id }} — {{ $p->store->nome_loja ?? __('Sem loja') }}"
+   data-zona="{{ $p->zona ?: 'sem_zona' }}"
    style="--p: {{ $cores[$p->prioridade] ?? '#94a3b8' }}"
    title="{{ $p->descricao_problema }}">
 
