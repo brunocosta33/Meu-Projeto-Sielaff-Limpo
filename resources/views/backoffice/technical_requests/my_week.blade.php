@@ -49,6 +49,11 @@
     .ms-loja { font-weight: 700; color: #132238; line-height: 1.25; }
     .ms-tipo { font-size: .8rem; color: #6c7a89; }
     .ms-tipo .peca { color: #b26a00; font-weight: 700; }
+    .ms-serie { font-family: Consolas, Menlo, monospace; font-weight: 700; color: #0b5ed7; letter-spacing: -.02em; }
+    /* A avaria em três linhas: chega para saber o que leva na carrinha */
+    .ms-avaria { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+                 font-size: .82rem; color: #334155; line-height: 1.3; margin-top: .2rem;
+                 border-left: 3px solid #e3e9f1; padding-left: .5rem; }
     .ms-morada { font-size: .8rem; color: #6c7a89; margin-top: .2rem; }
     .ms-botoes { display: flex; gap: .4rem; margin-top: .5rem; }
     .ms-botao { flex: 1; text-align: center; border-radius: 9px; padding: .4rem .5rem; font-size: .82rem;
@@ -101,10 +106,19 @@
                     @if($cliente)<span class="ms-marca" style="--c: {{ $cliente['color'] }}; --bg: {{ $cliente['bg'] }}">{{ $cliente['label'] }}</span>@endif
                     {{ $p->store->codigo_loja ?? '' }} {{ $p->store->nome_loja ?? __('Sem loja') }}
                 </div>
+                @php($series = collect([$p->machine?->serial_number])
+                    ->merge($p->relationLoaded('machines') ? $p->machines->map(fn ($m) => $m->machine?->serial_number) : [])
+                    ->filter()->unique()->values())
                 <div class="ms-tipo">
                     {{ __(\App\Http\Controllers\TechnicalRequestController::SERVICE_TYPES[$p->tipo_servico] ?? ($p->tipo_servico ?: '—')) }}
+                    @if($series->isNotEmpty())
+                        · <span class="ms-serie">{{ $series->implode(' · ') }}</span>
+                    @endif
                     @if($p->estado === 'aguarda_peca')<span class="peca">· {{ __('Aguarda Peça') }}</span>@endif
                 </div>
+                @if($p->descricao_problema)
+                    <div class="ms-avaria">{{ $p->descricao_problema }}</div>
+                @endif
                 @if($morada)<div class="ms-morada"><i class="fa fa-map-marker-alt"></i> {{ $morada }}</div>@endif
 
                 <div class="ms-botoes">
@@ -142,6 +156,8 @@
                     </span>
                 </div>
                 <div class="ms-loja">{{ $p->store->codigo_loja ?? '' }} {{ $p->store->nome_loja ?? __('Sem loja') }}</div>
+                @if($p->machine?->serial_number)<div class="ms-tipo"><span class="ms-serie">{{ $p->machine->serial_number }}</span></div>@endif
+                @if($p->descricao_problema)<div class="ms-avaria">{{ $p->descricao_problema }}</div>@endif
             </a>
         @endforeach
     </section>

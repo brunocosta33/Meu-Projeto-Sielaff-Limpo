@@ -58,6 +58,10 @@
     .sm-pedido .loja { display: block; font-size: .78rem; font-weight: 700; color: #132238; line-height: 1.25;
                        overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .sm-pedido .tipo { display: block; font-size: .7rem; color: #6c7a89; line-height: 1.2; padding-right: .8rem; }
+    .sm-pedido .serie { font-family: Consolas, Menlo, monospace; font-weight: 700; color: #0b5ed7; letter-spacing: -.02em; }
+    /* A avaria em duas linhas: o suficiente para planear sem abrir o pedido */
+    .sm-pedido .avaria { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+                         font-size: .72rem; color: #475569; line-height: 1.25; margin-top: .15rem; }
     .sm-pedido .peca { color: #b26a00; font-weight: 700; }
     .sm-pedido .tirar { position: absolute; top: .1rem; right: .15rem; border: 0; background: none; color: #cbd5e1;
                         font-size: .7rem; line-height: 1; padding: .1rem; }

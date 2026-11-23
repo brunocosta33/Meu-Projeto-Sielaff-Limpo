@@ -28,10 +28,20 @@
         {{ $p->store->codigo_loja ?? '' }} {{ $p->store->nome_loja ?? __('Sem loja') }}
     </span>
 
+    @php($series = collect([$p->machine?->serial_number])
+        ->merge($p->relationLoaded('machines') ? $p->machines->map(fn ($m) => $m->machine?->serial_number) : [])
+        ->filter()->unique()->values())
+
     <span class="tipo">
         {{ __(\App\Http\Controllers\TechnicalRequestController::SERVICE_TYPES[$p->tipo_servico] ?? ($p->tipo_servico ?: '—')) }}
+        @if($series->isNotEmpty())
+            · <span class="serie">{{ $series->take(2)->implode(' · ') }}@if($series->count() > 2) +{{ $series->count() - 2 }}@endif</span>
+        @endif
         @if($p->estado === 'aguarda_peca')<span class="peca">· {{ __('Aguarda Peça') }}</span>@endif
     </span>
+    @if($p->descricao_problema)
+        <span class="avaria">{{ $p->descricao_problema }}</span>
+    @endif
 
     @unless($leitura ?? false)
         @if($p->data_agendamento)

@@ -417,7 +417,7 @@ class TechnicalRequestController extends Controller
             ->whereNull('deleted_at')
             ->findOrFail($id);
 
-        $query = TechnicalRequest::with(['store', 'machine', 'assignedTechnician'])
+        $query = TechnicalRequest::with(['store', 'machine', 'machines.machine', 'assignedTechnician'])
             ->where('assigned_technician_id', $technician->id)
             ->where('estado', '!=', 'concluido')
             ->orderByRaw("FIELD(estado, 'pendente', 'agendado', 'aguarda_peca', 'cancelado', 'concluido')")
@@ -455,7 +455,7 @@ class TechnicalRequestController extends Controller
 
         $isConcluido = $estado === 'concluido';
 
-        $query = TechnicalRequest::with(['store', 'machine', 'assignedTechnician'])
+        $query = TechnicalRequest::with(['store', 'machine', 'machines.machine', 'assignedTechnician'])
             ->where('assigned_technician_id', $technician->id)
             ->where('estado', $estado);
 
@@ -488,7 +488,7 @@ class TechnicalRequestController extends Controller
     {
         $technician = auth()->user();
 
-        $query = TechnicalRequest::with(['store', 'machine', 'assignedTechnician'])
+        $query = TechnicalRequest::with(['store', 'machine', 'machines.machine', 'assignedTechnician'])
             ->where('assigned_technician_id', $technician->id)
             ->where('estado', '!=', 'concluido')
             ->orderByRaw("FIELD(estado, 'pendente', 'agendado', 'aguarda_peca', 'cancelado', 'concluido')")
@@ -529,7 +529,7 @@ class TechnicalRequestController extends Controller
     {
         abort_unless($this->isAdmin(), 403);
 
-        $query = TechnicalRequest::with(['store', 'machine', 'assignedTechnician'])
+        $query = TechnicalRequest::with(['store', 'machine', 'machines.machine', 'assignedTechnician'])
             ->where('estado', 'concluido')
             ->orderByDesc('data_resolucao')
             ->orderByDesc('updated_at');
@@ -554,7 +554,7 @@ class TechnicalRequestController extends Controller
     {
         abort_unless($this->isAdmin(), 403);
 
-        $query = TechnicalRequest::with(['store', 'machine', 'assignedTechnician'])
+        $query = TechnicalRequest::with(['store', 'machine', 'machines.machine', 'assignedTechnician'])
             ->where('estado', '!=', 'concluido')
             ->orderByRaw("FIELD(estado, 'pendente', 'agendado', 'aguarda_peca', 'cancelado', 'concluido')")
             ->orderBy('data_pedido', 'desc');
@@ -787,7 +787,7 @@ class TechnicalRequestController extends Controller
         $inicio = $this->semanaDe($request)->startOfWeek();
         $fim = $inicio->copy()->addDays(self::DIAS_DA_SEMANA - 1);
 
-        $agendados = TechnicalRequest::with(['store', 'machine', 'assignedTechnician'])
+        $agendados = TechnicalRequest::with(['store', 'machine', 'machines.machine', 'assignedTechnician'])
             ->whereNotNull('data_agendamento')
             ->whereBetween('data_agendamento', [$inicio->copy()->startOfDay(), $fim->copy()->endOfDay()])
             ->orderBy('data_agendamento')
@@ -814,7 +814,7 @@ class TechnicalRequestController extends Controller
         // dos Pedidos Abertos, aqui só falta dizer em que dia é que ele os faz
         $ordemTecnicos = $tecnicos->pluck('id')->push(0)->values()->flip();
 
-        $porAgendar = TechnicalRequest::with(['store', 'machine', 'assignedTechnician'])
+        $porAgendar = TechnicalRequest::with(['store', 'machine', 'machines.machine', 'assignedTechnician'])
             ->whereNull('data_agendamento')
             ->whereIn('estado', ['pendente', 'agendado', 'aguarda_peca'])
             ->orderByRaw("FIELD(prioridade, 'alta', 'media', 'baixa')")
@@ -848,7 +848,7 @@ class TechnicalRequestController extends Controller
         $inicio = $this->semanaDe($request)->startOfWeek();
         $fim = $inicio->copy()->addDays(self::DIAS_DA_SEMANA - 1);
 
-        $pedidos = TechnicalRequest::with(['store', 'machine'])
+        $pedidos = TechnicalRequest::with(['store', 'machine', 'machines.machine'])
             ->where('assigned_technician_id', $eu->id)
             ->whereNotNull('data_agendamento')
             ->whereBetween('data_agendamento', [$inicio->copy()->startOfDay(), $fim->copy()->endOfDay()])
@@ -857,7 +857,7 @@ class TechnicalRequestController extends Controller
             ->groupBy(fn (TechnicalRequest $p) => $p->data_agendamento->toDateString());
 
         // Os que já são dele mas ainda não têm dia marcado
-        $semDia = TechnicalRequest::with('store')
+        $semDia = TechnicalRequest::with(['store', 'machine'])
             ->where('assigned_technician_id', $eu->id)
             ->whereNull('data_agendamento')
             ->whereIn('estado', ['pendente', 'agendado', 'aguarda_peca'])
