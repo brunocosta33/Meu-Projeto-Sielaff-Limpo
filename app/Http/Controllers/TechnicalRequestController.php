@@ -838,6 +838,42 @@ class TechnicalRequestController extends Controller
         ]);
     }
 
+    /**
+     * A semana do próprio técnico, para ver no telemóvel.
+     * Só mostra: quem agenda é a coordenação, no quadro da semana.
+     */
+    public function myWeek(Request $request)
+    {
+        $eu = auth()->user();
+        $inicio = $this->semanaDe($request)->startOfWeek();
+        $fim = $inicio->copy()->addDays(self::DIAS_DA_SEMANA - 1);
+
+        $pedidos = TechnicalRequest::with(['store', 'machine'])
+            ->where('assigned_technician_id', $eu->id)
+            ->whereNotNull('data_agendamento')
+            ->whereBetween('data_agendamento', [$inicio->copy()->startOfDay(), $fim->copy()->endOfDay()])
+            ->orderBy('data_agendamento')
+            ->get()
+            ->groupBy(fn (TechnicalRequest $p) => $p->data_agendamento->toDateString());
+
+        // Os que já são dele mas ainda não têm dia marcado
+        $semDia = TechnicalRequest::with('store')
+            ->where('assigned_technician_id', $eu->id)
+            ->whereNull('data_agendamento')
+            ->whereIn('estado', ['pendente', 'agendado', 'aguarda_peca'])
+            ->orderByRaw("FIELD(prioridade, 'alta', 'media', 'baixa')")
+            ->get();
+
+        return view('backoffice.technical_requests.my_week', [
+            'inicio' => $inicio,
+            'fim' => $fim,
+            'dias' => collect(\Carbon\CarbonPeriod::create($inicio, $fim)->toArray()),
+            'pedidos' => $pedidos,
+            'semDia' => $semDia,
+            'total' => $pedidos->sum(fn ($g) => $g->count()),
+        ]);
+    }
+
     /** Pôr (ou tirar) um pedido num dia da semana de um técnico. */
     public function schedule(Request $request, $id)
     {

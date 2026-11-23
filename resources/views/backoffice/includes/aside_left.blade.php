@@ -28,6 +28,12 @@ use App\Models\Base;
             </a>
         </li>
         <li>
+            <a href="{{ route('backoffice.technical_requests.my_week') }}">
+                <i class="fas fa-route me-2"></i>
+                <span class="hidden-sm-down">{{ __('A Minha Semana') }}</span>
+            </a>
+        </li>
+        <li>
             <a href="{{ route('backoffice.task_schedules.minhas') }}">
                 <i class="fas fa-tasks me-2"></i>
                 <span class="hidden-sm-down">{{ __('Minhas Tarefas') }}</span>

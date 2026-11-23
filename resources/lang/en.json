@@ -1,4 +1,11 @@
 {
+    "A Minha Semana": "My week",
+    "Abrir no mapa": "Open in maps",
+    "Ver pedido": "Open request",
+    "Sem serviços marcados.": "Nothing scheduled.",
+    "Ainda sem dia": "No day yet",
+    "atribuídos a si, à espera de marcação": "assigned to you, waiting to be scheduled",
+    "{0} sem serviços marcados|{1} :count serviço marcado|[2,*] :count serviços marcados": "{0} nothing scheduled|{1} :count job scheduled|[2,*] :count jobs scheduled",
     "Semana dos Técnicos": "Technicians' week",
     "Arraste um pedido para o dia do técnico. Clique no pedido para o abrir.": "Drag a request onto the technician's day. Click a request to open it.",
     "Marcados para esta semana, mas sem técnico": "Scheduled for this week, but with no technician",

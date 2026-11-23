@@ -1,4 +1,11 @@
 {
+    "A Minha Semana": "Mi semana",
+    "Abrir no mapa": "Abrir en el mapa",
+    "Ver pedido": "Ver solicitud",
+    "Sem serviços marcados.": "Sin servicios programados.",
+    "Ainda sem dia": "Todavía sin día",
+    "atribuídos a si, à espera de marcação": "asignados a usted, a la espera de programación",
+    "{0} sem serviços marcados|{1} :count serviço marcado|[2,*] :count serviços marcados": "{0} sin servicios programados|{1} :count servicio programado|[2,*] :count servicios programados",
     "Semana dos Técnicos": "Semana de los Técnicos",
     "Arraste um pedido para o dia do técnico. Clique no pedido para o abrir.": "Arrastre una solicitud al día del técnico. Haga clic para abrirla.",
     "Marcados para esta semana, mas sem técnico": "Programados para esta semana, pero sin técnico",

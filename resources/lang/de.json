@@ -1,4 +1,11 @@
 {
+  "A Minha Semana": "Meine Woche",
+  "Abrir no mapa": "In Karten öffnen",
+  "Ver pedido": "Auftrag öffnen",
+  "Sem serviços marcados.": "Nichts geplant.",
+  "Ainda sem dia": "Noch ohne Tag",
+  "atribuídos a si, à espera de marcação": "Ihnen zugewiesen, warten auf einen Termin",
+  "{0} sem serviços marcados|{1} :count serviço marcado|[2,*] :count serviços marcados": "{0} nichts geplant|{1} :count Auftrag geplant|[2,*] :count Aufträge geplant",
   "Semana dos Técnicos": "Technikerwoche",
   "Arraste um pedido para o dia do técnico. Clique no pedido para o abrir.": "Ziehen Sie einen Auftrag auf den Tag des Technikers. Zum Öffnen anklicken.",
   "Marcados para esta semana, mas sem técnico": "Für diese Woche geplant, aber ohne Techniker",

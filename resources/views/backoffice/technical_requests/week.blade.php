@@ -206,7 +206,7 @@
                     <select class="form-control" id="sm-mover-dia">
                         <option value="">{{ __('Tirar da semana') }}</option>
                         @foreach($dias as $dia)
-                            <option value="{{ $dia->toDateString() }}">{{ \Illuminate\Support\Str::ucfirst($dia->translatedFormat('dddd, d/m')) }}</option>
+                            <option value="{{ $dia->toDateString() }}">{{ \Illuminate\Support\Str::ucfirst($dia->isoFormat('dddd, D/MM')) }}</option>
                         @endforeach
                     </select>
                 </div>

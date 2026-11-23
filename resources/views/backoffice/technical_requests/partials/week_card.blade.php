@@ -1,7 +1,7 @@
 {{-- Um pedido no quadro da semana. Arrasta-se; clicar abre o pedido. --}}
 @php($cliente = $p->store?->clienteConfig())
 @php($zonas = ['norte' => '#0f766e', 'centro' => '#b45309', 'sul' => '#be185d'])
-<a class="sm-pedido" draggable="true"
+<a class="sm-pedido" draggable="{{ ($leitura ?? false) ? 'false' : 'true' }}"
    href="{{ route('backoffice.technical_requests.show', $p->id) }}"
    data-id="{{ $p->id }}"
    data-tec="{{ $p->assigned_technician_id }}"
@@ -33,8 +33,10 @@
         @if($p->estado === 'aguarda_peca')<span class="peca">· {{ __('Aguarda Peça') }}</span>@endif
     </span>
 
-    @if($p->data_agendamento)
-        <button type="button" class="tirar" title="{{ __('Tirar da semana') }}"><i class="fa fa-times"></i></button>
-    @endif
-    <button type="button" class="mover" title="{{ __('Escolher técnico e dia') }}"><i class="fa fa-pen"></i></button>
+    @unless($leitura ?? false)
+        @if($p->data_agendamento)
+            <button type="button" class="tirar" title="{{ __('Tirar da semana') }}"><i class="fa fa-times"></i></button>
+        @endif
+        <button type="button" class="mover" title="{{ __('Escolher técnico e dia') }}"><i class="fa fa-pen"></i></button>
+    @endunless
 </a>

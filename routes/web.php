@@ -388,6 +388,7 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
         Route::get('/technicians', [TechnicalRequestController::class, 'technicians'])->name('backoffice.technical_requests.technicians');
         // Quadro da semana: tecnicos em linhas, dias em colunas
         Route::get('/semana', [TechnicalRequestController::class, 'week'])->name('backoffice.technical_requests.week');
+        Route::get('/minha-semana', [TechnicalRequestController::class, 'myWeek'])->name('backoffice.technical_requests.my_week');
         Route::post('/{id}/agendar', [TechnicalRequestController::class, 'schedule'])->name('backoffice.technical_requests.schedule');
         Route::get('/technicians/open/all', [TechnicalRequestController::class, 'openAllTechnicians'])->name('backoffice.technical_requests.open_all_technicians');
         Route::get('/technicians/{id}/open', [TechnicalRequestController::class, 'openByTechnician'])->name('backoffice.technical_requests.open_by_technician');
