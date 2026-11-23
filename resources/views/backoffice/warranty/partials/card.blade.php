@@ -1,10 +1,8 @@
 {{-- Um processo no quadro. Clicar abre-o. --}}
 @php($marca = config('maintenance.clients.' . $case->cliente))
 @php($tipo = $case->typeConfig())
-@php($alerta = $case->isOpen() ? $case->waitingAlert() : null)
-@php($dias = $case->daysInPhase())
 
-<a href="{{ route('backoffice.warranty.show', $case->id) }}" class="fg-cartao {{ $alerta }}" style="--c: {{ $cor }}">
+<a href="{{ route('backoffice.warranty.show', $case->id) }}" class="fg-cartao" style="--c: {{ $cor }}">
     <div class="fg-topo">
         @if($marca)
             <span class="fg-marca" style="--grad: {{ $marca['gradiente'] }}; --txt: {{ $marca['texto'] }}">{{ $marca['label'] }}</span>
@@ -35,17 +33,20 @@
         <div class="fg-proximo">▸ {{ $case->todoLabel() }}</div>
     @endif
 
-    @if($case->isOpen())
-        <div class="fg-rodape">
-            <span class="fg-dias">
-                <i class="far fa-clock"></i>
-                {{ trans_choice('{0} hoje|{1} há :n dia|[2,*] há :n dias', $dias, ['n' => $dias]) }}
-                @if($alerta === 'late') · {{ __('passou do prazo') }} @endif
-            </span>
-            @if(($case->photos_count ?? 0) > 0)
-                <span class="fotos"><i class="fas fa-camera"></i> {{ $case->photos_count }}</span>
+    {{-- As datas do processo, à vista: a avaria e cada passo já dado --}}
+    <div class="fg-datas">
+        <span><b>{{ __('Avaria') }}</b> {{ optional($case->data_avaria)->format('d/m/Y') ?? '—' }}</span>
+        @foreach($case->blocks() as $chave => $bloco)
+            @if($data = $case->blockDate($chave))
+                <span style="--bc: {{ $bloco['color'] }}"><b>{{ __($bloco['curto']) }}</b> {{ $data->format('d/m/Y') }}</span>
             @endif
-        </div>
+        @endforeach
+        @if(($case->photos_count ?? 0) > 0)
+            <span class="fotos"><i class="fas fa-camera"></i> {{ $case->photos_count }}</span>
+        @endif
+    </div>
+
+    @if($case->isOpen())
     @else
         <div class="fg-fechado-estado" style="color: {{ $cor }}">
             <i class="fas {{ $case->phase()['icon'] }}"></i> {{ __($case->phase()['label']) }}

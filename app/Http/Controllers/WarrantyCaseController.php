@@ -37,17 +37,11 @@ class WarrantyCaseController extends Controller
             ->whereNotIn('fase', WarrantyCase::CLOSED_PHASES)
             ->get();
 
-        // Dentro de cada coluna: os que já passaram do prazo em cima, depois os parados há mais tempo
-        $urgencia = fn (WarrantyCase $c) => match ($c->waitingAlert()) {
-            'late' => 0,
-            'warn' => 1,
-            default => 2,
-        };
-
+        // Dentro de cada coluna, o que está parado há mais tempo fica em cima
         $colunas = collect(['nos', 'sielaff', 'cliente', 'alemanha'])
             ->mapWithKeys(fn ($quem) => [$quem => $abertos
                 ->filter(fn (WarrantyCase $c) => $c->waitingOn() === $quem)
-                ->sortBy(fn (WarrantyCase $c) => sprintf('%d-%05d', $urgencia($c), 99999 - $c->daysInPhase()))
+                ->sortBy(fn (WarrantyCase $c) => optional($c->fase_desde)->format('Ymd') . sprintf('%08d', $c->id))
                 ->values()]);
 
         $fechados = $this->filteredQuery($request, ['fase'])->whereIn('fase', WarrantyCase::CLOSED_PHASES);
@@ -67,6 +61,10 @@ class WarrantyCaseController extends Controller
                 ? $fechados->with(['store', 'machine'])->orderByDesc('fechado_em')->orderByDesc('id')->limit(60)->get()
                 : collect(),
             'verFechados' => $verFechados,
+            // A coluna dos concluídos: só o último mês, senão crescia para sempre
+            'recentes' => (clone $fechados)->with(['store', 'machine'])
+                ->where('fechado_em', '>=', now()->subDays(30)->startOfDay())
+                ->orderByDesc('fechado_em')->orderByDesc('id')->get(),
             'porCliente' => $porCliente,
             'types' => config('warranty.types'),
             'clients' => config('warranty.clients'),

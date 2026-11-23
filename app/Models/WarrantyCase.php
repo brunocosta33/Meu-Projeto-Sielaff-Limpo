@@ -288,18 +288,6 @@ class WarrantyCase extends Model
         return (int) Carbon::parse($this->fase_desde)->startOfDay()->diffInDays(now()->startOfDay());
     }
 
-    /** null, 'warn' ou 'late' quando estamos há demasiado tempo à espera da Sielaff ou do cliente. */
-    public function waitingAlert(): ?string
-    {
-        $limits = config('warranty.waiting_alert_days.' . $this->fase);
-        if (!$limits) {
-            return null;
-        }
-        $days = $this->daysInPhase();
-
-        return $days >= $limits[1] ? 'late' : ($days >= $limits[0] ? 'warn' : null);
-    }
-
     /** Cliente a partir da insígnia da loja (Lidl / Sonae). */
     public static function clientFromStore(?Store $store): ?string
     {

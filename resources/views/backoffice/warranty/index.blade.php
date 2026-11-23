@@ -28,8 +28,9 @@
     .fg-chip .n { opacity: .75; }
 
     /* ---- O quadro: quatro colunas, uma por quem tem a vez ---- */
-    .fg-quadro { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .85rem; align-items: start; }
-    @media (max-width: 1199px) { .fg-quadro { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    .fg-quadro { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .75rem; align-items: start; }
+    @media (max-width: 1399px) { .fg-quadro { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @media (max-width: 991px) { .fg-quadro { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (max-width: 767px) { .fg-quadro { grid-template-columns: 1fr; } }
 
     .fg-coluna { background: #f6f8fb; border: 1px solid #e6ebf2; border-radius: 16px; overflow: hidden; }
@@ -48,8 +49,6 @@
                  border-radius: 12px; padding: .65rem .75rem; text-decoration: none !important; color: inherit;
                  box-shadow: 0 1px 3px rgba(15, 23, 42, .05); transition: transform .12s, box-shadow .12s; }
     .fg-cartao:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(15, 23, 42, .1); color: inherit; }
-    .fg-cartao.warn { border-left-color: #f59e0b; background: linear-gradient(100deg, #fffbeb, #fff 50%); }
-    .fg-cartao.late { border-left-color: #dc2626; background: linear-gradient(100deg, #fef2f2, #fff 50%); }
 
     .fg-topo { display: flex; align-items: center; gap: .3rem; flex-wrap: wrap; }
     .fg-marca { font-size: .66rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; border-radius: 999px;
@@ -74,13 +73,19 @@
                   background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: .3rem .5rem; }
     .fg-rodape { display: flex; align-items: center; gap: .5rem; margin-top: .45rem; font-size: .74rem; color: #94a3b8; }
     .fg-dias { font-weight: 700; }
-    .fg-cartao.warn .fg-dias { color: #b45309; }
-    .fg-cartao.late .fg-dias { color: #dc2626; }
     .fg-rodape .fotos { margin-left: auto; }
+    .fg-datas { display: flex; flex-wrap: wrap; gap: .25rem; margin-top: .5rem; }
+    .fg-datas span { font-size: .7rem; color: #475569; background: #f1f5f9; border-radius: 6px; padding: .08rem .4rem;
+                     border-left: 3px solid var(--bc, #94a3b8); white-space: nowrap; }
+    .fg-datas span b { font-weight: 800; color: #1e293b; margin-right: .15rem; }
+    .fg-datas .fotos { border-left: 0; background: none; color: #94a3b8; margin-left: auto; }
 
     /* ---- Fechados ---- */
     .fg-fechados { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: .6rem; }
     .fg-fechado-estado { font-size: .78rem; font-weight: 800; margin-top: .4rem; }
+    .fg-ver-todos { display: block; text-align: center; font-size: .8rem; font-weight: 700; color: #15803d;
+                    padding: .4rem; border-radius: 8px; border: 1px dashed #bbf7d0; background: #f0fdf4; }
+    .fg-ver-todos:hover { background: #dcfce7; text-decoration: none; color: #166534; }
 </style>
 @endpush
 
@@ -165,10 +170,35 @@
             </div>
         </section>
     @endforeach
+
+    {{-- Concluídos, à direita: o fim do percurso --}}
+    @php($cfgFechados = $esperas['fechados'])
+    <section class="fg-coluna" style="--c: {{ $cfgFechados['color'] }}">
+        <header>
+            <div class="linha">
+                <i class="fas {{ $cfgFechados['icon'] }}"></i>
+                <span class="nome">{{ __('Concluídos') }}</span>
+                <span class="conta">{{ $recentes->count() }}</span>
+            </div>
+            <div class="explica">{{ __('Fechados nos últimos 30 dias.') }}</div>
+        </header>
+        <div class="corpo">
+            @forelse($recentes as $case)
+                @include('backoffice.warranty.partials.card', ['case' => $case, 'cor' => $case->fase === 'recusado' ? '#b91c1c' : '#15803d', 'mostrarProximo' => false])
+            @empty
+                <div class="fg-vazio">{{ __('Nenhum fechado este mês.') }}</div>
+            @endforelse
+            @if($totalFechados > $recentes->count())
+                <a class="fg-ver-todos" href="{{ route('backoffice.warranty.index', $filters + ['fechados' => 1]) }}#fechados">
+                    {{ __('Ver todos os fechados (:n)', ['n' => $totalFechados]) }} <i class="fa fa-chevron-down"></i>
+                </a>
+            @endif
+        </div>
+    </section>
 </div>
 
 @if($verFechados)
-    <div class="card">
+    <div class="card" id="fechados">
         <div class="card-body">
             <h6 class="text-uppercase mb-3" style="font-size: .78rem; letter-spacing: .06em; color: #15803d; font-weight: 800">
                 <i class="fas fa-check-circle"></i> {{ __('Fechados') }} ({{ $totalFechados }})

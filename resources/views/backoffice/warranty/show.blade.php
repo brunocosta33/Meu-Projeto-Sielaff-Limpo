@@ -7,7 +7,6 @@
 @php
     \Carbon\Carbon::setLocale(app()->getLocale());
     $phase = $case->phase();
-    $alert = $case->waitingAlert();
     $type = $case->typeConfig();
     $blocks = $case->blocks();
     $feitos = $case->doneSteps();
@@ -50,9 +49,6 @@
     .fg-vez strong { font-size: 1.02rem; }
     .fg-vez span { font-weight: 600; opacity: .85; }
     .fg-vez .proximo { margin-top: .25rem; font-weight: 800; color: #0f172a; }
-    .fg-vez.warn { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
-    .fg-vez.late { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
-    .fg-vez.late > i { animation: wc-pulse 1.4s ease-in-out infinite; }
 
     /* O percurso: um círculo por passo, ligados por uma linha */
     .fg-percurso { display: flex; list-style: none; padding: 0; margin: 1.3rem 0 .2rem; }
@@ -72,6 +68,34 @@
     .fg-percurso .quando { display: block; font-size: .72rem; color: #94a3b8; margin-top: .1rem; }
     .fg-percurso li.agora .quando { color: var(--c); font-weight: 700; }
     @media (max-width: 575px) { .fg-percurso .nome { font-size: .66rem; } .fg-percurso .bola { width: 36px; height: 36px; } }
+
+    /* O processo na vertical, de cima para baixo */
+    .fg-linha { list-style: none; padding: 0 0 0 2.6rem; margin: 0; position: relative; }
+    .fg-linha::before { content: ''; position: absolute; left: 1.05rem; top: .8rem; bottom: .8rem; width: 3px;
+                        background: #e2e8f0; border-radius: 3px; }
+    .fg-linha > li { position: relative; margin-bottom: .55rem; }
+    .fg-linha .ponto { position: absolute; left: -2.6rem; top: .3rem; width: 2.2rem; height: 2.2rem; border-radius: 50%;
+                       display: grid; place-items: center; font-size: .85rem; z-index: 1;
+                       background: #fff; border: 3px solid #e2e8f0; color: #cbd5e1; }
+    .fg-linha li.feito .ponto, .fg-linha li.fim .ponto { background: var(--c); border-color: var(--c); color: #fff; }
+    .fg-linha li.agora .ponto { border-color: var(--c); color: var(--c);
+                                box-shadow: 0 0 0 5px color-mix(in srgb, var(--c) 20%, transparent); }
+    .fg-linha .caixa { background: #fff; border: 1px solid #e6ebf2; border-radius: 12px; overflow: hidden; }
+    .fg-linha .cabeca { display: flex; align-items: center; gap: .55rem; padding: .6rem .8rem; cursor: pointer;
+                        list-style: none; color: inherit; text-decoration: none !important; }
+    .fg-linha .cabeca::-webkit-details-marker { display: none; }
+    .fg-linha .que { font-weight: 700; color: #1e293b; }
+    .fg-linha .quando { margin-left: auto; font-size: .8rem; color: #94a3b8; white-space: nowrap; }
+    .fg-linha .editar { color: #cbd5e1; font-size: .75rem; }
+    .fg-linha .cabeca:hover .editar { color: var(--c); }
+    .fg-linha details[open] > .cabeca { border-bottom: 1px solid #eef2f7; background: #f8fafc; }
+    .fg-linha .corpo { padding: .85rem; }
+    .fg-linha .nota { font-size: .84rem; color: #475569; background: #f8fafc; border-left: 3px solid var(--c);
+                      padding: .35rem .7rem; margin: 0; }
+    .fg-linha li.falta .caixa, .fg-linha li.saltado .caixa { background: #fafbfd; border-style: dashed; }
+    .fg-linha li.falta .que { color: #94a3b8; font-weight: 600; }
+    .fg-linha li.saltado .que { color: #b6c2d1; font-weight: 500; text-decoration: line-through; }
+    .fg-linha li.agora .caixa { border-width: 2px; }
 
     /* O que fazer agora */
     .wc-agora { border: 2px solid var(--c); border-radius: 16px; overflow: hidden; }
@@ -163,14 +187,11 @@
 
         {{-- De quem é a vez: a primeira coisa que se quer saber ao abrir um processo --}}
         @if($case->isOpen())
-            <div class="fg-vez {{ $alert }}" style="--c: {{ $vez['color'] }}; --bg: {{ $vez['bg'] }}">
-                <i class="fas {{ $alert === 'late' ? 'fa-exclamation-triangle' : $vez['icon'] }}"></i>
+            <div class="fg-vez" style="--c: {{ $vez['color'] }}; --bg: {{ $vez['bg'] }}">
+                <i class="fas {{ $vez['icon'] }}"></i>
                 <div>
                     <strong>{{ __($vez['label']) }}</strong>
-                    <span>
-                        · {{ trans_choice('{0} desde hoje|{1} há :count dia|[2,*] há :count dias', $case->daysInPhase(), ['count' => $case->daysInPhase()]) }}
-                        @if($alert === 'late') · {{ __('passou do prazo') }}@elseif($alert === 'warn') · {{ __('a chegar ao prazo') }}@endif
-                    </span>
+                    <span>· {{ __('desde :data', ['data' => optional($case->fase_desde)->format('d/m/Y')]) }}</span>
                     @if($next && $case->waitingOn() === 'nos')
                         <div class="proximo">▸ {{ __($next['todo'] ?? $next['label']) }}</div>
                     @endif
@@ -209,85 +230,120 @@
 
 <div class="row">
     <div class="col-lg-7">
-        {{-- Uma coisa a fazer de cada vez --}}
-        @if($next)
-            @php($blocoDoNext = config('warranty.blocks.' . $next['block']))
-            <div class="wc-agora mb-3" style="--c: {{ $blocoDoNext['color'] }}">
-                <header>
-                    <strong><i class="fas {{ $blocoDoNext['icon'] }}"></i> {{ __('Agora') }}: {{ __($next['todo'] ?? $next['label']) }}</strong>
-                    @if($case->daysInPhase() > 0)
-                        <small>{{ __($case->waitingOnConfig()['label']) }} {{ __('desde') }} {{ optional($case->fase_desde)->format('d/m') }}</small>
-                    @endif
-                </header>
-                <div class="corpo">
-                    @include('backoffice.warranty.partials.step_form', ['step' => $next, 'done' => false])
+        {{--
+            O processo de cima para baixo, pela mesma ordem do percurso:
+            o que já foi feito, o passo de agora (aberto, com o formulário) e o que falta, a cinzento.
+            Um passo por fazer pode registar-se fora de ordem — basta abri-lo.
+        --}}
+        @php($passos = $case->steps())
+        @php($ultimoFeito = collect($passos)->keys()->filter(fn ($i) => $case->stepDone($passos[$i]))->max() ?? -1)
+        @php($fechoFeito = collect($passos)->contains(fn ($p) => $p['block'] === 'fecho' && $case->stepDone($p)))
 
-                    @if($outros)
-                        <div class="wc-outros">
-                            <span class="text-muted">{{ __('Aconteceu outra coisa primeiro? Registe:') }}</span>
-                            @foreach($outros as $outro)
-                                <a href="#wc-p-{{ $outro['block'] }}-{{ $outro['half'] }}" data-toggle="collapse" class="chip"
-                                   style="--c: {{ config('warranty.blocks.' . $outro['block'] . '.color') }}">{{ __($outro['label']) }}</a>
-                            @endforeach
-                        </div>
-                    @endif
-                </div>
-            </div>
+        <h6 class="text-uppercase text-muted small font-weight-bold mb-2"><i class="fa fa-stream"></i> {{ __('O processo') }}</h6>
 
-            @foreach($outros as $outro)
-                <div class="collapse {{ $errors->any() && old('__step') === $outro['block'] . '.' . $outro['half'] ? 'show' : '' }}"
-                     id="wc-p-{{ $outro['block'] }}-{{ $outro['half'] }}">
-                    <div class="card mb-3" style="border-left: 4px solid {{ config('warranty.blocks.' . $outro['block'] . '.color') }}">
-                        <div class="card-body">
-                            <h6 class="font-weight-bold">{{ __($outro['label']) }}</h6>
-                            @include('backoffice.warranty.partials.step_form', ['step' => $outro, 'done' => false])
-                        </div>
+        <ol class="fg-linha">
+            {{-- O início: a avaria --}}
+            <li class="feito" style="--c: #64748b">
+                <span class="ponto"><i class="fa fa-flag"></i></span>
+                <div class="caixa">
+                    <div class="cabeca">
+                        <span class="que">{{ __('Avaria registada') }}</span>
+                        <span class="quando">{{ optional($case->data_avaria)->format('d/m/Y') }} · {{ $case->creator->name ?? '—' }}</span>
                     </div>
                 </div>
+            </li>
+
+            @foreach($passos as $i => $step)
+                @php($bloco = config('warranty.blocks.' . $step['block']))
+                @php($feito = $case->stepDone($step))
+                @php($eAgora = $next && $next['block'] === $step['block'] && $next['half'] === $step['half'])
+                @php($saltado = !$feito && $i < $ultimoFeito)
+                @php($doc = $step['doc'] ?? null)
+                @php($stepId = $step['block'] . '-' . $step['half'])
+
+                {{-- O fecho tem duas saídas alternativas: depois de uma, a outra deixa de fazer sentido --}}
+                @continue($step['block'] === 'fecho' && !$feito && $fechoFeito)
+                {{-- A recusa não é um passo por que se passa: só aparece se aconteceu --}}
+                @continue($step['half'] === 'recusado' && !$feito && !$eAgora && $saltado)
+
+                @if($feito)
+                    @php($evento = $case->events->firstWhere('fase', $step['fase']))
+                    <li class="feito" style="--c: {{ $bloco['color'] }}">
+                        <span class="ponto"><i class="fa fa-check"></i></span>
+                        <details class="caixa">
+                            <summary class="cabeca">
+                                <span class="que">{{ __($step['label']) }}</span>
+                                @if($doc && $case->{$doc . '_path'})
+                                    <a href="{{ route('backoffice.warranty.document', [$case->id, $doc]) }}" target="_blank" class="wc-anexo" onclick="event.stopPropagation()">
+                                        <i class="fa fa-file-pdf"></i> {{ $case->{$doc . '_numero'} ?? __('abrir') }}
+                                    </a>
+                                @elseif($doc && $case->{$doc . '_numero'})
+                                    <span class="wc-anexo" title="{{ __('sem PDF') }}">{{ $case->{$doc . '_numero'} }}</span>
+                                @endif
+                                <span class="quando">{{ $case->{$step['date']}->format('d/m/Y') }}</span>
+                                <span class="editar" title="{{ __('Ver ou corrigir') }}"><i class="fa fa-pen"></i></span>
+                            </summary>
+                            @if($evento?->nota)<div class="nota">{{ $evento->nota }}</div>@endif
+                            <div class="corpo">
+                                @include('backoffice.warranty.partials.step_form', ['step' => $step, 'done' => true])
+                            </div>
+                        </details>
+                    </li>
+
+                @elseif($eAgora)
+                    <li class="agora" style="--c: {{ $bloco['color'] }}">
+                        <span class="ponto"><i class="fas {{ $bloco['icon'] }}"></i></span>
+                        <div class="caixa wc-agora" style="--c: {{ $bloco['color'] }}">
+                            <header>
+                                <strong>{{ __('Agora') }}: {{ __($step['todo'] ?? $step['label']) }}</strong>
+                                @if($case->daysInPhase() > 0)
+                                    <small>{{ __($case->waitingOnConfig()['label']) }} {{ __('desde') }} {{ optional($case->fase_desde)->format('d/m') }}</small>
+                                @endif
+                            </header>
+                            <div class="corpo">
+                                @include('backoffice.warranty.partials.step_form', ['step' => $step, 'done' => false])
+                            </div>
+                        </div>
+                    </li>
+
+                @else
+                    {{-- Por fazer (ou que não foi preciso): a cinzento, abre-se se for preciso registar já --}}
+                    @php($aberto = $errors->any() && old('__step') === $step['block'] . '.' . $step['half'])
+                    <li class="{{ $saltado ? 'saltado' : 'falta' }}" style="--c: {{ $bloco['color'] }}">
+                        <span class="ponto"><i class="fas {{ $bloco['icon'] }}"></i></span>
+                        <div class="caixa">
+                            <a class="cabeca" data-toggle="collapse" href="#wc-p-{{ $stepId }}">
+                                @if($step['half'] === 'recusado')
+                                    {{-- A recusa é uma saída alternativa, não um passo a cumprir --}}
+                                    <span class="que">{{ __('ou') }} {{ mb_strtolower(__($step['label'])) }}</span>
+                                    <span class="quando">{{ __('se acontecer') }}</span>
+                                @else
+                                    <span class="que">{{ __($step['label']) }}</span>
+                                    <span class="quando">{{ $saltado ? __('não foi preciso') : __('por fazer') }}</span>
+                                @endif
+                                <span class="editar" title="{{ __('Registar já') }}"><i class="fa fa-plus"></i></span>
+                            </a>
+                            <div class="collapse {{ $aberto ? 'show' : '' }}" id="wc-p-{{ $stepId }}">
+                                <div class="corpo">
+                                    @include('backoffice.warranty.partials.step_form', ['step' => $step, 'done' => false])
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                @endif
             @endforeach
-        @else
-            <div class="wc-fechado mb-3" style="--c: {{ $phase['color'] }}">
-                <i class="fas {{ $phase['icon'] }} fa-2x mb-2" style="color: {{ $phase['color'] }}"></i>
-                <h5 class="mb-1">{{ __($phase['label']) }}</h5>
-                <p class="text-muted small mb-0">{{ __('Processo fechado a :data.', ['data' => optional($case->fechado_em)->format('d/m/Y')]) }}</p>
-                @if($case->motivo_recusa)<p class="small mt-2 mb-0"><strong>{{ __('Motivo') }}:</strong> {{ $case->motivo_recusa }}</p>@endif
-            </div>
-        @endif
 
-        {{-- O que já foi feito, do mais recente para o mais antigo --}}
-        <h6 class="text-uppercase text-muted small font-weight-bold mt-4 mb-2"><i class="fa fa-history"></i> {{ __('O que já foi feito') }}</h6>
-        @foreach($feitos as $step)
-            @php($bloco = config('warranty.blocks.' . $step['block']))
-            @php($evento = $case->events->firstWhere('fase', $step['fase']))
-            @php($doc = $step['doc'] ?? null)
-            <details class="wc-feito" style="--c: {{ $bloco['color'] }}">
-                <summary>
-                    <span class="tick"><i class="fa fa-check"></i></span>
-                    <span class="que">{{ __($step['label']) }}</span>
-                    @if($doc && $case->{$doc . '_path'})
-                        <a href="{{ route('backoffice.warranty.document', [$case->id, $doc]) }}" target="_blank" class="wc-anexo">
-                            <i class="fa fa-file-pdf"></i> {{ $case->{$doc . '_numero'} ?? __('abrir') }}
-                        </a>
-                    @elseif($doc && $case->{$doc . '_numero'})
-                        <span class="wc-anexo" title="{{ __('sem PDF') }}">{{ $case->{$doc . '_numero'} }}</span>
-                    @endif
-                    <span class="quando">{{ $case->{$step['date']}->format('d/m/Y') }}</span>
-                </summary>
-                <div class="corpo">
-                    @include('backoffice.warranty.partials.step_form', ['step' => $step, 'done' => true])
-                </div>
-            </details>
-            @if($evento?->nota)<div class="wc-nota">{{ $evento->nota }}</div>@endif
-        @endforeach
-
-        @php($registado = $case->events->firstWhere('fase', 'registado'))
-        <div class="wc-feito" style="--c: #94a3b8">
-            <div class="d-flex align-items-center" style="gap: .55rem; padding: .55rem .7rem">
-                <span class="tick"><i class="fa fa-check"></i></span>
-                <span class="que">{{ __('Avaria registada') }}</span>
-                <span class="quando">{{ optional($case->data_avaria)->format('d/m/Y') }} · {{ $case->creator->name ?? '—' }}</span>
-            </div>
-        </div>
+            @if(!$case->isOpen())
+                <li class="fim" style="--c: {{ $phase['color'] }}">
+                    <span class="ponto"><i class="fas {{ $phase['icon'] }}"></i></span>
+                    <div class="caixa wc-fechado" style="--c: {{ $phase['color'] }}; text-align: left; padding: .8rem 1rem">
+                        <strong style="color: {{ $phase['color'] }}">{{ __($phase['label']) }}</strong>
+                        <span class="text-muted small">· {{ __('Processo fechado a :data.', ['data' => optional($case->fechado_em)->format('d/m/Y')]) }}</span>
+                        @if($case->motivo_recusa)<div class="small mt-1"><strong>{{ __('Motivo') }}:</strong> {{ $case->motivo_recusa }}</div>@endif
+                    </div>
+                </li>
+            @endif
+        </ol>
     </div>
 
     <div class="col-lg-5">
