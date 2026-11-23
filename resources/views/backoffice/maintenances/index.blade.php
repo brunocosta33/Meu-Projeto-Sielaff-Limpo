@@ -21,15 +21,17 @@
     .mt-table td { vertical-align: middle; }
     /* O cliente salta à vista: cor própria na barra da linha e na etiqueta */
     .mt-table tr { border-left: 5px solid var(--cliente, transparent); }
-    .mt-cliente { display: inline-flex; align-items: center; gap: .3rem; font-size: .72rem; font-weight: 800;
-                  text-transform: uppercase; letter-spacing: .04em; padding: .1rem .5rem; border-radius: 999px;
-                  background: var(--bg); color: var(--fg); }
+    .mt-cliente { display: inline-flex; align-items: center; gap: .32rem; font-size: .74rem; font-weight: 800;
+                  text-transform: uppercase; letter-spacing: .05em; padding: .26rem .66rem; border-radius: 999px;
+                  background: var(--grad, var(--bg)); color: var(--txt, var(--fg));
+                  box-shadow: 0 6px 14px var(--sombra, transparent); vertical-align: middle; }
     .mt-clientes { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .75rem; }
     .mt-cliente-btn { display: inline-flex; align-items: center; gap: .35rem; border: 1px solid #dde3ea; background: #fff;
                       border-radius: 999px; padding: .22rem .75rem; font-size: .82rem; font-weight: 700; color: #475569;
                       text-decoration: none !important; }
     .mt-cliente-btn:hover { border-color: var(--fg, #94a3b8); color: var(--fg, #334155); }
-    .mt-cliente-btn.on { background: var(--bg, #eef2f7); color: var(--fg, #263238); border-color: var(--fg, #94a3b8); }
+    .mt-cliente-btn.on { background: var(--grad, #eef2f7); color: var(--txt, #263238); border-color: transparent;
+                         box-shadow: 0 6px 14px var(--sombra, transparent); }
     .mt-cliente-btn .n { font-weight: 800; opacity: .75; }
     .mt-mes { font-weight: 800; font-size: .95rem; text-transform: capitalize; }
     /* Barra dos meses */
@@ -136,7 +138,7 @@
             @foreach($clientesConfig as $key => $cfg)
                 <a href="{{ route('backoffice.maintenances.index', ['ano' => $year, 'cliente' => $key] + $filters) }}"
                    class="mt-cliente-btn {{ request('cliente') === $key ? 'on' : '' }}"
-                   style="--bg: {{ $cfg['bg'] }}; --fg: {{ $cfg['color'] }}">
+                   style="--bg: {{ $cfg['bg'] }}; --fg: {{ $cfg['color'] }}; --grad: {{ $cfg['gradiente'] }}; --txt: {{ $cfg['texto'] }}; --sombra: {{ $cfg['sombra'] }}">
                     <i class="fas {{ $cfg['icon'] }}"></i> {{ $cfg['label'] }} <span class="n">{{ $clientes[$key] ?? 0 }}</span>
                 </a>
             @endforeach
@@ -207,7 +209,8 @@
                             <tr style="--cliente: {{ $cliente['color'] ?? 'transparent' }}">
                                 <td class="mt-store">
                                     @if($cliente)
-                                        <span class="mt-cliente" style="--bg: {{ $cliente['bg'] }}; --fg: {{ $cliente['color'] }}">
+                                        <span class="mt-cliente"
+                                              style="--grad: {{ $cliente['gradiente'] }}; --txt: {{ $cliente['texto'] }}; --sombra: {{ $cliente['sombra'] }}">
                                             <i class="fas {{ $cliente['icon'] }}"></i> {{ $cliente['label'] }}
                                         </span>
                                     @endif

@@ -44,8 +44,8 @@
     .ms-chip { font-size: .62rem; font-weight: 800; text-transform: uppercase; letter-spacing: .03em;
                border-radius: 999px; padding: .03rem .45rem; color: #fff; background: var(--c, #64748b); }
     .ms-chip.clara { background: #fff; color: var(--c); border: 1px solid currentColor; }
-    .ms-marca { font-size: .62rem; font-weight: 800; text-transform: uppercase; border-radius: 4px;
-                padding: .03rem .35rem; color: var(--c); background: var(--bg); }
+    .ms-marca { font-size: .64rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em;
+                border-radius: 999px; padding: .05rem .45rem; color: var(--txt, #fff); background: var(--grad, #64748b); }
     .ms-loja { font-weight: 700; color: #132238; line-height: 1.25; }
     .ms-tipo { font-size: .8rem; color: #6c7a89; }
     .ms-tipo .peca { color: #b26a00; font-weight: 700; }
@@ -103,7 +103,7 @@
                     </span>
                 </div>
                 <div class="ms-loja">
-                    @if($cliente)<span class="ms-marca" style="--c: {{ $cliente['color'] }}; --bg: {{ $cliente['bg'] }}">{{ $cliente['label'] }}</span>@endif
+                    @if($cliente)<span class="ms-marca" style="--grad: {{ $cliente['gradiente'] }}; --txt: {{ $cliente['texto'] }}">{{ $cliente['label'] }}</span>@endif
                     {{ $p->store->codigo_loja ?? '' }} {{ $p->store->nome_loja ?? __('Sem loja') }}
                 </div>
                 @php($series = collect([$p->machine?->serial_number])

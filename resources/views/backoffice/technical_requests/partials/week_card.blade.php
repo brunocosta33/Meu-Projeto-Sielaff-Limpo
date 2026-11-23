@@ -24,7 +24,7 @@
 
     <span class="loja">
         @if($cliente)
-            <span class="sm-marca" style="--c: {{ $cliente['color'] }}; --bg: {{ $cliente['bg'] }}">{{ $cliente['label'] }}</span>
+            <span class="sm-marca" style="--grad: {{ $cliente['gradiente'] }}; --txt: {{ $cliente['texto'] }}">{{ $cliente['label'] }}</span>
         @endif
         {{ $p->store->codigo_loja ?? '' }} {{ $p->store->nome_loja ?? __('Sem loja') }}
     </span>

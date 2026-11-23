@@ -53,8 +53,8 @@
     .sm-chip { font-size: .6rem; font-weight: 800; text-transform: uppercase; letter-spacing: .03em;
                border-radius: 999px; padding: .02rem .4rem; color: #fff; background: var(--c, #64748b); white-space: nowrap; }
     .sm-chip.clara { background: #fff; color: var(--c); border: 1px solid currentColor; }
-    .sm-marca { font-size: .6rem; font-weight: 800; text-transform: uppercase; letter-spacing: .03em;
-                border-radius: 4px; padding: .02rem .3rem; color: var(--c); background: var(--bg); }
+    .sm-marca { font-size: .62rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em;
+                border-radius: 999px; padding: .04rem .42rem; color: var(--txt, #fff); background: var(--grad, #64748b); }
     .sm-pedido .loja { display: block; font-size: .78rem; font-weight: 700; color: #132238; line-height: 1.25;
                        overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .sm-pedido .tipo { display: block; font-size: .7rem; color: #6c7a89; line-height: 1.2; padding-right: .8rem; }

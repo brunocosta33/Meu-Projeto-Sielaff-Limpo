@@ -10,9 +10,27 @@ return [
     'upcoming_days' => 30,
 
     // Clientes com regra e cor próprias. A loja entra pelo que estiver na insígnia.
+    // As mesmas cores de marca que já se usam nas páginas de pedidos:
+    // Lidl azul com letras amarelas, Sonae laranja.
     'clients' => [
-        'sonae' => ['label' => 'Sonae', 'color' => '#0a7d49', 'bg' => '#e2f4ea', 'icon' => 'fa-leaf'],
-        'lidl' => ['label' => 'Lidl', 'color' => '#0050aa', 'bg' => '#e4edfa', 'icon' => 'fa-store'],
+        'sonae' => [
+            'label' => 'Sonae',
+            'color' => '#b45309',
+            'bg' => '#fff3d6',
+            'icon' => 'fa-tag',
+            'gradiente' => 'linear-gradient(135deg, #d97706 0%, #f59e0b 100%)',
+            'texto' => '#fff7d6',
+            'sombra' => 'rgba(245, 158, 11, .25)',
+        ],
+        'lidl' => [
+            'label' => 'Lidl',
+            'color' => '#1d4ed8',
+            'bg' => '#e7efff',
+            'icon' => 'fa-tag',
+            'gradiente' => 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%)',
+            'texto' => '#ffeb3b',
+            'sombra' => 'rgba(37, 99, 235, .25)',
+        ],
     ],
 
     // Clientes em que a manutenção vale o mês inteiro contratado, e não uma data com prazo à volta
