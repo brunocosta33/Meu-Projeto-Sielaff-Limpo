@@ -210,6 +210,7 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
         Route::delete('/registo/{record}', [StoreMaintenanceController::class, 'undo'])->name('undo');
         Route::post('/registo/{record}/anexos', [StoreMaintenanceController::class, 'attachFiles'])->name('files.store');
         Route::get('/anexo/{file}', [StoreMaintenanceController::class, 'file'])->name('file');
+        Route::get('/anexo/{file}/miniatura', [StoreMaintenanceController::class, 'thumb'])->name('file.thumb');
         Route::delete('/anexo/{file}', [StoreMaintenanceController::class, 'deleteFile'])->name('file.delete');
     });
 

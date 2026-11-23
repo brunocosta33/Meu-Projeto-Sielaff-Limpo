@@ -108,9 +108,14 @@ class StoreMaintenanceController extends Controller
         });
     }
 
+    /** O ano que se está a ver, para a ordenação saber se o "mês corrente" conta. */
+    private int $anoDaListagem;
+
     /** Os filtros da página, aplicados por igual na lista e nas exportações. */
     private function filtrar($rows, Request $request)
     {
+        $this->anoDaListagem = (int) ($request->input('ano') ?: now()->year);
+
         if ($request->filled('cliente')) {
             $rows = $rows->filter(fn ($r) => ($r->store->clienteKey() ?? 'outros') === $request->cliente);
         }
@@ -133,20 +138,37 @@ class StoreMaintenanceController extends Controller
             $rows = $rows->whereIn('status', $wanted);
         }
 
-        // Primeiro a data, depois o estado: as feitas ficam ao pé das que faltam no mesmo
-        // mês, em vez de irem todas para o fim da lista. Quem não tem data vai para o fim.
+        /**
+         * A ordem da lista:
+         *  1. o que está em atraso, seja de que mês for — é o que não pode esperar;
+         *  2. o mês corrente, e daí para a frente até dar a volta ao ano;
+         *  3. os meses já passados;
+         *  4. no fim, quem não tem data este ano.
+         * Dentro do mesmo dia manda o estado, por isso as feitas ficam no fim do seu mês.
+         */
         $order = array_flip(array_keys(config('maintenance.states')));
+        $esteAno = $this->anoDaListagem === now()->year;
+        $mesAtual = now()->month;
 
         // Os contratos que só começam noutro ano não entram no calendário deste
-        $desteAno = fn ($r) => $r->due && $r->status !== 'contrato_futuro';
+        $datado = fn ($r) => $r->due && $r->status !== 'contrato_futuro';
 
-        return $rows->sortBy(fn ($r) => sprintf(
-            '%d-%s-%02d-%s',
-            $desteAno($r) ? 0 : 1,
-            $desteAno($r) ? $r->due->format('md') : '9999',
-            $order[$r->status] ?? 99,
-            $r->store->nome_loja
-        ))->values();
+        return $rows->sortBy(function ($r) use ($order, $datado, $esteAno, $mesAtual) {
+            if (!$datado($r)) {
+                return sprintf('3-9999-%02d-%s', $order[$r->status] ?? 99, $r->store->nome_loja);
+            }
+
+            $distancia = $esteAno ? ($r->due->month - $mesAtual + 12) % 12 : $r->due->month - 1;
+
+            return sprintf(
+                '%d-%02d%02d-%02d-%s',
+                $r->status === 'atrasada' ? 0 : 1,
+                $distancia,
+                $r->due->day,
+                $order[$r->status] ?? 99,
+                $r->store->nome_loja
+            );
+        })->values();
     }
 
     public function store(Request $request)
@@ -247,7 +269,7 @@ class StoreMaintenanceController extends Controller
         $record = StoreMaintenanceRecord::with(['maintenance.store', 'files'])->findOrFail($recordId);
 
         foreach ($record->files as $ficheiro) {
-            Storage::disk(self::DISK)->delete($ficheiro->path);
+            Storage::disk(self::DISK)->delete(array_filter([$ficheiro->path, $ficheiro->thumb_path]));
         }
 
         $record->delete();
@@ -351,10 +373,23 @@ class StoreMaintenanceController extends Controller
         return Storage::disk(self::DISK)->response($ficheiro->path, $ficheiro->nome);
     }
 
+    /** A miniatura de uma fotografia (ou a própria imagem, se não houver). */
+    public function thumb($fileId)
+    {
+        $ficheiro = StoreMaintenanceFile::findOrFail($fileId);
+        $caminho = $ficheiro->thumb_path && Storage::disk(self::DISK)->exists($ficheiro->thumb_path)
+            ? $ficheiro->thumb_path
+            : $ficheiro->path;
+
+        abort_unless(Storage::disk(self::DISK)->exists($caminho), 404);
+
+        return Storage::disk(self::DISK)->response($caminho, $ficheiro->nome, ['Cache-Control' => 'private, max-age=86400']);
+    }
+
     public function deleteFile($fileId)
     {
         $ficheiro = StoreMaintenanceFile::findOrFail($fileId);
-        Storage::disk(self::DISK)->delete($ficheiro->path);
+        Storage::disk(self::DISK)->delete(array_filter([$ficheiro->path, $ficheiro->thumb_path]));
         $ficheiro->delete();
 
         flash(__('Anexo removido.'))->success();
@@ -379,6 +414,63 @@ class StoreMaintenanceController extends Controller
         ];
     }
 
+    /**
+     * Miniatura de 320px para as fotografias, para a lista não puxar imagens de 5 MB.
+     * Só para o que o GD sabe ler: um HEIC do iPhone fica sem miniatura e mostra o ícone.
+     */
+    private function criarMiniatura(string $caminho): ?string
+    {
+        if (!extension_loaded('gd')) {
+            return null;
+        }
+
+        $origem = Storage::disk(self::DISK)->path($caminho);
+        $info = @getimagesize($origem);
+
+        if (!$info) {
+            return null;
+        }
+
+        $imagem = match ($info[2]) {
+            IMAGETYPE_JPEG => @imagecreatefromjpeg($origem),
+            IMAGETYPE_PNG => @imagecreatefrompng($origem),
+            IMAGETYPE_WEBP => @imagecreatefromwebp($origem),
+            IMAGETYPE_GIF => @imagecreatefromgif($origem),
+            default => null,
+        };
+
+        if (!$imagem) {
+            return null;
+        }
+
+        $lado = 320;
+        $escala = min(1, $lado / max($info[0], $info[1]));
+        $mini = imagescale($imagem, max(1, (int) round($info[0] * $escala)), max(1, (int) round($info[1] * $escala)));
+        imagedestroy($imagem);
+
+        if (!$mini) {
+            return null;
+        }
+
+        // Fundo branco: um PNG transparente reduzido a JPEG ficaria preto
+        $fundo = imagecreatetruecolor(imagesx($mini), imagesy($mini));
+        imagefill($fundo, 0, 0, imagecolorallocate($fundo, 255, 255, 255));
+        imagecopy($fundo, $mini, 0, 0, 0, 0, imagesx($mini), imagesy($mini));
+        imagedestroy($mini);
+
+        $destino = 'maintenance_files/thumbs/' . pathinfo($caminho, PATHINFO_FILENAME) . '.jpg';
+        Storage::disk(self::DISK)->makeDirectory('maintenance_files/thumbs');
+
+        ob_start();
+        imagejpeg($fundo, null, 72);
+        $conteudo = ob_get_clean();
+        imagedestroy($fundo);
+
+        Storage::disk(self::DISK)->put($destino, $conteudo);
+
+        return $destino;
+    }
+
     /** Guarda os ficheiros de um campo e devolve quantos ficaram. */
     private function guardarFicheiros(Request $request, StoreMaintenanceRecord $record, string $campo, string $tipo): int
     {
@@ -389,10 +481,13 @@ class StoreMaintenanceController extends Controller
                 continue;
             }
 
+            $caminho = $file->store('maintenance_files', self::DISK);
+
             StoreMaintenanceFile::create([
                 'record_id' => $record->id,
                 'tipo' => $tipo,
-                'path' => $file->store('maintenance_files', self::DISK),
+                'path' => $caminho,
+                'thumb_path' => $this->criarMiniatura($caminho),
                 'nome' => $file->getClientOriginalName(),
                 'tamanho' => $file->getSize(),
                 'created_by' => auth()->id(),

@@ -12,7 +12,7 @@ class StoreMaintenanceFile extends Model
         'foto' => ['label' => 'Fotografia', 'icon' => 'fa-camera'],
     ];
 
-    protected $fillable = ['record_id', 'tipo', 'path', 'nome', 'tamanho', 'created_by'];
+    protected $fillable = ['record_id', 'tipo', 'path', 'thumb_path', 'nome', 'tamanho', 'created_by'];
 
     public function record()
     {
@@ -22,6 +22,28 @@ class StoreMaintenanceFile extends Model
     public function isFoto(): bool
     {
         return $this->tipo === 'foto';
+    }
+
+    public function extensao(): string
+    {
+        return mb_strtolower(pathinfo($this->nome, PATHINFO_EXTENSION));
+    }
+
+    /** É uma imagem que o browser mostra? (o HEIC do iPhone não conta) */
+    public function isImagem(): bool
+    {
+        return in_array($this->extensao(), ['jpg', 'jpeg', 'png', 'webp', 'gif'], true);
+    }
+
+    /** O ícone e a cor do tipo de ficheiro, para se perceber o que é sem abrir. */
+    public function iconeConfig(): array
+    {
+        return match ($this->extensao()) {
+            'pdf' => ['icon' => 'fa-file-pdf', 'cor' => '#c62828'],
+            'doc', 'docx' => ['icon' => 'fa-file-word', 'cor' => '#1565c0'],
+            'jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif' => ['icon' => 'fa-file-image', 'cor' => '#6d28d9'],
+            default => ['icon' => 'fa-file', 'cor' => '#64748b'],
+        };
     }
 
     /** Tamanho em KB/MB, para se mostrar ao lado do nome. */

@@ -73,13 +73,29 @@
     .mt-maquina .modelo i { color: #b6c2d1; margin-right: .1rem; }
     /* Anexos: folhas de serviço e fotografias */
     .mt-anexos { display: flex; flex-wrap: wrap; gap: .25rem; margin-top: .35rem; }
-    .mt-anexo { display: inline-flex; align-items: center; gap: .15rem; border-radius: 999px; padding: .05rem .25rem .05rem .5rem;
-                font-size: .74rem; font-weight: 600; background: #e3f0ff; color: #1565c0; }
-    .mt-anexo.foto { background: #efe7fb; color: #6d28d9; }
+    .mt-anexo { display: inline-flex; align-items: center; gap: .15rem; border: 1px solid currentColor; border-radius: 8px;
+                padding: .12rem .25rem .12rem .45rem; font-size: .74rem; font-weight: 700; color: var(--c, #1565c0);
+                background: #fff; }
     .mt-anexo a { color: inherit; text-decoration: none !important; }
+    .mt-anexo a small { font-size: .62rem; opacity: .7; margin-left: .1rem; }
     .mt-anexo form { display: inline; margin: 0; }
     .mt-anexo button { border: 0; background: none; color: inherit; opacity: .45; line-height: 1; padding: 0 .15rem; font-size: .9rem; }
     .mt-anexo button:hover { opacity: 1; color: #b3261e; }
+
+    /* As fotografias em miniatura, para se ver o que é sem abrir */
+    .mt-fotos { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .35rem; }
+    .mt-foto { position: relative; }
+    .mt-foto > button:first-child { width: 54px; height: 54px; border: 1px solid #dfe9f5; border-radius: 10px; padding: 0;
+                                    background-size: cover; background-position: center; background-color: #f1f5f9;
+                                    box-shadow: 0 2px 6px rgba(19, 34, 56, .1); transition: transform .12s; }
+    .mt-foto > button:first-child:hover { transform: scale(1.06); border-color: #6d28d9; }
+    .mt-foto .sem-previa { display: grid; place-items: center; width: 54px; height: 54px; border: 1px dashed #cbd5e1;
+                           border-radius: 10px; color: #6d28d9; background: #faf8ff; }
+    .mt-foto form { position: absolute; top: -5px; right: -5px; margin: 0; }
+    .mt-foto .apagar { width: 18px; height: 18px; border-radius: 50%; border: 0; background: #fff; color: #94a3b8;
+                       line-height: 1; font-size: .85rem; box-shadow: 0 1px 4px rgba(19, 34, 56, .25); opacity: 0; }
+    .mt-foto:hover .apagar { opacity: 1; }
+    .mt-foto .apagar:hover { color: #fff; background: #b3261e; }
 </style>
 @endpush
 
@@ -270,24 +286,58 @@
                                         <span class="mt-done-date"><i class="fa fa-check-circle"></i> {{ $row->record->data_realizada->format('d/m/Y') }}</span>
                                         @if($row->record->technician)<div>{{ $row->record->technician->name }}</div>@endif
                                         @if($row->record->observacoes)<div class="text-muted">{{ \Illuminate\Support\Str::limit($row->record->observacoes, 60) }}</div>@endif
-                                        <div class="mt-anexos">
-                                            @forelse($row->record->files as $anexo)
-                                                <span class="mt-anexo {{ $anexo->tipo }}">
-                                                    <a href="{{ route('backoffice.maintenances.file', $anexo->id) }}" target="_blank" rel="noopener"
-                                                       title="{{ $anexo->nome }} {{ $anexo->tamanhoLegivel() }}">
-                                                        <i class="fas {{ \App\Models\StoreMaintenanceFile::TIPOS[$anexo->tipo]['icon'] }}"></i>
-                                                        {{ \Illuminate\Support\Str::limit($anexo->nome, 16) }}
-                                                    </a>
-                                                    <form method="POST" action="{{ route('backoffice.maintenances.file.delete', $anexo->id) }}"
-                                                          onsubmit="return confirm({{ json_encode(__('Remover este anexo?')) }})">
-                                                        @csrf @method('DELETE')
-                                                        <button type="submit" title="{{ __('Remover') }}">&times;</button>
-                                                    </form>
-                                                </span>
-                                            @empty
-                                                <span class="mt-doc-missing"><i class="fa fa-paperclip"></i> {{ __('sem anexos') }}</span>
-                                            @endforelse
-                                        </div>
+                                        @php($folhas = $row->record->files->where('tipo', 'folha'))
+                                        @php($fotos = $row->record->files->where('tipo', 'foto'))
+
+                                        @if($folhas->isNotEmpty())
+                                            <div class="mt-anexos">
+                                                @foreach($folhas as $anexo)
+                                                    @php($ico = $anexo->iconeConfig())
+                                                    <span class="mt-anexo" style="--c: {{ $ico['cor'] }}">
+                                                        <a href="{{ route('backoffice.maintenances.file', $anexo->id) }}" target="_blank" rel="noopener"
+                                                           title="{{ $anexo->nome }} {{ $anexo->tamanhoLegivel() }}">
+                                                            <i class="fas {{ $ico['icon'] }}"></i>
+                                                            {{ \Illuminate\Support\Str::limit($anexo->nome, 16) }}
+                                                            <small>{{ strtoupper($anexo->extensao()) }}</small>
+                                                        </a>
+                                                        <form method="POST" action="{{ route('backoffice.maintenances.file.delete', $anexo->id) }}"
+                                                              onsubmit="return confirm({{ json_encode(__('Remover este anexo?')) }})">
+                                                            @csrf @method('DELETE')
+                                                            <button type="submit" title="{{ __('Remover') }}">&times;</button>
+                                                        </form>
+                                                    </span>
+                                                @endforeach
+                                            </div>
+                                        @endif
+
+                                        @if($fotos->isNotEmpty())
+                                            <div class="mt-fotos">
+                                                @foreach($fotos as $foto)
+                                                    <span class="mt-foto">
+                                                        @if($foto->isImagem())
+                                                            <button type="button" data-toggle="modal" data-target="#mt-foto"
+                                                                    data-src="{{ route('backoffice.maintenances.file', $foto->id) }}"
+                                                                    data-nome="{{ $foto->nome }}"
+                                                                    title="{{ $foto->nome }} {{ $foto->tamanhoLegivel() }}"
+                                                                    style="background-image: url('{{ route('backoffice.maintenances.file.thumb', $foto->id) }}')"></button>
+                                                        @else
+                                                            {{-- HEIC e companhia: o browser não os mostra, fica o ícone --}}
+                                                            <a href="{{ route('backoffice.maintenances.file', $foto->id) }}" target="_blank" rel="noopener"
+                                                               class="sem-previa" title="{{ $foto->nome }}"><i class="fas fa-file-image"></i></a>
+                                                        @endif
+                                                        <form method="POST" action="{{ route('backoffice.maintenances.file.delete', $foto->id) }}"
+                                                              onsubmit="return confirm({{ json_encode(__('Remover esta fotografia?')) }})">
+                                                            @csrf @method('DELETE')
+                                                            <button type="submit" class="apagar" title="{{ __('Remover') }}">&times;</button>
+                                                        </form>
+                                                    </span>
+                                                @endforeach
+                                            </div>
+                                        @endif
+
+                                        @if($row->record->files->isEmpty())
+                                            <span class="mt-doc-missing"><i class="fa fa-paperclip"></i> {{ __('sem anexos') }}</span>
+                                        @endif
                                     @else
                                         —
                                     @endif
@@ -431,6 +481,27 @@
     </div>
 </div>
 
+{{-- Modal: ver a fotografia em grande --}}
+<div class="modal fade" id="mt-foto" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="mt-foto-nome"></h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body text-center" style="background: #0f172a">
+                <img id="mt-foto-img" src="" alt="" style="max-width: 100%; max-height: 70vh; border-radius: 8px">
+            </div>
+            <div class="modal-footer">
+                <a id="mt-foto-abrir" href="#" target="_blank" rel="noopener" class="btn btn-outline-primary">
+                    <i class="fa fa-external-link-alt"></i> {{ __('Abrir em separado') }}
+                </a>
+                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">{{ __('Fechar') }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{-- Modal: editar contrato --}}
 <div class="modal fade" id="mt-edit" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
@@ -482,6 +553,12 @@
             $('#mt-done-form').attr('action', b.data('action'));
             $('#mt-done-store').text(b.data('store'));
             $('#mt-done-window').text(b.data('window'));
+        });
+        $('#mt-foto').on('show.bs.modal', function (e) {
+            var b = $(e.relatedTarget);
+            $('#mt-foto-img').attr('src', b.data('src'));
+            $('#mt-foto-nome').text(b.data('nome'));
+            $('#mt-foto-abrir').attr('href', b.data('src'));
         });
         $('#mt-attach').on('show.bs.modal', function (e) {
             var b = $(e.relatedTarget);
