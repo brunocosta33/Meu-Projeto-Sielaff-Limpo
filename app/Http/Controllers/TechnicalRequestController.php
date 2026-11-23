@@ -833,12 +833,18 @@ class TechnicalRequestController extends Controller
                 $p->data_pedido?->format('Ymd') ?? ''
             ));
 
+        // Quantos por zona: contam-se antes de filtrar, para os números não dançarem
+        $zonasDaFila = $fila->countBy(fn (TechnicalRequest $p) => $p->zona ?: 'sem_zona');
+
+        // O filtro vai no endereço: assim aguenta o recarregar depois de se marcar um pedido
+        $zona = $request->input('zona');
+        if ($zona) {
+            $fila = $fila->filter(fn (TechnicalRequest $p) => ($p->zona ?: 'sem_zona') === $zona);
+        }
+
         $porAgendar = $fila
             ->groupBy(fn (TechnicalRequest $p) => (int) ($p->assigned_technician_id ?? 0))
             ->sortBy(fn ($grupo, $tecnicoId) => $ordemTecnicos[$tecnicoId] ?? 999);
-
-        // Quantos por zona, para o filtro rápido da fila
-        $zonasDaFila = $fila->countBy(fn (TechnicalRequest $p) => $p->zona ?: 'sem_zona');
 
         return view('backoffice.technical_requests.week', [
             'inicio' => $inicio,
@@ -850,6 +856,8 @@ class TechnicalRequestController extends Controller
             'porAgendar' => $porAgendar,
             'totalPorAgendar' => $fila->count(),
             'zonasDaFila' => $zonasDaFila,
+            'zonaEscolhida' => $zona,
+            'totalDaFila' => $zonasDaFila->sum(),
             'statuses' => self::translatedLabels(self::STATUSES),
             'priorities' => self::translatedLabels(self::PRIORITIES),
             'tipos' => self::translatedLabels(self::SERVICE_TYPES),

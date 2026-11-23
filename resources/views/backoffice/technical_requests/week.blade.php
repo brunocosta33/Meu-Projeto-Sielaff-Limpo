@@ -82,12 +82,19 @@
     .sm-grupo .n { background: #eef2f7; color: #475569; border-radius: 999px; padding: 0 .5rem; font-size: .74rem; }
     .sm-grupo .fora { font-size: .68rem; font-weight: 600; color: #94a3b8; text-transform: none; }
     .sm-zonas { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: .8rem; }
-    .sm-zona { border: 1px solid #dde5ef; background: #fff; color: #475569; border-radius: 999px;
-               padding: .18rem .7rem; font-size: .78rem; font-weight: 700; }
+    .sm-zona { display: inline-block; border: 1px solid #dde5ef; background: #fff; color: #475569; border-radius: 999px;
+               padding: .18rem .7rem; font-size: .78rem; font-weight: 700; text-decoration: none !important; }
     .sm-zona:hover { border-color: var(--c, #94a3b8); color: var(--c, #334155); }
     .sm-zona.on { background: var(--c, #0b5ed7); border-color: var(--c, #0b5ed7); color: #fff; }
     .sm-zona span { opacity: .7; font-weight: 800; }
-    .sm-grupo.escondido, .sm-fila.escondida { display: none; }
+    /* Os sem dono em colunas: uma por zona */
+    .sm-colunas-zona { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: .6rem; }
+    .sm-coluna-zona { border: 1px solid #e9eff6; border-top: 3px solid var(--c); border-radius: 12px; padding: .5rem; background: #fbfcfe; }
+    .sm-coluna-zona > header { display: flex; align-items: center; gap: .4rem; font-size: .72rem; font-weight: 800;
+                               text-transform: uppercase; letter-spacing: .05em; color: var(--c); margin-bottom: .45rem; }
+    .sm-coluna-zona > header span { margin-left: auto; background: #fff; border: 1px solid currentColor;
+                                    border-radius: 999px; padding: 0 .45rem; font-size: .7rem; }
+    .sm-coluna-zona .sm-pedido { width: auto; }
     .sm-ajuda { font-size: .8rem; color: #6c7a89; }
 </style>
 @endpush
@@ -168,19 +175,26 @@
         </h6>
         <p class="sm-ajuda">{{ __('Pedidos em aberto que ainda não têm dia, pelo técnico que já lhes foi atribuído e com a mesma zona junta. Arraste um para a semana, ou use o lápis para escolher o técnico e o dia.') }}</p>
 
-        @if($totalPorAgendar)
+        @if($totalDaFila)
+            @php($zonaCores = ['norte' => '#0f766e', 'centro' => '#b45309', 'sul' => '#be185d'])
             <div class="sm-zonas">
-                <button type="button" class="sm-zona on" data-zona="">{{ __('Todas as zonas') }} <span>{{ $totalPorAgendar }}</span></button>
+                <a class="sm-zona {{ $zonaEscolhida ? '' : 'on' }}"
+                   href="{{ route('backoffice.technical_requests.week', ['semana' => $inicio->toDateString()]) }}">
+                    {{ __('Todas as zonas') }} <span>{{ $totalDaFila }}</span>
+                </a>
                 @foreach(\App\Http\Controllers\TechnicalRequestController::ZONES as $chave => $nome)
                     @if($zonasDaFila[$chave] ?? 0)
-                        <button type="button" class="sm-zona" data-zona="{{ $chave }}"
-                                style="--c: {{ ['norte' => '#0f766e', 'centro' => '#b45309', 'sul' => '#be185d'][$chave] ?? '#64748b' }}">
+                        <a class="sm-zona {{ $zonaEscolhida === $chave ? 'on' : '' }}" style="--c: {{ $zonaCores[$chave] ?? '#64748b' }}"
+                           href="{{ route('backoffice.technical_requests.week', ['semana' => $inicio->toDateString(), 'zona' => $chave]) }}">
                             {{ __($nome) }} <span>{{ $zonasDaFila[$chave] }}</span>
-                        </button>
+                        </a>
                     @endif
                 @endforeach
                 @if($zonasDaFila['sem_zona'] ?? 0)
-                    <button type="button" class="sm-zona" data-zona="sem_zona">{{ __('Sem zona') }} <span>{{ $zonasDaFila['sem_zona'] }}</span></button>
+                    <a class="sm-zona {{ $zonaEscolhida === 'sem_zona' ? 'on' : '' }}"
+                       href="{{ route('backoffice.technical_requests.week', ['semana' => $inicio->toDateString(), 'zona' => 'sem_zona']) }}">
+                        {{ __('Sem zona') }} <span>{{ $zonasDaFila['sem_zona'] }}</span>
+                    </a>
                 @endif
             </div>
         @endif
@@ -195,11 +209,31 @@
                 @if($dono && $naEscala === false)<span class="fora">{{ __('não é técnico') }}</span>@endif
                 <span class="n">{{ $grupo->count() }}</span>
             </div>
-            <div class="sm-fila mb-3">
-                @foreach($grupo as $p)
-                    @include('backoffice.technical_requests.partials.week_card', ['p' => $p, 'cores' => $cores])
-                @endforeach
-            </div>
+            @if($tecnicoId === 0)
+                {{-- Sem dono: separa-se por zona, que é o que decide quem o vai fazer --}}
+                <div class="sm-colunas-zona mb-3">
+                    @foreach(array_keys(\App\Http\Controllers\TechnicalRequestController::ZONES) + ['sem_zona'] as $z)
+                        @php($daZona = $grupo->filter(fn ($p) => ($p->zona ?: 'sem_zona') === $z))
+                        @if($daZona->isNotEmpty())
+                            <div class="sm-coluna-zona" style="--c: {{ ['norte' => '#0f766e', 'centro' => '#b45309', 'sul' => '#be185d'][$z] ?? '#64748b' }}">
+                                <header>
+                                    {{ $z === 'sem_zona' ? __('Sem zona') : __(\App\Http\Controllers\TechnicalRequestController::ZONES[$z]) }}
+                                    <span>{{ $daZona->count() }}</span>
+                                </header>
+                                @foreach($daZona as $p)
+                                    @include('backoffice.technical_requests.partials.week_card', ['p' => $p, 'cores' => $cores])
+                                @endforeach
+                            </div>
+                        @endif
+                    @endforeach
+                </div>
+            @else
+                <div class="sm-fila mb-3">
+                    @foreach($grupo as $p)
+                        @include('backoffice.technical_requests.partials.week_card', ['p' => $p, 'cores' => $cores])
+                    @endforeach
+                </div>
+            @endif
         @empty
             <div class="sm-vazio">{{ __('Não há pedidos por agendar. Bom trabalho.') }}</div>
         @endforelse
@@ -305,29 +339,6 @@
                 document.getElementById('sm-mover-tec').value = card.dataset.tec || '';
                 document.getElementById('sm-mover-dia').value = card.dataset.dia || '';
                 if (window.jQuery) $('#sm-mover').modal('show');
-            });
-        });
-
-        // Filtro por zona na fila dos por agendar
-        document.querySelectorAll('.sm-zona').forEach(function (b) {
-            b.addEventListener('click', function () {
-                var zona = b.dataset.zona;
-                document.querySelectorAll('.sm-zona').forEach(function (o) { o.classList.toggle('on', o === b); });
-
-                document.querySelectorAll('.card .sm-fila').forEach(function (fila) {
-                    var visiveis = 0;
-                    fila.querySelectorAll('.sm-pedido').forEach(function (card) {
-                        var mostra = !zona || card.dataset.zona === zona;
-                        card.style.display = mostra ? '' : 'none';
-                        if (mostra) visiveis++;
-                    });
-                    // Um técnico sem nada nesta zona desaparece, com o seu título
-                    fila.classList.toggle('escondida', visiveis === 0);
-                    var titulo = fila.previousElementSibling;
-                    if (titulo && titulo.classList.contains('sm-grupo')) {
-                        titulo.classList.toggle('escondido', visiveis === 0);
-                    }
-                });
             });
         });
 
