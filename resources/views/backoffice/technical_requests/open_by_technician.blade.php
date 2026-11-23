@@ -504,6 +504,7 @@
 
 @section('content')
 <div class="row">@include('flash::message')</div>
+@include('backoffice.technical_requests.partials.so_hoje')
 
 @php
     $openStats = $openStats ?? [

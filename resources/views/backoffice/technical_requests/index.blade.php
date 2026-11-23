@@ -1544,6 +1544,7 @@
 
 @section('content')
 <div class="row">@include('flash::message')</div>
+@include('backoffice.technical_requests.partials.so_hoje')
 
 @php
     $hasFilters = collect(request()->only(['q', 'codigo_loja', 'serial_number', 'estado', 'prioridade', 'zona', 'assigned_technician_id', 'mes', 'data_inicio', 'data_fim']))

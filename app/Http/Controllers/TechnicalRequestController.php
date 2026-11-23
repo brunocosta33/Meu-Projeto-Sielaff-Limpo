@@ -61,7 +61,9 @@ class TechnicalRequestController extends Controller
             ->orderBy('data_pedido', 'desc');
 
         if (!$isAdmin) {
-            $query->where('assigned_technician_id', auth()->id());
+            // O técnico vê o dia de hoje; a semana toda está em "A Minha Semana"
+            $query->where('assigned_technician_id', auth()->id())
+                ->whereDate('data_agendamento', today());
         }
 
         if ($request->filled('q')) {
@@ -150,6 +152,7 @@ class TechnicalRequestController extends Controller
             'zones' => self::translatedLabels(self::ZONES),
             'technicians' => $technicians,
             'canManageAll' => $isAdmin,
+            'soHoje' => !$isAdmin,
         ]);
     }
 
@@ -487,9 +490,12 @@ class TechnicalRequestController extends Controller
     public function myOpenRequests(Request $request)
     {
         $technician = auth()->user();
+        $soHoje = !$this->isAdmin();
 
         $query = TechnicalRequest::with(['store', 'machine', 'machines.machine', 'assignedTechnician'])
             ->where('assigned_technician_id', $technician->id)
+            // Ao técnico mostra-se o dia de hoje; a semana está em "A Minha Semana"
+            ->when($soHoje, fn ($q) => $q->whereDate('data_agendamento', today()))
             ->where('estado', '!=', 'concluido')
             ->orderByRaw("FIELD(estado, 'pendente', 'agendado', 'aguarda_peca', 'cancelado', 'concluido')")
             ->orderBy('data_pedido', 'desc');
@@ -511,6 +517,7 @@ class TechnicalRequestController extends Controller
             'priorities' => self::translatedLabels(self::PRIORITIES),
             'zones' => self::translatedLabels(self::ZONES),
             'canExport' => false,
+            'soHoje' => $soHoje,
             'backRoute' => route('backoffice.technical_requests.index', $request->only(['mes', 'data_inicio', 'data_fim'])),
         ]);
     }
