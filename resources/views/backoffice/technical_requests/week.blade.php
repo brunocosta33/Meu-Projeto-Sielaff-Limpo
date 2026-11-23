@@ -23,7 +23,7 @@
                border-radius: 8px; padding: .22rem .7rem; margin-left: .3rem; }
 
     /* O quadro: uma coluna para o técnico e uma por dia */
-    .sm-quadro { display: grid; grid-template-columns: 13rem repeat({{ count($dias) }}, minmax(9.5rem, 1fr)); gap: .45rem; }
+    .sm-quadro { display: grid; grid-template-columns: 12rem repeat({{ count($dias) }}, minmax(11.5rem, 1fr)); gap: .45rem; }
     .sm-cab { font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: #64748b;
               text-align: center; padding: .2rem 0 .1rem; }
     .sm-cab.hoje { color: #0b5ed7; }
@@ -37,7 +37,7 @@
     .sm-tecnico .nome { font-weight: 700; color: #132238; line-height: 1.15; font-size: .92rem; }
     .sm-tecnico .n { font-size: .74rem; color: #6c7a89; }
 
-    .sm-celula { min-height: 4.6rem; background: #f7f9fc; border: 1px dashed #dde5ef; border-radius: 12px; padding: .35rem;
+    .sm-celula { min-height: 5.4rem; background: #f7f9fc; border: 1px dashed #dde5ef; border-radius: 12px; padding: .35rem;
                  transition: background .12s, border-color .12s; }
     .sm-celula.fds { background: #f3f4f6; }
     .sm-celula.hoje { border-color: #9dc2f5; background: #f2f8ff; }
@@ -48,10 +48,16 @@
                  margin-bottom: .3rem; cursor: grab; text-decoration: none !important;
                  box-shadow: 0 1px 2px rgba(19, 34, 56, .06); }
     .sm-pedido:hover { box-shadow: 0 4px 10px rgba(19, 34, 56, .12); }
-    .sm-pedido .n { font-size: .68rem; font-weight: 800; color: #94a3b8; }
-    .sm-pedido .loja { display: block; font-size: .78rem; font-weight: 700; color: #132238; line-height: 1.2;
+    .sm-pedido .topo { display: flex; align-items: center; gap: .25rem; margin-bottom: .1rem; padding-right: .8rem; }
+    .sm-pedido .n { font-size: .68rem; font-weight: 800; color: #94a3b8; margin-right: auto; }
+    .sm-chip { font-size: .6rem; font-weight: 800; text-transform: uppercase; letter-spacing: .03em;
+               border-radius: 999px; padding: .02rem .4rem; color: #fff; background: var(--c, #64748b); white-space: nowrap; }
+    .sm-chip.clara { background: #fff; color: var(--c); border: 1px solid currentColor; }
+    .sm-marca { font-size: .6rem; font-weight: 800; text-transform: uppercase; letter-spacing: .03em;
+                border-radius: 4px; padding: .02rem .3rem; color: var(--c); background: var(--bg); }
+    .sm-pedido .loja { display: block; font-size: .78rem; font-weight: 700; color: #132238; line-height: 1.25;
                        overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .sm-pedido .tipo { font-size: .7rem; color: #6c7a89; }
+    .sm-pedido .tipo { display: block; font-size: .7rem; color: #6c7a89; line-height: 1.2; padding-right: .8rem; }
     .sm-pedido .peca { color: #b26a00; font-weight: 700; }
     .sm-pedido .tirar { position: absolute; top: .1rem; right: .15rem; border: 0; background: none; color: #cbd5e1;
                         font-size: .7rem; line-height: 1; padding: .1rem; }
@@ -61,7 +67,7 @@
     .sm-pedido .mover:hover { color: #0b5ed7; }
 
     .sm-fila { display: flex; flex-wrap: wrap; gap: .4rem; }
-    .sm-fila .sm-pedido { width: 15rem; margin: 0; }
+    .sm-fila .sm-pedido { width: 16.5rem; margin: 0; }
     .sm-vazio { color: #9aa7b6; font-size: .84rem; padding: .6rem; }
     /* Os por agendar vêm arrumados pelo técnico que já têm atribuído */
     .sm-grupo { display: flex; align-items: center; gap: .4rem; font-size: .82rem; font-weight: 800; color: #132238;
