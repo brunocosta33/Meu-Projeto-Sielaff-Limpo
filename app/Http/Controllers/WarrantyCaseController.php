@@ -25,35 +25,54 @@ class WarrantyCaseController extends Controller
 
     private const DOC_TYPES = ['os', 'cotacao', 'oc', 'servico'];
 
+    /**
+     * O quadro: uma coluna por "de quem é a vez" (nós, Sielaff, cliente, Alemanha).
+     * Cada processo aberto fica na coluna onde está parado; os fechados ficam à parte.
+     */
     public function index(Request $request)
     {
-        $closed = WarrantyCase::CLOSED_PHASES;
-        $marks = implode(',', array_fill(0, count($closed), '?'));
-
-        $cases = $this->filteredQuery($request)
+        $abertos = $this->filteredQuery($request, ['fase'])
             ->with(['store', 'machine'])
             ->withCount('photos')
-            // Os abertos primeiro e, entre esses, o que está parado há mais tempo no topo
-            ->orderByRaw("(fase IN ($marks)) ASC", $closed)
-            ->orderByRaw("CASE WHEN fase IN ($marks) THEN 0 ELSE DATEDIFF(CURDATE(), fase_desde) END DESC", $closed)
-            ->orderByDesc('fase_desde')
-            ->orderByDesc('id')
-            ->paginate(40)
-            ->withQueryString();
+            ->whereNotIn('fase', WarrantyCase::CLOSED_PHASES)
+            ->get();
 
-        // Cada total ignora o seu próprio filtro: senão, ao escolher um, os outros ficavam a zero
-        $counts = $this->filteredQuery($request, ['fase'])
-            ->toBase()->selectRaw('fase, COUNT(*) as total')->groupBy('fase')->pluck('total', 'fase');
+        // Dentro de cada coluna: os que já passaram do prazo em cima, depois os parados há mais tempo
+        $urgencia = fn (WarrantyCase $c) => match ($c->waitingAlert()) {
+            'late' => 0,
+            'warn' => 1,
+            default => 2,
+        };
+
+        $colunas = collect(['nos', 'sielaff', 'cliente', 'alemanha'])
+            ->mapWithKeys(fn ($quem) => [$quem => $abertos
+                ->filter(fn (WarrantyCase $c) => $c->waitingOn() === $quem)
+                ->sortBy(fn (WarrantyCase $c) => sprintf('%d-%05d', $urgencia($c), 99999 - $c->daysInPhase()))
+                ->values()]);
+
+        $fechados = $this->filteredQuery($request, ['fase'])->whereIn('fase', WarrantyCase::CLOSED_PHASES);
+        $verFechados = $request->boolean('fechados');
+
+        // Os números dos filtros contam só os abertos, que é o que está no quadro
+        $porCliente = $this->filteredQuery($request, ['fase'])
+            ->whereNotIn('fase', WarrantyCase::CLOSED_PHASES)
+            ->toBase()->selectRaw('cliente, COUNT(*) as total')->groupBy('cliente')->pluck('total', 'cliente');
 
         return view('backoffice.warranty.index', [
-            'cases' => $cases,
-            'counts' => $counts,
-            'typeCounts' => $this->filteredQuery($request, ['tipo'])
-                ->toBase()->selectRaw('tipo, COUNT(*) as total')->groupBy('tipo')->pluck('total', 'tipo'),
-            'openTotal' => $counts->sum() - collect(WarrantyCase::CLOSED_PHASES)->sum(fn ($p) => $counts[$p] ?? 0),
-            'phases' => config('warranty.phases'),
+            'colunas' => $colunas,
+            'esperas' => config('warranty.waiting_on'),
+            'totalAbertos' => $abertos->count(),
+            'totalFechados' => (clone $fechados)->count(),
+            'fechados' => $verFechados
+                ? $fechados->with(['store', 'machine'])->orderByDesc('fechado_em')->orderByDesc('id')->limit(60)->get()
+                : collect(),
+            'verFechados' => $verFechados,
+            'porCliente' => $porCliente,
             'types' => config('warranty.types'),
             'clients' => config('warranty.clients'),
+            'typeCounts' => $this->filteredQuery($request, ['tipo', 'fase'])
+                ->whereNotIn('fase', WarrantyCase::CLOSED_PHASES)
+                ->toBase()->selectRaw('tipo, COUNT(*) as total')->groupBy('tipo')->pluck('total', 'tipo'),
         ]);
     }
 

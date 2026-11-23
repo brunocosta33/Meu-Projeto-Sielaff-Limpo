@@ -2,6 +2,7 @@
 
 @php(\Carbon\Carbon::setLocale(app()->getLocale()))
 @php($filters = request()->only(['q', 'cliente', 'tipo']))
+@php($marcas = config('maintenance.clients'))
 
 @section('head-meta')
     <title>{{ config('app.name') }} - {{ __('Fora da Garantia') }}</title>
@@ -9,191 +10,178 @@
 
 @push('styles')
 <style>
-    .wc-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .75rem; }
-    .wc-stat { display: block; border-radius: 14px; padding: .8rem 1rem; background: var(--bg); color: var(--fg); border: 2px solid transparent;
-               text-decoration: none !important; transition: transform .15s; }
-    .wc-stat:hover { transform: translateY(-2px); color: var(--fg); }
-    .wc-stat.is-active { border-color: var(--fg); }
-    .wc-stat .num { font-size: 1.8rem; font-weight: 700; line-height: 1; }
-    .wc-stat .lbl { font-size: .78rem; font-weight: 600; margin-top: .3rem; line-height: 1.25; }
+    /* ---- Cabeçalho ---- */
+    .fg-faixa { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .7rem;
+                padding: .9rem 1.15rem; color: #fff; border-radius: 14px 14px 0 0;
+                background: linear-gradient(115deg, #7f1d1d, #b91c1c 50%, #ef4444); }
+    .fg-faixa .t { font-size: 1.15rem; font-weight: 800; }
+    .fg-faixa .sub { display: block; font-size: .78rem; opacity: .88; max-width: 46rem; }
+    .fg-faixa .btn-novo { background: #fff; color: #b91c1c; font-weight: 800; border-radius: 10px; padding: .45rem .9rem; }
+    .fg-faixa .btn-novo:hover { background: #fee2e2; }
 
-    .wc-client { display: inline-block; font-size: .7rem; font-weight: 800; letter-spacing: .03em; padding: .15rem .5rem; border-radius: 6px; text-transform: uppercase; }
-    .wc-client-lidl { background: #0050aa; color: #fff200; }
-    .wc-client-sonae { background: #f39200; color: #fff; }
-    .wc-type-badge { display: inline-flex; align-items: center; gap: .25rem; font-size: .66rem; font-weight: 800; letter-spacing: .03em;
-                     padding: .1rem .4rem; border-radius: 6px; text-transform: uppercase;
-                     background: var(--bg); color: var(--c); border: 1px solid var(--c); }
-    .wc-badge { display: inline-flex; align-items: center; gap: .3rem; font-size: .76rem; font-weight: 600; padding: .2rem .55rem;
-                border-radius: 999px; background: var(--bg); color: var(--fg); border: 1px solid var(--fg); white-space: nowrap; }
+    .fg-filtros { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem; }
+    .fg-chip { display: inline-flex; align-items: center; gap: .3rem; border: 1px solid #dde3ea; background: #fff; color: #475569;
+               border-radius: 999px; padding: .22rem .75rem; font-size: .82rem; font-weight: 700; text-decoration: none !important; }
+    .fg-chip:hover { border-color: #94a3b8; color: #1e293b; }
+    .fg-chip.on { background: var(--grad, #1e293b); color: var(--txt, #fff); border-color: transparent;
+                  box-shadow: 0 5px 12px var(--sombra, rgba(15, 23, 42, .15)); }
+    .fg-chip .n { opacity: .75; }
 
-    /* Uma linha por processo, com a barra de cinco passos */
-    .wc-list { display: flex; flex-direction: column; }
-    .wc-item { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.25fr) minmax(0, .95fr);
-               gap: 1rem; align-items: center; padding: .85rem .75rem; border-radius: 10px; cursor: pointer; }
-    .wc-item + .wc-item { border-top: 1px solid #eef1f5; }
-    .wc-item:hover { background: #f8fafc; }
-    @media (max-width: 991px) { .wc-item { grid-template-columns: 1fr; gap: .6rem; } }
+    /* ---- O quadro: quatro colunas, uma por quem tem a vez ---- */
+    .fg-quadro { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .85rem; align-items: start; }
+    @media (max-width: 1199px) { .fg-quadro { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 767px) { .fg-quadro { grid-template-columns: 1fr; } }
 
-    .wc-loja { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; font-weight: 700; color: #0f172a; }
-    .wc-loja a { color: inherit; }
-    .wc-loja .cod { font-family: ui-monospace, Menlo, monospace; color: #64748b; font-weight: 600; }
-    .wc-avaria { color: #64748b; font-size: .88rem; margin: .2rem 0 0;
+    .fg-coluna { background: #f6f8fb; border: 1px solid #e6ebf2; border-radius: 16px; overflow: hidden; }
+    .fg-coluna > header { padding: .75rem .9rem; color: #fff;
+                          background: linear-gradient(120deg, var(--c), color-mix(in srgb, var(--c) 70%, #000)); }
+    .fg-coluna > header .linha { display: flex; align-items: center; gap: .45rem; }
+    .fg-coluna > header .nome { font-weight: 800; font-size: .95rem; }
+    .fg-coluna > header .conta { margin-left: auto; background: rgba(255, 255, 255, .95); color: var(--c);
+                                 border-radius: 999px; padding: .02rem .6rem; font-weight: 800; font-size: .85rem; }
+    .fg-coluna > header .explica { font-size: .74rem; opacity: .9; margin-top: .15rem; }
+    .fg-coluna .corpo { padding: .6rem; display: flex; flex-direction: column; gap: .55rem; min-height: 5rem; }
+    .fg-vazio { text-align: center; color: #a3b0bf; font-size: .82rem; padding: 1.2rem .5rem; }
+
+    /* ---- O cartão de cada processo ---- */
+    .fg-cartao { display: block; background: #fff; border: 1px solid #e6ebf2; border-left: 5px solid var(--c);
+                 border-radius: 12px; padding: .65rem .75rem; text-decoration: none !important; color: inherit;
+                 box-shadow: 0 1px 3px rgba(15, 23, 42, .05); transition: transform .12s, box-shadow .12s; }
+    .fg-cartao:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(15, 23, 42, .1); color: inherit; }
+    .fg-cartao.warn { border-left-color: #f59e0b; background: linear-gradient(100deg, #fffbeb, #fff 50%); }
+    .fg-cartao.late { border-left-color: #dc2626; background: linear-gradient(100deg, #fef2f2, #fff 50%); }
+
+    .fg-topo { display: flex; align-items: center; gap: .3rem; flex-wrap: wrap; }
+    .fg-marca { font-size: .66rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; border-radius: 999px;
+                padding: .12rem .5rem; color: var(--txt, #fff); background: var(--grad, #64748b); }
+    .fg-tipo { margin-left: auto; font-size: .62rem; font-weight: 800; text-transform: uppercase; letter-spacing: .03em;
+               border-radius: 6px; padding: .08rem .38rem; color: var(--tc); background: var(--tb); }
+    .fg-loja { font-weight: 800; color: #0f172a; margin-top: .3rem; line-height: 1.25; }
+    .fg-loja .cod { color: #94a3b8; font-weight: 700; margin-right: .15rem; }
+    .fg-serie { display: inline-flex; align-items: center; gap: 4px; margin-top: .3rem; padding: .1rem .45rem;
+                border-radius: 999px; background: linear-gradient(135deg, #ffe69a, #ffd166); color: #7a4a00;
+                font-size: .7rem; font-weight: 800; }
+    .fg-avaria { font-size: .8rem; color: #475569; margin-top: .35rem; line-height: 1.3;
                  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
-    /* Barra de progresso: um segmento por bloco, sempre cinco para as linhas alinharem */
-    .wc-trilho { display: grid; grid-template-columns: repeat(5, 1fr); gap: .22rem; min-width: 0; }
-    .wc-passo { min-width: 0; }
-    .wc-passo .barra { height: .42rem; border-radius: 3px; background: #e2e8f0; }
-    .wc-passo.feito .barra { background: var(--c); }
-    .wc-passo.agora .barra { background: var(--c); box-shadow: 0 0 0 2px color-mix(in srgb, var(--c) 30%, transparent); }
-    .wc-passo .nome { display: block; font-size: .66rem; text-transform: uppercase; letter-spacing: .04em;
-                      color: #94a3b8; margin-top: .3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .wc-passo.feito .nome { color: #64748b; }
-    .wc-passo.agora .nome { color: var(--c); font-weight: 700; }
-    .wc-passo.vazio { opacity: .35; }
+    /* A barra do processo, em bolinhas: cheia = feito, anel = é agora */
+    .fg-passos { display: flex; align-items: center; gap: 3px; margin-top: .5rem; }
+    .fg-passos span { flex: 1; height: 6px; border-radius: 99px; background: #e2e8f0; }
+    .fg-passos span.feito { background: var(--bc); }
+    .fg-passos span.agora { background: var(--bc); opacity: .45; }
 
-    .wc-agora { font-weight: 700; font-size: .9rem; line-height: 1.3; color: #1e293b; }
-    .wc-agora .seta { color: var(--c); }
-    .wc-meta { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; margin-top: .35rem; }
-    .wc-dias { font-size: .76rem; color: #94a3b8; }
-    .wc-dias.warn { color: #c2410c; background: #fff7ed; font-weight: 700; padding: .1rem .4rem; border-radius: 5px; }
-    .wc-dias.late { color: #b91c1c; background: #fef2f2; font-weight: 700; padding: .1rem .4rem; border-radius: 5px; }
-    .wc-anexo { font-family: ui-monospace, Menlo, monospace; font-size: .72rem; padding: .1rem .35rem; border-radius: 4px;
-                border: 1px solid #e2e8f0; color: #64748b; white-space: nowrap; }
-    a.wc-anexo { color: #b91c1c; border-color: #fecaca; }
-    a.wc-anexo:hover { background: #fef2f2; color: #991b1b; }
-    .wc-fechado { font-size: .84rem; font-weight: 700; color: #15803d; }
-    .wc-fechado.recusado { color: #b91c1c; }
+    .fg-proximo { margin-top: .5rem; font-size: .8rem; font-weight: 800; color: #b45309;
+                  background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: .3rem .5rem; }
+    .fg-rodape { display: flex; align-items: center; gap: .5rem; margin-top: .45rem; font-size: .74rem; color: #94a3b8; }
+    .fg-dias { font-weight: 700; }
+    .fg-cartao.warn .fg-dias { color: #b45309; }
+    .fg-cartao.late .fg-dias { color: #dc2626; }
+    .fg-rodape .fotos { margin-left: auto; }
+
+    /* ---- Fechados ---- */
+    .fg-fechados { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: .6rem; }
+    .fg-fechado-estado { font-size: .78rem; font-weight: 800; margin-top: .4rem; }
 </style>
 @endpush
 
 @section('content')
-<div class="card mb-3">
-    <div class="card-body">
-        <div class="d-flex flex-wrap align-items-center justify-content-between mb-3" style="gap: .75rem">
-            <div>
-                <h4 class="mb-1"><i class="fas fa-file-invoice-dollar text-danger"></i> {{ __('Fora da Garantia') }}</h4>
-                <p class="text-muted small mb-0">{{ __('Avarias por culpa do cliente. Com peças: cotação da Sielaff e encomenda à Alemanha. Sem peças: deslocação, mão de obra ou peça trocada na hora.') }}</p>
-            </div>
-            <div class="d-flex flex-wrap" style="gap: .5rem">
-                <form method="GET" class="form-inline" style="gap: .5rem">
-                    @if(request('fase'))<input type="hidden" name="fase" value="{{ request('fase') }}">@endif
-                    <select name="tipo" class="form-control form-control-sm" onchange="this.form.submit()" style="max-width: 250px">
-                        <option value="">{{ __('Com e sem peças') }} ({{ $typeCounts->sum() }})</option>
-                        @foreach($types as $value => $type)
-                            <option value="{{ $value }}" @selected(request('tipo') === $value)>{{ __($type['label']) }} ({{ $typeCounts[$value] ?? 0 }})</option>
-                        @endforeach
-                    </select>
-                    <select name="cliente" class="form-control form-control-sm" onchange="this.form.submit()">
-                        <option value="">{{ __('Todos os clientes') }}</option>
-                        @foreach($clients as $value => $label)
-                            <option value="{{ $value }}" @selected(request('cliente') === $value)>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                    <input type="search" name="q" class="form-control form-control-sm" value="{{ request('q') }}" placeholder="{{ __('Loja, nº série, nº cotação…') }}" style="min-width: 220px">
-                </form>
-                <a href="{{ route('backoffice.warranty.export', $filters + request()->only('fase')) }}" class="btn btn-outline-success btn-sm"><i class="fa fa-file-excel"></i> {{ __('Exportar Excel') }}</a>
-                <a href="{{ route('backoffice.warranty.create') }}" class="btn btn-danger btn-sm"><i class="fa fa-plus"></i> {{ __('Novo processo') }}</a>
-            </div>
-        </div>
 
-        <div class="wc-summary">
-            <a href="{{ route('backoffice.warranty.index', $filters) }}" class="wc-stat {{ request('fase') ? '' : 'is-active' }}" style="--bg: #f1f3f6; --fg: #263238">
-                <div class="num">{{ $counts->sum() }}</div><div class="lbl">{{ __('Todos') }}</div>
-            </a>
-            <a href="{{ route('backoffice.warranty.index', ['fase' => 'abertos'] + $filters) }}" class="wc-stat {{ request('fase') === 'abertos' ? 'is-active' : '' }}" style="--bg: #fff1f2; --fg: #be123c">
-                <div class="num">{{ $openTotal }}</div><div class="lbl">{{ __('Em aberto') }}</div>
-            </a>
-            @foreach($types as $key => $type)
-                <a href="{{ route('backoffice.warranty.index', ['tipo' => $key] + request()->only(['q', 'cliente', 'fase'])) }}" class="wc-stat {{ request('tipo') === $key ? 'is-active' : '' }}" style="--bg: {{ $type['bg'] }}; --fg: {{ $type['color'] }}">
-                    <div class="num">{{ $typeCounts[$key] ?? 0 }}</div>
-                    <div class="lbl"><i class="fas {{ $type['icon'] }}"></i> {{ __($type['label']) }}</div>
-                </a>
-            @endforeach
-            @foreach($phases as $key => $phase)
-                <a href="{{ route('backoffice.warranty.index', ['fase' => $key] + $filters) }}" class="wc-stat {{ request('fase') === $key ? 'is-active' : '' }}" style="--bg: {{ $phase['bg'] }}; --fg: {{ $phase['color'] }}">
-                    <div class="num">{{ $counts[$key] ?? 0 }}</div>
-                    <div class="lbl"><i class="fas {{ $phase['icon'] }}"></i> {{ __($phase['label']) }}</div>
-                </a>
-            @endforeach
+<div class="card mb-3" style="border: 0; border-radius: 14px; overflow: hidden; box-shadow: 0 3px 14px rgba(127, 29, 29, .12)">
+    <div class="fg-faixa">
+        <div>
+            <div class="t"><i class="fas fa-file-invoice-dollar"></i> {{ __('Fora da Garantia') }}</div>
+            <span class="sub">{{ __('Avarias por culpa do cliente. Cada processo está na coluna de quem tem de dar o próximo passo.') }}</span>
         </div>
+        <a href="{{ route('backoffice.warranty.create') }}" class="btn btn-novo"><i class="fa fa-plus"></i> {{ __('Novo processo') }}</a>
     </div>
-</div>
 
-<div class="card">
     <div class="card-body">
-        @if($cases->isEmpty())
-            <div class="text-center text-muted py-5">
-                <i class="fas fa-file-invoice-dollar fa-3x mb-3"></i>
-                <p class="mb-3">{{ $counts->sum() ? __('Nenhum processo corresponde aos filtros.') : __('Ainda não há processos fora da garantia.') }}</p>
-                <a href="{{ route('backoffice.warranty.create') }}" class="btn btn-danger btn-sm"><i class="fa fa-plus"></i> {{ __('Novo processo') }}</a>
-            </div>
-        @else
-            <div class="wc-list">
-                @foreach($cases as $case)
-                    @php($phase = $case->phase())
-                    @php($next = $case->nextStep())
-                    @php($accent = $case->isOpen() ? $case->waitingOnConfig()['color'] : $phase['color'])
-                    <div class="wc-item" style="--c: {{ $accent }}"
-                         onclick="if (!event.target.closest('a')) location.href = this.dataset.href"
-                         data-href="{{ route('backoffice.warranty.show', $case->id) }}">
-
-                        <div>
-                            <div class="wc-loja">
-                                <span class="wc-client wc-client-{{ $case->cliente }}">{{ $case->clientLabel() }}</span>
-                                <span class="cod">{{ $case->store->codigo_loja ?? '—' }}</span>
-                                <a href="{{ route('backoffice.warranty.show', $case->id) }}">{{ $case->store->nome_loja ?? '—' }}</a>
-                            </div>
-                            <p class="wc-avaria">{{ $case->descricao }}</p>
-                        </div>
-
-                        {{-- Cinco segmentos sempre: os processos sem peças mostram os que não têm apagados --}}
-                        <div class="wc-trilho">
-                            @foreach($case->blocks() as $blockKey => $block)
-                                @php($estado = $case->blockState($blockKey, $next))
-                                <div class="wc-passo {{ $estado }}" style="--c: {{ $block['color'] }}" title="{{ __($block['label']) }}">
-                                    <div class="barra"></div><span class="nome">{{ __($block['curto']) }}</span>
-                                </div>
-                            @endforeach
-                            @for($i = count($case->blocks()); $i < 5; $i++)
-                                <div class="wc-passo vazio"><div class="barra"></div><span class="nome">—</span></div>
-                            @endfor
-                        </div>
-
-                        <div>
-                            @if($case->isOpen())
-                                <div class="wc-agora"><span class="seta">→</span> {{ $case->todoLabel() }}</div>
-                            @else
-                                <div class="wc-fechado {{ $case->fase === 'recusado' ? 'recusado' : '' }}">
-                                    <i class="fas {{ $phase['icon'] }}"></i> {{ __($phase['label']) }} {{ optional($case->fechado_em)->format('d/m/Y') }}
-                                </div>
-                            @endif
-                            <div class="wc-meta">
-                                @if($case->isOpen())
-                                    <span class="wc-dias {{ $case->waitingAlert() }}">
-                                        {{ trans_choice('{0} hoje|{1} há :count dia|[2,*] há :count dias', $case->daysInPhase(), ['count' => $case->daysInPhase()]) }}
-                                    </span>
-                                @endif
-                                @foreach(['os' => __('Ordem de serviço'), 'cotacao' => __('Cotação'), 'oc' => __('Ordem de compra')] as $tipo => $label)
-                                    @continue(!$case->{$tipo . '_numero'})
-                                    @if($case->{$tipo . '_path'})
-                                        <a href="{{ route('backoffice.warranty.document', [$case->id, $tipo]) }}" target="_blank" class="wc-anexo" title="{{ $label }}">{{ $case->{$tipo . '_numero'} }}</a>
-                                    @else
-                                        <span class="wc-anexo" title="{{ $label }} · {{ __('sem PDF') }}">{{ $case->{$tipo . '_numero'} }}</span>
-                                    @endif
-                                @endforeach
-                                @if($case->photos_count)
-                                    <span class="wc-dias"><i class="fa fa-camera"></i> {{ $case->photos_count }}</span>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
+        <div class="d-flex flex-wrap align-items-center justify-content-between" style="gap: .6rem">
+            <div class="fg-filtros">
+                <a href="{{ route('backoffice.warranty.index', \Illuminate\Support\Arr::except($filters, 'cliente')) }}"
+                   class="fg-chip {{ request('cliente') ? '' : 'on' }}">
+                    {{ __('Todos os clientes') }} <span class="n">{{ $porCliente->sum() }}</span>
+                </a>
+                @foreach($clients as $chave => $nome)
+                    @php($m = $marcas[$chave] ?? [])
+                    <a href="{{ route('backoffice.warranty.index', ['cliente' => $chave] + $filters) }}"
+                       class="fg-chip {{ request('cliente') === $chave ? 'on' : '' }}"
+                       style="--grad: {{ $m['gradiente'] ?? '#1e293b' }}; --txt: {{ $m['texto'] ?? '#fff' }}; --sombra: {{ $m['sombra'] ?? 'transparent' }}">
+                        <i class="fas fa-tag"></i> {{ $nome }} <span class="n">{{ $porCliente[$chave] ?? 0 }}</span>
+                    </a>
                 @endforeach
+
+                <form method="GET" class="form-inline" style="gap: .45rem">
+                    @if(request('cliente'))<input type="hidden" name="cliente" value="{{ request('cliente') }}">@endif
+                    <select name="tipo" class="form-control form-control-sm" onchange="this.form.submit()">
+                        <option value="">{{ __('Com e sem peças') }}</option>
+                        @foreach($types as $value => $type)
+                            <option value="{{ $value }}" @selected(request('tipo') === $value)>{{ __($type['curto']) }} ({{ $typeCounts[$value] ?? 0 }})</option>
+                        @endforeach
+                    </select>
+                    <input type="search" name="q" class="form-control form-control-sm" value="{{ request('q') }}"
+                           placeholder="{{ __('Loja, nº série, nº cotação…') }}" style="min-width: 210px">
+                </form>
             </div>
-            @if($cases->hasPages())
-                <div class="mt-3 d-flex justify-content-center">{{ $cases->links() }}</div>
-            @endif
-        @endif
+
+            <div class="fg-filtros">
+                <a href="{{ route('backoffice.warranty.index', $filters + ($verFechados ? [] : ['fechados' => 1])) }}"
+                   class="fg-chip {{ $verFechados ? 'on' : '' }}" style="--grad: linear-gradient(135deg, #15803d, #22c55e)">
+                    <i class="fas fa-check-circle"></i> {{ __('Fechados') }} <span class="n">{{ $totalFechados }}</span>
+                </a>
+                <a href="{{ route('backoffice.warranty.export', $filters) }}" class="btn btn-outline-success btn-sm">
+                    <i class="fa fa-file-excel"></i> {{ __('Excel') }}
+                </a>
+            </div>
+        </div>
     </div>
 </div>
+
+@php($explicacao = [
+    'nos' => __('Somos nós a dar o próximo passo.'),
+    'sielaff' => __('Pedimos a cotação; falta a resposta.'),
+    'cliente' => __('Enviámos a cotação; falta a ordem de compra.'),
+    'alemanha' => __('Encomendámos a peça; falta chegar.'),
+])
+
+<div class="fg-quadro mb-3">
+    @foreach($colunas as $quem => $lista)
+        @php($cfg = $esperas[$quem])
+        <section class="fg-coluna" style="--c: {{ $cfg['color'] }}">
+            <header>
+                <div class="linha">
+                    <i class="fas {{ $cfg['icon'] }}"></i>
+                    <span class="nome">{{ __($cfg['label']) }}</span>
+                    <span class="conta">{{ $lista->count() }}</span>
+                </div>
+                <div class="explica">{{ $explicacao[$quem] }}</div>
+            </header>
+            <div class="corpo">
+                @forelse($lista as $case)
+                    @include('backoffice.warranty.partials.card', ['case' => $case, 'cor' => $cfg['color'], 'mostrarProximo' => $quem === 'nos'])
+                @empty
+                    <div class="fg-vazio"><i class="far fa-smile"></i> {{ __('Nada aqui.') }}</div>
+                @endforelse
+            </div>
+        </section>
+    @endforeach
+</div>
+
+@if($verFechados)
+    <div class="card">
+        <div class="card-body">
+            <h6 class="text-uppercase mb-3" style="font-size: .78rem; letter-spacing: .06em; color: #15803d; font-weight: 800">
+                <i class="fas fa-check-circle"></i> {{ __('Fechados') }} ({{ $totalFechados }})
+            </h6>
+            <div class="fg-fechados">
+                @forelse($fechados as $case)
+                    @include('backoffice.warranty.partials.card', ['case' => $case, 'cor' => $case->fase === 'recusado' ? '#b91c1c' : '#15803d', 'mostrarProximo' => false])
+                @empty
+                    <div class="fg-vazio">{{ __('Ainda não há processos fechados.') }}</div>
+                @endforelse
+            </div>
+        </div>
+    </div>
+@endif
+
 @endsection

@@ -35,16 +35,43 @@
     @keyframes wc-pulse { 50% { opacity: .3; } }
     @media (prefers-reduced-motion: reduce) { .wc-dias.late .fa { animation: none; } }
 
-    /* A mesma barra de cinco passos da listagem */
-    .wc-trilho { display: grid; grid-template-columns: repeat(5, 1fr); gap: .3rem; margin-top: 1rem; }
-    .wc-passo .barra { height: .55rem; border-radius: 4px; background: #e2e8f0; }
-    .wc-passo.feito .barra { background: var(--c); }
-    .wc-passo.agora .barra { background: var(--c); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 28%, transparent); }
-    .wc-passo .nome { display: block; font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; color: #94a3b8; margin-top: .35rem; }
-    .wc-passo.feito .nome { color: #64748b; }
-    .wc-passo.agora .nome { color: var(--c); font-weight: 700; }
-    .wc-passo .quando { display: block; font-size: .7rem; color: #94a3b8; font-weight: 400; }
-    .wc-passo.vazio { opacity: .35; }
+    /* Marca e série com o mesmo aspeto do resto da aplicação */
+    .fg-marca { display: inline-flex; align-items: center; gap: .3rem; font-size: .74rem; font-weight: 800;
+                text-transform: uppercase; letter-spacing: .05em; padding: .26rem .66rem; border-radius: 999px;
+                background: var(--grad); color: var(--txt); box-shadow: 0 6px 14px var(--sombra, transparent); }
+    .fg-serie { display: inline-flex; align-items: center; gap: 5px; padding: .2rem .6rem; border-radius: 999px;
+                background: linear-gradient(135deg, #ffe69a, #ffd166); color: #7a4a00; font-size: .8rem; font-weight: 800; }
+    .fg-cabeca { border: 0; border-radius: 14px; box-shadow: 0 3px 14px rgba(15, 23, 42, .08); }
+
+    /* De quem é a vez */
+    .fg-vez { display: flex; align-items: flex-start; gap: .7rem; margin-top: 1rem; padding: .75rem 1rem; border-radius: 12px;
+              background: var(--bg); color: var(--c); border: 1px solid color-mix(in srgb, var(--c) 30%, #fff); }
+    .fg-vez > i { font-size: 1.3rem; margin-top: .1rem; }
+    .fg-vez strong { font-size: 1.02rem; }
+    .fg-vez span { font-weight: 600; opacity: .85; }
+    .fg-vez .proximo { margin-top: .25rem; font-weight: 800; color: #0f172a; }
+    .fg-vez.warn { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
+    .fg-vez.late { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+    .fg-vez.late > i { animation: wc-pulse 1.4s ease-in-out infinite; }
+
+    /* O percurso: um círculo por passo, ligados por uma linha */
+    .fg-percurso { display: flex; list-style: none; padding: 0; margin: 1.3rem 0 .2rem; }
+    .fg-percurso li { flex: 1; position: relative; text-align: center; padding: 0 .25rem; min-width: 0; }
+    .fg-percurso li::before { content: ''; position: absolute; top: 21px; left: -50%; right: 50%; height: 4px;
+                              background: #e2e8f0; z-index: 0; }
+    .fg-percurso li:first-child::before { display: none; }
+    .fg-percurso li.feito::before, .fg-percurso li.agora::before { background: var(--c); }
+    .fg-percurso .bola { position: relative; z-index: 1; width: 44px; height: 44px; border-radius: 50%; display: inline-grid;
+                         place-items: center; background: #fff; border: 3px solid #e2e8f0; color: #cbd5e1; font-size: 1rem; }
+    .fg-percurso li.feito .bola { background: var(--c); border-color: var(--c); color: #fff; }
+    .fg-percurso li.agora .bola { border-color: var(--c); color: var(--c);
+                                  box-shadow: 0 0 0 6px color-mix(in srgb, var(--c) 18%, transparent); }
+    .fg-percurso .nome { display: block; margin-top: .45rem; font-size: .78rem; font-weight: 700; color: #94a3b8; line-height: 1.2; }
+    .fg-percurso li.feito .nome { color: #334155; }
+    .fg-percurso li.agora .nome { color: var(--c); font-weight: 800; }
+    .fg-percurso .quando { display: block; font-size: .72rem; color: #94a3b8; margin-top: .1rem; }
+    .fg-percurso li.agora .quando { color: var(--c); font-weight: 700; }
+    @media (max-width: 575px) { .fg-percurso .nome { font-size: .66rem; } .fg-percurso .bola { width: 36px; height: 36px; } }
 
     /* O que fazer agora */
     .wc-agora { border: 2px solid var(--c); border-radius: 16px; overflow: hidden; }
@@ -96,32 +123,35 @@
 @endpush
 
 @section('content')
-<div class="card mb-3">
+@php($marca = config('maintenance.clients.' . $case->cliente))
+@php($vez = $case->waitingOnConfig())
+
+<div class="card mb-3 fg-cabeca">
     <div class="card-body">
         <div class="d-flex flex-wrap align-items-start justify-content-between" style="gap: .75rem">
             <div>
-                <h4 class="mb-1">
-                    <span class="wc-client wc-client-{{ $case->cliente }}">{{ $case->clientLabel() }}</span>
-                    <span class="wc-cod">{{ $case->store->codigo_loja ?? '—' }}</span>
-                    {{ $case->store->nome_loja ?? '—' }}
+                <div class="d-flex align-items-center flex-wrap" style="gap: .45rem">
+                    @if($marca)
+                        <span class="fg-marca" style="--grad: {{ $marca['gradiente'] }}; --txt: {{ $marca['texto'] }}; --sombra: {{ $marca['sombra'] }}">
+                            <i class="fas fa-tag"></i> {{ $marca['label'] }}
+                        </span>
+                    @endif
                     <span class="wc-type-badge" style="--c: {{ $type['color'] }}; --bg: {{ $type['bg'] }}" title="{{ __($type['ajuda']) }}">
                         <i class="fas {{ $type['icon'] }}"></i> {{ __($type['curto']) }}
                     </span>
+                    <span class="text-muted small">#{{ $case->id }}</span>
+                </div>
+                <h4 class="mt-2 mb-1">
+                    <span class="wc-cod">{{ $case->store->codigo_loja ?? '—' }}</span>
+                    {{ $case->store->nome_loja ?? '—' }}
                 </h4>
-                @if($case->isOpen())
-                    <span class="wc-dias {{ $alert }}">
-                        <i class="fa {{ $alert ? 'fa-exclamation-triangle' : 'fa-clock' }}"></i>
-                        {{ trans_choice('{0} hoje|{1} há :count dia|[2,*] há :count dias', $case->daysInPhase(), ['count' => $case->daysInPhase()]) }}
-                        <small>· {{ __($case->waitingOnConfig()['label']) }}</small>
-                    </span>
-                @else
-                    <span class="wc-dias" style="background: {{ $phase['bg'] }}; color: {{ $phase['color'] }}">
-                        <i class="fas {{ $phase['icon'] }}"></i> {{ __($phase['label']) }} · {{ optional($case->fechado_em)->format('d/m/Y') }}
-                    </span>
+                @if($case->machine)
+                    <span class="fg-serie"><i class="fa fa-hashtag"></i> {{ $case->machine->serial_number }}</span>
+                    @if($case->machine->descricao)<span class="text-muted small ml-1"><i class="fa fa-cogs"></i> {{ $case->machine->descricao }}</span>@endif
                 @endif
             </div>
             <div class="d-flex flex-wrap" style="gap: .5rem">
-                <a href="{{ route('backoffice.warranty.index') }}" class="btn btn-outline-secondary btn-sm"><i class="fa fa-arrow-left"></i> {{ __('Voltar') }}</a>
+                <a href="{{ route('backoffice.warranty.index') }}" class="btn btn-outline-secondary btn-sm"><i class="fa fa-arrow-left"></i> {{ __('Voltar ao quadro') }}</a>
                 <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#wc-edit"><i class="fa fa-edit"></i> {{ __('Editar') }}</button>
                 <form method="POST" action="{{ route('backoffice.warranty.destroy', $case->id) }}" onsubmit="return confirm({{ \Illuminate\Support\Js::from(__('Apagar este processo? As fotografias e os documentos também são apagados.')) }})">
                     @csrf
@@ -131,20 +161,43 @@
             </div>
         </div>
 
-        <div class="wc-trilho">
+        {{-- De quem é a vez: a primeira coisa que se quer saber ao abrir um processo --}}
+        @if($case->isOpen())
+            <div class="fg-vez {{ $alert }}" style="--c: {{ $vez['color'] }}; --bg: {{ $vez['bg'] }}">
+                <i class="fas {{ $alert === 'late' ? 'fa-exclamation-triangle' : $vez['icon'] }}"></i>
+                <div>
+                    <strong>{{ __($vez['label']) }}</strong>
+                    <span>
+                        · {{ trans_choice('{0} desde hoje|{1} há :count dia|[2,*] há :count dias', $case->daysInPhase(), ['count' => $case->daysInPhase()]) }}
+                        @if($alert === 'late') · {{ __('passou do prazo') }}@elseif($alert === 'warn') · {{ __('a chegar ao prazo') }}@endif
+                    </span>
+                    @if($next && $case->waitingOn() === 'nos')
+                        <div class="proximo">▸ {{ __($next['todo'] ?? $next['label']) }}</div>
+                    @endif
+                </div>
+            </div>
+        @else
+            <div class="fg-vez" style="--c: {{ $phase['color'] }}; --bg: {{ $phase['bg'] }}">
+                <i class="fas {{ $phase['icon'] }}"></i>
+                <div><strong>{{ __($phase['label']) }}</strong> <span>· {{ optional($case->fechado_em)->format('d/m/Y') }}</span></div>
+            </div>
+        @endif
+
+        {{-- O percurso do processo: só os passos deste tipo --}}
+        <ol class="fg-percurso">
             @foreach($blocks as $blockKey => $block)
                 @php($estado = $case->blockState($blockKey, $next))
-                <div class="wc-passo {{ $estado }}" style="--c: {{ $block['color'] }}" title="{{ __($block['label']) }}">
-                    <div class="barra"></div>
-                    <span class="nome">{{ __($block['curto']) }}
-                        <span class="quando">{{ optional($case->blockDate($blockKey))->format('d/m') ?: '—' }}</span>
+                <li class="{{ $estado ?: 'futuro' }}" style="--c: {{ $block['color'] }}" title="{{ __($block['label']) }}">
+                    <span class="bola">
+                        @if($estado === 'feito')<i class="fa fa-check"></i>@else<i class="fas {{ $block['icon'] }}"></i>@endif
                     </span>
-                </div>
+                    <span class="nome">{{ __($block['label']) }}</span>
+                    <span class="quando">
+                        @if($data = $case->blockDate($blockKey)){{ $data->format('d/m/Y') }}@elseif($estado === 'agora'){{ __('é agora') }}@endif
+                    </span>
+                </li>
             @endforeach
-            @for($i = count($blocks); $i < 5; $i++)
-                <div class="wc-passo vazio"><div class="barra"></div><span class="nome">—</span></div>
-            @endfor
-        </div>
+        </ol>
     </div>
 </div>
 
@@ -171,7 +224,7 @@
 
                     @if($outros)
                         <div class="wc-outros">
-                            <span class="text-muted">{{ __('Não é isto?') }}</span>
+                            <span class="text-muted">{{ __('Aconteceu outra coisa primeiro? Registe:') }}</span>
                             @foreach($outros as $outro)
                                 <a href="#wc-p-{{ $outro['block'] }}-{{ $outro['half'] }}" data-toggle="collapse" class="chip"
                                    style="--c: {{ config('warranty.blocks.' . $outro['block'] . '.color') }}">{{ __($outro['label']) }}</a>
@@ -202,7 +255,7 @@
         @endif
 
         {{-- O que já foi feito, do mais recente para o mais antigo --}}
-        <h6 class="text-uppercase text-muted small font-weight-bold mt-4 mb-2">{{ __('Já feito') }}</h6>
+        <h6 class="text-uppercase text-muted small font-weight-bold mt-4 mb-2"><i class="fa fa-history"></i> {{ __('O que já foi feito') }}</h6>
         @foreach($feitos as $step)
             @php($bloco = config('warranty.blocks.' . $step['block']))
             @php($evento = $case->events->firstWhere('fase', $step['fase']))
