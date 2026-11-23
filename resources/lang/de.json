@@ -1,4 +1,12 @@
 {
+  "a manutenção pode ser feita em qualquer dia do mês contratado.": "Die Wartung kann an jedem Tag des vereinbarten Monats erfolgen.",
+  "entre :dias dias úteis antes e :dias dias úteis depois da data contratada (de segunda a sábado; domingos e feriados não contam).": "zwischen :dias Werktagen vor und :dias Werktagen nach dem vereinbarten Datum (Montag bis Samstag; Sonntage und Feiertage zählen nicht).",
+  "o mês inteiro": "der ganze Monat",
+  "Mês contratado": "Vereinbarter Monat",
+  "A manutenção pode ser feita em qualquer dia deste mês, todos os anos.": "Die Wartung kann jedes Jahr an jedem Tag dieses Monats erfolgen.",
+  "Na Sonae contrata-se o mês: a manutenção pode ser feita em qualquer dia dele.": "Bei Sonae wird der Monat vereinbart: Die Wartung kann an jedem Tag davon erfolgen.",
+  "Atenção: a data :data está fora do mês contratado (:mes).": "Achtung: :data liegt außerhalb des vereinbarten Monats (:mes).",
+  "{0} hoje é o último dia do mês|{1} falta :count dia para acabar o mês|[2,*] faltam :count dias para acabar o mês": "{0} heute ist der letzte Tag des Monats|{1} noch :count Tag im Monat|[2,*] noch :count Tage im Monat",
   "A checklist ainda não existia neste dia.": "An diesem Tag gab es die Checkliste noch nicht.",
   "Nada para este turno.": "Nichts für diese Schicht.",
   "toque no círculo para validar": "zum Abhaken auf den Kreis tippen",

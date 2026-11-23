@@ -78,11 +78,28 @@ class StoreMaintenance extends Model
         return $count;
     }
 
-    /** Prazo do ano: [início, fim] = X dias úteis antes e depois da data contratada. */
+    /**
+     * Há clientes em que o que está contratado é o mês, não o dia: a manutenção
+     * pode ser feita em qualquer dia desse mês (ver maintenance.month_clients).
+     */
+    public function isMensal(): bool
+    {
+        return in_array($this->store?->clienteKey(), config('maintenance.month_clients', []), true);
+    }
+
+    /**
+     * Prazo do ano: o mês inteiro, nos clientes mensais;
+     * nos outros, X dias úteis antes e depois da data contratada.
+     */
     public function window(int $year): array
     {
-        $days = (int) config('maintenance.window_working_days', 12);
         $due = $this->dueDate($year);
+
+        if ($this->isMensal()) {
+            return [$due->copy()->startOfMonth(), $due->copy()->endOfMonth()];
+        }
+
+        $days = (int) config('maintenance.window_working_days', 12);
 
         return [self::shiftWorkingDays($due, $days, -1), self::shiftWorkingDays($due, $days, 1)];
     }

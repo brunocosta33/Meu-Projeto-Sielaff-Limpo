@@ -1,4 +1,12 @@
 {
+    "a manutenção pode ser feita em qualquer dia do mês contratado.": "el mantenimiento puede hacerse cualquier día del mes contratado.",
+    "entre :dias dias úteis antes e :dias dias úteis depois da data contratada (de segunda a sábado; domingos e feriados não contam).": "entre :dias días hábiles antes y :dias días hábiles después de la fecha contratada (de lunes a sábado; domingos y festivos no cuentan).",
+    "o mês inteiro": "el mes entero",
+    "Mês contratado": "Mes contratado",
+    "A manutenção pode ser feita em qualquer dia deste mês, todos os anos.": "El mantenimiento puede hacerse cualquier día de este mes, todos los años.",
+    "Na Sonae contrata-se o mês: a manutenção pode ser feita em qualquer dia dele.": "En Sonae se contrata el mes: el mantenimiento puede hacerse cualquier día de él.",
+    "Atenção: a data :data está fora do mês contratado (:mes).": "Atención: la fecha :data está fuera del mes contratado (:mes).",
+    "{0} hoje é o último dia do mês|{1} falta :count dia para acabar o mês|[2,*] faltam :count dias para acabar o mês": "{0} hoy es el último día del mes|{1} falta :count día para acabar el mes|[2,*] faltan :count días para acabar el mes",
     "A checklist ainda não existia neste dia.": "La lista todavía no existía en ese día.",
     "Nada para este turno.": "Nada para este turno.",
     "toque no círculo para validar": "toque el círculo para validar",

@@ -42,6 +42,12 @@ class StoreMaintenanceController extends Controller
             });
 
         $counts = $rows->countBy('status');
+        // Quantas lojas por cliente, para os botões de filtro
+        $clientes = $rows->countBy(fn ($r) => $r->store->clienteKey() ?? 'outros');
+
+        if ($request->filled('cliente')) {
+            $rows = $rows->filter(fn ($r) => ($r->store->clienteKey() ?? 'outros') === $request->cliente);
+        }
 
         if ($request->filled('q')) {
             $term = mb_strtolower(trim($request->q));
@@ -64,6 +70,8 @@ class StoreMaintenanceController extends Controller
             'year' => $year,
             'rows' => $rows,
             'counts' => $counts,
+            'clientes' => $clientes,
+            'clientesConfig' => config('maintenance.clients'),
             'total' => $counts->sum(),
             'states' => $states,
             'storesWithout' => Store::whereNotIn('id', StoreMaintenance::pluck('store_id'))->orderBy('codigo_loja')->get(['id', 'codigo_loja', 'nome_loja', 'insignia']),
@@ -75,6 +83,8 @@ class StoreMaintenanceController extends Controller
 
     public function store(Request $request)
     {
+        $this->mesParaData($request);
+
         $data = $request->validate([
             'store_id' => ['required', 'exists:stores,id', Rule::unique('store_maintenances', 'store_id')],
             'data_contratada' => ['required', 'date'],
@@ -93,6 +103,7 @@ class StoreMaintenanceController extends Controller
     public function update(Request $request, $id)
     {
         $maintenance = StoreMaintenance::with('store')->findOrFail($id);
+        $this->mesParaData($request);
         $data = $request->validate([
             'data_contratada' => ['required', 'date'],
             'observacoes' => ['nullable', 'string', 'max:1000'],
@@ -102,6 +113,19 @@ class StoreMaintenanceController extends Controller
         flash(__('Manutenção da loja :loja atualizada.', ['loja' => $maintenance->store->codigo_loja]))->success();
 
         return back();
+    }
+
+    /**
+     * Nos clientes mensais o campo é um mês (2026-11): guarda-se como o dia 1 desse mês,
+     * já que o que conta é o mês inteiro.
+     */
+    private function mesParaData(Request $request): void
+    {
+        $valor = $request->input('data_contratada');
+
+        if (is_string($valor) && preg_match('/^\d{4}-\d{2}$/', $valor)) {
+            $request->merge(['data_contratada' => $valor . '-01']);
+        }
     }
 
     public function destroy($id)
@@ -137,7 +161,9 @@ class StoreMaintenanceController extends Controller
         [$start, $end] = $maintenance->window((int) $data['ano']);
         $done = Carbon::parse($data['data_realizada']);
         if (!$done->between($start, $end)) {
-            flash(__('Atenção: a data :data está fora do prazo (:inicio a :fim).', ['data' => $done->format('d/m/Y'), 'inicio' => $start->format('d/m'), 'fim' => $end->format('d/m')]))->warning();
+            flash($maintenance->isMensal()
+                ? __('Atenção: a data :data está fora do mês contratado (:mes).', ['data' => $done->format('d/m/Y'), 'mes' => $start->translatedFormat('F \d\e Y')])
+                : __('Atenção: a data :data está fora do prazo (:inicio a :fim).', ['data' => $done->format('d/m/Y'), 'inicio' => $start->format('d/m'), 'fim' => $end->format('d/m')]))->warning();
         }
         flash(__('Manutenção :ano da loja :loja marcada como feita.', ['ano' => $data['ano'], 'loja' => $maintenance->store->codigo_loja]))->success();
 

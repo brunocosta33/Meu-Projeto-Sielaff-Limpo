@@ -1,4 +1,12 @@
 {
+    "a manutenção pode ser feita em qualquer dia do mês contratado.": "the maintenance can be done on any day of the contracted month.",
+    "entre :dias dias úteis antes e :dias dias úteis depois da data contratada (de segunda a sábado; domingos e feriados não contam).": "between :dias working days before and :dias working days after the contracted date (Monday to Saturday; Sundays and holidays do not count).",
+    "o mês inteiro": "the whole month",
+    "Mês contratado": "Contracted month",
+    "A manutenção pode ser feita em qualquer dia deste mês, todos os anos.": "The maintenance can be done on any day of this month, every year.",
+    "Na Sonae contrata-se o mês: a manutenção pode ser feita em qualquer dia dele.": "For Sonae the month is what is contracted: the maintenance can be done on any day of it.",
+    "Atenção: a data :data está fora do mês contratado (:mes).": "Careful: :data is outside the contracted month (:mes).",
+    "{0} hoje é o último dia do mês|{1} falta :count dia para acabar o mês|[2,*] faltam :count dias para acabar o mês": "{0} today is the last day of the month|{1} :count day left in the month|[2,*] :count days left in the month",
     "A checklist ainda não existia neste dia.": "The checklist did not exist yet on this day.",
     "Nada para este turno.": "Nothing for this shift.",
     "toque no círculo para validar": "tap the circle to tick it off",

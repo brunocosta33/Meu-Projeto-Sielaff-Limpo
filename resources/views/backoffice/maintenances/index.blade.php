@@ -1,7 +1,7 @@
 @extends('layouts.backoffice_master')
 
 @php(\Carbon\Carbon::setLocale(app()->getLocale()))
-@php($filters = request()->only(['q', 'estado']))
+@php($filters = request()->only(['q', 'estado', 'cliente']))
 
 @section('head-meta')
     <title>{{ config('app.name') }} - {{ __('Manutenções Anuais') }} {{ $year }}</title>
@@ -19,6 +19,19 @@
     .mt-badge { display: inline-flex; align-items: center; gap: .3rem; font-size: .78rem; font-weight: 600; padding: .2rem .55rem;
                 border-radius: 999px; background: var(--bg); color: var(--fg); border: 1px solid var(--fg); white-space: nowrap; }
     .mt-table td { vertical-align: middle; }
+    /* O cliente salta à vista: cor própria na barra da linha e na etiqueta */
+    .mt-table tr { border-left: 5px solid var(--cliente, transparent); }
+    .mt-cliente { display: inline-flex; align-items: center; gap: .3rem; font-size: .72rem; font-weight: 800;
+                  text-transform: uppercase; letter-spacing: .04em; padding: .1rem .5rem; border-radius: 999px;
+                  background: var(--bg); color: var(--fg); }
+    .mt-clientes { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .75rem; }
+    .mt-cliente-btn { display: inline-flex; align-items: center; gap: .35rem; border: 1px solid #dde3ea; background: #fff;
+                      border-radius: 999px; padding: .22rem .75rem; font-size: .82rem; font-weight: 700; color: #475569;
+                      text-decoration: none !important; }
+    .mt-cliente-btn:hover { border-color: var(--fg, #94a3b8); color: var(--fg, #334155); }
+    .mt-cliente-btn.on { background: var(--bg, #eef2f7); color: var(--fg, #263238); border-color: var(--fg, #94a3b8); }
+    .mt-cliente-btn .n { font-weight: 800; opacity: .75; }
+    .mt-mes { font-weight: 800; font-size: .95rem; text-transform: capitalize; }
     .mt-store { font-weight: 600; }
     .mt-store small { display: block; font-weight: 400; color: #6c757d; }
     .mt-window { white-space: nowrap; font-size: .85rem; }
@@ -72,8 +85,30 @@
                 </a>
             @endforeach
         </div>
+        <div class="mt-clientes">
+            <a href="{{ route('backoffice.maintenances.index', ['ano' => $year] + \Illuminate\Support\Arr::except($filters, 'cliente')) }}"
+               class="mt-cliente-btn {{ request('cliente') ? '' : 'on' }}">
+                <i class="fas fa-building"></i> {{ __('Todos os clientes') }} <span class="n">{{ $total }}</span>
+            </a>
+            @foreach($clientesConfig as $key => $cfg)
+                <a href="{{ route('backoffice.maintenances.index', ['ano' => $year, 'cliente' => $key] + $filters) }}"
+                   class="mt-cliente-btn {{ request('cliente') === $key ? 'on' : '' }}"
+                   style="--bg: {{ $cfg['bg'] }}; --fg: {{ $cfg['color'] }}">
+                    <i class="fas {{ $cfg['icon'] }}"></i> {{ $cfg['label'] }} <span class="n">{{ $clientes[$key] ?? 0 }}</span>
+                </a>
+            @endforeach
+            @if(($clientes['outros'] ?? 0) > 0)
+                <a href="{{ route('backoffice.maintenances.index', ['ano' => $year, 'cliente' => 'outros'] + $filters) }}"
+                   class="mt-cliente-btn {{ request('cliente') === 'outros' ? 'on' : '' }}">
+                    {{ __('Outros') }} <span class="n">{{ $clientes['outros'] }}</span>
+                </a>
+            @endif
+        </div>
+
         <p class="small text-muted mb-0 mt-2">
-            <i class="fa fa-info-circle"></i> {{ __('A manutenção pode ser feita entre :dias dias úteis antes e :dias dias úteis depois da data contratada, que se repete todos os anos. Contam de segunda a sábado; domingos e feriados não contam.', ['dias' => $windowDays]) }}
+            <i class="fa fa-info-circle"></i>
+            <b>{{ __('Sonae') }}:</b> {{ __('a manutenção pode ser feita em qualquer dia do mês contratado.') }}
+            <b class="ml-2">{{ __('Lidl') }}:</b> {{ __('entre :dias dias úteis antes e :dias dias úteis depois da data contratada (de segunda a sábado; domingos e feriados não contam).', ['dias' => $windowDays]) }}
         </p>
     </div>
 </div>
@@ -87,15 +122,19 @@
                 @csrf
                 <div class="form-group col-md-5">
                     <label class="small mb-1">{{ __('Loja') }}</label>
-                    <select name="store_id" class="form-control selectpicker" data-live-search="true" title="{{ __('Escolha a loja…') }}" required>
+                    <select name="store_id" id="mt-new-store" class="form-control selectpicker" data-live-search="true" title="{{ __('Escolha a loja…') }}" required>
                         @foreach($storesWithout as $s)
-                            <option value="{{ $s->id }}" @selected(old('store_id') == $s->id)>{{ $s->codigo_loja }} — {{ $s->nome_loja }} ({{ $s->insignia }})</option>
+                            <option value="{{ $s->id }}" @selected(old('store_id') == $s->id)
+                                    data-mensal="{{ in_array($s->clienteKey(), config('maintenance.month_clients', []), true) ? 1 : 0 }}">
+                                {{ $s->codigo_loja }} — {{ $s->nome_loja }} ({{ $s->insignia }})
+                            </option>
                         @endforeach
                     </select>
                 </div>
                 <div class="form-group col-md-3">
-                    <label class="small mb-1">{{ __('Data contratada') }}</label>
-                    <input type="date" name="data_contratada" class="form-control" value="{{ old('data_contratada') }}" required>
+                    <label class="small mb-1" id="mt-new-label">{{ __('Data contratada') }}</label>
+                    <input type="date" name="data_contratada" id="mt-new-date" class="form-control" value="{{ old('data_contratada') }}" required>
+                    <small class="form-text text-muted d-none" id="mt-new-help">{{ __('Na Sonae contrata-se o mês: a manutenção pode ser feita em qualquer dia dele.') }}</small>
                 </div>
                 <div class="form-group col-md-3">
                     <label class="small mb-1">{{ __('Observações') }}</label>
@@ -133,19 +172,32 @@
                     <tbody>
                         @foreach($rows as $row)
                             @php($state = $states[$row->status])
-                            <tr>
+                            @php($cliente = $row->store->clienteConfig())
+                            <tr style="--cliente: {{ $cliente['color'] ?? 'transparent' }}">
                                 <td class="mt-store">
+                                    @if($cliente)
+                                        <span class="mt-cliente" style="--bg: {{ $cliente['bg'] }}; --fg: {{ $cliente['color'] }}">
+                                            <i class="fas {{ $cliente['icon'] }}"></i> {{ $cliente['label'] }}
+                                        </span>
+                                    @endif
                                     {{ $row->store->codigo_loja }} — {{ $row->store->nome_loja }}
-                                    <small>{{ $row->store->insignia }}{{ $row->store->cidade ? ' · ' . $row->store->cidade : '' }}</small>
+                                    <small>{{ $row->store->cidade }}</small>
                                 </td>
                                 <td class="mt-window">
-                                    <span class="due">{{ $row->due->format('d/m/Y') }}</span>
-                                    <div class="text-muted">{{ __('de') }} {{ $row->start->format('d/m') }} {{ __('a') }} {{ $row->end->format('d/m') }}</div>
+                                    @if($row->maintenance->isMensal())
+                                        <span class="mt-mes">{{ $row->due->translatedFormat('F') }} {{ $year }}</span>
+                                        <div class="text-muted">{{ __('o mês inteiro') }}</div>
+                                    @else
+                                        <span class="due">{{ $row->due->format('d/m/Y') }}</span>
+                                        <div class="text-muted">{{ __('de') }} {{ $row->start->format('d/m') }} {{ __('a') }} {{ $row->end->format('d/m') }}</div>
+                                    @endif
                                 </td>
                                 <td>
                                     <span class="mt-badge" style="--bg: {{ $state['bg'] }}; --fg: {{ $state['color'] }}"><i class="fas {{ $state['icon'] }}"></i> {{ __($state['label']) }}</span>
                                     @if($row->status === 'atrasada')
                                         <div class="small text-danger mt-1">{{ $row->end->diffInDays(now()->startOfDay()) }} {{ __('dias de atraso') }}</div>
+                                    @elseif($row->status === 'janela' && $row->maintenance->isMensal())
+                                        <div class="small mt-1" style="color: {{ $state['color'] }}">{{ trans_choice('{0} hoje é o último dia do mês|{1} falta :count dia para acabar o mês|[2,*] faltam :count dias para acabar o mês', $n = now()->startOfDay()->diffInDays($row->end), ['count' => $n]) }}</div>
                                     @elseif($row->status === 'janela')
                                         <div class="small mt-1" style="color: {{ $state['color'] }}">{{ trans_choice('{0} hoje é o último dia do prazo|{1} falta :count dia útil para o fim do prazo|[2,*] faltam :count dias úteis para o fim do prazo', $n = \App\Models\StoreMaintenance::workingDaysBetween(now()->startOfDay(), $row->end), ['count' => $n]) }}</div>
                                     @endif
@@ -193,7 +245,9 @@
                                         <button type="button" class="btn btn-sm btn-success" data-toggle="modal" data-target="#mt-done"
                                                 data-action="{{ route('backoffice.maintenances.done', $row->maintenance->id) }}"
                                                 data-store="{{ $row->store->codigo_loja }} — {{ $row->store->nome_loja }}"
-                                                data-window="{{ $row->start->format('d/m/Y') }} {{ __('a') }} {{ $row->end->format('d/m/Y') }}">
+                                                data-window="{{ $row->maintenance->isMensal()
+                                                    ? \Illuminate\Support\Str::ucfirst($row->due->translatedFormat('F \d\e Y')) . ' (' . __('o mês inteiro') . ')'
+                                                    : $row->start->format('d/m/Y') . ' ' . __('a') . ' ' . $row->end->format('d/m/Y') }}">
                                             <i class="fa fa-check"></i> {{ __('Marcar feita') }}
                                         </button>
                                     @endif
@@ -202,6 +256,8 @@
                                             data-delete="{{ route('backoffice.maintenances.destroy', $row->maintenance->id) }}"
                                             data-store="{{ $row->store->codigo_loja }} — {{ $row->store->nome_loja }}"
                                             data-date="{{ $row->maintenance->data_contratada->toDateString() }}"
+                                            data-mes="{{ $row->maintenance->data_contratada->format('Y-m') }}"
+                                            data-mensal="{{ $row->maintenance->isMensal() ? 1 : 0 }}"
                                             data-notes="{{ $row->maintenance->observacoes }}">
                                         <i class="fa fa-edit"></i>
                                     </button>
@@ -309,9 +365,9 @@
                 <div class="modal-body">
                     <p class="font-weight-bold" id="mt-edit-store"></p>
                     <div class="form-group">
-                        <label class="small mb-1">{{ __('Data contratada') }}</label>
+                        <label class="small mb-1" id="mt-edit-label">{{ __('Data contratada') }}</label>
                         <input type="date" name="data_contratada" id="mt-edit-date" class="form-control" required>
-                        <small class="form-text text-muted">{{ __('Repete-se todos os anos no mesmo dia e mês.') }}</small>
+                        <small class="form-text text-muted" id="mt-edit-help">{{ __('Repete-se todos os anos no mesmo dia e mês.') }}</small>
                     </div>
                     <div class="form-group">
                         <label class="small mb-1">{{ __('Observações') }}</label>
@@ -356,13 +412,33 @@
             $('#mt-attach-delete').attr('action', b.data('delete') || '');
             $('#mt-attach-delete-btn').toggle(!!b.data('delete'));
         });
+        // Clientes mensais (Sonae): o campo pergunta o mês, não o dia
+        var textos = {
+            mes: @json(__('Mês contratado')),
+            data: @json(__('Data contratada')),
+            ajudaMes: @json(__('A manutenção pode ser feita em qualquer dia deste mês, todos os anos.')),
+            ajudaData: @json(__('Repete-se todos os anos no mesmo dia e mês.'))
+        };
+        var porMes = function (input, label, help, mensal, valor) {
+            input.attr('type', mensal ? 'month' : 'date');
+            input.val(mensal && valor ? valor.substring(0, 7) : (valor || ''));
+            if (label) label.text(mensal ? textos.mes : textos.data);
+            if (help) help.text(mensal ? textos.ajudaMes : textos.ajudaData);
+        };
+
         $('#mt-edit').on('show.bs.modal', function (e) {
             var b = $(e.relatedTarget);
             $('#mt-edit-form').attr('action', b.data('action'));
             $('#mt-delete-form').attr('action', b.data('delete'));
             $('#mt-edit-store').text(b.data('store'));
-            $('#mt-edit-date').val(b.data('date'));
+            porMes($('#mt-edit-date'), $('#mt-edit-label'), $('#mt-edit-help'), b.data('mensal') == 1, b.data('date'));
             $('#mt-edit-notes').val(b.data('notes') || '');
+        });
+
+        $('#mt-new-store').on('change changed.bs.select', function () {
+            var mensal = $(this).find('option:selected').data('mensal') == 1;
+            porMes($('#mt-new-date'), $('#mt-new-label'), null, mensal, $('#mt-new-date').val());
+            $('#mt-new-help').toggleClass('d-none', !mensal);
         });
         if ($('.selectpicker').length && $.fn.selectpicker) $('.selectpicker').selectpicker();
     });

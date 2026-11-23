@@ -9,6 +9,15 @@ return [
     // Marcar como "Próxima" quando o prazo abre dentro destes dias
     'upcoming_days' => 30,
 
+    // Clientes com regra e cor próprias. A loja entra pelo que estiver na insígnia.
+    'clients' => [
+        'sonae' => ['label' => 'Sonae', 'color' => '#0a7d49', 'bg' => '#e2f4ea', 'icon' => 'fa-leaf'],
+        'lidl' => ['label' => 'Lidl', 'color' => '#0050aa', 'bg' => '#e4edfa', 'icon' => 'fa-store'],
+    ],
+
+    // Clientes em que a manutenção vale o mês inteiro contratado, e não uma data com prazo à volta
+    'month_clients' => ['sonae'],
+
     'states' => [
         'atrasada' => ['label' => 'Em atraso', 'color' => '#c62828', 'bg' => '#fde2e1', 'icon' => 'fa-exclamation-circle'],
         'janela' => ['label' => 'Dentro do prazo', 'color' => '#b26a00', 'bg' => '#fff4cc', 'icon' => 'fa-hourglass-half'],
