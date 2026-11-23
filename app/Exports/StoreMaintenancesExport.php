@@ -64,7 +64,8 @@ class StoreMaintenancesExport implements FromCollection, WithHeadings, WithEvent
                 $r->store->nome_loja,
                 $r->store->regiao,
                 $r->store->cidade,
-                $r->store->machines->pluck('modelo')->filter()->unique()->implode(', '),
+                // Nas Lojas o modelo que se vê é a descrição; o campo "modelo" está quase sempre vazio
+                $r->store->machines->map(fn ($m) => $m->descricao ?: $m->modelo)->filter()->unique()->implode(', '),
                 $r->store->machines->pluck('serial_number')->filter()->implode(', '),
                 $m ? $m->data_contratada->format('d/m/Y') : '',
                 $r->start && $r->end

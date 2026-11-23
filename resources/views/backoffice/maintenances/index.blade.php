@@ -60,10 +60,15 @@
     .mt-doc:hover { background: #cfe3ff; }
     .mt-notes { font-size: .84rem; color: #334155; max-width: 280px; white-space: pre-line; overflow-wrap: anywhere; }
     .mt-doc-missing { display: inline-block; margin-top: .3rem; font-size: .74rem; color: #8a96a8; }
-    /* As máquinas da loja, por baixo do nome */
-    .mt-maquina { display: block; font-size: .74rem; color: #64748b; font-weight: 400; }
-    .mt-maquina i { color: #b6c2d1; margin-right: .15rem; }
-    .mt-maquina b { font-family: Consolas, Menlo, monospace; color: #0f4c81; font-weight: 700; }
+    /* As máquinas da loja, com o mesmo aspeto que têm na página das Lojas */
+    .mt-maquinas { display: flex; flex-wrap: wrap; gap: 6px; margin-top: .4rem; }
+    .mt-maquina { min-width: 9rem; background: linear-gradient(180deg, #fff 0%, #f8fbff 100%); border: 1px solid #dfe9f5;
+                  border-radius: 12px; padding: .4rem .5rem; box-shadow: 0 4px 10px rgba(19, 34, 56, .04); font-weight: 400; }
+    .mt-maquina .serie { display: inline-flex; align-items: center; gap: 5px; padding: .2rem .55rem; border-radius: 999px;
+                         background: linear-gradient(135deg, #ffe69a 0%, #ffd166 100%); color: #7a4a00;
+                         font-size: .76rem; font-weight: 800; }
+    .mt-maquina .modelo { color: #6c7a89; font-size: .73rem; line-height: 1.3; margin-top: .3rem; }
+    .mt-maquina .modelo i { color: #b6c2d1; margin-right: .1rem; }
     /* Anexos: folhas de serviço e fotografias */
     .mt-anexos { display: flex; flex-wrap: wrap; gap: .25rem; margin-top: .35rem; }
     .mt-anexo { display: inline-flex; align-items: center; gap: .15rem; border-radius: 999px; padding: .05rem .25rem .05rem .5rem;
@@ -208,12 +213,19 @@
                                     @endif
                                     {{ $row->store->codigo_loja }} — {{ $row->store->nome_loja }}
                                     <small>{{ $row->store->cidade }}</small>
-                                    @foreach($row->store->machines as $maquina)
-                                        <small class="mt-maquina">
-                                            <i class="fas fa-desktop"></i> {{ $maquina->modelo }}
-                                            <b>{{ $maquina->serial_number }}</b>
-                                        </small>
-                                    @endforeach
+                                    @if($row->store->machines->isNotEmpty())
+                                        <div class="mt-maquinas">
+                                            @foreach($row->store->machines as $maquina)
+                                                <div class="mt-maquina">
+                                                    <span class="serie"><i class="fa fa-hashtag"></i> {{ $maquina->serial_number }}</span>
+                                                    <div class="modelo">
+                                                        <i class="fa fa-cogs"></i>
+                                                        {{ $maquina->descricao ?: ($maquina->modelo ?: __('Modelo não definido')) }}
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @endif
                                 </td>
                                 <td class="mt-window">
                                     @if(!$row->maintenance)
