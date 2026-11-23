@@ -299,6 +299,54 @@
             form.submit();
         };
 
+        // O arrastar nativo não faz scroll: quando o cursor chega perto do topo
+        // ou do fundo do ecrã, empurramos a página nós
+        (function () {
+            var MARGEM = 110;       // a que distância da borda começa a subir
+            var VELOCIDADE = 22;    // píxeis por passo
+            var passo = 0;
+            var temporizador = null;
+
+            var paginaScroll = function (dy) {
+                var alvo = document.scrollingElement || document.documentElement;
+                var antes = alvo.scrollTop;
+                alvo.scrollTop += dy;
+                // Se a página não é a que rola, tenta o contentor do backoffice
+                if (alvo.scrollTop === antes) {
+                    var conteudo = document.querySelector('#content') || document.body;
+                    conteudo.scrollTop += dy;
+                }
+            };
+
+            var parar = function () {
+                if (temporizador) { clearInterval(temporizador); temporizador = null; }
+                passo = 0;
+            };
+
+            document.addEventListener('dragover', function (ev) {
+                var y = ev.clientY;
+                var altura = window.innerHeight;
+
+                if (y < MARGEM) {
+                    passo = -Math.ceil(VELOCIDADE * (1 - y / MARGEM));
+                } else if (y > altura - MARGEM) {
+                    passo = Math.ceil(VELOCIDADE * (1 - (altura - y) / MARGEM));
+                } else {
+                    passo = 0;
+                }
+
+                if (passo && !temporizador) {
+                    temporizador = setInterval(function () { paginaScroll(passo); }, 16);
+                } else if (!passo) {
+                    parar();
+                }
+            });
+
+            ['dragend', 'drop', 'mouseup'].forEach(function (e) {
+                document.addEventListener(e, parar);
+            });
+        })();
+
         // Arrastar o pedido para a célula do técnico/dia
         document.querySelectorAll('.sm-pedido').forEach(function (card) {
             card.addEventListener('dragstart', function (ev) {
