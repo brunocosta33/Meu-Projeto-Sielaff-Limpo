@@ -32,6 +32,9 @@
     .mt-cliente-btn.on { background: var(--bg, #eef2f7); color: var(--fg, #263238); border-color: var(--fg, #94a3b8); }
     .mt-cliente-btn .n { font-weight: 800; opacity: .75; }
     .mt-mes { font-weight: 800; font-size: .95rem; text-transform: capitalize; }
+    /* Definir a data/mês na própria linha, sem abrir formulários */
+    .mt-definir { display: flex; gap: .3rem; align-items: center; }
+    .mt-definir input { max-width: 10.5rem; }
     .mt-store { font-weight: 600; }
     .mt-store small { display: block; font-weight: 400; color: #6c757d; }
     .mt-window { white-space: nowrap; font-size: .85rem; }
@@ -67,7 +70,6 @@
                     @if(request('estado'))<input type="hidden" name="estado" value="{{ request('estado') }}">@endif
                     <input type="search" name="q" class="form-control form-control-sm" value="{{ request('q') }}" placeholder="{{ __('Pesquisar loja, código, insígnia…') }}" style="min-width: 240px">
                 </form>
-                <button class="btn btn-primary btn-sm" type="button" data-toggle="collapse" data-target="#mt-new"><i class="fa fa-plus"></i> {{ __('Adicionar loja') }}</button>
             </div>
         </div>
 
@@ -76,7 +78,7 @@
                class="mt-stat {{ request('estado') ? '' : 'is-active' }}" style="--bg: #f1f3f6; --fg: #263238">
                 <div class="num">{{ $total }}</div><div class="lbl">{{ __('Total de lojas') }}</div>
             </a>
-            @foreach(['atrasada', 'janela', 'proxima', 'futura', 'feita'] as $key)
+            @foreach(['atrasada', 'janela', 'proxima', 'futura', 'por_definir', 'feita'] as $key)
                 @php($state = $states[$key])
                 @php($n = $key === 'feita' ? ($counts['feita'] ?? 0) + ($counts['feita_fora'] ?? 0) : ($counts[$key] ?? 0))
                 <a href="{{ route('backoffice.maintenances.index', ['ano' => $year, 'estado' => $key] + $filters) }}"
@@ -110,52 +112,6 @@
             <b>{{ __('Sonae') }}:</b> {{ __('a manutenção pode ser feita em qualquer dia do mês contratado.') }}
             <b class="ml-2">{{ __('Lidl') }}:</b> {{ __('entre :dias dias úteis antes e :dias dias úteis depois da data contratada (de segunda a sábado; domingos e feriados não contam).', ['dias' => $windowDays]) }}
         </p>
-    </div>
-</div>
-
-{{-- Nova loja com manutenção --}}
-<div class="collapse {{ $errors->has('store_id') ? 'show' : '' }}" id="mt-new">
-    <div class="card mb-3 border-primary">
-        <div class="card-body">
-            <h5 class="card-title"><i class="fa fa-plus text-primary"></i> {{ __('Adicionar loja com manutenção anual') }}</h5>
-            <form method="POST" action="{{ route('backoffice.maintenances.store') }}" class="form-row align-items-end">
-                @csrf
-                <div class="form-group col-md-5">
-                    <label class="small mb-1">{{ __('Loja') }}</label>
-                    <select name="store_id" id="mt-new-store" class="form-control selectpicker" data-live-search="true"
-                            data-size="12" title="{{ __('Escolha a loja…') }}" required>
-                        @foreach($storesWithout as $cliente => $lojas)
-                            <optgroup label="{{ (config('maintenance.clients.' . $cliente . '.label') ?? __('Sem cliente')) . ' (' . count($lojas) . ')' }}">
-                                @foreach($lojas as $s)
-                                    <option value="{{ $s->id }}" @selected(old('store_id') == $s->id)
-                                            data-mensal="{{ in_array($cliente, config('maintenance.month_clients', []), true) ? 1 : 0 }}"
-                                            data-subtext="{{ $s->cidade }}">
-                                        {{ $s->codigo_loja }} — {{ $s->nome_loja }}
-                                    </option>
-                                @endforeach
-                            </optgroup>
-                        @endforeach
-                    </select>
-                    <small class="form-text text-muted">
-                        <i class="fa fa-info-circle"></i>
-                        {{ __('Só aparecem as :livres lojas que ainda não têm manutenção. As outras :ocupadas já estão na lista em baixo — procure-as na pesquisa.', [
-                            'livres' => $totalLojas - $comManutencao, 'ocupadas' => $comManutencao]) }}
-                    </small>
-                </div>
-                <div class="form-group col-md-3">
-                    <label class="small mb-1" id="mt-new-label">{{ __('Data contratada') }}</label>
-                    <input type="date" name="data_contratada" id="mt-new-date" class="form-control" value="{{ old('data_contratada') }}" required>
-                    <small class="form-text text-muted d-none" id="mt-new-help">{{ __('Na Sonae contrata-se o mês: a manutenção pode ser feita em qualquer dia dele.') }}</small>
-                </div>
-                <div class="form-group col-md-3">
-                    <label class="small mb-1">{{ __('Observações') }}</label>
-                    <input type="text" name="observacoes" class="form-control" value="{{ old('observacoes') }}">
-                </div>
-                <div class="form-group col-md-1">
-                    <button type="submit" class="btn btn-primary btn-block"><i class="fa fa-save"></i></button>
-                </div>
-            </form>
-        </div>
     </div>
 </div>
 
@@ -195,7 +151,20 @@
                                     <small>{{ $row->store->cidade }}</small>
                                 </td>
                                 <td class="mt-window">
-                                    @if($row->maintenance->isMensal())
+                                    @if(!$row->maintenance)
+                                        @php($mensal = in_array($row->store->clienteKey(), config('maintenance.month_clients', []), true))
+                                        <form method="POST" action="{{ route('backoffice.maintenances.store') }}" class="mt-definir">
+                                            @csrf
+                                            <input type="hidden" name="store_id" value="{{ $row->store->id }}">
+                                            <input type="{{ $mensal ? 'month' : 'date' }}" name="data_contratada"
+                                                   class="form-control form-control-sm" required>
+                                            <button type="submit" class="btn btn-sm btn-primary" title="{{ __('Gravar') }}"><i class="fa fa-check"></i></button>
+                                        </form>
+                                        <div class="text-muted">{{ $mensal ? __('escolha o mês contratado') : __('escolha a data contratada') }}</div>
+                                    @elseif($row->status === 'por_definir')
+                                        <span class="due">{{ $row->maintenance->data_contratada->format('d/m/Y') }}</span>
+                                        <div class="text-muted">{{ __('contrato só a partir de :ano', ['ano' => $row->maintenance->data_contratada->year]) }}</div>
+                                    @elseif($row->maintenance->isMensal())
                                         <span class="mt-mes">{{ $row->due->translatedFormat('F') }} {{ $year }}</span>
                                         <div class="text-muted">{{ __('o mês inteiro') }}</div>
                                     @else
@@ -230,14 +199,16 @@
                                     @endif
                                 </td>
                                 <td class="mt-notes">
-                                    @if($row->maintenance->observacoes)
+                                    @if($row->maintenance?->observacoes)
                                         {{ $row->maintenance->observacoes }}
                                     @else
                                         <span class="text-muted">—</span>
                                     @endif
                                 </td>
                                 <td class="text-right text-nowrap">
-                                    @if($row->record)
+                                    @if(!$row->maintenance)
+                                        <span class="text-muted">—</span>
+                                    @elseif($row->record)
                                         <button type="button" class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#mt-attach"
                                                 title="{{ $row->record->documento_path ? __('Substituir folha de obra') : __('Anexar folha de obra') }}"
                                                 data-action="{{ route('backoffice.maintenances.document.store', $row->record->id) }}"
@@ -262,6 +233,7 @@
                                             <i class="fa fa-check"></i> {{ __('Marcar feita') }}
                                         </button>
                                     @endif
+                                    @if($row->maintenance)
                                     <button type="button" class="btn btn-sm btn-link text-secondary px-1" title="{{ __('Editar') }}" data-toggle="modal" data-target="#mt-edit"
                                             data-action="{{ route('backoffice.maintenances.update', $row->maintenance->id) }}"
                                             data-delete="{{ route('backoffice.maintenances.destroy', $row->maintenance->id) }}"
@@ -272,6 +244,7 @@
                                             data-notes="{{ $row->maintenance->observacoes }}">
                                         <i class="fa fa-edit"></i>
                                     </button>
+                                    @endif
                                 </td>
                             </tr>
                         @endforeach
@@ -446,11 +419,6 @@
             $('#mt-edit-notes').val(b.data('notes') || '');
         });
 
-        $('#mt-new-store').on('change changed.bs.select', function () {
-            var mensal = $(this).find('option:selected').data('mensal') == 1;
-            porMes($('#mt-new-date'), $('#mt-new-label'), null, mensal, $('#mt-new-date').val());
-            $('#mt-new-help').toggleClass('d-none', !mensal);
-        });
         if ($('.selectpicker').length && $.fn.selectpicker) $('.selectpicker').selectpicker();
     });
 </script>

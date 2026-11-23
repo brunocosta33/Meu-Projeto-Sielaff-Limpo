@@ -22,24 +22,44 @@ class StoreMaintenanceController extends Controller
         $year = (int) ($request->input('ano') ?: now()->year);
         $states = config('maintenance.states');
 
-        $rows = StoreMaintenance::with(['store', 'records' => fn ($q) => $q->where('ano', $year)->with('technician')])
+        // A lista parte das lojas, não das manutenções: uma loja sem data contratada
+        // tem de aparecer na mesma, como "Por definir", senão fica invisível
+        $maintenances = StoreMaintenance::with(['records' => fn ($q) => $q->where('ano', $year)->with('technician')])
             ->where('ativo', true)
             ->get()
-            ->filter(fn ($m) => $m->store && $m->appliesTo($year))
-            ->map(function ($m) use ($year) {
-                $record = $m->records->first();
-                [$start, $end] = $m->window($year);
+            ->keyBy('store_id');
 
+        $rows = Store::orderBy('nome_loja')->get()->map(function (Store $store) use ($maintenances, $year) {
+            $m = $maintenances->get($store->id);
+
+            // A loja já está carregada: evita ir buscá-la outra vez por cada linha
+            $m?->setRelation('store', $store);
+
+            if (!$m || !$m->appliesTo($year)) {
                 return (object) [
                     'maintenance' => $m,
-                    'store' => $m->store,
-                    'record' => $record,
-                    'due' => $m->dueDate($year),
-                    'start' => $start,
-                    'end' => $end,
-                    'status' => $m->status($year, $record),
+                    'store' => $store,
+                    'record' => null,
+                    'due' => null,
+                    'start' => null,
+                    'end' => null,
+                    'status' => 'por_definir',
                 ];
-            });
+            }
+
+            $record = $m->records->first();
+            [$start, $end] = $m->window($year);
+
+            return (object) [
+                'maintenance' => $m,
+                'store' => $store,
+                'record' => $record,
+                'due' => $m->dueDate($year),
+                'start' => $start,
+                'end' => $end,
+                'status' => $m->status($year, $record),
+            ];
+        });
 
         $counts = $rows->countBy('status');
         // Quantas lojas por cliente, para os botões de filtro
@@ -62,7 +82,7 @@ class StoreMaintenanceController extends Controller
 
         // Atrasadas primeiro, depois as que estão no prazo, próximas, por fazer e feitas; dentro de cada estado por data
         $order = array_flip(array_keys($states));
-        $rows = $rows->sortBy(fn ($r) => sprintf('%02d-%s', $order[$r->status] ?? 99, $r->due->format('md')))->values();
+        $rows = $rows->sortBy(fn ($r) => sprintf('%02d-%s-%s', $order[$r->status] ?? 99, $r->due?->format('md') ?? '0000', $r->store->nome_loja))->values();
 
         $technicianUserIds = HrStaff::where('funcao', 'tecnico')->where('ativo', true)->pluck('user_id');
 
@@ -74,32 +94,10 @@ class StoreMaintenanceController extends Controller
             'clientesConfig' => config('maintenance.clients'),
             'total' => $counts->sum(),
             'states' => $states,
-            // Arrumadas por cliente: o código da Lidl é numérico e o da Sonae começa por L,
-            // por isso numa lista só a Sonae ficava toda no fim e parecia não estar lá
-            'storesWithout' => $this->lojasSemManutencao(),
-            // Para explicar a caixa: só lá estão as lojas que ainda não têm manutenção
-            'totalLojas' => Store::count(),
-            'comManutencao' => StoreMaintenance::count(),
             'users' => User::whereNull('deleted_at')->orderBy('name')->get(['id', 'name'])
                 ->sortByDesc(fn ($u) => $technicianUserIds->contains($u->id))->values(),
             'windowDays' => (int) config('maintenance.window_working_days'),
         ]);
-    }
-
-    /** Lojas que ainda não têm manutenção, agrupadas por cliente e por nome. */
-    private function lojasSemManutencao()
-    {
-        $ordem = array_keys(config('maintenance.clients', []));
-
-        return Store::whereNotIn('id', StoreMaintenance::pluck('store_id'))
-            ->orderBy('nome_loja')
-            ->get(['id', 'codigo_loja', 'nome_loja', 'insignia', 'cidade'])
-            ->groupBy(fn (Store $s) => $s->clienteKey() ?? 'outros')
-            ->sortBy(function ($lojas, $cliente) use ($ordem) {
-                $i = array_search($cliente, $ordem, true);
-
-                return $i === false ? count($ordem) : $i;
-            });
     }
 
     public function store(Request $request)
