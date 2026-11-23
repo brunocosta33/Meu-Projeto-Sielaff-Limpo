@@ -67,7 +67,7 @@
     .mt-maquina { min-width: 9rem; background: linear-gradient(180deg, #fff 0%, #f8fbff 100%); border: 1px solid #dfe9f5;
                   border-radius: 12px; padding: .4rem .5rem; box-shadow: 0 4px 10px rgba(19, 34, 56, .04); font-weight: 400; }
     .mt-maquina .serie { display: inline-flex; align-items: center; gap: 5px; padding: .2rem .55rem; border-radius: 999px;
-                         background: linear-gradient(135deg, #bbf7d0 0%, #6ee7b7 100%); color: #065f46;
+                         background: linear-gradient(135deg, #ffe69a 0%, #ffd166 100%); color: #7a4a00;
                          font-size: .76rem; font-weight: 800; }
     .mt-maquina .modelo { color: #6c7a89; font-size: .73rem; line-height: 1.3; margin-top: .3rem; }
     .mt-maquina .modelo i { color: #b6c2d1; margin-right: .1rem; }

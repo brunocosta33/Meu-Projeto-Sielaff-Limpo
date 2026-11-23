@@ -15,12 +15,12 @@ return [
     'clients' => [
         'sonae' => [
             'label' => 'Sonae',
-            'color' => '#b45309',
-            'bg' => '#fff3d6',
+            'color' => '#15803d',
+            'bg' => '#e3f7ea',
             'icon' => 'fa-tag',
-            'gradiente' => 'linear-gradient(135deg, #d97706 0%, #f59e0b 100%)',
-            'texto' => '#fff7d6',
-            'sombra' => 'rgba(245, 158, 11, .25)',
+            'gradiente' => 'linear-gradient(135deg, #15803d 0%, #22c55e 100%)',
+            'texto' => '#f0fdf4',
+            'sombra' => 'rgba(34, 197, 94, .25)',
         ],
         'lidl' => [
             'label' => 'Lidl',
