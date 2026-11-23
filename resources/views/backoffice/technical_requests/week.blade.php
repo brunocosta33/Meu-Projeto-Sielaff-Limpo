@@ -63,6 +63,13 @@
     .sm-fila { display: flex; flex-wrap: wrap; gap: .4rem; }
     .sm-fila .sm-pedido { width: 15rem; margin: 0; }
     .sm-vazio { color: #9aa7b6; font-size: .84rem; padding: .6rem; }
+    /* Os por agendar vêm arrumados pelo técnico que já têm atribuído */
+    .sm-grupo { display: flex; align-items: center; gap: .4rem; font-size: .82rem; font-weight: 800; color: #132238;
+                border-top: 1px solid #eef2f7; padding: .6rem 0 .45rem; }
+    .sm-grupo:first-of-type { border-top: 0; padding-top: 0; }
+    .sm-grupo .bola { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center;
+                      background: var(--c); color: #fff; font-size: .64rem; }
+    .sm-grupo .n { background: #eef2f7; color: #475569; border-radius: 999px; padding: 0 .5rem; font-size: .74rem; }
     .sm-ajuda { font-size: .8rem; color: #6c7a89; }
 </style>
 @endpush
@@ -139,16 +146,26 @@
 <div class="card">
     <div class="card-body">
         <h6 class="text-uppercase text-muted mb-2" style="font-size: .75rem; letter-spacing: .06em">
-            <i class="fa fa-inbox"></i> {{ __('Por agendar') }} ({{ $porAgendar->count() }})
+            <i class="fa fa-inbox"></i> {{ __('Por agendar') }} ({{ $totalPorAgendar }})
         </h6>
-        <p class="sm-ajuda">{{ __('Pedidos em aberto que ainda não têm dia. Arraste um para a semana, ou use o lápis para escolher o técnico e o dia.') }}</p>
-        <div class="sm-fila">
-            @forelse($porAgendar as $p)
-                @include('backoffice.technical_requests.partials.week_card', ['p' => $p, 'cores' => $cores])
-            @empty
-                <div class="sm-vazio">{{ __('Não há pedidos por agendar. Bom trabalho.') }}</div>
-            @endforelse
-        </div>
+        <p class="sm-ajuda">{{ __('Pedidos em aberto que ainda não têm dia, pelo técnico que já lhes foi atribuído. Arraste um para a semana, ou use o lápis para escolher o técnico e o dia.') }}</p>
+
+        @forelse($porAgendar as $tecnicoId => $grupo)
+            @php($dono = $tecnicos->firstWhere('id', $tecnicoId))
+            @php($cor = $dono ? \App\Services\HotlineRotation::PIQUETE_COLORS[$tecnicos->search(fn ($t) => $t->id === $tecnicoId) % count(\App\Services\HotlineRotation::PIQUETE_COLORS)] : '#94a3b8')
+            <div class="sm-grupo" style="--c: {{ $cor }}">
+                <span class="bola">{{ $dono ? \App\Services\HotlineChecklist::iniciais($dono->name) : '?' }}</span>
+                {{ $dono->name ?? __('Por atribuir') }}
+                <span class="n">{{ $grupo->count() }}</span>
+            </div>
+            <div class="sm-fila mb-3">
+                @foreach($grupo as $p)
+                    @include('backoffice.technical_requests.partials.week_card', ['p' => $p, 'cores' => $cores])
+                @endforeach
+            </div>
+        @empty
+            <div class="sm-vazio">{{ __('Não há pedidos por agendar. Bom trabalho.') }}</div>
+        @endforelse
     </div>
 </div>
 
