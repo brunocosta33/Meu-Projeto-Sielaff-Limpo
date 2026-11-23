@@ -133,9 +133,20 @@ class StoreMaintenanceController extends Controller
             $rows = $rows->whereIn('status', $wanted);
         }
 
+        // Primeiro a data, depois o estado: as feitas ficam ao pé das que faltam no mesmo
+        // mês, em vez de irem todas para o fim da lista. Quem não tem data vai para o fim.
         $order = array_flip(array_keys(config('maintenance.states')));
 
-        return $rows->sortBy(fn ($r) => sprintf('%02d-%s-%s', $order[$r->status] ?? 99, $r->due?->format('md') ?? '0000', $r->store->nome_loja))->values();
+        // Os contratos que só começam noutro ano não entram no calendário deste
+        $desteAno = fn ($r) => $r->due && $r->status !== 'contrato_futuro';
+
+        return $rows->sortBy(fn ($r) => sprintf(
+            '%d-%s-%02d-%s',
+            $desteAno($r) ? 0 : 1,
+            $desteAno($r) ? $r->due->format('md') : '9999',
+            $order[$r->status] ?? 99,
+            $r->store->nome_loja
+        ))->values();
     }
 
     public function store(Request $request)
