@@ -136,6 +136,11 @@
                             </optgroup>
                         @endforeach
                     </select>
+                    <small class="form-text text-muted">
+                        <i class="fa fa-info-circle"></i>
+                        {{ __('Só aparecem as :livres lojas que ainda não têm manutenção. As outras :ocupadas já estão na lista em baixo — procure-as na pesquisa.', [
+                            'livres' => $totalLojas - $comManutencao, 'ocupadas' => $comManutencao]) }}
+                    </small>
                 </div>
                 <div class="form-group col-md-3">
                     <label class="small mb-1" id="mt-new-label">{{ __('Data contratada') }}</label>

@@ -77,6 +77,9 @@ class StoreMaintenanceController extends Controller
             // Arrumadas por cliente: o código da Lidl é numérico e o da Sonae começa por L,
             // por isso numa lista só a Sonae ficava toda no fim e parecia não estar lá
             'storesWithout' => $this->lojasSemManutencao(),
+            // Para explicar a caixa: só lá estão as lojas que ainda não têm manutenção
+            'totalLojas' => Store::count(),
+            'comManutencao' => StoreMaintenance::count(),
             'users' => User::whereNull('deleted_at')->orderBy('name')->get(['id', 'name'])
                 ->sortByDesc(fn ($u) => $technicianUserIds->contains($u->id))->values(),
             'windowDays' => (int) config('maintenance.window_working_days'),
