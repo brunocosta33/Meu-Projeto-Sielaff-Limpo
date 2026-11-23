@@ -772,6 +772,109 @@ class TechnicalRequestController extends Controller
             ->get(['id', 'name', 'email']);
     }
 
+    /** Quantos dias da semana se mostram no quadro: segunda a sábado. */
+    private const DIAS_DA_SEMANA = 6;
+
+    /**
+     * Quadro da semana: um técnico por linha, um dia por coluna, os pedidos lá dentro.
+     * Lê e escreve os campos que já existiam (assigned_technician_id e data_agendamento);
+     * não mexe em mais nada do que está feito.
+     */
+    public function week(Request $request)
+    {
+        abort_unless($this->isAdmin(), 403);
+
+        $inicio = $this->semanaDe($request)->startOfWeek();
+        $fim = $inicio->copy()->addDays(self::DIAS_DA_SEMANA - 1);
+
+        $agendados = TechnicalRequest::with(['store', 'machine', 'assignedTechnician'])
+            ->whereNotNull('data_agendamento')
+            ->whereBetween('data_agendamento', [$inicio->copy()->startOfDay(), $fim->copy()->endOfDay()])
+            ->orderBy('data_agendamento')
+            ->get();
+
+        // Os técnicos da casa, mais quem tenha pedidos nesta semana sem ser técnico
+        $tecnicos = User::whereHas('role', fn ($q) => $q->where('name', 'user'))
+            ->whereNull('deleted_at')
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
+
+        $tecnicos = $tecnicos->concat(
+            $agendados->pluck('assignedTechnician')->filter()
+                ->unique('id')->reject(fn ($u) => $tecnicos->contains('id', $u->id))->values()
+        );
+
+        // Chave técnico_dia, para a vista ir buscar a célula sem andar a filtrar
+        $celulas = $agendados->groupBy(
+            fn (TechnicalRequest $p) => ($p->assigned_technician_id ?? 0) . '_' . $p->data_agendamento->toDateString()
+        );
+
+        $porAgendar = TechnicalRequest::with(['store', 'machine', 'assignedTechnician'])
+            ->whereNull('data_agendamento')
+            ->whereIn('estado', ['pendente', 'agendado', 'aguarda_peca'])
+            ->orderByRaw("FIELD(prioridade, 'alta', 'media', 'baixa')")
+            ->orderBy('data_pedido')
+            ->get();
+
+        return view('backoffice.technical_requests.week', [
+            'inicio' => $inicio,
+            'fim' => $fim,
+            'dias' => collect(\Carbon\CarbonPeriod::create($inicio, $fim)->toArray()),
+            'tecnicos' => $tecnicos,
+            'celulas' => $celulas,
+            'semAgendar' => $agendados->whereNull('assigned_technician_id'),
+            'porAgendar' => $porAgendar,
+            'statuses' => self::translatedLabels(self::STATUSES),
+            'priorities' => self::translatedLabels(self::PRIORITIES),
+            'tipos' => self::translatedLabels(self::SERVICE_TYPES),
+        ]);
+    }
+
+    /** Pôr (ou tirar) um pedido num dia da semana de um técnico. */
+    public function schedule(Request $request, $id)
+    {
+        abort_unless($this->isAdmin(), 403);
+
+        $data = $request->validate([
+            'dia' => ['nullable', 'date'],
+            'technician_id' => ['nullable', 'exists:users,id'],
+        ]);
+
+        $pedido = TechnicalRequest::findOrFail($id);
+        $dia = !empty($data['dia']) ? Carbon::parse($data['dia'])->startOfDay() : null;
+
+        $pedido->data_agendamento = $dia;
+        $pedido->updated_by = auth()->id();
+
+        if (array_key_exists('technician_id', $data)) {
+            $pedido->assigned_technician_id = $data['technician_id'] ?: null;
+        }
+
+        // Só mexe no estado entre pendente e agendado: concluído ou cancelado ficam como estão
+        if ($dia && $pedido->estado === 'pendente') {
+            $pedido->estado = 'agendado';
+        } elseif (!$dia && $pedido->estado === 'agendado') {
+            $pedido->estado = 'pendente';
+        }
+
+        $pedido->save();
+
+        return back()->with('success', $dia
+            ? __('Pedido #:n marcado para :dia.', ['n' => $pedido->id, 'dia' => $dia->translatedFormat('D, d/m')])
+            : __('Pedido #:n voltou para "por agendar".', ['n' => $pedido->id]));
+    }
+
+    /** A semana que se está a ver (a do pedido, ou a de hoje). */
+    private function semanaDe(Request $request): Carbon
+    {
+        try {
+            return $request->filled('semana') ? Carbon::parse($request->semana) : Carbon::today();
+        } catch (\Throwable $e) {
+            return Carbon::today();
+        }
+    }
+
     private function applyDateFilters($query, Request $request): void
     {
         if ($request->filled('mes')) {
