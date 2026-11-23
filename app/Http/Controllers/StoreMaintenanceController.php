@@ -40,10 +40,11 @@ class StoreMaintenanceController extends Controller
                     'maintenance' => $m,
                     'store' => $store,
                     'record' => null,
-                    'due' => null,
+                    // O contrato existe, mas só começa num ano à frente: não é "por definir"
+                    'due' => $m ? $m->dueDate($m->data_contratada->year) : null,
                     'start' => null,
                     'end' => null,
-                    'status' => 'por_definir',
+                    'status' => $m ? 'contrato_futuro' : 'por_definir',
                 ];
             }
 
@@ -60,6 +61,17 @@ class StoreMaintenanceController extends Controller
                 'status' => $m->status($year, $record),
             ];
         });
+
+        // Quantas em cada mês deste ano, para a barra dos meses
+        $meses = $rows
+            ->filter(fn ($r) => $r->due && $r->status !== 'contrato_futuro')
+            ->countBy(fn ($r) => (int) $r->due->month);
+
+        if ($request->filled('mes')) {
+            $rows = $request->mes === 'sem_data'
+                ? $rows->filter(fn ($r) => $r->status === 'por_definir' || $r->status === 'contrato_futuro')
+                : $rows->filter(fn ($r) => $r->due && $r->status !== 'contrato_futuro' && $r->due->month === (int) $request->mes);
+        }
 
         $counts = $rows->countBy('status');
         // Quantas lojas por cliente, para os botões de filtro
@@ -90,6 +102,8 @@ class StoreMaintenanceController extends Controller
             'year' => $year,
             'rows' => $rows,
             'counts' => $counts,
+            'meses' => $meses,
+            'mesEscolhido' => $request->input('mes'),
             'clientes' => $clientes,
             'clientesConfig' => config('maintenance.clients'),
             'total' => $counts->sum(),

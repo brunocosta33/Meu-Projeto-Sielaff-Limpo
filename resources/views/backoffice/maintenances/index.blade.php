@@ -1,7 +1,7 @@
 @extends('layouts.backoffice_master')
 
 @php(\Carbon\Carbon::setLocale(app()->getLocale()))
-@php($filters = request()->only(['q', 'estado', 'cliente']))
+@php($filters = request()->only(['q', 'estado', 'cliente', 'mes']))
 
 @section('head-meta')
     <title>{{ config('app.name') }} - {{ __('Manutenções Anuais') }} {{ $year }}</title>
@@ -32,6 +32,20 @@
     .mt-cliente-btn.on { background: var(--bg, #eef2f7); color: var(--fg, #263238); border-color: var(--fg, #94a3b8); }
     .mt-cliente-btn .n { font-weight: 800; opacity: .75; }
     .mt-mes { font-weight: 800; font-size: .95rem; text-transform: capitalize; }
+    /* Barra dos meses */
+    .mt-meses { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .75rem; }
+    .mt-mes-btn { display: inline-flex; align-items: center; gap: .3rem; border: 1px solid #dde3ea; background: #fff;
+                  color: #475569; border-radius: 9px; padding: .22rem .6rem; font-size: .82rem; font-weight: 700;
+                  text-decoration: none !important; text-transform: capitalize; }
+    .mt-mes-btn:hover { border-color: #0f4c81; color: #0f4c81; }
+    .mt-mes-btn.on { background: #0f4c81; border-color: #0f4c81; color: #fff; }
+    .mt-mes-btn.zero { color: #b9c3cf; }
+    .mt-mes-btn.zero .n { opacity: .5; }
+    .mt-mes-btn.agora { border-color: #0f4c81; box-shadow: 0 0 0 2px #dbeafe; }
+    .mt-mes-btn.agora::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #0f4c81; }
+    .mt-mes-btn.agora.on::before { background: #fff; }
+    .mt-mes-btn .n { background: #eef2f7; color: #475569; border-radius: 999px; padding: 0 .4rem; font-size: .72rem; }
+    .mt-mes-btn.on .n { background: rgba(255, 255, 255, .25); color: #fff; }
     /* Definir a data/mês na própria linha, sem abrir formulários */
     .mt-definir { display: flex; gap: .3rem; align-items: center; }
     .mt-definir input { max-width: 10.5rem; }
@@ -78,7 +92,7 @@
                class="mt-stat {{ request('estado') ? '' : 'is-active' }}" style="--bg: #f1f3f6; --fg: #263238">
                 <div class="num">{{ $total }}</div><div class="lbl">{{ __('Total de lojas') }}</div>
             </a>
-            @foreach(['atrasada', 'janela', 'proxima', 'futura', 'por_definir', 'feita'] as $key)
+            @foreach(['atrasada', 'janela', 'proxima', 'futura', 'contrato_futuro', 'por_definir', 'feita'] as $key)
                 @php($state = $states[$key])
                 @php($n = $key === 'feita' ? ($counts['feita'] ?? 0) + ($counts['feita_fora'] ?? 0) : ($counts[$key] ?? 0))
                 <a href="{{ route('backoffice.maintenances.index', ['ano' => $year, 'estado' => $key] + $filters) }}"
@@ -105,6 +119,29 @@
                     {{ __('Outros') }} <span class="n">{{ $clientes['outros'] }}</span>
                 </a>
             @endif
+        </div>
+
+        {{-- Os meses do ano que se está a ver: é por aqui que se planeia --}}
+        <div class="mt-meses">
+            <a href="{{ route('backoffice.maintenances.index', ['ano' => $year] + \Illuminate\Support\Arr::except($filters, 'mes')) }}"
+               class="mt-mes-btn {{ $mesEscolhido ? '' : 'on' }}">{{ __('Ano todo') }}</a>
+
+            @foreach(range(1, 12) as $m)
+                @php($n = $meses[$m] ?? 0)
+                @php($agora = $m === now()->month && $year === now()->year)
+                <a href="{{ route('backoffice.maintenances.index', ['ano' => $year, 'mes' => $m] + $filters) }}"
+                   class="mt-mes-btn {{ (int) $mesEscolhido === $m ? 'on' : '' }} {{ $n ? '' : 'zero' }} {{ $agora ? 'agora' : '' }}"
+                   title="{{ $agora ? __('Este mês') : '' }}">
+                    {{ \Illuminate\Support\Str::ucfirst(\Carbon\Carbon::create($year, $m, 1)->isoFormat('MMM')) }}
+                    <span class="n">{{ $n }}</span>
+                </a>
+            @endforeach
+
+            <a href="{{ route('backoffice.maintenances.index', ['ano' => $year, 'mes' => 'sem_data'] + $filters) }}"
+               class="mt-mes-btn {{ $mesEscolhido === 'sem_data' ? 'on' : '' }}">
+                {{ __('Sem data neste ano') }}
+                <span class="n">{{ ($counts['por_definir'] ?? 0) + ($counts['contrato_futuro'] ?? 0) }}</span>
+            </a>
         </div>
 
         <p class="small text-muted mb-0 mt-2">
@@ -161,9 +198,12 @@
                                             <button type="submit" class="btn btn-sm btn-primary" title="{{ __('Gravar') }}"><i class="fa fa-check"></i></button>
                                         </form>
                                         <div class="text-muted">{{ $mensal ? __('escolha o mês contratado') : __('escolha a data contratada') }}</div>
-                                    @elseif($row->status === 'por_definir')
-                                        <span class="due">{{ $row->maintenance->data_contratada->format('d/m/Y') }}</span>
-                                        <div class="text-muted">{{ __('contrato só a partir de :ano', ['ano' => $row->maintenance->data_contratada->year]) }}</div>
+                                    @elseif($row->status === 'contrato_futuro')
+                                        <span class="mt-mes">{{ $row->maintenance->data_contratada->translatedFormat('F Y') }}</span>
+                                        <div class="text-muted">
+                                            {{ __('começa em :ano', ['ano' => $row->maintenance->data_contratada->year]) }} ·
+                                            <a href="{{ route('backoffice.maintenances.index', ['ano' => $row->maintenance->data_contratada->year] + $filters) }}">{{ __('ver esse ano') }}</a>
+                                        </div>
                                     @elseif($row->maintenance->isMensal())
                                         <span class="mt-mes">{{ $row->due->translatedFormat('F') }} {{ $year }}</span>
                                         <div class="text-muted">{{ __('o mês inteiro') }}</div>

@@ -1,4 +1,9 @@
 {
+    "Ano todo": "Whole year",
+    "Sem data neste ano": "No date this year",
+    "Começa depois": "Starts later",
+    "começa em :ano": "starts in :ano",
+    "ver esse ano": "see that year",
     "Aqui aparece só o que está marcado para hoje.": "Only what is scheduled for today shows up here.",
     "A Minha Semana": "My week",
     "Abrir no mapa": "Open in maps",

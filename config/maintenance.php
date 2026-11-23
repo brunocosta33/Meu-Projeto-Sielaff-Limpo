@@ -23,6 +23,7 @@ return [
         'janela' => ['label' => 'Dentro do prazo', 'color' => '#b26a00', 'bg' => '#fff4cc', 'icon' => 'fa-hourglass-half'],
         'proxima' => ['label' => 'Próxima', 'color' => '#1565c0', 'bg' => '#e3f0ff', 'icon' => 'fa-calendar-alt'],
         'futura' => ['label' => 'Por fazer', 'color' => '#546e7a', 'bg' => '#eceff1', 'icon' => 'fa-clock'],
+        'contrato_futuro' => ['label' => 'Começa depois', 'color' => '#6d5ba6', 'bg' => '#efecf9', 'icon' => 'fa-hourglass-start'],
         'por_definir' => ['label' => 'Por definir', 'color' => '#5b6b7c', 'bg' => '#eef2f6', 'icon' => 'fa-calendar-plus'],
         'feita' => ['label' => 'Feita', 'color' => '#2e7d32', 'bg' => '#dff0e0', 'icon' => 'fa-check-circle'],
         'feita_fora' => ['label' => 'Feita fora do prazo', 'color' => '#6d4c41', 'bg' => '#efe5df', 'icon' => 'fa-check'],
