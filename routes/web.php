@@ -205,10 +205,12 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
         Route::put('/{id}', [StoreMaintenanceController::class, 'update'])->name('update');
         Route::delete('/{id}', [StoreMaintenanceController::class, 'destroy'])->name('destroy');
         Route::post('/{id}/feita', [StoreMaintenanceController::class, 'markDone'])->name('done');
+        Route::get('/exportar', [StoreMaintenanceController::class, 'export'])->name('export');
+        Route::get('/exportar/zip', [StoreMaintenanceController::class, 'exportZip'])->name('export.zip');
         Route::delete('/registo/{record}', [StoreMaintenanceController::class, 'undo'])->name('undo');
-        Route::post('/registo/{record}/folha', [StoreMaintenanceController::class, 'attachDocument'])->name('document.store');
-        Route::get('/registo/{record}/folha', [StoreMaintenanceController::class, 'document'])->name('document');
-        Route::delete('/registo/{record}/folha', [StoreMaintenanceController::class, 'deleteDocument'])->name('document.delete');
+        Route::post('/registo/{record}/anexos', [StoreMaintenanceController::class, 'attachFiles'])->name('files.store');
+        Route::get('/anexo/{file}', [StoreMaintenanceController::class, 'file'])->name('file');
+        Route::delete('/anexo/{file}', [StoreMaintenanceController::class, 'deleteFile'])->name('file.delete');
     });
 
     // Assistência > Fora da Garantia: cotações e ordens de compra (Coordenador e Country Manager)

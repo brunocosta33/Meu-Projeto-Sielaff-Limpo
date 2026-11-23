@@ -60,6 +60,19 @@
     .mt-doc:hover { background: #cfe3ff; }
     .mt-notes { font-size: .84rem; color: #334155; max-width: 280px; white-space: pre-line; overflow-wrap: anywhere; }
     .mt-doc-missing { display: inline-block; margin-top: .3rem; font-size: .74rem; color: #8a96a8; }
+    /* As máquinas da loja, por baixo do nome */
+    .mt-maquina { display: block; font-size: .74rem; color: #64748b; font-weight: 400; }
+    .mt-maquina i { color: #b6c2d1; margin-right: .15rem; }
+    .mt-maquina b { font-family: Consolas, Menlo, monospace; color: #0f4c81; font-weight: 700; }
+    /* Anexos: folhas de serviço e fotografias */
+    .mt-anexos { display: flex; flex-wrap: wrap; gap: .25rem; margin-top: .35rem; }
+    .mt-anexo { display: inline-flex; align-items: center; gap: .15rem; border-radius: 999px; padding: .05rem .25rem .05rem .5rem;
+                font-size: .74rem; font-weight: 600; background: #e3f0ff; color: #1565c0; }
+    .mt-anexo.foto { background: #efe7fb; color: #6d28d9; }
+    .mt-anexo a { color: inherit; text-decoration: none !important; }
+    .mt-anexo form { display: inline; margin: 0; }
+    .mt-anexo button { border: 0; background: none; color: inherit; opacity: .45; line-height: 1; padding: 0 .15rem; font-size: .9rem; }
+    .mt-anexo button:hover { opacity: 1; color: #b3261e; }
 </style>
 @endpush
 
@@ -81,9 +94,18 @@
             <div class="d-flex flex-wrap" style="gap: .5rem">
                 <form method="GET" class="form-inline">
                     <input type="hidden" name="ano" value="{{ $year }}">
-                    @if(request('estado'))<input type="hidden" name="estado" value="{{ request('estado') }}">@endif
+                    @foreach(['estado', 'cliente', 'mes'] as $campo)
+                        @if(request($campo))<input type="hidden" name="{{ $campo }}" value="{{ request($campo) }}">@endif
+                    @endforeach
                     <input type="search" name="q" class="form-control form-control-sm" value="{{ request('q') }}" placeholder="{{ __('Pesquisar loja, código, insígnia…') }}" style="min-width: 240px">
                 </form>
+                <a class="btn btn-outline-success btn-sm" href="{{ route('backoffice.maintenances.export', ['ano' => $year] + $filters) }}">
+                    <i class="fa fa-file-excel"></i> {{ __('Excel') }}
+                </a>
+                <a class="btn btn-outline-primary btn-sm" href="{{ route('backoffice.maintenances.export.zip', ['ano' => $year] + $filters) }}"
+                   title="{{ __('Excel mais as folhas de serviço e as fotografias') }}">
+                    <i class="fa fa-file-archive"></i> {{ __('Excel + anexos') }}
+                </a>
             </div>
         </div>
 
@@ -186,6 +208,12 @@
                                     @endif
                                     {{ $row->store->codigo_loja }} — {{ $row->store->nome_loja }}
                                     <small>{{ $row->store->cidade }}</small>
+                                    @foreach($row->store->machines as $maquina)
+                                        <small class="mt-maquina">
+                                            <i class="fas fa-desktop"></i> {{ $maquina->modelo }}
+                                            <b>{{ $maquina->serial_number }}</b>
+                                        </small>
+                                    @endforeach
                                 </td>
                                 <td class="mt-window">
                                     @if(!$row->maintenance)
@@ -227,13 +255,24 @@
                                         <span class="mt-done-date"><i class="fa fa-check-circle"></i> {{ $row->record->data_realizada->format('d/m/Y') }}</span>
                                         @if($row->record->technician)<div>{{ $row->record->technician->name }}</div>@endif
                                         @if($row->record->observacoes)<div class="text-muted">{{ \Illuminate\Support\Str::limit($row->record->observacoes, 60) }}</div>@endif
-                                        @if($row->record->documento_path)
-                                            <a href="{{ route('backoffice.maintenances.document', $row->record->id) }}" class="mt-doc" title="{{ $row->record->documento_nome }}">
-                                                <i class="fa fa-file-alt"></i> {{ __('Folha de obra') }}
-                                            </a>
-                                        @else
-                                            <span class="mt-doc-missing"><i class="fa fa-paperclip"></i> {{ __('sem folha de obra') }}</span>
-                                        @endif
+                                        <div class="mt-anexos">
+                                            @forelse($row->record->files as $anexo)
+                                                <span class="mt-anexo {{ $anexo->tipo }}">
+                                                    <a href="{{ route('backoffice.maintenances.file', $anexo->id) }}" target="_blank" rel="noopener"
+                                                       title="{{ $anexo->nome }} {{ $anexo->tamanhoLegivel() }}">
+                                                        <i class="fas {{ \App\Models\StoreMaintenanceFile::TIPOS[$anexo->tipo]['icon'] }}"></i>
+                                                        {{ \Illuminate\Support\Str::limit($anexo->nome, 16) }}
+                                                    </a>
+                                                    <form method="POST" action="{{ route('backoffice.maintenances.file.delete', $anexo->id) }}"
+                                                          onsubmit="return confirm({{ json_encode(__('Remover este anexo?')) }})">
+                                                        @csrf @method('DELETE')
+                                                        <button type="submit" title="{{ __('Remover') }}">&times;</button>
+                                                    </form>
+                                                </span>
+                                            @empty
+                                                <span class="mt-doc-missing"><i class="fa fa-paperclip"></i> {{ __('sem anexos') }}</span>
+                                            @endforelse
+                                        </div>
                                     @else
                                         —
                                     @endif
@@ -250,10 +289,8 @@
                                         <span class="text-muted">—</span>
                                     @elseif($row->record)
                                         <button type="button" class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#mt-attach"
-                                                title="{{ $row->record->documento_path ? __('Substituir folha de obra') : __('Anexar folha de obra') }}"
-                                                data-action="{{ route('backoffice.maintenances.document.store', $row->record->id) }}"
-                                                data-delete="{{ $row->record->documento_path ? route('backoffice.maintenances.document.delete', $row->record->id) : '' }}"
-                                                data-current="{{ $row->record->documento_nome }}"
+                                                title="{{ __('Anexar folhas de serviço ou fotografias') }}"
+                                                data-action="{{ route('backoffice.maintenances.files.store', $row->record->id) }}"
                                                 data-store="{{ $row->store->codigo_loja }} — {{ $row->store->nome_loja }}">
                                             <i class="fa fa-paperclip"></i>
                                         </button>
@@ -325,10 +362,15 @@
                     <label class="small mb-1">{{ __('Observações') }}</label>
                     <textarea name="observacoes" class="form-control" rows="2"></textarea>
                 </div>
+                <div class="form-group">
+                    <label class="small mb-1"><i class="fa fa-file-alt"></i> {{ __('Folhas de serviço (opcional)') }}</label>
+                    <input type="file" name="folhas[]" multiple class="form-control-file" accept=".pdf,.jpg,.jpeg,.png,.heic,.doc,.docx">
+                    <small class="form-text text-muted">{{ __('PDF, foto ou Word, até 32 MB cada. Podem ser anexadas mais tarde.') }}</small>
+                </div>
                 <div class="form-group mb-0">
-                    <label class="small mb-1"><i class="fa fa-file-alt"></i> {{ __('Folha de obra (opcional)') }}</label>
-                    <input type="file" name="documento" class="form-control-file" accept=".pdf,.jpg,.jpeg,.png,.heic,.doc,.docx">
-                    <small class="form-text text-muted">{{ __('PDF, foto ou Word, até 32 MB. Pode ser anexada mais tarde.') }}</small>
+                    <label class="small mb-1"><i class="fa fa-camera"></i> {{ __('Fotografias (opcional)') }}</label>
+                    <input type="file" name="fotos[]" multiple class="form-control-file" accept="image/*,.heic,.heif">
+                    <small class="form-text text-muted">{{ __('Pode escolher várias de uma vez.') }}</small>
                 </div>
             </div>
             <div class="modal-footer">
@@ -339,37 +381,36 @@
     </div>
 </div>
 
-{{-- Modal: anexar / substituir folha de obra --}}
+{{-- Modal: anexar folhas de serviço ou fotografias --}}
 <div class="modal fade" id="mt-attach" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <form method="POST" id="mt-attach-form" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="fa fa-file-alt text-primary"></i> {{ __('Folha de obra') }} {{ $year }}</h5>
+                    <h5 class="modal-title"><i class="fa fa-paperclip text-primary"></i> {{ __('Anexar à manutenção') }} {{ $year }}</h5>
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                 </div>
                 <div class="modal-body">
                     <p class="font-weight-bold" id="mt-attach-store"></p>
-                    <p class="small text-muted" id="mt-attach-current"></p>
+                    <div class="form-group">
+                        <label class="small mb-1">{{ __('Tipo de anexo') }}</label>
+                        <select name="tipo" class="form-control">
+                            @foreach(\App\Models\StoreMaintenanceFile::TIPOS as $chave => $tipo)
+                                <option value="{{ $chave }}">{{ __($tipo['label']) }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     <div class="form-group mb-0">
-                        <input type="file" name="documento" class="form-control-file" accept=".pdf,.jpg,.jpeg,.png,.heic,.doc,.docx" required>
-                        <small class="form-text text-muted">{{ __('PDF, foto ou Word, até 32 MB.') }}</small>
+                        <input type="file" name="ficheiros[]" multiple class="form-control-file"
+                               accept=".pdf,.jpg,.jpeg,.png,.heic,.heif,.webp,.doc,.docx" required>
+                        <small class="form-text text-muted">{{ __('Pode escolher vários ficheiros de uma vez, até 32 MB cada.') }}</small>
                     </div>
                 </div>
-                <div class="modal-footer justify-content-between">
-                    <button type="submit" form="mt-attach-delete" class="btn btn-link text-danger" id="mt-attach-delete-btn" onclick="return confirm({{ json_encode(__('Remover a folha de obra?')) }})">
-                        <i class="fa fa-trash"></i> {{ __('Remover') }}
-                    </button>
-                    <div>
-                        <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">{{ __('Cancelar') }}</button>
-                        <button type="submit" class="btn btn-primary"><i class="fa fa-upload"></i> {{ __('Gravar') }}</button>
-                    </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">{{ __('Cancelar') }}</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa fa-upload"></i> {{ __('Anexar') }}</button>
                 </div>
-            </form>
-            <form method="POST" id="mt-attach-delete">
-                @csrf
-                @method('DELETE')
             </form>
         </div>
     </div>
@@ -431,10 +472,6 @@
             var b = $(e.relatedTarget);
             $('#mt-attach-form').attr('action', b.data('action'));
             $('#mt-attach-store').text(b.data('store'));
-            var current = b.data('current');
-            $('#mt-attach-current').text(current ? @json(__('Atual: :nome (será substituída)')).replace(':nome', current) : @json(__('Ainda sem folha de obra anexada.')));
-            $('#mt-attach-delete').attr('action', b.data('delete') || '');
-            $('#mt-attach-delete-btn').toggle(!!b.data('delete'));
         });
         // Clientes mensais (Sonae): o campo pergunta o mês, não o dia
         var textos = {

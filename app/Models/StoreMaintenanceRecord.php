@@ -26,6 +26,22 @@ class StoreMaintenanceRecord extends Model
         return $this->belongsTo(StoreMaintenance::class, 'store_maintenance_id');
     }
 
+    /** Anexos: folhas de serviço e fotografias. */
+    public function files()
+    {
+        return $this->hasMany(StoreMaintenanceFile::class, 'record_id')->orderBy('tipo')->orderBy('id');
+    }
+
+    public function folhas()
+    {
+        return $this->files()->where('tipo', 'folha');
+    }
+
+    public function fotos()
+    {
+        return $this->files()->where('tipo', 'foto');
+    }
+
     public function technician()
     {
         return $this->belongsTo(User::class, 'user_id');
