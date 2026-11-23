@@ -74,11 +74,29 @@ class StoreMaintenanceController extends Controller
             'clientesConfig' => config('maintenance.clients'),
             'total' => $counts->sum(),
             'states' => $states,
-            'storesWithout' => Store::whereNotIn('id', StoreMaintenance::pluck('store_id'))->orderBy('codigo_loja')->get(['id', 'codigo_loja', 'nome_loja', 'insignia']),
+            // Arrumadas por cliente: o código da Lidl é numérico e o da Sonae começa por L,
+            // por isso numa lista só a Sonae ficava toda no fim e parecia não estar lá
+            'storesWithout' => $this->lojasSemManutencao(),
             'users' => User::whereNull('deleted_at')->orderBy('name')->get(['id', 'name'])
                 ->sortByDesc(fn ($u) => $technicianUserIds->contains($u->id))->values(),
             'windowDays' => (int) config('maintenance.window_working_days'),
         ]);
+    }
+
+    /** Lojas que ainda não têm manutenção, agrupadas por cliente e por nome. */
+    private function lojasSemManutencao()
+    {
+        $ordem = array_keys(config('maintenance.clients', []));
+
+        return Store::whereNotIn('id', StoreMaintenance::pluck('store_id'))
+            ->orderBy('nome_loja')
+            ->get(['id', 'codigo_loja', 'nome_loja', 'insignia', 'cidade'])
+            ->groupBy(fn (Store $s) => $s->clienteKey() ?? 'outros')
+            ->sortBy(function ($lojas, $cliente) use ($ordem) {
+                $i = array_search($cliente, $ordem, true);
+
+                return $i === false ? count($ordem) : $i;
+            });
     }
 
     public function store(Request $request)

@@ -122,12 +122,18 @@
                 @csrf
                 <div class="form-group col-md-5">
                     <label class="small mb-1">{{ __('Loja') }}</label>
-                    <select name="store_id" id="mt-new-store" class="form-control selectpicker" data-live-search="true" title="{{ __('Escolha a loja…') }}" required>
-                        @foreach($storesWithout as $s)
-                            <option value="{{ $s->id }}" @selected(old('store_id') == $s->id)
-                                    data-mensal="{{ in_array($s->clienteKey(), config('maintenance.month_clients', []), true) ? 1 : 0 }}">
-                                {{ $s->codigo_loja }} — {{ $s->nome_loja }} ({{ $s->insignia }})
-                            </option>
+                    <select name="store_id" id="mt-new-store" class="form-control selectpicker" data-live-search="true"
+                            data-size="12" title="{{ __('Escolha a loja…') }}" required>
+                        @foreach($storesWithout as $cliente => $lojas)
+                            <optgroup label="{{ (config('maintenance.clients.' . $cliente . '.label') ?? __('Sem cliente')) . ' (' . count($lojas) . ')' }}">
+                                @foreach($lojas as $s)
+                                    <option value="{{ $s->id }}" @selected(old('store_id') == $s->id)
+                                            data-mensal="{{ in_array($cliente, config('maintenance.month_clients', []), true) ? 1 : 0 }}"
+                                            data-subtext="{{ $s->cidade }}">
+                                        {{ $s->codigo_loja }} — {{ $s->nome_loja }}
+                                    </option>
+                                @endforeach
+                            </optgroup>
                         @endforeach
                     </select>
                 </div>
