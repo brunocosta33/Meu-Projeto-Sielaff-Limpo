@@ -45,7 +45,7 @@ class StoreMaintenancesExport implements FromCollection, WithHeadings, WithEvent
     public function columnWidths(): array
     {
         return ['A' => 10, 'B' => 11, 'C' => 30, 'D' => 10, 'E' => 16, 'F' => 18, 'G' => 24,
-            'H' => 14, 'I' => 18, 'J' => 12, 'K' => 19, 'L' => 12, 'M' => 18, 'N' => 28, 'O' => 24,
+            'H' => 16, 'I' => 24, 'J' => 12, 'K' => 19, 'L' => 12, 'M' => 18, 'N' => 28, 'O' => 24,
             'P' => 9, 'Q' => 11];
     }
 
@@ -56,7 +56,6 @@ class StoreMaintenancesExport implements FromCollection, WithHeadings, WithEvent
         return collect($this->linhas)->map(function ($r) use ($estados) {
             $m = $r->maintenance;
             $registo = $r->record;
-            $mensal = $m && $m->isMensal();
 
             return [
                 $r->store->clienteConfig()['label'] ?? '',
@@ -67,10 +66,8 @@ class StoreMaintenancesExport implements FromCollection, WithHeadings, WithEvent
                 // Nas Lojas o modelo que se vê é a descrição; o campo "modelo" está quase sempre vazio
                 $r->store->machines->map(fn ($m) => $m->descricao ?: $m->modelo)->filter()->unique()->implode(', '),
                 $r->store->machines->pluck('serial_number')->filter()->implode(', '),
-                $m ? $m->data_contratada->format('d/m/Y') : '',
-                $r->start && $r->end
-                    ? ($mensal ? __('o mês inteiro') : $r->start->format('d/m') . ' – ' . $r->end->format('d/m'))
-                    : '',
+                $m ? ucfirst($m->data_contratada->translatedFormat('F Y')) : '',
+                $r->start && $r->end ? $r->start->format('d/m/Y') . ' – ' . $r->end->format('d/m/Y') : '',
                 $r->due ? ucfirst($r->due->translatedFormat('F')) : '',
                 __($estados[$r->status]['label'] ?? $r->status),
                 $registo?->data_realizada?->format('d/m/Y') ?? '',
@@ -88,7 +85,7 @@ class StoreMaintenancesExport implements FromCollection, WithHeadings, WithEvent
         return [
             __('Cliente'), __('Código'), __('Loja'), __('Zona'), __('Cidade'),
             __('Modelos'), __('Nºs de série'),
-            __('Data contratada'), __('Prazo'), __('Mês'), __('Estado'),
+            __('Mês contratado'), __('Prazo (até à data limite)'), __('Mês'), __('Estado'),
             __('Feita em'), __('Técnico'), __('Observações da manutenção'), __('Notas do contrato'),
             __('Folhas'), __('Fotografias'),
         ];

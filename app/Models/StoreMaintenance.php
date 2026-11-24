@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Services\WorkingDays;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
@@ -30,78 +29,39 @@ class StoreMaintenance extends Model
         return $this->hasMany(StoreMaintenanceRecord::class);
     }
 
-    /** Data da manutenção num ano (mesmo dia e mês da data contratada; 29/02 passa a 28/02). */
+    /** O mês contratado nesse ano (dia 1). */
     public function dueDate(int $year): Carbon
     {
-        $month = $this->data_contratada->month;
-        $day = min($this->data_contratada->day, Carbon::create($year, $month, 1)->daysInMonth);
-
-        return Carbon::create($year, $month, $day)->startOfDay();
+        return Carbon::create($year, $this->data_contratada->month, 1)->startOfDay();
     }
 
-    /** Feriados por ano (nacionais + da empresa), partilhados por todas as lojas no mesmo pedido. */
-    private static array $holidayCache = [];
-
-    /** Dia útil para as manutenções: segunda a sábado, sem feriados. */
-    public static function isMaintenanceDay(Carbon $date): bool
+    /** [meses antes, meses depois] do mês contratado em que ainda conta como feita a tempo. */
+    public function tolerancia(): array
     {
-        $year = $date->year;
-        self::$holidayCache[$year] ??= app(WorkingDays::class)->holidays($year);
+        $t = config('maintenance.tolerancia_meses', []);
 
-        return !$date->isSunday() && !isset(self::$holidayCache[$year][$date->toDateString()]);
+        return $t[$this->store?->clienteKey()] ?? $t['default'] ?? [0, 0];
     }
 
-    /** Anda $days dias úteis (segunda a sábado, sem feriados) para trás (-1) ou para a frente (+1). */
-    private static function shiftWorkingDays(Carbon $from, int $days, int $direction): Carbon
+    /** Pode ser feita fora do mês contratado (Lidl) ou só nesse mês (Sonae)? */
+    public function isFlexivel(): bool
     {
-        $date = $from->copy();
-        while ($days > 0) {
-            $date->addDays($direction);
-            if (self::isMaintenanceDay($date)) {
-                $days--;
-            }
-        }
-
-        return $date;
-    }
-
-    /** Dias úteis (segunda a sábado, sem feriados) depois de $from até $to, inclusive. */
-    public static function workingDaysBetween(Carbon $from, Carbon $to): int
-    {
-        $count = 0;
-        for ($d = $from->copy()->addDay(); $d->lte($to); $d->addDay()) {
-            if (self::isMaintenanceDay($d)) {
-                $count++;
-            }
-        }
-
-        return $count;
+        return array_sum($this->tolerancia()) > 0;
     }
 
     /**
-     * Há clientes em que o que está contratado é o mês, não o dia: a manutenção
-     * pode ser feita em qualquer dia desse mês (ver maintenance.month_clients).
-     */
-    public function isMensal(): bool
-    {
-        return in_array($this->store?->clienteKey(), config('maintenance.month_clients', []), true);
-    }
-
-    /**
-     * Prazo do ano: o mês inteiro, nos clientes mensais;
-     * nos outros, X dias úteis antes e depois da data contratada.
+     * Prazo do ano: do início do mês contratado (menos a tolerância) ao fim do mês
+     * contratado (mais a tolerância). O último dia é a data limite.
      */
     public function window(int $year): array
     {
-        $due = $this->dueDate($year);
+        $mes = $this->dueDate($year)->startOfMonth();
+        [$antes, $depois] = $this->tolerancia();
 
-        if ($this->isMensal()) {
-            return [$due->copy()->startOfMonth(), $due->copy()->endOfMonth()];
-        }
-
-        $days = (int) config('maintenance.window_working_days', 12);
-
-        return [self::shiftWorkingDays($due, $days, -1), self::shiftWorkingDays($due, $days, 1)];
+        return [
+            $mes->copy()->subMonthsNoOverflow($antes)->startOfMonth(),
+            $mes->copy()->addMonthsNoOverflow($depois)->endOfMonth()->startOfDay(),
+        ];
     }
 
     /** O contrato já existia nesse ano? */

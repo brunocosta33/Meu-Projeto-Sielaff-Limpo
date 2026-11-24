@@ -2,9 +2,15 @@
 
 return [
 
-    // A manutenção pode ser feita entre X dias úteis antes e X dias úteis depois da data contratada.
-    // Dias úteis aqui: segunda a sábado; domingos e feriados (nacionais e da empresa) não contam.
-    'window_working_days' => 12,
+    // O que se contrata é sempre o mês. Aqui diz-se quantos meses antes e depois dele a
+    // manutenção ainda conta como feita a tempo: [antes, depois]. O fim desse prazo é a
+    // data limite; passada ela, a manutenção fica "Em atraso".
+    //   Sonae: tem de ser feita no próprio mês.
+    //   Lidl (e as lojas sem cliente definido): pode ser um mês antes ou um mês depois.
+    'tolerancia_meses' => [
+        'sonae' => [0, 0],
+        'default' => [1, 1],
+    ],
 
     // Marcar como "Próxima" quando o prazo abre dentro destes dias
     'upcoming_days' => 30,
@@ -32,9 +38,6 @@ return [
             'sombra' => 'rgba(37, 99, 235, .25)',
         ],
     ],
-
-    // Clientes em que a manutenção vale o mês inteiro contratado, e não uma data com prazo à volta
-    'month_clients' => ['sonae'],
 
     'states' => [
         'atrasada' => ['label' => 'Em atraso', 'color' => '#c62828', 'bg' => '#fde2e1', 'icon' => 'fa-exclamation-circle'],

@@ -58,7 +58,6 @@ class StoreMaintenanceController extends Controller
             'states' => $states,
             'users' => User::whereNull('deleted_at')->orderBy('name')->get(['id', 'name'])
                 ->sortByDesc(fn ($u) => $technicianUserIds->contains($u->id))->values(),
-            'windowDays' => (int) config('maintenance.window_working_days'),
         ]);
     }
 
@@ -81,14 +80,17 @@ class StoreMaintenanceController extends Controller
             $m?->setRelation('store', $store);
 
             if (!$m || !$m->appliesTo($year)) {
+                // Prazo do primeiro ano do contrato, para o que se mostra na página
+                [$start, $end] = $m ? $m->window($m->data_contratada->year) : [null, null];
+
                 return (object) [
                     'maintenance' => $m,
                     'store' => $store,
                     'record' => null,
                     // O contrato existe, mas só começa num ano à frente: não é "por definir"
                     'due' => $m ? $m->dueDate($m->data_contratada->year) : null,
-                    'start' => null,
-                    'end' => null,
+                    'start' => $start,
+                    'end' => $end,
                     'status' => $m ? 'contrato_futuro' : 'por_definir',
                 ];
             }
@@ -141,6 +143,7 @@ class StoreMaintenanceController extends Controller
         /**
          * A ordem da lista:
          *  1. o que está em atraso, seja de que mês for — é o que não pode esperar;
+         *     logo a seguir, as do Lidl cujo mês já passou mas que ainda estão dentro do limite;
          *  2. o mês corrente, e daí para a frente até dar a volta ao ano;
          *  3. os meses já passados;
          *  4. no fim, quem não tem data este ano.
@@ -162,7 +165,11 @@ class StoreMaintenanceController extends Controller
 
             return sprintf(
                 '%d-%02d%02d-%02d-%s',
-                $r->status === 'atrasada' ? 0 : 1,
+                match (true) {
+                    $r->status === 'atrasada' => 0,
+                    $r->status === 'janela' && $r->due->lt(now()->startOfMonth()) => 1,
+                    default => 2,
+                },
                 $distancia,
                 $r->due->day,
                 $order[$r->status] ?? 99,
@@ -206,15 +213,15 @@ class StoreMaintenanceController extends Controller
     }
 
     /**
-     * Nos clientes mensais o campo é um mês (2026-11): guarda-se como o dia 1 desse mês,
-     * já que o que conta é o mês inteiro.
+     * O campo é um mês (2026-11): guarda-se como o dia 1 desse mês, já que o que se
+     * contrata é o mês. Uma data completa também passa para o dia 1.
      */
     private function mesParaData(Request $request): void
     {
         $valor = $request->input('data_contratada');
 
-        if (is_string($valor) && preg_match('/^\d{4}-\d{2}$/', $valor)) {
-            $request->merge(['data_contratada' => $valor . '-01']);
+        if (is_string($valor) && preg_match('/^(\d{4}-\d{2})(-\d{2})?$/', $valor, $m)) {
+            $request->merge(['data_contratada' => $m[1] . '-01']);
         }
     }
 
@@ -255,9 +262,9 @@ class StoreMaintenanceController extends Controller
         [$start, $end] = $maintenance->window((int) $data['ano']);
         $done = Carbon::parse($data['data_realizada']);
         if (!$done->between($start, $end)) {
-            flash($maintenance->isMensal()
-                ? __('Atenção: a data :data está fora do mês contratado (:mes).', ['data' => $done->format('d/m/Y'), 'mes' => $start->translatedFormat('F \d\e Y')])
-                : __('Atenção: a data :data está fora do prazo (:inicio a :fim).', ['data' => $done->format('d/m/Y'), 'inicio' => $start->format('d/m'), 'fim' => $end->format('d/m')]))->warning();
+            flash($maintenance->isFlexivel()
+                ? __('Atenção: a data :data está fora do prazo (:inicio a :fim).', ['data' => $done->format('d/m/Y'), 'inicio' => $start->format('d/m/Y'), 'fim' => $end->format('d/m/Y')])
+                : __('Atenção: a data :data está fora do mês contratado (:mes).', ['data' => $done->format('d/m/Y'), 'mes' => $start->translatedFormat('F \d\e Y')]))->warning();
         }
         flash(__('Manutenção :ano da loja :loja marcada como feita.', ['ano' => $data['ano'], 'loja' => $maintenance->store->codigo_loja]))->success();
 
