@@ -57,6 +57,11 @@
                border-radius: 6px; padding: .08rem .38rem; color: var(--tc); background: var(--tb); }
     .fg-loja { font-weight: 800; color: #0f172a; margin-top: .3rem; line-height: 1.25; }
     .fg-loja .cod { color: #94a3b8; font-weight: 700; margin-right: .15rem; }
+    .fg-os { display: inline-flex; align-items: center; gap: .3rem; margin: .35rem .3rem 0 0; padding: .12rem .5rem;
+             border-radius: 7px; background: #0f172a; color: #fff; font-family: ui-monospace, Menlo, monospace;
+             font-size: .8rem; font-weight: 700; letter-spacing: .02em; }
+    .fg-os b { font-family: inherit; font-size: .66rem; color: #94a3b8; }
+    .fg-os.falta { background: #fff; color: #94a3b8; border: 1px dashed #cbd5e1; font-family: inherit; font-weight: 600; font-size: .74rem; }
     .fg-serie { display: inline-flex; align-items: center; gap: 4px; margin-top: .3rem; padding: .1rem .45rem;
                 border-radius: 999px; background: linear-gradient(135deg, #ffe69a, #ffd166); color: #7a4a00;
                 font-size: .7rem; font-weight: 800; }

@@ -14,6 +14,13 @@
 
     <div class="fg-loja"><span class="cod">{{ $case->store->codigo_loja ?? '' }}</span>{{ $case->store->nome_loja ?? __('Sem loja') }}</div>
 
+    {{-- A ordem de serviço é o que identifica o processo: fica à vista --}}
+    @if(filled($case->os_numero))
+        <span class="fg-os" title="{{ __('Ordem de serviço') }}"><b>OS</b> {{ $case->os_numero }}</span>
+    @else
+        <span class="fg-os falta" title="{{ __('Ainda sem ordem de serviço') }}"><b>OS</b> {{ __('por registar') }}</span>
+    @endif
+
     @if($case->machine?->serial_number)
         <span class="fg-serie"><i class="fa fa-hashtag"></i> {{ $case->machine->serial_number }}</span>
     @endif
