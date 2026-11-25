@@ -1,4 +1,7 @@
 {
+    "Já passou": "Past",
+    "Sem dia marcado": "No day scheduled",
+    "{1} :count pedido|[2,*] :count pedidos": "{1} :count request|[2,*] :count requests",
     "De quem é a vez": "Whose turn",
     "Em que passo": "Current step",
     "Ponto de situação": "Status update",

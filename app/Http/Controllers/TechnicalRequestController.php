@@ -575,6 +575,10 @@ class TechnicalRequestController extends Controller
         $requests = $query->get();
         $requestsByTechnician = $requests
             ->groupBy('assigned_technician_id')
+            // Dentro de cada técnico, separado pelos dias em que está agendado; sem dia marcado no fim
+            ->map(fn ($technicianRequests) => $technicianRequests
+                ->sortBy(fn ($r) => $r->data_agendamento ? Carbon::parse($r->data_agendamento)->format('Y-m-d') : '9999-99-99')
+                ->values())
             ->sortBy(function ($technicianRequests) {
                 $technician = $technicianRequests->first()->assignedTechnician;
 

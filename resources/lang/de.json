@@ -1,4 +1,7 @@
 {
+  "Já passou": "Vorbei",
+  "Sem dia marcado": "Kein Tag geplant",
+  "{1} :count pedido|[2,*] :count pedidos": "{1} :count Anfrage|[2,*] :count Anfragen",
   "De quem é a vez": "Wer ist dran",
   "Em que passo": "Aktueller Schritt",
   "Ponto de situação": "Sachstand",

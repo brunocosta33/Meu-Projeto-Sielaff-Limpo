@@ -1,4 +1,7 @@
 {
+    "Já passou": "Ya pasó",
+    "Sem dia marcado": "Sin día programado",
+    "{1} :count pedido|[2,*] :count pedidos": "{1} :count solicitud|[2,*] :count solicitudes",
     "De quem é a vez": "De quién es el turno",
     "Em que passo": "En qué paso",
     "Ponto de situação": "Situación actual",

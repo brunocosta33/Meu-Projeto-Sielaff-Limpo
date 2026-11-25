@@ -89,6 +89,19 @@
         padding: 1.2rem;
     }
 
+    /* Separador por dia agendado, dentro de cada técnico */
+    .open-tech-table tr.open-day-row td { background: #eef4ff; color: #1e3a8a; font-size: .84rem; padding: .45rem .7rem;
+                                         border-left: 4px solid #3b82f6; }
+    .open-tech-table tr.open-day-row b { margin: 0 .3rem 0 .2rem; }
+    .open-tech-table tr.open-day-row .tag { font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em;
+                                           border-radius: 999px; padding: .08rem .45rem; background: #3b82f6; color: #fff; }
+    .open-tech-table tr.open-day-row .conta { float: right; font-weight: 700; opacity: .75; }
+    .open-tech-table tr.open-day-row.hoje td { background: #dcfce7; color: #166534; border-left-color: #16a34a; }
+    .open-tech-table tr.open-day-row.hoje .tag { background: #16a34a; }
+    .open-tech-table tr.open-day-row.passou td { background: #ffedd5; color: #9a3412; border-left-color: #f97316; }
+    .open-tech-table tr.open-day-row.passou .tag { background: #f97316; }
+    .open-tech-table tr.open-day-row.sem-dia td { background: #f1f5f9; color: #475569; border-left-color: #94a3b8; }
+
     .open-tech-group {
         border: 1px solid #dbe5f0;
         border-radius: 18px;
@@ -632,7 +645,31 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    @php($colunas = ($includeUnassigned ?? false) ? 9 : 8)
+                                    @php($diaAnterior = null)
                                     @foreach($technicianRequests as $technicalRequest)
+                                        {{-- Separador por dia agendado --}}
+                                        @php($dia = $technicalRequest->data_agendamento ? \Illuminate\Support\Carbon::parse($technicalRequest->data_agendamento)->startOfDay() : null)
+                                        @php($chaveDia = $dia?->format('Y-m-d') ?? 'sem')
+                                        @if($loop->first || $chaveDia !== ($diaAnterior ?? null))
+                                            @php($doDia = $technicianRequests->filter(fn ($r) => ($r->data_agendamento ? \Illuminate\Support\Carbon::parse($r->data_agendamento)->format('Y-m-d') : 'sem') === $chaveDia)->count())
+                                            <tr class="open-day-row {{ !$dia ? 'sem-dia' : ($dia->isToday() ? 'hoje' : ($dia->isPast() ? 'passou' : '')) }}">
+                                                <td colspan="{{ $colunas }}">
+                                                    <i class="fas {{ $dia ? 'fa-calendar-day' : 'fa-calendar-times' }}"></i>
+                                                    @if($dia)
+                                                        <b>{{ \Illuminate\Support\Str::ucfirst($dia->isoFormat('dddd, D [de] MMMM')) }}</b>
+                                                        @if($dia->isToday())<span class="tag">{{ __('Hoje') }}</span>
+                                                        @elseif($dia->isTomorrow())<span class="tag">{{ __('Amanhã') }}</span>
+                                                        @elseif($dia->isPast())<span class="tag">{{ __('Já passou') }}</span>
+                                                        @endif
+                                                    @else
+                                                        <b>{{ __('Sem dia marcado') }}</b>
+                                                    @endif
+                                                    <span class="conta">{{ trans_choice('{1} :count pedido|[2,*] :count pedidos', $doDia, ['count' => $doDia]) }}</span>
+                                                </td>
+                                            </tr>
+                                        @endif
+                                        @php($diaAnterior = $chaveDia)
                                         <tr>
                                             <td class="open-tech-main" data-label="{{ __('Loja') }}">
                                                 <div class="open-tech-store">
