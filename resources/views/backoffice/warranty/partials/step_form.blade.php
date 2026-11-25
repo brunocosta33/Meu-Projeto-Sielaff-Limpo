@@ -85,7 +85,7 @@
         </div>
         @if($doc)
             <div class="form-group col-sm-6">
-                <label>{{ __('Documento') }} <span class="text-muted font-weight-normal">({{ __('opcional') }})</span></label>
+                <label>{{ $stepId === 'cliente.enviada' ? __('Cotação enviada ao cliente') : __('Documento') }} <span class="text-muted font-weight-normal">({{ __('opcional') }})</span></label>
                 <input type="file" name="documento" class="form-control-file" accept=".pdf,.jpg,.jpeg,.png">
             </div>
         @endif

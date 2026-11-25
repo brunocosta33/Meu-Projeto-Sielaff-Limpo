@@ -64,7 +64,11 @@ return [
             'bg' => '#ede9fe',
             'types' => ['com_pecas', 'sem_pecas'],
             'halves' => [
-                'enviada' => ['label' => 'Cotação enviada', 'date' => 'enviada_cliente_em', 'fase' => 'enviada_cliente', 'todo' => 'Enviar a cotação ao cliente'],
+                // Com peças, a cotação para o cliente faz-se depois de chegar a da Alemanha e é um
+                // documento à parte; sem peças, a cotação é só nossa e é a mesma do processo.
+                'enviada' => ['label' => 'Cotação enviada', 'date' => 'enviada_cliente_em', 'fase' => 'enviada_cliente',
+                    'doc' => ['com_pecas' => 'cotacao_cliente', 'sem_pecas' => 'cotacao'],
+                    'todo' => ['com_pecas' => 'Após receber a cotação da Alemanha, enviar para o cliente', 'sem_pecas' => 'Enviar a cotação ao cliente']],
                 'oc' => ['label' => 'Ordem de compra', 'date' => 'oc_recebida_em', 'fase' => 'oc_recebida', 'doc' => 'oc', 'todo' => 'Receber a ordem de compra'],
             ],
         ],

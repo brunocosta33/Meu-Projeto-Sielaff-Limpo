@@ -23,7 +23,7 @@ class WarrantyCaseController extends Controller
     // Fotografias, cotações e ordens de compra ficam no disco privado (só abrem com sessão iniciada)
     private const DISK = 'local';
 
-    private const DOC_TYPES = ['os', 'cotacao', 'oc', 'servico'];
+    private const DOC_TYPES = ['os', 'cotacao', 'cotacao_cliente', 'oc', 'servico'];
 
     /**
      * O quadro: uma coluna por "de quem é a vez" (nós, Sielaff, cliente, Alemanha).
@@ -312,9 +312,9 @@ class WarrantyCaseController extends Controller
         return match ("$block.$half") {
             'visita.feita' => ['os_numero' => ['required', 'string', 'max:100'], 'os_texto' => ['required', 'string', 'max:5000']] + $doc,
             'sielaff.recebida' => ['cotacao_numero' => ['required', 'string', 'max:100']] + $doc,
-            'cliente.enviada' => ['enviada_para' => ['nullable', 'string', 'max:255']]
-                // Sem peças a cotação é nossa: o número e o PDF entram aqui
-                + ($case->needsParts() ? [] : ['cotacao_numero' => ['required', 'string', 'max:100']] + $doc),
+            'cliente.enviada' => ['enviada_para' => ['nullable', 'string', 'max:255']] + $doc
+                // Sem peças a cotação é nossa: o número entra aqui
+                + ($case->needsParts() ? [] : ['cotacao_numero' => ['required', 'string', 'max:100']]),
             'cliente.oc' => ['oc_numero' => ['required', 'string', 'max:100']] + $doc,
             'alemanha.pedida' => ['artigo_numero' => ['required', 'string', 'max:255'], 'cliente_numero' => ['required', 'string', 'max:100']],
             'alemanha.recebida' => ['peca_origem' => ['required', Rule::in(array_keys(config('warranty.part_origins')))]],
@@ -332,7 +332,9 @@ class WarrantyCaseController extends Controller
             'visita.feita' => $only(['os_numero', 'os_texto']) + $this->storeDocument($request, $case, 'os'),
             'sielaff.recebida' => $only(['cotacao_numero']) + $this->storeDocument($request, $case, 'cotacao'),
             'cliente.enviada' => ['enviada_para' => $data['enviada_para'] ?? null]
-                + ($case->needsParts() ? [] : $only(['cotacao_numero']) + $this->storeDocument($request, $case, 'cotacao')),
+                + ($case->needsParts()
+                    ? $this->storeDocument($request, $case, 'cotacao_cliente')
+                    : $only(['cotacao_numero']) + $this->storeDocument($request, $case, 'cotacao')),
             'cliente.oc' => $only(['oc_numero']) + $this->storeDocument($request, $case, 'oc'),
             'alemanha.pedida' => $only(['artigo_numero', 'cliente_numero']),
             'alemanha.recebida' => $only(['peca_origem']),
@@ -350,7 +352,7 @@ class WarrantyCaseController extends Controller
             'sielaff.pedida' => ['cotacao_pedida_em'],
             'sielaff.recebida' => ['cotacao_recebida_em', 'cotacao_numero', 'cotacao_path', 'cotacao_nome'],
             'cliente.enviada' => array_merge(['enviada_cliente_em', 'enviada_para'],
-                $case->needsParts() ? [] : ['cotacao_numero', 'cotacao_path', 'cotacao_nome']),
+                $case->needsParts() ? ['cotacao_cliente_path', 'cotacao_cliente_nome'] : ['cotacao_numero', 'cotacao_path', 'cotacao_nome']),
             'cliente.oc' => ['oc_recebida_em', 'oc_numero', 'oc_path', 'oc_nome'],
             'alemanha.pedida' => ['alemanha_enviado_em', 'artigo_numero', 'cliente_numero'],
             'alemanha.recebida' => ['peca_recebida_em', 'peca_origem'],

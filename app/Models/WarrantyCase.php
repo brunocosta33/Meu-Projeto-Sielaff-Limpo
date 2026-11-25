@@ -21,7 +21,7 @@ class WarrantyCase extends Model
         'store_id', 'machine_id', 'technical_request_id', 'cliente', 'tipo', 'data_avaria', 'descricao', 'observacoes', 'fase', 'fase_desde',
         'os_numero', 'os_em', 'os_texto', 'os_path', 'os_nome',
         'cotacao_pedida_em', 'cotacao_numero', 'cotacao_recebida_em', 'cotacao_path', 'cotacao_nome',
-        'enviada_cliente_em', 'enviada_para', 'oc_numero', 'oc_recebida_em', 'oc_path', 'oc_nome', 'artigo_numero', 'cliente_numero', 'alemanha_enviado_em', 'peca_recebida_em', 'peca_origem', 'servico_path', 'servico_nome',
+        'enviada_cliente_em', 'enviada_para', 'oc_numero', 'oc_recebida_em', 'oc_path', 'oc_nome', 'cotacao_cliente_path', 'cotacao_cliente_nome', 'artigo_numero', 'cliente_numero', 'alemanha_enviado_em', 'peca_recebida_em', 'peca_origem', 'servico_path', 'servico_nome',
         'fechado_em', 'motivo_recusa', 'created_by', 'updated_by',
     ];
 
@@ -118,7 +118,7 @@ class WarrantyCase extends Model
         $steps = [];
         foreach ($this->blocks() as $blockKey => $block) {
             foreach ($block['halves'] as $halfKey => $half) {
-                $steps[] = $half + ['block' => $blockKey, 'half' => $halfKey];
+                $steps[] = $this->porTipo($half) + ['block' => $blockKey, 'half' => $halfKey];
             }
         }
 
@@ -133,7 +133,19 @@ class WarrantyCase extends Model
             return null;
         }
 
-        return $config['halves'][$half] + ['block' => $block, 'half' => $half];
+        return $this->porTipo($config['halves'][$half]) + ['block' => $block, 'half' => $half];
+    }
+
+    /** Numa metade, o documento e o texto podem mudar com o tipo de processo: fica o deste. */
+    private function porTipo(array $half): array
+    {
+        foreach (['doc', 'todo'] as $chave) {
+            if (is_array($half[$chave] ?? null)) {
+                $half[$chave] = $half[$chave][$this->tipo] ?? null;
+            }
+        }
+
+        return array_filter($half, fn ($v) => $v !== null);
     }
 
     /** Uma metade está preenchida quando tem data (no fecho, conta também qual das duas é). */
