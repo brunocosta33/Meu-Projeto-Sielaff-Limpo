@@ -25,8 +25,7 @@
         <table class="table fg-tabela mb-0">
             <thead>
                 <tr>
-                    <th style="width: 7.5rem">{{ __('OS') }}</th>
-                    <th>{{ __('Loja') }}</th>
+                    <th style="min-width: 14rem">{{ __('Loja') }} / {{ __('OS') }}</th>
                     <th>{{ __('Máquina') }}</th>
                     <th style="width: 7rem">{{ __('Data da avaria') }}</th>
                     <th style="min-width: 12rem">{{ __('Avaria') }}</th>
@@ -46,18 +45,6 @@
                     @php($abrir = route('backoffice.warranty.show', $case->id))
                     <tr>
                         <td>
-                            <a href="{{ $abrir }}" class="text-decoration-none">
-                                @if(filled($case->os_numero))
-                                    <span class="fg-os" title="{{ __('Ordem de serviço') }}"><b>OS</b> {{ $case->os_numero }}</span>
-                                @else
-                                    <span class="fg-os falta">{{ __('OS por registar') }}</span>
-                                @endif
-                            </a>
-                            <div class="fg-tipo-l" style="--tc: {{ $tipo['color'] }}; --tb: {{ $tipo['bg'] }}">
-                                <i class="fas {{ $tipo['icon'] }}"></i> {{ __($tipo['curto']) }}
-                            </div>
-                        </td>
-                        <td>
                             <div class="d-flex flex-wrap" style="gap: .25rem">
                                 @if($marca)
                                     <span class="fg-marca" style="--grad: {{ $marca['gradiente'] }}; --txt: {{ $marca['texto'] }}">{{ $marca['label'] }}</span>
@@ -69,6 +56,17 @@
                             <a href="{{ $abrir }}" class="fg-loja-l">
                                 <span class="cod">{{ $case->store->codigo_loja ?? '' }}</span> {{ $case->store->nome_loja ?? __('Sem loja') }}
                             </a>
+                            {{-- Por baixo da loja: a ordem de serviço e se leva peças --}}
+                            <div class="fg-os-linha">
+                                @if(filled($case->os_numero))
+                                    <a href="{{ $abrir }}" class="fg-os-l" title="{{ __('Ordem de serviço') }}"><b>OS</b> {{ $case->os_numero }}</a>
+                                @else
+                                    <a href="{{ $abrir }}" class="fg-os-l falta">{{ __('OS por registar') }}</a>
+                                @endif
+                                <span class="fg-tipo-l" style="--tc: {{ $tipo['color'] }}; --tb: {{ $tipo['bg'] }}">
+                                    <i class="fas {{ $tipo['icon'] }}"></i> {{ __($tipo['curto']) }}
+                                </span>
+                            </div>
                         </td>
                         <td>
                             @if($case->machine?->serial_number)
@@ -135,7 +133,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="8" class="fg-vazio"><i class="far fa-smile"></i> {{ __('Nada em aberto aqui.') }}</td></tr>
+                    <tr><td colspan="7" class="fg-vazio"><i class="far fa-smile"></i> {{ __('Nada em aberto aqui.') }}</td></tr>
                 @endforelse
             </tbody>
         </table>

@@ -100,7 +100,14 @@
                           background: #f8fafc; border-bottom: 2px solid #e2e8f0; border-top: 0; white-space: nowrap; }
     .fg-tabela td { vertical-align: top; border-top: 1px solid #edf1f6; font-size: .86rem; }
     .fg-tabela tbody tr:hover { background: #fbfcfe; }
-    .fg-tipo-l { display: inline-flex; align-items: center; gap: .25rem; margin-top: .35rem; font-size: .66rem; font-weight: 800;
+    .fg-os-linha { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem; margin-top: .35rem; }
+    .fg-os-l { display: inline-flex; align-items: center; gap: .3rem; padding: .1rem .5rem; border-radius: 7px;
+               background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; font-size: .8rem; font-weight: 700;
+               letter-spacing: .02em; text-decoration: none !important; }
+    .fg-os-l b { font-size: .66rem; color: #60a5fa; }
+    .fg-os-l:hover { background: #dbeafe; color: #1e3a8a; }
+    .fg-os-l.falta { background: #fff; color: #94a3b8; border: 1px dashed #cbd5e1; font-weight: 600; font-size: .74rem; }
+    .fg-tipo-l { display: inline-flex; align-items: center; gap: .25rem; font-size: .66rem; font-weight: 800;
                  text-transform: uppercase; border-radius: 6px; padding: .08rem .38rem; color: var(--tc); background: var(--tb); }
     .fg-zona { font-size: .64rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; border-radius: 999px;
                padding: .1rem .45rem; color: var(--zc); background: var(--zb); border: 1px solid var(--zc); }
