@@ -2,30 +2,93 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\FolhaComEstilo;
 use App\Http\Controllers\TechnicalRequestController;
 use App\Models\TechnicalRequest;
 use App\Models\User;
-use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithEvents;
-use Maatwebsite\Excel\Events\AfterSheet;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithStrictNullComparison;
+use Maatwebsite\Excel\Concerns\WithTitle;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class TechnicalRequestsExport implements FromCollection, WithHeadings, WithStyles, WithEvents
+/**
+ * Pedidos técnicos em Excel, com os filtros que estão à vista na página.
+ * Mesmo aspeto das outras exportações (FolhaComEstilo), com cor no estado,
+ * na prioridade e na insígnia, e as datas como datas a sério (dá para ordenar e filtrar).
+ */
+class TechnicalRequestsExport implements FromCollection, WithHeadings, WithEvents, WithTitle, WithColumnWidths, WithColumnFormatting, WithStrictNullComparison
 {
+    use FolhaComEstilo;
+
+    //  A Nº           E Cidade        I Tipo de serviço  M Estado        Q Observações
+    //  B Data pedido  F Zona          J Origem           N Responsável
+    //  C Insígnia     G Nºs de série  K Descrição        O Agendamento
+    //  D Loja         H Modelos       L Prioridade       P Resolução
+
+    /** O estado, a prioridade e o cliente de cada linha (pela ordem), para as cores. */
+    private array $marcas = [];
+
+    private const CORES_ESTADO = [
+        'pendente' => ['FEF3C7', '92400E'],
+        'agendado' => ['DBEAFE', '1E40AF'],
+        'aguarda_peca' => ['FFEDD5', '9A3412'],
+        'concluido' => ['DCFCE7', '166534'],
+        'cancelado' => ['F1F5F9', '64748B'],
+    ];
+
+    private const CORES_PRIORIDADE = [
+        'baixa' => ['E0F2FE', '075985'],
+        'media' => ['FEF9C3', '854D0E'],
+        'alta' => ['FEE2E2', 'B91C1C'],
+    ];
+
     public function __construct(
         private ?User $technician = null,
         private array $filters = []
-    )
+    ) {
+    }
+
+    public function title(): string
     {
+        return $this->technician
+            ? \Illuminate\Support\Str::limit(__('Pedidos') . ' - ' . $this->technician->name, 31, '')
+            : __('Pedidos técnicos');
+    }
+
+    protected function colunasCentradas(): array
+    {
+        return ['A', 'B', 'C', 'F', 'G', 'L', 'M', 'O', 'P'];
+    }
+
+    protected function colunasLargas(): array
+    {
+        return ['D', 'G', 'H', 'K', 'Q'];
+    }
+
+    public function columnWidths(): array
+    {
+        return ['A' => 8, 'B' => 12, 'C' => 12, 'D' => 30, 'E' => 16, 'F' => 10, 'G' => 18, 'H' => 22,
+            'I' => 20, 'J' => 16, 'K' => 48, 'L' => 12, 'M' => 15, 'N' => 20, 'O' => 17, 'P' => 17, 'Q' => 40];
+    }
+
+    public function columnFormats(): array
+    {
+        return ['B' => 'dd/mm/yyyy', 'O' => 'dd/mm/yyyy hh:mm', 'P' => 'dd/mm/yyyy hh:mm'];
     }
 
     public function collection()
     {
-        $query = TechnicalRequest::with(['store', 'machine', 'assignedTechnician']);
+        $query = TechnicalRequest::with(['store', 'machine', 'machines.machine', 'assignedTechnician']);
 
         if ($this->technician) {
             $query->where('assigned_technician_id', $this->technician->id);
@@ -114,165 +177,89 @@ class TechnicalRequestsExport implements FromCollection, WithHeadings, WithStyle
             }
         }
 
-        return $query
-            ->get()
-            ->map(function ($req) {
-                $storeLabel = $req->store
-                    ? trim(($req->store->codigo_loja ?: '-') . ' - ' . ($req->store->nome_loja ?: '-'))
-                    : __('Sem loja associada');
+        $pedidos = $query->orderByDesc('data_pedido')->orderByDesc('id')->get();
 
-                return [
-                    'Insígnia'         => $req->store?->insignia ? ucfirst($req->store->insignia) : '',
-                    'Loja'             => $storeLabel,
-                    'Responsável atribuído' => $req->assignedPersonLabel(),
-                    'Estado'           => __(TechnicalRequestController::STATUSES[$req->estado] ?? ucfirst((string) $req->estado)),
-                    'Origem'           => $req->origem,
-                    'Tipo de Serviço'  => $req->tipo_servico ? __(TechnicalRequestController::SERVICE_TYPES[$req->tipo_servico] ?? $req->tipo_servico) : '',
-                    'Zona'             => $req->zona ? __(TechnicalRequestController::ZONES[$req->zona] ?? ucfirst($req->zona)) : '',
-                    'Descrição'        => $req->descricao_problema,
-                    'Prioridade'       => __(TechnicalRequestController::PRIORITIES[$req->prioridade] ?? ucfirst((string) $req->prioridade)),
-                    'Data Pedido'      => $req->data_pedido ? Carbon::parse($req->data_pedido)->format('d/m/Y') : '',
-                    'Data Agendamento' => $req->data_agendamento ? Carbon::parse($req->data_agendamento)->format('d/m/Y H:i') : '',
-                    'Data Resolução'   => $req->data_resolucao ? Carbon::parse($req->data_resolucao)->format('d/m/Y H:i') : '',
-                    'Observações'      => $req->observacoes,
-                ];
-            });
+        $data = fn ($valor) => $valor ? ExcelDate::PHPToExcel(Carbon::parse($valor)) : null;
+
+        return $pedidos->map(function (TechnicalRequest $req) use ($data) {
+            $maquinas = collect([$req->machine])
+                ->merge($req->machines->map(fn ($m) => $m->machine))
+                ->filter()
+                ->unique('id');
+
+            $this->marcas[] = [
+                'estado' => $req->estado,
+                'prioridade' => $req->prioridade,
+                'cliente' => $req->store?->clienteConfig(),
+            ];
+
+            return [
+                $req->id,
+                $data($req->data_pedido),
+                $req->store?->insignia ? ucfirst($req->store->insignia) : '',
+                $req->store
+                    ? trim(($req->store->codigo_loja ?: '-') . ' - ' . ($req->store->nome_loja ?: '-'))
+                    : __('Sem loja associada'),
+                $req->store?->cidade,
+                $req->zona ? __(TechnicalRequestController::ZONES[$req->zona] ?? ucfirst($req->zona)) : '',
+                $maquinas->pluck('serial_number')->filter()->implode("\n"),
+                $maquinas->map(fn ($m) => $m->descricao ?: $m->modelo)->filter()->unique()->implode("\n"),
+                $req->tipo_servico ? __(TechnicalRequestController::SERVICE_TYPES[$req->tipo_servico] ?? $req->tipo_servico) : '',
+                $req->origem,
+                $req->descricao_problema,
+                __(TechnicalRequestController::PRIORITIES[$req->prioridade] ?? ucfirst((string) $req->prioridade)),
+                __(TechnicalRequestController::STATUSES[$req->estado] ?? ucfirst((string) $req->estado)),
+                $req->assignedPersonLabel(),
+                $data($req->data_agendamento),
+                $data($req->data_resolucao),
+                $req->observacoes,
+            ];
+        });
     }
 
     public function headings(): array
     {
         return [
-            __('Insígnia'),
-            __('Loja'),
-            __('Responsável atribuído'),
-            __('Estado'),
-            __('Origem'),
-            __('Tipo de Serviço'),
-            __('Zona'),
-            __('Descrição'),
-            __('Prioridade'),
-            __('Data Pedido'),
-            __('Data Agendamento'),
-            __('Data Resolução'),
-            __('Observações'),
+            __('Nº'), __('Data Pedido'), __('Insígnia'), __('Loja'), __('Cidade'), __('Zona'),
+            __('Nºs de série'), __('Modelos'), __('Tipo de Serviço'), __('Origem'), __('Descrição'),
+            __('Prioridade'), __('Estado'), __('Responsável atribuído'),
+            __('Data Agendamento'), __('Data Resolução'), __('Observações'),
         ];
     }
 
-    public function styles(Worksheet $sheet)
+    /** Estado e prioridade em "etiqueta" de cor; a insígnia com a cor do cliente. */
+    protected function estiloExtra(Worksheet $folha, int $ultimaLinha, string $ultimaColuna): void
     {
-        // Cabeçalho (linha 1)
-        $sheet->getStyle(1)->applyFromArray([
-            'font' => [
-                'bold' => true,
-                'color' => ['rgb' => 'FFFFFF'], // texto branco
-                'size' => 12,
-            ],
-            'fill' => [
-                'fillType' => 'solid',
-                'color' => ['rgb' => '4CAF50'], // verde
-            ],
-            'alignment' => [
-                'horizontal' => 'center',
-            ],
-        ]);
+        $etiqueta = function (string $celula, ?array $cores) use ($folha) {
+            if (!$cores) {
+                return;
+            }
+            [$fundo, $letra] = $cores;
+            $folha->getStyle($celula)->applyFromArray([
+                'font' => ['bold' => true, 'color' => ['rgb' => $letra]],
+                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => $fundo]],
+                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'indent' => 0],
+            ]);
+        };
 
-        // Largura automática
-        foreach (range('A', 'M') as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
+        foreach ($this->marcas as $i => $marca) {
+            $linha = $i + 2;
+            $etiqueta('M' . $linha, self::CORES_ESTADO[$marca['estado']] ?? null);
+            $etiqueta('L' . $linha, self::CORES_PRIORIDADE[$marca['prioridade']] ?? null);
+
+            if ($cliente = $marca['cliente']) {
+                $cor = strtoupper(ltrim($cliente['color'], '#'));
+                $letra = strtoupper(ltrim($cliente['texto'], '#'));
+                $etiqueta('C' . $linha, [$cor, $letra]);
+            }
+
+            // Os nºs de série são texto (senão o Excel trata-os como números e encosta-os à direita)
+            $serie = $folha->getCell('G' . $linha);
+            $serie->setValueExplicit((string) $serie->getValue(), DataType::TYPE_STRING);
+
+            // O nº de série e o nº do pedido a negrito: é o que se procura primeiro
+            $folha->getStyle('A' . $linha)->getFont()->setBold(true);
+            $folha->getStyle('G' . $linha)->getFont()->setBold(true)->getColor()->setRGB('B45309');
         }
-
-        return [];
-    }
-
-    public function registerEvents(): array
-    {
-        return [
-            AfterSheet::class => function (AfterSheet $event) {
-                $sheet = $event->sheet->getDelegate();
-                $rowCount = $sheet->getHighestRow();
-
-                // Iterar pelas linhas (começa em 2 porque 1 é cabeçalho)
-                for ($row = 2; $row <= $rowCount; $row++) {
-                    $estado = strtolower($sheet->getCell("D$row")->getValue()); // Estado está na coluna D
-                    $prioridade = strtolower($sheet->getCell("I$row")->getValue()); // Prioridade está na coluna I
-                    $dataAgendamento = $sheet->getCell("K$row")->getValue(); // Data Agendamento na coluna K
-                    $dataResolucao   = $sheet->getCell("L$row")->getValue(); // Data Resolução na coluna L
-
-                    // --- Cores para ESTADO ---
-                    switch ($estado) {
-                        case 'pendente':
-                            $colorEstado = 'FFF59D'; // amarelo claro
-                            break;
-                        case 'agendado':
-                            $colorEstado = '81D4FA'; // azul claro
-                            break;
-                        case 'concluido':
-                            $colorEstado = 'A5D6A7'; // verde claro
-                            break;
-                        case 'cancelado':
-                            $colorEstado = 'EF9A9A'; // vermelho claro
-                            break;
-                        case 'aguarda peca':
-                            $colorEstado = 'FF7043'; // laranja
-                            break;
-                        default:
-                            $colorEstado = null;
-                    }
-
-                    if ($colorEstado) {
-                        $sheet->getStyle("D$row")->applyFromArray([
-                            'fill' => [
-                                'fillType' => 'solid',
-                                'color' => ['rgb' => $colorEstado],
-                            ],
-                        ]);
-                    }
-
-                    // --- Cores para PRIORIDADE ---
-                    switch ($prioridade) {
-                        case 'baixa':
-                            $colorPrioridade = '81D4FA'; // azul claro
-                            break;
-                        case 'media':
-                            $colorPrioridade = 'FFF59D'; // amarelo claro
-                            break;
-                        case 'alta':
-                            $colorPrioridade = 'EF9A9A'; // vermelho claro
-                            break;
-                        default:
-                            $colorPrioridade = null;
-                    }
-
-                    if ($colorPrioridade) {
-                        $sheet->getStyle("I$row")->applyFromArray([
-                            'fill' => [
-                                'fillType' => 'solid',
-                                'color' => ['rgb' => $colorPrioridade],
-                            ],
-                        ]);
-                    }
-
-                    // --- Cor para Data Agendamento (coluna I) ---
-                    if (!empty($dataAgendamento)) {
-                        $sheet->getStyle("K$row")->applyFromArray([
-                            'fill' => [
-                                'fillType' => 'solid',
-                                'color' => ['rgb' => 'FFF59D'], // amarelo
-                            ],
-                        ]);
-                    }
-
-                    // --- Cor para Data Resolução (coluna J) ---
-                    if (!empty($dataResolucao)) {
-                        $sheet->getStyle("L$row")->applyFromArray([
-                            'fill' => [
-                                'fillType' => 'solid',
-                                'color' => ['rgb' => 'A5D6A7'], // verde
-                            ],
-                        ]);
-                    }
-                }
-            },
-        ];
     }
 }
