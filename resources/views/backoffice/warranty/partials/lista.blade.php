@@ -25,6 +25,7 @@
         <table class="table fg-tabela mb-0">
             <thead>
                 <tr>
+                    <th style="width: 7rem">{{ __('Data da avaria') }}</th>
                     <th style="width: 7.5rem">{{ __('OS') }}</th>
                     <th>{{ __('Loja') }}</th>
                     <th>{{ __('Máquina') }}</th>
@@ -44,6 +45,14 @@
                     @php($nota = $case->latestNote)
                     @php($abrir = route('backoffice.warranty.show', $case->id))
                     <tr>
+                        <td>
+                            @if($case->data_avaria)
+                                <div class="fg-data">{{ $case->data_avaria->format('d/m/Y') }}</div>
+                                <div class="fg-mini">{{ trans_choice('{0} hoje|{1} há :count dia|[2,*] há :count dias', $d = (int) $case->data_avaria->copy()->startOfDay()->diffInDays(now()->startOfDay()), ['count' => $d]) }}</div>
+                            @else
+                                <span class="fg-mini">—</span>
+                            @endif
+                        </td>
                         <td>
                             <a href="{{ $abrir }}" class="text-decoration-none">
                                 @if(filled($case->os_numero))
@@ -79,7 +88,6 @@
                         </td>
                         <td>
                             <div class="fg-avaria-l" title="{{ $case->descricao }}">{{ $case->descricao }}</div>
-                            <div class="fg-mini">{{ __('Avaria a') }} {{ optional($case->data_avaria)->format('d/m/Y') }}</div>
                         </td>
                         <td>
                             <div class="fg-passos" title="{{ collect($case->blocks())->map(fn ($b) => __($b['curto']))->implode(' → ') }}">
@@ -127,7 +135,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="7" class="fg-vazio"><i class="far fa-smile"></i> {{ __('Nada em aberto aqui.') }}</td></tr>
+                    <tr><td colspan="8" class="fg-vazio"><i class="far fa-smile"></i> {{ __('Nada em aberto aqui.') }}</td></tr>
                 @endforelse
             </tbody>
         </table>

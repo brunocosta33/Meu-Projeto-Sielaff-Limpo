@@ -108,6 +108,8 @@
     .fg-loja-l:hover { color: #b91c1c; text-decoration: none; }
     .fg-loja-l .cod { color: #94a3b8; font-weight: 700; }
     .fg-mini { font-size: .74rem; color: #94a3b8; margin-top: .2rem; }
+    .fg-data { display: inline-block; font-weight: 800; font-size: .9rem; color: #0f172a; background: #f1f5f9;
+               border-radius: 8px; padding: .15rem .5rem; white-space: nowrap; }
     .fg-avaria-l { color: #334155; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
     .fg-vez-l { margin-top: .4rem; font-size: .78rem; font-weight: 800; color: var(--c); }
     .fg-proximo-l { margin-top: .3rem; font-size: .76rem; font-weight: 700; color: #475569; }
