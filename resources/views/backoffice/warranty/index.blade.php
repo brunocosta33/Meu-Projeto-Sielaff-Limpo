@@ -1,7 +1,7 @@
 @extends('layouts.backoffice_master')
 
 @php(\Carbon\Carbon::setLocale(app()->getLocale()))
-@php($filters = request()->only(['q', 'cliente', 'tipo']))
+@php($filters = request()->only(['q', 'cliente', 'tipo', 'vista', 'vez']))
 @php($marcas = config('maintenance.clients'))
 
 @section('head-meta')
@@ -85,6 +85,42 @@
     .fg-datas span b { font-weight: 800; color: #1e293b; margin-right: .15rem; }
     .fg-datas .fotos { border-left: 0; background: none; color: #94a3b8; margin-left: auto; }
 
+    /* ---- A lista (vista principal) ---- */
+    .fg-vistas { display: inline-flex; border: 1px solid #dde3ea; border-radius: 10px; overflow: hidden; }
+    .fg-vistas a { padding: .3rem .75rem; font-size: .82rem; font-weight: 700; color: #475569; text-decoration: none !important; }
+    .fg-vistas a.on { background: #1e293b; color: #fff; }
+    .fg-vezes { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
+    .fg-vezes .rotulo { font-size: .72rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: .06em; margin-right: .2rem; }
+    .fg-vez-btn { display: inline-flex; align-items: center; gap: .35rem; border: 1px solid #dde3ea; background: #fff; color: #475569;
+                  border-radius: 999px; padding: .22rem .75rem; font-size: .82rem; font-weight: 700; text-decoration: none !important; }
+    .fg-vez-btn:hover { border-color: var(--c); color: var(--c); }
+    .fg-vez-btn.on { background: var(--c); border-color: var(--c); color: #fff; }
+    .fg-vez-btn .n { opacity: .75; font-weight: 800; }
+    .fg-tabela thead th { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: #64748b;
+                          background: #f8fafc; border-bottom: 2px solid #e2e8f0; border-top: 0; white-space: nowrap; }
+    .fg-tabela td { vertical-align: top; border-top: 1px solid #edf1f6; font-size: .86rem; }
+    .fg-tabela tbody tr:hover { background: #fbfcfe; }
+    .fg-tipo-l { display: inline-flex; align-items: center; gap: .25rem; margin-top: .35rem; font-size: .66rem; font-weight: 800;
+                 text-transform: uppercase; border-radius: 6px; padding: .08rem .38rem; color: var(--tc); background: var(--tb); }
+    .fg-zona { font-size: .64rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; border-radius: 999px;
+               padding: .1rem .45rem; color: var(--zc); background: var(--zb); border: 1px solid var(--zc); }
+    .fg-loja-l { display: block; margin-top: .3rem; font-weight: 800; color: #0f172a; line-height: 1.25; }
+    .fg-loja-l:hover { color: #b91c1c; text-decoration: none; }
+    .fg-loja-l .cod { color: #94a3b8; font-weight: 700; }
+    .fg-mini { font-size: .74rem; color: #94a3b8; margin-top: .2rem; }
+    .fg-avaria-l { color: #334155; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .fg-vez-l { margin-top: .4rem; font-size: .78rem; font-weight: 800; color: var(--c); }
+    .fg-proximo-l { margin-top: .3rem; font-size: .76rem; font-weight: 700; color: #475569; }
+    .fg-tabela .fg-passos { margin-top: .15rem; max-width: 10rem; }
+    /* O ponto de situação: escreve-se na própria linha */
+    .fg-sit .ver { position: relative; border-left: 3px solid #cbd5e1; padding: .1rem 0 .1rem .6rem; }
+    .fg-sit .texto { white-space: pre-line; color: #0f172a; line-height: 1.4; }
+    .fg-sit .texto.vazio { color: #a3b0bf; font-style: italic; }
+    .fg-sit .quem { font-size: .72rem; color: #94a3b8; margin-top: .2rem; }
+    .fg-sit .editar { margin-top: .3rem; border: 0; background: none; padding: 0; font-size: .76rem; font-weight: 700; color: #2563eb; }
+    .fg-sit .editar:hover { text-decoration: underline; }
+    .fg-sit.acabou .ver { border-left-color: #16a34a; background: #f0fdf4; transition: background .3s; }
+
     /* ---- Fechados ---- */
     .fg-fechados { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: .6rem; }
     .fg-fechado-estado { font-size: .78rem; font-weight: 800; margin-top: .4rem; }
@@ -100,7 +136,9 @@
     <div class="fg-faixa">
         <div>
             <div class="t"><i class="fas fa-file-invoice-dollar"></i> {{ __('Fora da Garantia') }}</div>
-            <span class="sub">{{ __('Avarias por culpa do cliente. Cada processo está na coluna de quem tem de dar o próximo passo.') }}</span>
+            <span class="sub">{{ $vista === 'lista'
+                ? __('Avarias por culpa do cliente. Uma linha por processo aberto, com o ponto de situação à frente.')
+                : __('Avarias por culpa do cliente. Cada processo está na coluna de quem tem de dar o próximo passo.') }}</span>
         </div>
         <a href="{{ route('backoffice.warranty.create') }}" class="btn btn-novo"><i class="fa fa-plus"></i> {{ __('Novo processo') }}</a>
     </div>
@@ -122,7 +160,9 @@
                 @endforeach
 
                 <form method="GET" class="form-inline" style="gap: .45rem">
-                    @if(request('cliente'))<input type="hidden" name="cliente" value="{{ request('cliente') }}">@endif
+                    @foreach(['cliente', 'vista', 'vez'] as $campo)
+                        @if(request($campo))<input type="hidden" name="{{ $campo }}" value="{{ request($campo) }}">@endif
+                    @endforeach
                     <select name="tipo" class="form-control form-control-sm" onchange="this.form.submit()">
                         <option value="">{{ __('Com e sem peças') }}</option>
                         @foreach($types as $value => $type)
@@ -135,6 +175,14 @@
             </div>
 
             <div class="fg-filtros">
+                <span class="fg-vistas">
+                    <a href="{{ route('backoffice.warranty.index', \Illuminate\Support\Arr::except($filters, 'vista')) }}" class="{{ $vista === 'lista' ? 'on' : '' }}">
+                        <i class="fas fa-list"></i> {{ __('Lista') }}
+                    </a>
+                    <a href="{{ route('backoffice.warranty.index', ['vista' => 'quadro'] + \Illuminate\Support\Arr::except($filters, 'vez')) }}" class="{{ $vista === 'quadro' ? 'on' : '' }}">
+                        <i class="fas fa-columns"></i> {{ __('Quadro') }}
+                    </a>
+                </span>
                 <a href="{{ route('backoffice.warranty.index', $filters + ($verFechados ? [] : ['fechados' => 1])) }}"
                    class="fg-chip {{ $verFechados ? 'on' : '' }}" style="--grad: linear-gradient(135deg, #15803d, #22c55e)">
                     <i class="fas fa-check-circle"></i> {{ __('Fechados') }} <span class="n">{{ $totalFechados }}</span>
@@ -154,6 +202,9 @@
     'alemanha' => __('Encomendámos a peça; falta chegar.'),
 ])
 
+@if($vista === 'lista')
+    @include('backoffice.warranty.partials.lista')
+@else
 <div class="fg-quadro mb-3">
     @foreach($colunas as $quem => $lista)
         @php($cfg = $esperas[$quem])
@@ -201,6 +252,7 @@
         </div>
     </section>
 </div>
+@endif
 
 @if($verFechados)
     <div class="card" id="fechados">

@@ -26,16 +26,27 @@ class WarrantyCaseController extends Controller
     private const DOC_TYPES = ['os', 'cotacao', 'oc', 'servico'];
 
     /**
-     * O quadro: uma coluna por "de quem é a vez" (nós, Sielaff, cliente, Alemanha).
-     * Cada processo aberto fica na coluna onde está parado; os fechados ficam à parte.
+     * Duas vistas dos processos abertos:
+     *  - lista (a principal): uma linha por processo, com o ponto de situação à frente, como numa folha de Excel;
+     *  - quadro: uma coluna por "de quem é a vez" (nós, Sielaff, cliente, Alemanha).
+     * Nas duas, o que está parado há mais tempo fica em cima. Os fechados ficam à parte.
      */
     public function index(Request $request)
     {
-        $abertos = $this->filteredQuery($request, ['fase'])
-            ->with(['store', 'machine'])
+        $vista = $request->input('vista') === 'quadro' ? 'quadro' : 'lista';
+
+        $abertos = $this->filteredQuery($request, ['fase', 'vez'])
+            ->with(['store', 'machine', 'latestNote.user'])
             ->withCount('photos')
             ->whereNotIn('fase', WarrantyCase::CLOSED_PHASES)
             ->get();
+
+        $maisAntigoPrimeiro = fn (WarrantyCase $c) => optional($c->fase_desde)->format('Ymd') . sprintf('%08d', $c->id);
+
+        $lista = $abertos
+            ->when($request->filled('vez'), fn ($todos) => $todos->filter(fn (WarrantyCase $c) => $c->waitingOn() === $request->vez))
+            ->sortBy($maisAntigoPrimeiro)
+            ->values();
 
         // Dentro de cada coluna, o que está parado há mais tempo fica em cima
         $colunas = collect(['nos', 'sielaff', 'cliente', 'alemanha'])
@@ -44,15 +55,18 @@ class WarrantyCaseController extends Controller
                 ->sortBy(fn (WarrantyCase $c) => optional($c->fase_desde)->format('Ymd') . sprintf('%08d', $c->id))
                 ->values()]);
 
-        $fechados = $this->filteredQuery($request, ['fase'])->whereIn('fase', WarrantyCase::CLOSED_PHASES);
+        $fechados = $this->filteredQuery($request, ['fase', 'vez'])->whereIn('fase', WarrantyCase::CLOSED_PHASES);
         $verFechados = $request->boolean('fechados');
 
         // Os números dos filtros contam só os abertos, que é o que está no quadro
-        $porCliente = $this->filteredQuery($request, ['fase'])
+        $porCliente = $this->filteredQuery($request, ['fase', 'vez'])
             ->whereNotIn('fase', WarrantyCase::CLOSED_PHASES)
             ->toBase()->selectRaw('cliente, COUNT(*) as total')->groupBy('cliente')->pluck('total', 'cliente');
 
         return view('backoffice.warranty.index', [
+            'vista' => $vista,
+            'lista' => $lista,
+            'porVez' => $abertos->countBy(fn (WarrantyCase $c) => $c->waitingOn()),
             'colunas' => $colunas,
             'esperas' => config('warranty.waiting_on'),
             'totalAbertos' => $abertos->count(),
@@ -68,10 +82,33 @@ class WarrantyCaseController extends Controller
             'porCliente' => $porCliente,
             'types' => config('warranty.types'),
             'clients' => config('warranty.clients'),
-            'typeCounts' => $this->filteredQuery($request, ['tipo', 'fase'])
+            'typeCounts' => $this->filteredQuery($request, ['tipo', 'fase', 'vez'])
                 ->whereNotIn('fase', WarrantyCase::CLOSED_PHASES)
                 ->toBase()->selectRaw('tipo, COUNT(*) as total')->groupBy('tipo')->pluck('total', 'tipo'),
         ]);
+    }
+
+    /** Escrever o ponto de situação de um processo. Da lista vem por AJAX; da página do processo, por formulário. */
+    public function addNote(Request $request, $id)
+    {
+        $case = WarrantyCase::findOrFail($id);
+        $data = $request->validate(['texto' => ['required', 'string', 'max:2000']], [
+            'texto.required' => __('Escreva o ponto de situação.'),
+        ]);
+
+        $note = $case->notes()->create(['texto' => trim($data['texto']), 'user_id' => auth()->id()]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'texto' => $note->texto,
+                'quem' => auth()->user()->name,
+                'quando' => $note->created_at->format('d/m/Y H:i'),
+            ]);
+        }
+
+        flash(__('Ponto de situação gravado.'))->success();
+
+        return back();
     }
 
     public function export(Request $request)
@@ -141,7 +178,7 @@ class WarrantyCaseController extends Controller
 
     public function show($id)
     {
-        $case = WarrantyCase::with(['store', 'machine', 'technicalRequest', 'photos', 'events.user', 'creator'])->findOrFail($id);
+        $case = WarrantyCase::with(['store', 'machine', 'technicalRequest', 'photos', 'events.user', 'creator', 'notes.user'])->findOrFail($id);
 
         return view('backoffice.warranty.show', [
             'case' => $case,
@@ -386,6 +423,8 @@ class WarrantyCaseController extends Controller
             ->when($request->filled('cliente'), fn ($q) => $q->where('cliente', $request->cliente))
             ->when($usa('tipo'), fn ($q) => $q->where('tipo', $request->tipo))
             // Aqui dentro para que o Excel exporte o mesmo que estamos a ver
+            // De quem é a vez (lista e Excel): as fases desse grupo
+            ->when($usa('vez'), fn ($q) => $q->whereIn('fase', config('warranty.waiting_on.' . $request->vez . '.phases', [])))
             ->when($usa('fase'), fn ($q) => $request->fase === 'abertos'
                 ? $q->whereNotIn('fase', WarrantyCase::CLOSED_PHASES)
                 : $q->where('fase', $request->fase))

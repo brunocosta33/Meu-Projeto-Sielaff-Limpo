@@ -63,6 +63,18 @@ class WarrantyCase extends Model
         return $this->hasMany(WarrantyCaseEvent::class)->orderBy('data')->orderBy('id');
     }
 
+    /** Pontos de situação, do mais recente para o mais antigo. */
+    public function notes()
+    {
+        return $this->hasMany(WarrantyCaseNote::class)->orderByDesc('id');
+    }
+
+    /** O ponto de situação atual (o último escrito). */
+    public function latestNote()
+    {
+        return $this->hasOne(WarrantyCaseNote::class)->latestOfMany();
+    }
+
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');

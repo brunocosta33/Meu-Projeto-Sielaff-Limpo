@@ -228,6 +228,7 @@ Route::group(['middleware' => ['auth', 'restrictTechnicianAccess']], function ()
         Route::post('/{id}/passo/{bloco}/{metade}', [WarrantyCaseController::class, 'saveStep'])->name('step.save');
         Route::delete('/{id}/passo/{bloco}/{metade}', [WarrantyCaseController::class, 'clearStep'])->name('step.clear');
         Route::post('/{id}/fotos', [WarrantyCaseController::class, 'addPhotos'])->name('photos.store');
+        Route::post('/{id}/situacao', [WarrantyCaseController::class, 'addNote'])->name('notes.store');
         Route::get('/{id}/documento/{tipo}', [WarrantyCaseController::class, 'document'])->name('document');
         Route::post('/{id}/documento/{tipo}', [WarrantyCaseController::class, 'replaceDocument'])->name('document.replace');
     });

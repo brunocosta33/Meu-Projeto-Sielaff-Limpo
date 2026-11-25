@@ -143,6 +143,12 @@
     .wc-thumb button { border: 0; border-radius: 50%; width: 1.3rem; height: 1.3rem; font-size: .65rem; background: rgba(15,23,42,.65); color: #fff; }
     .wc-sibling { display: flex; align-items: center; gap: .5rem; padding: .4rem .55rem; border-radius: 8px; background: #f8fafc; }
     .wc-sibling + .wc-sibling { margin-top: .35rem; }
+    /* Ponto de situação */
+    .fg-notas { list-style: none; padding: 0; margin: .9rem 0 0; }
+    .fg-notas li { border-left: 3px solid #e2e8f0; padding: .2rem 0 .2rem .65rem; margin-bottom: .55rem; color: #64748b; }
+    .fg-notas li.atual { border-left-color: #2563eb; color: #0f172a; }
+    .fg-notas .texto { white-space: pre-line; font-size: .88rem; line-height: 1.4; }
+    .fg-notas .quem { font-size: .72rem; color: #94a3b8; margin-top: .15rem; }
 </style>
 @endpush
 
@@ -175,7 +181,7 @@
                 @endif
             </div>
             <div class="d-flex flex-wrap" style="gap: .5rem">
-                <a href="{{ route('backoffice.warranty.index') }}" class="btn btn-outline-secondary btn-sm"><i class="fa fa-arrow-left"></i> {{ __('Voltar ao quadro') }}</a>
+                <a href="{{ route('backoffice.warranty.index') }}" class="btn btn-outline-secondary btn-sm"><i class="fa fa-arrow-left"></i> {{ __('Voltar à lista') }}</a>
                 <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#wc-edit"><i class="fa fa-edit"></i> {{ __('Editar') }}</button>
                 <form method="POST" action="{{ route('backoffice.warranty.destroy', $case->id) }}" onsubmit="return confirm({{ \Illuminate\Support\Js::from(__('Apagar este processo? As fotografias e os documentos também são apagados.')) }})">
                     @csrf
@@ -347,6 +353,29 @@
     </div>
 
     <div class="col-lg-5">
+        {{-- Ponto de situação: o último à vista, os anteriores por baixo --}}
+        <div class="card mb-3 fg-situacao">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-comment-dots text-primary"></i> {{ __('Ponto de situação') }}</h5>
+                <form method="POST" action="{{ route('backoffice.warranty.notes.store', $case->id) }}">
+                    @csrf
+                    <textarea name="texto" class="form-control" rows="3" maxlength="2000" required
+                              placeholder="{{ __('Ex.: Liguei ao cliente, vai aprovar até sexta.') }}">{{ old('texto') }}</textarea>
+                    <button type="submit" class="btn btn-primary btn-sm mt-2"><i class="fa fa-check"></i> {{ __('Gravar') }}</button>
+                </form>
+                @if($case->notes->isNotEmpty())
+                    <ul class="fg-notas">
+                        @foreach($case->notes as $nota)
+                            <li class="{{ $loop->first ? 'atual' : '' }}">
+                                <div class="texto">{{ $nota->texto }}</div>
+                                <div class="quem">{{ $nota->user->name ?? '—' }} · {{ $nota->created_at->format('d/m/Y H:i') }}</div>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </div>
+        </div>
+
         <div class="card mb-3">
             <div class="card-body">
                 <h5 class="card-title"><i class="fa fa-exclamation-circle text-danger"></i> {{ __('A avaria') }}</h5>
