@@ -1,4 +1,6 @@
 {
+    "Fechados que correspondem à pesquisa": "Cerrados que coinciden con la búsqueda",
+    "Fechado a": "Cerrado el",
     "Já passou": "Ya pasó",
     "Sem dia marcado": "Sin día programado",
     "{1} :count pedido|[2,*] :count pedidos": "{1} :count solicitud|[2,*] :count solicitudes",

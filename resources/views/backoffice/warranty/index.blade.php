@@ -119,6 +119,12 @@
                border-radius: 8px; padding: .15rem .5rem; white-space: nowrap; }
     .fg-avaria-l { color: #334155; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
     .fg-vez-l { margin-top: .4rem; font-size: .78rem; font-weight: 800; color: var(--c); }
+    .fg-sep-fechados td { background: #f0fdf4; color: #15803d; font-weight: 800; font-size: .8rem; text-transform: uppercase;
+                          letter-spacing: .05em; border-top: 2px solid #bbf7d0 !important; }
+    .fg-linha-fechada td { background: #fafafa; }
+    .fg-linha-fechada .fg-loja-l, .fg-linha-fechada .fg-avaria-l { color: #64748b; }
+    .fg-fechado-l { display: inline-flex; align-items: center; gap: .3rem; font-size: .78rem; font-weight: 800; color: var(--c);
+                    border: 1px solid var(--c); border-radius: 999px; padding: .12rem .55rem; background: #fff; }
     .fg-proximo-l { margin-top: .3rem; font-size: .76rem; font-weight: 700; color: #475569; }
     .fg-tabela .fg-passos { margin-top: .15rem; max-width: 10rem; }
     /* O ponto de situação: escreve-se na própria linha */

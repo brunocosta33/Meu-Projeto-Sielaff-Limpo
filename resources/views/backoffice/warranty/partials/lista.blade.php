@@ -35,7 +35,13 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($lista as $case)
+                @forelse($lista->concat($fechadosDaPesquisa ?? collect()) as $case)
+                    {{-- Na pesquisa, os fechados vêm a seguir aos abertos, com um separador --}}
+                    @if(!$case->isOpen() && ($loop->first || $lista->count() === $loop->index))
+                        <tr class="fg-sep-fechados">
+                            <td colspan="7"><i class="fas fa-check-circle"></i> {{ __('Fechados que correspondem à pesquisa') }} ({{ $fechadosDaPesquisa->count() }})</td>
+                        </tr>
+                    @endif
                     @php($marca = $marcas[$case->cliente] ?? null)
                     @php($tipo = $case->typeConfig())
                     @php($vez = $case->waitingOnConfig())
@@ -43,7 +49,7 @@
                     @php($zona = $case->store?->zonaConfig())
                     @php($nota = $case->latestNote)
                     @php($abrir = route('backoffice.warranty.show', $case->id))
-                    <tr>
+                    <tr class="{{ $case->isOpen() ? '' : 'fg-linha-fechada' }}">
                         <td>
                             <div class="d-flex flex-wrap" style="gap: .25rem">
                                 @if($marca)
@@ -88,20 +94,28 @@
                             <div class="fg-avaria-l" title="{{ $case->descricao }}">{{ $case->descricao }}</div>
                         </td>
                         <td>
-                            <div class="fg-passos" title="{{ collect($case->blocks())->map(fn ($b) => __($b['curto']))->implode(' → ') }}">
-                                @foreach($case->blocks() as $chave => $bloco)
-                                    <span class="{{ $case->blockState($chave, $proximo) }}" style="--bc: {{ $bloco['color'] }}" title="{{ __($bloco['label']) }}"></span>
-                                @endforeach
-                            </div>
-                            <div class="fg-vez-l" style="--c: {{ $vez['color'] }}">
-                                <i class="fas {{ $vez['icon'] }}"></i> {{ __($vez['label']) }}
-                            </div>
-                            <div class="fg-mini">
-                                {{ __('desde') }} {{ optional($case->fase_desde)->format('d/m/Y') }}
-                                · {{ trans_choice('{0} hoje|{1} :count dia|[2,*] :count dias', $case->daysInPhase(), ['count' => $case->daysInPhase()]) }}
-                            </div>
-                            @if($case->waitingOn() === 'nos' && $case->todoLabel())
-                                <div class="fg-proximo-l">▸ {{ $case->todoLabel() }}</div>
+                            @if($case->isOpen())
+                                <div class="fg-passos" title="{{ collect($case->blocks())->map(fn ($b) => __($b['curto']))->implode(' → ') }}">
+                                    @foreach($case->blocks() as $chave => $bloco)
+                                        <span class="{{ $case->blockState($chave, $proximo) }}" style="--bc: {{ $bloco['color'] }}" title="{{ __($bloco['label']) }}"></span>
+                                    @endforeach
+                                </div>
+                                <div class="fg-vez-l" style="--c: {{ $vez['color'] }}">
+                                    <i class="fas {{ $vez['icon'] }}"></i> {{ __($vez['label']) }}
+                                </div>
+                                <div class="fg-mini">
+                                    {{ __('desde') }} {{ optional($case->fase_desde)->format('d/m/Y') }}
+                                    · {{ trans_choice('{0} hoje|{1} :count dia|[2,*] :count dias', $case->daysInPhase(), ['count' => $case->daysInPhase()]) }}
+                                </div>
+                                @if($case->waitingOn() === 'nos' && $case->todoLabel())
+                                    <div class="fg-proximo-l">▸ {{ $case->todoLabel() }}</div>
+                                @endif
+                            @else
+                                @php($fase = $case->phase())
+                                <div class="fg-fechado-l" style="--c: {{ $fase['color'] }}">
+                                    <i class="fas {{ $fase['icon'] }}"></i> {{ __($fase['label']) }}
+                                </div>
+                                <div class="fg-mini">{{ __('Fechado a') }} {{ optional($case->fechado_em)->format('d/m/Y') }}</div>
                             @endif
                         </td>
                         <td class="td-sit">

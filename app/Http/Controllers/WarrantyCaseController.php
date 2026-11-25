@@ -60,6 +60,12 @@ class WarrantyCaseController extends Controller
         $fechados = $this->filteredQuery($request, ['fase', 'vez'])->whereIn('fase', WarrantyCase::CLOSED_PHASES);
         $verFechados = $request->boolean('fechados');
 
+        // Ao pesquisar (loja, série, cotação…) aparecem também os fechados, a seguir aos abertos
+        $pesquisa = $request->filled('q');
+        $fechadosDaPesquisa = $pesquisa && !$request->filled('vez')
+            ? (clone $fechados)->with(['store', 'machine', 'latestNote.user'])->orderByDesc('fechado_em')->orderByDesc('id')->get()
+            : collect();
+
         // Os números dos filtros contam só os abertos, que é o que está no quadro
         $porCliente = $this->filteredQuery($request, ['fase', 'vez'])
             ->whereNotIn('fase', WarrantyCase::CLOSED_PHASES)
@@ -68,6 +74,8 @@ class WarrantyCaseController extends Controller
         return view('backoffice.warranty.index', [
             'vista' => $vista,
             'lista' => $lista,
+            'fechadosDaPesquisa' => $fechadosDaPesquisa,
+            'pesquisa' => $pesquisa,
             'porVez' => $abertos->countBy(fn (WarrantyCase $c) => $c->waitingOn()),
             'colunas' => $colunas,
             'esperas' => config('warranty.waiting_on'),
@@ -77,9 +85,9 @@ class WarrantyCaseController extends Controller
                 ? $fechados->with(['store', 'machine'])->orderByDesc('fechado_em')->orderByDesc('id')->limit(60)->get()
                 : collect(),
             'verFechados' => $verFechados,
-            // A coluna dos concluídos: só o último mês, senão crescia para sempre
+            // A coluna dos concluídos: só o último mês, senão crescia para sempre (ao pesquisar, todos)
             'recentes' => (clone $fechados)->with(['store', 'machine'])
-                ->where('fechado_em', '>=', now()->subDays(30)->startOfDay())
+                ->when(!$pesquisa, fn ($q) => $q->where('fechado_em', '>=', now()->subDays(30)->startOfDay()))
                 ->orderByDesc('fechado_em')->orderByDesc('id')->get(),
             'porCliente' => $porCliente,
             'types' => config('warranty.types'),
