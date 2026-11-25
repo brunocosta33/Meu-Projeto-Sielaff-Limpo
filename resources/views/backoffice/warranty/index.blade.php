@@ -115,13 +115,21 @@
     .fg-proximo-l { margin-top: .3rem; font-size: .76rem; font-weight: 700; color: #475569; }
     .fg-tabela .fg-passos { margin-top: .15rem; max-width: 10rem; }
     /* O ponto de situação: escreve-se na própria linha */
-    .fg-sit .ver { position: relative; border-left: 3px solid #cbd5e1; padding: .1rem 0 .1rem .6rem; }
-    .fg-sit .texto { white-space: pre-line; color: #0f172a; line-height: 1.4; }
-    .fg-sit .texto.vazio { color: #a3b0bf; font-style: italic; }
-    .fg-sit .quem { font-size: .72rem; color: #94a3b8; margin-top: .2rem; }
-    .fg-sit .editar { margin-top: .3rem; border: 0; background: none; padding: 0; font-size: .76rem; font-weight: 700; color: #2563eb; }
-    .fg-sit .editar:hover { text-decoration: underline; }
-    .fg-sit.acabou .ver { border-left-color: #16a34a; background: #f0fdf4; transition: background .3s; }
+    /* Como um post-it: salta à vista em cada linha */
+    .fg-tabela th.th-sit { background: #fef3c7; color: #92400e; }
+    .fg-tabela td.td-sit { background: #fffdf2; }
+    .fg-sit .ver { position: relative; border-radius: 10px; padding: .55rem .7rem .5rem; background: #fef08a;
+                   border: 1px solid #facc15; border-left: 5px solid #eab308; box-shadow: 0 3px 10px rgba(202, 138, 4, .18); }
+    .fg-sit .ver.sem { background: #fff; border: 1px dashed #fcd34d; border-left: 5px solid #fde68a; box-shadow: none; }
+    .fg-sit .texto { white-space: pre-line; color: #422006; font-weight: 600; line-height: 1.4; }
+    .fg-sit .texto.vazio { color: #b8a36a; font-weight: 400; font-style: italic; }
+    .fg-sit .quem { font-size: .72rem; color: #a16207; margin-top: .25rem; }
+    .fg-sit .editar { margin-top: .35rem; border: 0; background: #ca8a04; color: #fff; padding: .12rem .55rem; border-radius: 999px;
+                      font-size: .72rem; font-weight: 700; }
+    .fg-sit .editar:hover { background: #a16207; }
+    .fg-sit .ver.sem .editar { background: #f59e0b; }
+    .fg-sit textarea { border-color: #facc15; background: #fffbeb; }
+    .fg-sit.acabou .ver { background: #bbf7d0; border-color: #22c55e; border-left-color: #16a34a; transition: background .3s; }
 
     /* ---- Fechados ---- */
     .fg-fechados { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: .6rem; }

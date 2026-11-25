@@ -31,7 +31,7 @@
                     <th>{{ __('Máquina') }}</th>
                     <th style="min-width: 12rem">{{ __('Avaria') }}</th>
                     <th style="min-width: 11rem">{{ __('Em que passo') }}</th>
-                    <th style="min-width: 18rem">{{ __('Ponto de situação') }}</th>
+                    <th class="th-sit" style="min-width: 18rem"><i class="fas fa-sticky-note"></i> {{ __('Ponto de situação') }}</th>
                     <th></th>
                 </tr>
             </thead>
@@ -106,9 +106,9 @@
                                 <div class="fg-proximo-l">▸ {{ $case->todoLabel() }}</div>
                             @endif
                         </td>
-                        <td>
+                        <td class="td-sit">
                             <div class="fg-sit" data-url="{{ route('backoffice.warranty.notes.store', $case->id) }}">
-                                <div class="ver">
+                                <div class="ver {{ $nota ? '' : 'sem' }}">
                                     @if($nota)
                                         <div class="texto">{{ $nota->texto }}</div>
                                         <div class="quem">{{ $nota->user->name ?? '—' }} · {{ $nota->created_at->format('d/m/Y H:i') }}</div>
@@ -183,6 +183,7 @@
                     var t = ver.querySelector('.texto');
                     t.textContent = d.texto;
                     t.classList.remove('vazio');
+                    ver.classList.remove('sem');
                     ver.querySelector('.quem').textContent = d.quem + ' · ' + d.quando;
                     ver.querySelector('.editar').innerHTML = '<i class="fas fa-pen"></i> ' + textos.atualizar;
                     caixa.classList.add('acabou');
