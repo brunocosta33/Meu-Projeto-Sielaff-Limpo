@@ -164,8 +164,8 @@ class StoreMaintenanceController extends Controller
          *  2. "O mês passou": as do Lidl cujo mês já passou mas que ainda estão dentro do limite;
          *  3. um grupo por mês: o corrente primeiro, e daí para a frente até dar a volta ao ano;
          *  4. no fim, quem não tem data este ano.
-         * Dentro de cada grupo: por zona (Norte, Centro, Sul), depois o estado
-         * (as feitas ficam no fim do seu mês) e o nome da loja.
+         * Dentro de cada grupo: primeiro as que faltam fazer, por zona (Norte, Centro, Sul);
+         * depois as feitas, também por zona. Dentro da zona, o estado e o nome da loja.
          */
         $order = array_flip(array_keys(config('maintenance.states')));
         $zonas = array_flip(array_keys(Store::ZONAS));
@@ -190,8 +190,9 @@ class StoreMaintenanceController extends Controller
         }
 
         return $rows->sortBy(fn ($r) => sprintf(
-            '%s-%d-%02d-%s',
+            '%s-%d-%d-%02d-%s',
             $r->grupoOrdem,
+            in_array($r->status, ['feita', 'feita_fora'], true) ? 1 : 0,
             $zonas[$r->store->zona] ?? 9,
             $order[$r->status] ?? 99,
             $r->store->nome_loja
