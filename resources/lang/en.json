@@ -1,4 +1,11 @@
 {
+    "Recusada ou cancelada": "Refused or cancelled",
+    "Cancelado (sem cobrança)": "Cancelled (no charge)",
+    "Cancelámos a cobrança": "We cancelled the charge",
+    "Escolha se foi o cliente que recusou ou se a cobrança foi cancelada.": "Choose whether the client refused or the charge was cancelled.",
+    "Indique o motivo.": "Enter the reason.",
+    "Porque é que o cliente recusou, ou porque é que a cobrança foi cancelada.": "Why the client refused, or why the charge was cancelled.",
+    "Motivo da recusa / cancelamento": "Reason for refusal / cancellation",
     "Quando se receber a cotação da Alemanha, enviar ao cliente": "When the quote from Germany arrives, send it to the client",
     "Cotação (PDF)": "Quote (PDF)",
     "o contratado é o mês, mas pode ser feita um mês antes ou um mês depois; a data limite é o fim do mês seguinte.": "the month is what is contracted, but it can be done one month before or one month after; the deadline is the end of the following month.",

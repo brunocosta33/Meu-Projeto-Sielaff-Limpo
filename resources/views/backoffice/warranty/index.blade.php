@@ -189,7 +189,7 @@
         </header>
         <div class="corpo">
             @forelse($recentes as $case)
-                @include('backoffice.warranty.partials.card', ['case' => $case, 'cor' => $case->fase === 'recusado' ? '#b91c1c' : '#15803d', 'mostrarProximo' => false])
+                @include('backoffice.warranty.partials.card', ['case' => $case, 'cor' => $case->phase()['color'], 'mostrarProximo' => false])
             @empty
                 <div class="fg-vazio">{{ __('Nenhum fechado este mês.') }}</div>
             @endforelse
@@ -210,7 +210,7 @@
             </h6>
             <div class="fg-fechados">
                 @forelse($fechados as $case)
-                    @include('backoffice.warranty.partials.card', ['case' => $case, 'cor' => $case->fase === 'recusado' ? '#b91c1c' : '#15803d', 'mostrarProximo' => false])
+                    @include('backoffice.warranty.partials.card', ['case' => $case, 'cor' => $case->phase()['color'], 'mostrarProximo' => false])
                 @empty
                     <div class="fg-vazio">{{ __('Ainda não há processos fechados.') }}</div>
                 @endforelse

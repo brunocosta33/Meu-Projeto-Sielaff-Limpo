@@ -319,7 +319,10 @@ class WarrantyCaseController extends Controller
             'alemanha.pedida' => ['artigo_numero' => ['required', 'string', 'max:255'], 'cliente_numero' => ['required', 'string', 'max:100']],
             'alemanha.recebida' => ['peca_origem' => ['required', Rule::in(array_keys(config('warranty.part_origins')))]],
             'fecho.concluido' => $doc,
-            'fecho.recusado' => ['motivo_recusa' => ['required', 'string', 'max:2000']],
+            'fecho.recusado' => [
+                'recusa_tipo' => ['required', Rule::in(array_keys(config('warranty.refusal_types')))],
+                'motivo_recusa' => ['required', 'string', 'max:2000'],
+            ],
             default => [],
         };
     }
@@ -336,8 +339,8 @@ class WarrantyCaseController extends Controller
             'cliente.oc' => $only(['oc_numero']) + $this->storeDocument($request, $case, 'oc'),
             'alemanha.pedida' => $only(['artigo_numero', 'cliente_numero']),
             'alemanha.recebida' => $only(['peca_origem']),
-            'fecho.concluido' => ['motivo_recusa' => null] + $this->storeDocument($request, $case, 'servico'),
-            'fecho.recusado' => $only(['motivo_recusa']) + ['servico_path' => null, 'servico_nome' => null],
+            'fecho.concluido' => ['motivo_recusa' => null, 'recusa_tipo' => null] + $this->storeDocument($request, $case, 'servico'),
+            'fecho.recusado' => $only(['recusa_tipo', 'motivo_recusa']) + ['servico_path' => null, 'servico_nome' => null],
             default => [],
         };
     }
@@ -355,7 +358,7 @@ class WarrantyCaseController extends Controller
             'alemanha.pedida' => ['alemanha_enviado_em', 'artigo_numero', 'cliente_numero'],
             'alemanha.recebida' => ['peca_recebida_em', 'peca_origem'],
             'fecho.concluido' => ['fechado_em', 'servico_path', 'servico_nome'],
-            'fecho.recusado' => ['fechado_em', 'motivo_recusa'],
+            'fecho.recusado' => ['fechado_em', 'motivo_recusa', 'recusa_tipo'],
             default => [],
         };
     }
@@ -370,7 +373,8 @@ class WarrantyCaseController extends Controller
             'artigo_numero.required' => __('Indique o número do artigo.'),
             'cliente_numero.required' => __('Indique o número do cliente.'),
             'peca_origem.required' => __('Escolha se recebemos a peça ou se já a tínhamos.'),
-            'motivo_recusa.required' => __('Indique o motivo da recusa.'),
+            'recusa_tipo.required' => __('Escolha se foi o cliente que recusou ou se a cobrança foi cancelada.'),
+            'motivo_recusa.required' => __('Indique o motivo.'),
         ];
     }
 

@@ -1,4 +1,11 @@
 {
+    "Recusada ou cancelada": "Rechazada o cancelada",
+    "Cancelado (sem cobrança)": "Cancelado (sin cobro)",
+    "Cancelámos a cobrança": "Cancelamos el cobro",
+    "Escolha se foi o cliente que recusou ou se a cobrança foi cancelada.": "Elija si el cliente rechazó o si se canceló el cobro.",
+    "Indique o motivo.": "Indique el motivo.",
+    "Porque é que o cliente recusou, ou porque é que a cobrança foi cancelada.": "Por qué el cliente rechazó o por qué se canceló el cobro.",
+    "Motivo da recusa / cancelamento": "Motivo del rechazo / cancelación",
     "Quando se receber a cotação da Alemanha, enviar ao cliente": "Cuando se reciba la cotización de Alemania, enviarla al cliente",
     "Cotação (PDF)": "Cotización (PDF)",
     "o contratado é o mês, mas pode ser feita um mês antes ou um mês depois; a data limite é o fim do mês seguinte.": "lo contratado es el mes, pero puede hacerse un mes antes o un mes después; la fecha límite es el final del mes siguiente.",

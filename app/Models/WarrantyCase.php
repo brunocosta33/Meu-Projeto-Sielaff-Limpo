@@ -22,7 +22,7 @@ class WarrantyCase extends Model
         'os_numero', 'os_em', 'os_texto', 'os_path', 'os_nome',
         'cotacao_pedida_em', 'cotacao_numero', 'cotacao_recebida_em', 'cotacao_path', 'cotacao_nome',
         'enviada_cliente_em', 'enviada_para', 'oc_numero', 'oc_recebida_em', 'oc_path', 'oc_nome', 'artigo_numero', 'cliente_numero', 'alemanha_enviado_em', 'peca_recebida_em', 'peca_origem', 'servico_path', 'servico_nome',
-        'fechado_em', 'motivo_recusa', 'created_by', 'updated_by',
+        'fechado_em', 'motivo_recusa', 'recusa_tipo', 'created_by', 'updated_by',
     ];
 
     protected $casts = [
@@ -258,7 +258,15 @@ class WarrantyCase extends Model
 
     public function phase(): array
     {
-        return config('warranty.phases.' . $this->fase, config('warranty.phases.registado'));
+        $phase = config('warranty.phases.' . $this->fase, config('warranty.phases.registado'));
+
+        // Fechado sem reparação: diz se foi o cliente que recusou ou se cancelámos a cobrança
+        if ($this->fase === 'recusado') {
+            $tipos = config('warranty.refusal_types');
+            $phase = array_merge($phase, $tipos[$this->recusa_tipo] ?? $tipos['cliente']);
+        }
+
+        return $phase;
     }
 
     /** "Recebemos a peça" / "Já tínhamos a peça connosco". */

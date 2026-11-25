@@ -272,7 +272,7 @@
                         <span class="ponto"><i class="fa fa-check"></i></span>
                         <details class="caixa">
                             <summary class="cabeca">
-                                <span class="que">{{ __($step['label']) }}</span>
+                                <span class="que">{{ __($step['half'] === 'recusado' ? $case->phase()['label'] : $step['label']) }}</span>
                                 @if($doc && $case->{$doc . '_path'})
                                     <a href="{{ route('backoffice.warranty.document', [$case->id, $doc]) }}" target="_blank" class="wc-anexo" onclick="event.stopPropagation()">
                                         <i class="fa fa-file-pdf"></i> {{ $case->{$doc . '_numero'} ?? __('abrir') }}

@@ -1,4 +1,11 @@
 {
+  "Recusada ou cancelada": "Abgelehnt oder storniert",
+  "Cancelado (sem cobrança)": "Storniert (keine Berechnung)",
+  "Cancelámos a cobrança": "Berechnung storniert",
+  "Escolha se foi o cliente que recusou ou se a cobrança foi cancelada.": "Wählen Sie, ob der Kunde abgelehnt hat oder die Berechnung storniert wurde.",
+  "Indique o motivo.": "Geben Sie den Grund an.",
+  "Porque é que o cliente recusou, ou porque é que a cobrança foi cancelada.": "Warum der Kunde abgelehnt hat oder warum die Berechnung storniert wurde.",
+  "Motivo da recusa / cancelamento": "Grund der Ablehnung / Stornierung",
   "Quando se receber a cotação da Alemanha, enviar ao cliente": "Sobald das Angebot aus Deutschland eingeht, an den Kunden senden",
   "Cotação (PDF)": "Angebot (PDF)",
   "o contratado é o mês, mas pode ser feita um mês antes ou um mês depois; a data limite é o fim do mês seguinte.": "vertraglich festgelegt ist der Monat, sie kann aber einen Monat früher oder später erfolgen; Frist ist das Ende des Folgemonats.",

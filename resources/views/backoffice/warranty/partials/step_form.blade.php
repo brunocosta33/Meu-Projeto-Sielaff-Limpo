@@ -63,8 +63,20 @@
         </div>
     @elseif($stepId === 'fecho.recusado')
         <div class="form-group">
-            <label>{{ __('Motivo da recusa') }}</label>
-            <textarea name="motivo_recusa" class="form-control" rows="2" required>{{ $val('motivo_recusa') }}</textarea>
+            @foreach(config('warranty.refusal_types') as $value => $tipo)
+                <div class="custom-control custom-radio mb-1">
+                    <input type="radio" class="custom-control-input" name="recusa_tipo" id="wc-recusa-{{ $value }}"
+                           value="{{ $value }}" @checked($val('recusa_tipo', $case->recusa_tipo ?: 'cliente') === $value) required>
+                    <label class="custom-control-label" for="wc-recusa-{{ $value }}">
+                        <i class="fas {{ $tipo['icon'] }}" style="color: {{ $tipo['color'] }}"></i> {{ __($tipo['label']) }}
+                    </label>
+                </div>
+            @endforeach
+        </div>
+        <div class="form-group">
+            <label>{{ __('Motivo') }}</label>
+            <textarea name="motivo_recusa" class="form-control" rows="2" required
+                      placeholder="{{ __('Porque é que o cliente recusou, ou porque é que a cobrança foi cancelada.') }}">{{ $val('motivo_recusa') }}</textarea>
         </div>
     @endif
 

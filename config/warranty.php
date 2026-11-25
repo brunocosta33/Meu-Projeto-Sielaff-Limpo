@@ -89,10 +89,10 @@ return [
             'color' => '#15803d',
             'bg' => '#dcfce7',
             'types' => ['com_pecas', 'sem_pecas'],
-            // As duas metades são alternativas: ou se fez, ou o cliente recusou
+            // As duas metades são alternativas: ou se fez, ou não se fez (recusa do cliente ou cancelamento)
             'halves' => [
                 'concluido' => ['label' => 'Reparação feita', 'date' => 'fechado_em', 'fase' => 'concluido', 'doc' => 'servico', 'todo' => 'Fechar o processo'],
-                'recusado' => ['label' => 'Recusada pelo cliente', 'date' => 'fechado_em', 'fase' => 'recusado'],
+                'recusado' => ['label' => 'Recusada ou cancelada', 'date' => 'fechado_em', 'fase' => 'recusado'],
             ],
         ],
     ],
@@ -133,6 +133,12 @@ return [
             'label' => 'Fechados', 'curto' => 'Fechados', 'icon' => 'fa-check-circle', 'color' => '#15803d', 'bg' => '#dcfce7',
             'phases' => ['concluido', 'recusado'],
         ],
+    ],
+
+    // Fecho sem reparação: porquê. Muda o nome e a cor da fase "recusado".
+    'refusal_types' => [
+        'cliente' => ['label' => 'Recusada pelo cliente', 'curto' => 'Recusada pelo cliente', 'icon' => 'fa-times-circle', 'color' => '#b91c1c', 'bg' => '#fee2e2'],
+        'cancelado' => ['label' => 'Cancelado (sem cobrança)', 'curto' => 'Cancelámos a cobrança', 'icon' => 'fa-ban', 'color' => '#475569', 'bg' => '#e2e8f0'],
     ],
 
     // Passo "Peça confirmada": de onde veio a peça
