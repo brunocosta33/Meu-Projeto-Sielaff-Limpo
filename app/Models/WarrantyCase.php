@@ -21,7 +21,7 @@ class WarrantyCase extends Model
         'store_id', 'machine_id', 'technical_request_id', 'cliente', 'tipo', 'data_avaria', 'descricao', 'observacoes', 'fase', 'fase_desde',
         'os_numero', 'os_em', 'os_texto', 'os_path', 'os_nome',
         'cotacao_pedida_em', 'cotacao_numero', 'cotacao_recebida_em', 'cotacao_path', 'cotacao_nome',
-        'enviada_cliente_em', 'enviada_para', 'oc_numero', 'oc_recebida_em', 'oc_path', 'oc_nome', 'cotacao_cliente_path', 'cotacao_cliente_nome', 'artigo_numero', 'cliente_numero', 'alemanha_enviado_em', 'peca_recebida_em', 'peca_origem', 'servico_path', 'servico_nome',
+        'enviada_cliente_em', 'enviada_para', 'oc_numero', 'oc_recebida_em', 'oc_path', 'oc_nome', 'artigo_numero', 'cliente_numero', 'alemanha_enviado_em', 'peca_recebida_em', 'peca_origem', 'servico_path', 'servico_nome',
         'fechado_em', 'motivo_recusa', 'created_by', 'updated_by',
     ];
 
