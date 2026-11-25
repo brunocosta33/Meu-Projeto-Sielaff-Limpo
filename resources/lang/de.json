@@ -1,4 +1,11 @@
 {
+  "Sem zona": "Ohne Zone",
+  "Defina a zona na ficha da loja": "Zone in der Filiale festlegen",
+  "O mês já passou, mas ainda dentro do limite": "Der Monat ist vorbei, aber noch innerhalb der Frist",
+  "este mês": "dieser Monat",
+  "{1} :count loja|[2,*] :count lojas": "{1} :count Filiale|[2,*] :count Filialen",
+  "feitas": "erledigt",
+  "Automática (pelo código postal)": "Automatisch (nach Postleitzahl)",
   "Aqui aparece o que está marcado para hoje e o que ficou por fechar de dias anteriores.": "Hier steht, was für heute geplant ist, und was von früheren Tagen noch offen ist.",
   "Ficou por fechar de :data": "Offen seit :data",
   "Pedidos técnicos": "Technische Anfragen",

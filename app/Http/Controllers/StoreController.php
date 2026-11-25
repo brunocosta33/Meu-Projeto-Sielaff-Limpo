@@ -185,6 +185,7 @@ class StoreController extends Controller
     {
         $validated = $request->validate([
             'regiao' => 'required|string|max:255',
+            'zona' => 'nullable|in:' . implode(',', array_keys(\App\Models\Store::ZONAS)),
             'insignia' => 'required|in:' . implode(',', array_keys(self::INSIGNIAS)),
             'codigo_loja' => 'required|string|max:255',
             'nome_loja' => 'required|string|max:255',

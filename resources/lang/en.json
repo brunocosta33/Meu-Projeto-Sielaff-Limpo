@@ -1,4 +1,11 @@
 {
+    "Sem zona": "No zone",
+    "Defina a zona na ficha da loja": "Set the zone on the store page",
+    "O mês já passou, mas ainda dentro do limite": "The month has passed, but still within the deadline",
+    "este mês": "this month",
+    "{1} :count loja|[2,*] :count lojas": "{1} :count store|[2,*] :count stores",
+    "feitas": "done",
+    "Automática (pelo código postal)": "Automatic (from postcode)",
     "Aqui aparece o que está marcado para hoje e o que ficou por fechar de dias anteriores.": "Here you see what is scheduled for today and anything left open from previous days.",
     "Ficou por fechar de :data": "Left open since :data",
     "Pedidos técnicos": "Technical requests",

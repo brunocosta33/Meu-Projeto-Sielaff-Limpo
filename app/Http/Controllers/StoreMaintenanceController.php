@@ -41,8 +41,19 @@ class StoreMaintenanceController extends Controller
 
         $counts = $doMes->countBy('status');
         $clientes = $doMes->countBy(fn ($r) => $r->store->clienteKey() ?? 'outros');
+        $zonas = $doMes->countBy(fn ($r) => $r->store->zona ?: 'sem');
 
         $rows = $this->filtrar($rows, $request);
+
+        // Um cabeçalho por grupo (em atraso, cada mês, sem data), com as contas desse grupo
+        $grupos = $rows->groupBy('grupo')->map(fn ($doGrupo) => (object) [
+            'label' => $doGrupo->first()->grupoLabel,
+            'tipo' => $doGrupo->first()->grupoTipo,
+            'total' => $doGrupo->count(),
+            'feitas' => $doGrupo->whereIn('status', ['feita', 'feita_fora'])->count(),
+            'atrasadas' => $doGrupo->where('status', 'atrasada')->count(),
+            'zonas' => $doGrupo->countBy(fn ($r) => $r->store->zona ?: 'sem'),
+        ]);
 
         $technicianUserIds = HrStaff::where('funcao', 'tecnico')->where('ativo', true)->pluck('user_id');
 
@@ -53,6 +64,9 @@ class StoreMaintenanceController extends Controller
             'meses' => $meses,
             'mesEscolhido' => $request->input('mes'),
             'clientes' => $clientes,
+            'zonas' => $zonas,
+            'zonasConfig' => Store::ZONAS,
+            'grupos' => $grupos,
             'clientesConfig' => config('maintenance.clients'),
             'total' => $counts->sum(),
             'states' => $states,
@@ -122,6 +136,10 @@ class StoreMaintenanceController extends Controller
             $rows = $rows->filter(fn ($r) => ($r->store->clienteKey() ?? 'outros') === $request->cliente);
         }
 
+        if ($request->filled('zona')) {
+            $rows = $rows->filter(fn ($r) => ($r->store->zona ?: 'sem') === $request->zona);
+        }
+
         if ($request->filled('mes')) {
             $rows = $request->mes === 'sem_data'
                 ? $rows->filter(fn ($r) => in_array($r->status, ['por_definir', 'contrato_futuro'], true))
@@ -141,41 +159,43 @@ class StoreMaintenanceController extends Controller
         }
 
         /**
-         * A ordem da lista:
-         *  1. o que está em atraso, seja de que mês for — é o que não pode esperar;
-         *     logo a seguir, as do Lidl cujo mês já passou mas que ainda estão dentro do limite;
-         *  2. o mês corrente, e daí para a frente até dar a volta ao ano;
-         *  3. os meses já passados;
+         * A ordem da lista, em grupos (cada um com o seu cabeçalho na página):
+         *  1. "Em atraso", seja de que mês for — é o que não pode esperar;
+         *  2. "O mês passou": as do Lidl cujo mês já passou mas que ainda estão dentro do limite;
+         *  3. um grupo por mês: o corrente primeiro, e daí para a frente até dar a volta ao ano;
          *  4. no fim, quem não tem data este ano.
-         * Dentro do mesmo dia manda o estado, por isso as feitas ficam no fim do seu mês.
+         * Dentro de cada grupo: por zona (Norte, Centro, Sul), depois o estado
+         * (as feitas ficam no fim do seu mês) e o nome da loja.
          */
         $order = array_flip(array_keys(config('maintenance.states')));
+        $zonas = array_flip(array_keys(Store::ZONAS));
         $esteAno = $this->anoDaListagem === now()->year;
         $mesAtual = now()->month;
 
-        // Os contratos que só começam noutro ano não entram no calendário deste
-        $datado = fn ($r) => $r->due && $r->status !== 'contrato_futuro';
-
-        return $rows->sortBy(function ($r) use ($order, $datado, $esteAno, $mesAtual) {
-            if (!$datado($r)) {
-                return sprintf('3-9999-%02d-%s', $order[$r->status] ?? 99, $r->store->nome_loja);
+        foreach ($rows as $r) {
+            // Os contratos que só começam noutro ano não entram no calendário deste
+            if (!$r->due || $r->status === 'contrato_futuro') {
+                [$r->grupo, $r->grupoTipo, $r->grupoLabel, $r->grupoOrdem] = ['sem', 'sem', __('Sem data neste ano'), '3-00'];
+            } elseif ($r->status === 'atrasada') {
+                [$r->grupo, $r->grupoTipo, $r->grupoLabel, $r->grupoOrdem] = ['atraso', 'atraso', __('Em atraso'), '0-00'];
+            } elseif ($r->status === 'janela' && $r->due->lt(now()->startOfMonth())) {
+                [$r->grupo, $r->grupoTipo, $r->grupoLabel, $r->grupoOrdem] = ['passou', 'passou', __('O mês já passou, mas ainda dentro do limite'), '1-00'];
+            } else {
+                $distancia = $esteAno ? ($r->due->month - $mesAtual + 12) % 12 : $r->due->month - 1;
+                $r->grupo = 'm' . $r->due->month;
+                $r->grupoTipo = $esteAno && $r->due->month === $mesAtual ? 'agora' : 'mes';
+                $r->grupoLabel = \Illuminate\Support\Str::ucfirst($r->due->translatedFormat('F')) . ' ' . $this->anoDaListagem;
+                $r->grupoOrdem = sprintf('2-%02d', $distancia);
             }
+        }
 
-            $distancia = $esteAno ? ($r->due->month - $mesAtual + 12) % 12 : $r->due->month - 1;
-
-            return sprintf(
-                '%d-%02d%02d-%02d-%s',
-                match (true) {
-                    $r->status === 'atrasada' => 0,
-                    $r->status === 'janela' && $r->due->lt(now()->startOfMonth()) => 1,
-                    default => 2,
-                },
-                $distancia,
-                $r->due->day,
-                $order[$r->status] ?? 99,
-                $r->store->nome_loja
-            );
-        })->values();
+        return $rows->sortBy(fn ($r) => sprintf(
+            '%s-%d-%02d-%s',
+            $r->grupoOrdem,
+            $zonas[$r->store->zona] ?? 9,
+            $order[$r->status] ?? 99,
+            $r->store->nome_loja
+        ))->values();
     }
 
     public function store(Request $request)

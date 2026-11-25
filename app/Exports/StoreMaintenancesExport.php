@@ -61,7 +61,7 @@ class StoreMaintenancesExport implements FromCollection, WithHeadings, WithEvent
                 $r->store->clienteConfig()['label'] ?? '',
                 $r->store->codigo_loja,
                 $r->store->nome_loja,
-                $r->store->regiao,
+                __($r->store->zonaConfig()['label'] ?? ''),
                 $r->store->cidade,
                 // Nas Lojas o modelo que se vê é a descrição; o campo "modelo" está quase sempre vazio
                 $r->store->machines->map(fn ($m) => $m->descricao ?: $m->modelo)->filter()->unique()->implode(', '),

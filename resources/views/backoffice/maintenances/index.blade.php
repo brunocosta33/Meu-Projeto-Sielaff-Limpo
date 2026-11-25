@@ -1,7 +1,7 @@
 @extends('layouts.backoffice_master')
 
 @php(\Carbon\Carbon::setLocale(app()->getLocale()))
-@php($filters = request()->only(['q', 'estado', 'cliente', 'mes']))
+@php($filters = request()->only(['q', 'estado', 'cliente', 'zona', 'mes']))
 
 @section('head-meta')
     <title>{{ config('app.name') }} - {{ __('Manutenções Anuais') }} {{ $year }}</title>
@@ -34,6 +34,37 @@
                          box-shadow: 0 6px 14px var(--sombra, transparent); }
     .mt-cliente-btn .n { font-weight: 800; opacity: .75; }
     .mt-mes { font-weight: 800; font-size: .95rem; text-transform: capitalize; }
+    /* Zonas: Norte, Centro, Sul */
+    .mt-zona { display: inline-flex; align-items: center; gap: .28rem; font-size: .72rem; font-weight: 800; text-transform: uppercase;
+               letter-spacing: .04em; padding: .2rem .55rem; border-radius: 999px; background: var(--bg); color: var(--fg);
+               border: 1px solid var(--fg); vertical-align: middle; }
+    .mt-zona i { font-size: .62rem; }
+    .mt-zonas { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; margin-top: .6rem; }
+    .mt-zonas .rotulo, .mt-clientes .rotulo, .mt-meses .rotulo { font-size: .72rem; font-weight: 800; color: #94a3b8;
+               text-transform: uppercase; letter-spacing: .06em; min-width: 4.2rem; }
+    .mt-zona-btn { display: inline-flex; align-items: center; gap: .35rem; border: 1px solid #dde3ea; background: #fff;
+                   border-radius: 999px; padding: .22rem .75rem; font-size: .82rem; font-weight: 700; color: #475569;
+                   text-decoration: none !important; }
+    .mt-zona-btn:hover { border-color: var(--fg, #94a3b8); color: var(--fg, #334155); }
+    .mt-zona-btn.on { background: var(--fg, #263238); border-color: var(--fg, #263238); color: #fff; }
+    .mt-zona-btn .n { font-weight: 800; opacity: .75; }
+    /* Cabeçalho de cada grupo (em atraso, cada mês, sem data) */
+    .mt-table tr.mt-grupo { border-left: 0; }
+    .mt-table tr.mt-grupo td { padding: 1.1rem .5rem .45rem; border-top: 0; background: #fff; }
+    .mt-grupo .caixa { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .9rem; padding: .55rem .9rem;
+                       border-radius: 12px; background: var(--gbg, #f1f5f9); color: var(--gfg, #334155); }
+    .mt-grupo .titulo { font-size: 1.02rem; font-weight: 800; display: inline-flex; align-items: center; gap: .45rem; }
+    .mt-grupo .agora { font-size: .68rem; font-weight: 800; text-transform: uppercase; background: var(--gfg); color: #fff;
+                       border-radius: 999px; padding: .1rem .5rem; letter-spacing: .05em; }
+    .mt-grupo .contas { font-size: .8rem; font-weight: 600; opacity: .85; }
+    .mt-grupo .barra { width: 110px; height: 7px; border-radius: 999px; background: rgba(255, 255, 255, .7); overflow: hidden; }
+    .mt-grupo .barra span { display: block; height: 100%; background: #2e7d32; border-radius: 999px; }
+    .mt-grupo .zonas { margin-left: auto; display: flex; gap: .3rem; flex-wrap: wrap; }
+    .mt-grupo-atraso { --gbg: #fde2e1; --gfg: #b91c1c; }
+    .mt-grupo-passou { --gbg: #ffedd5; --gfg: #9a3412; }
+    .mt-grupo-agora { --gbg: #dbeafe; --gfg: #0f4c81; }
+    .mt-grupo-mes { --gbg: #f1f5f9; --gfg: #334155; }
+    .mt-grupo-sem { --gbg: #f8fafc; --gfg: #64748b; }
     .mt-limite { display: inline-flex; align-items: center; gap: .3rem; margin-top: .2rem; padding: .05rem .5rem; border-radius: 999px;
         background: #eef2ff; color: #3730a3; font-size: .74rem; font-weight: 700; }
     .mt-passou { color: #b45309; font-weight: 700; }
@@ -120,7 +151,7 @@
             <div class="d-flex flex-wrap" style="gap: .5rem">
                 <form method="GET" class="form-inline">
                     <input type="hidden" name="ano" value="{{ $year }}">
-                    @foreach(['estado', 'cliente', 'mes'] as $campo)
+                    @foreach(['estado', 'cliente', 'zona', 'mes'] as $campo)
                         @if(request($campo))<input type="hidden" name="{{ $campo }}" value="{{ request($campo) }}">@endif
                     @endforeach
                     <input type="search" name="q" class="form-control form-control-sm" value="{{ request('q') }}" placeholder="{{ __('Pesquisar loja, código, insígnia…') }}" style="min-width: 240px">
@@ -150,6 +181,7 @@
             @endforeach
         </div>
         <div class="mt-clientes">
+            <span class="rotulo">{{ __('Cliente') }}</span>
             <a href="{{ route('backoffice.maintenances.index', ['ano' => $year] + \Illuminate\Support\Arr::except($filters, 'cliente')) }}"
                class="mt-cliente-btn {{ request('cliente') ? '' : 'on' }}">
                 <i class="fas fa-building"></i> {{ __('Todos os clientes') }} <span class="n">{{ $total }}</span>
@@ -169,8 +201,30 @@
             @endif
         </div>
 
+        {{-- Zonas: para planear por onde andam os técnicos --}}
+        <div class="mt-zonas">
+            <span class="rotulo">{{ __('Zona') }}</span>
+            <a href="{{ route('backoffice.maintenances.index', ['ano' => $year] + \Illuminate\Support\Arr::except($filters, 'zona')) }}"
+               class="mt-zona-btn {{ request('zona') ? '' : 'on' }}" style="--fg: #263238">
+                <i class="fas fa-map"></i> {{ __('Todas') }} <span class="n">{{ $zonas->sum() }}</span>
+            </a>
+            @foreach($zonasConfig as $key => $cfg)
+                <a href="{{ route('backoffice.maintenances.index', ['ano' => $year, 'zona' => $key] + $filters) }}"
+                   class="mt-zona-btn {{ request('zona') === $key ? 'on' : '' }}" style="--fg: {{ $cfg['color'] }}">
+                    <i class="fas {{ $cfg['icon'] }}"></i> {{ __($cfg['label']) }} <span class="n">{{ $zonas[$key] ?? 0 }}</span>
+                </a>
+            @endforeach
+            @if(($zonas['sem'] ?? 0) > 0)
+                <a href="{{ route('backoffice.maintenances.index', ['ano' => $year, 'zona' => 'sem'] + $filters) }}"
+                   class="mt-zona-btn {{ request('zona') === 'sem' ? 'on' : '' }}" title="{{ __('Defina a zona na ficha da loja') }}">
+                    {{ __('Sem zona') }} <span class="n">{{ $zonas['sem'] }}</span>
+                </a>
+            @endif
+        </div>
+
         {{-- Os meses do ano que se está a ver: é por aqui que se planeia --}}
         <div class="mt-meses">
+            <span class="rotulo align-self-center">{{ __('Mês') }}</span>
             <a href="{{ route('backoffice.maintenances.index', ['ano' => $year] + \Illuminate\Support\Arr::except($filters, 'mes')) }}"
                class="mt-mes-btn {{ $mesEscolhido ? '' : 'on' }}">{{ __('Ano todo') }}</a>
 
@@ -225,12 +279,50 @@
                         @foreach($rows as $row)
                             @php($state = $states[$row->status])
                             @php($cliente = $row->store->clienteConfig())
+                            @if($loop->first || $rows[$loop->index - 1]->grupo !== $row->grupo)
+                                @php($g = $grupos[$row->grupo])
+                                <tr class="mt-grupo mt-grupo-{{ $g->tipo }}">
+                                    <td colspan="6">
+                                        <div class="caixa">
+                                            <span class="titulo">
+                                                <i class="fas {{ ['atraso' => 'fa-exclamation-circle', 'passou' => 'fa-bell', 'sem' => 'fa-calendar-plus'][$g->tipo] ?? 'fa-calendar-alt' }}"></i>
+                                                {{ $g->label }}
+                                                @if($g->tipo === 'agora')<span class="agora">{{ __('este mês') }}</span>@endif
+                                            </span>
+                                            <span class="contas">
+                                                {{ trans_choice('{1} :count loja|[2,*] :count lojas', $g->total, ['count' => $g->total]) }}
+                                                @if($g->tipo !== 'atraso' && $g->tipo !== 'sem')
+                                                    · {{ $g->feitas }} {{ __('feitas') }}
+                                                @endif
+                                            </span>
+                                            @if($g->tipo !== 'atraso' && $g->tipo !== 'sem')
+                                                <span class="barra" title="{{ $g->feitas }} / {{ $g->total }}"><span style="width: {{ $g->total ? round($g->feitas * 100 / $g->total) : 0 }}%"></span></span>
+                                            @endif
+                                            <span class="zonas">
+                                                @foreach($zonasConfig as $zk => $zc)
+                                                    @if($g->zonas[$zk] ?? 0)
+                                                        <span class="mt-zona" style="--bg: {{ $zc['bg'] }}; --fg: {{ $zc['color'] }}">{{ __($zc['label']) }} {{ $g->zonas[$zk] }}</span>
+                                                    @endif
+                                                @endforeach
+                                                @if($g->zonas['sem'] ?? 0)
+                                                    <span class="mt-zona" style="--bg: #f1f5f9; --fg: #64748b">{{ __('Sem zona') }} {{ $g->zonas['sem'] }}</span>
+                                                @endif
+                                            </span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endif
                             <tr style="--cliente: {{ $cliente['color'] ?? 'transparent' }}">
                                 <td class="mt-store">
                                     @if($cliente)
                                         <span class="mt-cliente"
                                               style="--grad: {{ $cliente['gradiente'] }}; --txt: {{ $cliente['texto'] }}; --sombra: {{ $cliente['sombra'] }}">
                                             <i class="fas {{ $cliente['icon'] }}"></i> {{ $cliente['label'] }}
+                                        </span>
+                                    @endif
+                                    @if($zona = $row->store->zonaConfig())
+                                        <span class="mt-zona" style="--bg: {{ $zona['bg'] }}; --fg: {{ $zona['color'] }}">
+                                            <i class="fas {{ $zona['icon'] }}"></i> {{ __($zona['label']) }}
                                         </span>
                                     @endif
                                     {{ $row->store->codigo_loja }} — {{ $row->store->nome_loja }}

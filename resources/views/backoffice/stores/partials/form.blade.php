@@ -44,6 +44,16 @@
                     </div>
 
                     <div class="form-group mb-3">
+                        <label>{{ __('Zona') }}</label>
+                        <select name="zona" class="form-control">
+                            <option value="">{{ __('Automática (pelo código postal)') }}</option>
+                            @foreach(\App\Models\Store::ZONAS as $value => $zona)
+                                <option value="{{ $value }}" @selected(old('zona', $store->zona ?? '') === $value)>{{ __($zona['label']) }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="form-group mb-3">
                         <label>{{ __('Código da Loja') }}</label>
                         <input type="text" name="codigo_loja" class="form-control" value="{{ old('codigo_loja', $store->codigo_loja ?? '') }}" required>
                     </div>
