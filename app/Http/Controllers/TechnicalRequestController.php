@@ -61,9 +61,10 @@ class TechnicalRequestController extends Controller
             ->orderBy('data_pedido', 'desc');
 
         if (!$isAdmin) {
-            // O técnico vê o dia de hoje; a semana toda está em "A Minha Semana"
+            // O técnico vê o dia de hoje e o que ficou por fechar de dias anteriores;
+            // a semana toda está em "A Minha Semana"
             $query->where('assigned_technician_id', auth()->id())
-                ->whereDate('data_agendamento', today());
+                ->deHojeOuPorFechar();
         }
 
         if ($request->filled('q')) {
@@ -494,8 +495,8 @@ class TechnicalRequestController extends Controller
 
         $query = TechnicalRequest::with(['store', 'machine', 'machines.machine', 'assignedTechnician'])
             ->where('assigned_technician_id', $technician->id)
-            // Ao técnico mostra-se o dia de hoje; a semana está em "A Minha Semana"
-            ->when($soHoje, fn ($q) => $q->whereDate('data_agendamento', today()))
+            // Ao técnico mostra-se o dia de hoje e o que ficou por fechar; a semana está em "A Minha Semana"
+            ->when($soHoje, fn ($q) => $q->deHojeOuPorFechar())
             ->where('estado', '!=', 'concluido')
             ->orderByRaw("FIELD(estado, 'pendente', 'agendado', 'aguarda_peca', 'cancelado', 'concluido')")
             ->orderBy('data_pedido', 'desc');

@@ -1,4 +1,6 @@
 {
+    "Aqui aparece o que está marcado para hoje e o que ficou por fechar de dias anteriores.": "Here you see what is scheduled for today and anything left open from previous days.",
+    "Ficou por fechar de :data": "Left open since :data",
     "Pedidos técnicos": "Technical requests",
     "Recusada ou cancelada": "Refused or cancelled",
     "Cancelado (sem cobrança)": "Cancelled (no charge)",

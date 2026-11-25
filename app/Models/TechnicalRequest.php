@@ -85,6 +85,31 @@ class TechnicalRequest extends Model
                 : __('Técnico');
     }
 
+    /** Estados que já não pedem nada ao técnico. */
+    public const ESTADOS_FECHADOS = ['concluido', 'cancelado'];
+
+    /**
+     * O que o técnico tem à frente: tudo o que está marcado para hoje, mais o que ficou
+     * marcado para dias anteriores e ainda não foi fechado.
+     */
+    public function scopeDeHojeOuPorFechar($query)
+    {
+        return $query->whereNotNull('data_agendamento')->where(function ($q) {
+            $q->whereDate('data_agendamento', today())
+                ->orWhere(fn ($antigos) => $antigos
+                    ->whereDate('data_agendamento', '<', today())
+                    ->whereNotIn('estado', self::ESTADOS_FECHADOS));
+        });
+    }
+
+    /** Ficou marcado para um dia que já passou e ainda não foi fechado? */
+    public function ficouPorFechar(): bool
+    {
+        return $this->data_agendamento
+            && \Illuminate\Support\Carbon::parse($this->data_agendamento)->lt(today())
+            && !in_array($this->estado, self::ESTADOS_FECHADOS, true);
+    }
+
     public function machines()
     {
         return $this->hasMany(TechnicalRequestMachine::class, 'technical_request_id');

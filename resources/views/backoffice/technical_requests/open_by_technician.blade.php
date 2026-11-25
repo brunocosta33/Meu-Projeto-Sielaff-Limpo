@@ -593,6 +593,7 @@
                                         @endif
                                         {{ optional($technicalRequest->store)->codigo_loja ?: '-' }} - {{ optional($technicalRequest->store)->nome_loja ?: '-' }}
                                     </div>
+                                    @include('backoffice.technical_requests.partials.por_fechar', ['pedido' => $technicalRequest])
                                     @php($address = implode(', ', array_filter([
                                         optional($technicalRequest->store)->morada,
                                         trim(implode(' ', array_filter([

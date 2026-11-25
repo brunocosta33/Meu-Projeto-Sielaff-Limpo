@@ -1934,6 +1934,7 @@
                                             {{ $request->data_resolucao ? \Carbon\Carbon::parse($request->data_resolucao)->format('d/m/Y H:i') : '—' }}
                                         </div>
                                     </div>
+                                    @include('backoffice.technical_requests.partials.por_fechar', ['pedido' => $request])
                                     @if($request->estado === 'agendado' && $request->data_agendamento)
                                         <div class="hotline-schedule-highlight">
                                             <i class="fa fa-calendar-alt"></i>

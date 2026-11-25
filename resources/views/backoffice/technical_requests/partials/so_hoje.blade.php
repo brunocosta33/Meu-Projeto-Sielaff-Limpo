@@ -1,15 +1,17 @@
-{{-- Aviso ao técnico: esta página é o dia de hoje; a semana está noutro sítio. --}}
+{{-- Aviso ao técnico: esta página é o dia de hoje (e o que ficou por fechar); a semana está noutro sítio. --}}
 @if($soHoje ?? false)
     <div class="sh-aviso">
         <i class="fas fa-calendar-day"></i>
         <div>
             <b>{{ \Illuminate\Support\Str::ucfirst(now()->isoFormat('dddd, D [de] MMMM')) }}</b>
-            <span>{{ __('Aqui aparece só o que está marcado para hoje.') }}</span>
+            <span>{{ __('Aqui aparece o que está marcado para hoje e o que ficou por fechar de dias anteriores.') }}</span>
         </div>
         <a href="{{ route('backoffice.technical_requests.my_week') }}">
             <i class="fas fa-route"></i> {{ __('A Minha Semana') }}
         </a>
     </div>
+    {{-- No <head>: as <style> soltas no meio da página não chegam a valer aqui --}}
+    @pushOnce('styles')
     <style>
         .sh-aviso { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; margin-bottom: 1rem;
                     padding: .7rem 1rem; border-radius: 12px; color: #fff;
@@ -21,4 +23,5 @@
                       border-radius: 9px; padding: .35rem .8rem; text-decoration: none !important; white-space: nowrap; }
         .sh-aviso a:hover { background: #e7f0ff; }
     </style>
+    @endPushOnce
 @endif
