@@ -25,10 +25,10 @@
         <table class="table fg-tabela mb-0">
             <thead>
                 <tr>
-                    <th style="width: 7rem">{{ __('Data da avaria') }}</th>
                     <th style="width: 7.5rem">{{ __('OS') }}</th>
                     <th>{{ __('Loja') }}</th>
                     <th>{{ __('Máquina') }}</th>
+                    <th style="width: 7rem">{{ __('Data da avaria') }}</th>
                     <th style="min-width: 12rem">{{ __('Avaria') }}</th>
                     <th style="min-width: 11rem">{{ __('Em que passo') }}</th>
                     <th class="th-sit" style="min-width: 18rem"><i class="fas fa-sticky-note"></i> {{ __('Ponto de situação') }}</th>
@@ -45,14 +45,6 @@
                     @php($nota = $case->latestNote)
                     @php($abrir = route('backoffice.warranty.show', $case->id))
                     <tr>
-                        <td>
-                            @if($case->data_avaria)
-                                <div class="fg-data">{{ $case->data_avaria->format('d/m/Y') }}</div>
-                                <div class="fg-mini">{{ trans_choice('{0} hoje|{1} há :count dia|[2,*] há :count dias', $d = (int) $case->data_avaria->copy()->startOfDay()->diffInDays(now()->startOfDay()), ['count' => $d]) }}</div>
-                            @else
-                                <span class="fg-mini">—</span>
-                            @endif
-                        </td>
                         <td>
                             <a href="{{ $abrir }}" class="text-decoration-none">
                                 @if(filled($case->os_numero))
@@ -82,6 +74,14 @@
                             @if($case->machine?->serial_number)
                                 <span class="fg-serie"><i class="fa fa-hashtag"></i> {{ $case->machine->serial_number }}</span>
                                 <div class="fg-mini">{{ $case->machine->descricao ?: $case->machine->modelo }}</div>
+                            @else
+                                <span class="fg-mini">—</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if($case->data_avaria)
+                                <div class="fg-data">{{ $case->data_avaria->format('d/m/Y') }}</div>
+                                <div class="fg-mini">{{ trans_choice('{0} hoje|{1} há :count dia|[2,*] há :count dias', $d = (int) $case->data_avaria->copy()->startOfDay()->diffInDays(now()->startOfDay()), ['count' => $d]) }}</div>
                             @else
                                 <span class="fg-mini">—</span>
                             @endif

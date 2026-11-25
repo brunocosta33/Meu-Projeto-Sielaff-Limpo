@@ -29,7 +29,8 @@ class WarrantyCaseController extends Controller
      * Duas vistas dos processos abertos:
      *  - lista (a principal): uma linha por processo, com o ponto de situação à frente, como numa folha de Excel;
      *  - quadro: uma coluna por "de quem é a vez" (nós, Sielaff, cliente, Alemanha).
-     * Nas duas, o que está parado há mais tempo fica em cima. Os fechados ficam à parte.
+     * Na lista ordena-se pela data da avaria (a mais antiga em cima); no quadro, pelo que está
+     * parado há mais tempo. Os fechados ficam à parte.
      */
     public function index(Request $request)
     {
@@ -43,9 +44,10 @@ class WarrantyCaseController extends Controller
 
         $maisAntigoPrimeiro = fn (WarrantyCase $c) => optional($c->fase_desde)->format('Ymd') . sprintf('%08d', $c->id);
 
+        // Na lista manda a data da avaria: a mais antiga em cima
         $lista = $abertos
             ->when($request->filled('vez'), fn ($todos) => $todos->filter(fn (WarrantyCase $c) => $c->waitingOn() === $request->vez))
-            ->sortBy($maisAntigoPrimeiro)
+            ->sortBy(fn (WarrantyCase $c) => optional($c->data_avaria)->format('Ymd') . sprintf('%08d', $c->id))
             ->values();
 
         // Dentro de cada coluna, o que está parado há mais tempo fica em cima
