@@ -68,7 +68,7 @@ return [
                 // por isso aqui não se anexa nada; sem peças, a cotação é nossa e anexa-se aqui.
                 'enviada' => ['label' => 'Cotação enviada', 'date' => 'enviada_cliente_em', 'fase' => 'enviada_cliente',
                     'doc' => ['sem_pecas' => 'cotacao'],
-                    'todo' => ['com_pecas' => 'Após receber a cotação da Alemanha, enviar para o cliente', 'sem_pecas' => 'Enviar a cotação ao cliente']],
+                    'todo' => 'Quando se receber a cotação da Alemanha, enviar ao cliente'],
                 'oc' => ['label' => 'Ordem de compra', 'date' => 'oc_recebida_em', 'fase' => 'oc_recebida', 'doc' => 'oc', 'todo' => 'Receber a ordem de compra'],
             ],
         ],
