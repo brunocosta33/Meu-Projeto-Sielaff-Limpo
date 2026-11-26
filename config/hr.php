@@ -54,7 +54,7 @@ return [
     'vacation_approver_functions' => ['coordenador', 'country_manager'],
 
     // Funções com acesso a Assistência > Fora da Garantia (cotações e ordens de compra)
-    'warranty_functions' => ['coordenador', 'country_manager'],
+    'warranty_functions' => ['coordenador', 'country_manager', 'administrativa'],
 
     // Despesas: quem vê as de toda a gente (os restantes só veem e lançam as suas).
     // Propositadamente à parte de manager_functions: mexer na gestão de RH não deve

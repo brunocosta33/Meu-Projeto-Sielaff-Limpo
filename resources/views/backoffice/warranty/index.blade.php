@@ -107,6 +107,13 @@
     .fg-os-l b { font-size: .66rem; color: #60a5fa; }
     .fg-os-l:hover { background: #dbeafe; color: #1e3a8a; }
     .fg-os-l.falta { background: #fff; color: #94a3b8; border: 1px dashed #cbd5e1; font-weight: 600; font-size: .74rem; }
+    .fg-anexos { display: flex; flex-direction: column; align-items: flex-start; gap: .25rem; }
+    .fg-anexo { display: inline-flex; align-items: center; gap: .3rem; padding: .1rem .5rem; border-radius: 7px; font-size: .74rem;
+                font-weight: 700; white-space: nowrap; text-decoration: none !important; }
+    .fg-anexo.tem { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+    .fg-anexo.tem:hover { background: #bbf7d0; color: #14532d; }
+    .fg-anexo.falta { background: #fff; color: #94a3b8; border: 1px dashed #cbd5e1; font-weight: 600; }
+    .fg-anexo.falta:hover { color: #64748b; border-color: #94a3b8; }
     .fg-tipo-l { display: inline-flex; align-items: center; gap: .25rem; font-size: .66rem; font-weight: 800;
                  text-transform: uppercase; border-radius: 6px; padding: .08rem .38rem; color: var(--tc); background: var(--tb); }
     .fg-zona { font-size: .64rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; border-radius: 999px;

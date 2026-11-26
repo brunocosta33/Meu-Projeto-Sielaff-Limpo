@@ -51,7 +51,7 @@ class HrAccess
         return self::isManager($user) || self::staffOf($user) !== null;
     }
 
-    /** Acesso a Assistência > Fora da Garantia (por agora: Coordenador e Country Manager). */
+    /** Acesso a Assistência > Fora da Garantia (Coordenador, Country Manager e Administrativa). */
     public static function canManageWarranty(?User $user): bool
     {
         return in_array(self::staffOf($user)?->funcao, config('hr.warranty_functions', []), true);

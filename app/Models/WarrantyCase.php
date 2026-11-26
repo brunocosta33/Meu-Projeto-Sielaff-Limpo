@@ -287,6 +287,21 @@ class WarrantyCase extends Model
         return $this->peca_origem ? __(config('warranty.part_origins.' . $this->peca_origem, $this->peca_origem)) : null;
     }
 
+    /**
+     * Os documentos que se mostram na lista: a ordem de serviço, a cotação e a ordem de compra.
+     * 'tem' = há ficheiro; 'registado' = o passo já foi registado (com ou sem ficheiro).
+     */
+    public function anexos(): array
+    {
+        $cotacaoEm = $this->needsParts() ? $this->cotacao_recebida_em : $this->enviada_cliente_em;
+
+        return [
+            'os' => ['label' => 'OS', 'titulo' => 'Ordem de serviço', 'tem' => (bool) $this->os_path, 'registado' => (bool) $this->os_em],
+            'cotacao' => ['label' => 'Cotação', 'titulo' => 'Cotação', 'tem' => (bool) $this->cotacao_path, 'registado' => (bool) $cotacaoEm],
+            'oc' => ['label' => 'OC', 'titulo' => 'Ordem de compra', 'tem' => (bool) $this->oc_path, 'registado' => (bool) $this->oc_recebida_em],
+        ];
+    }
+
     public function isOpen(): bool
     {
         return !in_array($this->fase, self::CLOSED_PHASES, true);

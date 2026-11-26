@@ -30,6 +30,7 @@
                     <th style="width: 7rem">{{ __('Data da avaria') }}</th>
                     <th style="min-width: 12rem">{{ __('Avaria') }}</th>
                     <th style="min-width: 11rem">{{ __('Em que passo') }}</th>
+                    <th style="width: 6.5rem"><i class="fas fa-paperclip"></i> {{ __('Anexos') }}</th>
                     <th class="th-sit" style="min-width: 18rem"><i class="fas fa-sticky-note"></i> {{ __('Ponto de situação') }}</th>
                     <th></th>
                 </tr>
@@ -39,7 +40,7 @@
                     {{-- Na pesquisa, os fechados vêm a seguir aos abertos, com um separador --}}
                     @if(!$case->isOpen() && ($loop->first || $lista->count() === $loop->index))
                         <tr class="fg-sep-fechados">
-                            <td colspan="7"><i class="fas fa-check-circle"></i> {{ __('Fechados que correspondem à pesquisa') }} ({{ $fechadosDaPesquisa->count() }})</td>
+                            <td colspan="8"><i class="fas fa-check-circle"></i> {{ __('Fechados que correspondem à pesquisa') }} ({{ $fechadosDaPesquisa->count() }})</td>
                         </tr>
                     @endif
                     @php($marca = $marcas[$case->cliente] ?? null)
@@ -118,6 +119,19 @@
                                 <div class="fg-mini">{{ __('Fechado a') }} {{ optional($case->fechado_em)->format('d/m/Y') }}</div>
                             @endif
                         </td>
+                        <td>
+                            {{-- Verde: tem o ficheiro (abre). Cinzento: o passo foi registado sem ficheiro. Por registar: não aparece. --}}
+                            <div class="fg-anexos">
+                                @foreach($case->anexos() as $doc => $anexo)
+                                    @if($anexo['tem'])
+                                        <a href="{{ route('backoffice.warranty.document', [$case->id, $doc]) }}" target="_blank" class="fg-anexo tem"
+                                           title="{{ __($anexo['titulo']) }} — {{ __('abrir o ficheiro') }}"><i class="fas fa-paperclip"></i> {{ __($anexo['label']) }}</a>
+                                    @elseif($anexo['registado'])
+                                        <a href="{{ $abrir }}" class="fg-anexo falta" title="{{ __($anexo['titulo']) }} — {{ __('registada sem ficheiro') }}"><i class="fas fa-times"></i> {{ __($anexo['label']) }}</a>
+                                    @endif
+                                @endforeach
+                            </div>
+                        </td>
                         <td class="td-sit">
                             <div class="fg-sit" data-url="{{ route('backoffice.warranty.notes.store', $case->id) }}">
                                 <div class="ver {{ $nota ? '' : 'sem' }}">
@@ -147,7 +161,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="7" class="fg-vazio"><i class="far fa-smile"></i> {{ __('Nada em aberto aqui.') }}</td></tr>
+                    <tr><td colspan="8" class="fg-vazio"><i class="far fa-smile"></i> {{ __('Nada em aberto aqui.') }}</td></tr>
                 @endforelse
             </tbody>
         </table>
