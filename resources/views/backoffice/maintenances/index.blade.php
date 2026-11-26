@@ -246,6 +246,19 @@
             </a>
         </div>
 
+        @include('backoffice.partials.filtros_ativos', [
+            'rota' => 'backoffice.maintenances.index',
+            'atuais' => $filters,
+            'manter' => ['ano' => $year],
+            'ativos' => [
+                'estado' => request('estado') ? ['label' => request('estado') === 'feita' ? __('Feitas') : __($states[request('estado')]['label'] ?? request('estado')), 'icon' => $states[request('estado')]['icon'] ?? null] : null,
+                'cliente' => request('cliente') ? ['label' => request('cliente') === 'outros' ? __('Outros') : ($clientesConfig[request('cliente')]['label'] ?? request('cliente')), 'icon' => 'fa-building'] : null,
+                'zona' => request('zona') ? ['label' => request('zona') === 'sem' ? __('Sem zona') : __($zonasConfig[request('zona')]['label'] ?? request('zona')), 'icon' => 'fa-map-marker-alt'] : null,
+                'mes' => $mesEscolhido ? ['label' => $mesEscolhido === 'sem_data' ? __('Sem data neste ano') : \Illuminate\Support\Str::ucfirst(\Carbon\Carbon::create($year, (int) $mesEscolhido, 1)->isoFormat('MMMM')), 'icon' => 'fa-calendar'] : null,
+                'q' => filled(request('q')) ? ['label' => '«' . request('q') . '»', 'icon' => 'fa-search'] : null,
+            ],
+        ])
+
         <p class="small text-muted mb-0 mt-2">
             <i class="fa fa-info-circle"></i>
             <b>{{ __('Sonae') }}:</b> {{ __('tem de ser feita no mês contratado.') }}

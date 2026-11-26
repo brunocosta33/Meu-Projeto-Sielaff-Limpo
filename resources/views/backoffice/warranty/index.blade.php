@@ -222,6 +222,19 @@
                 </a>
             </div>
         </div>
+
+        @include('backoffice.partials.filtros_ativos', [
+            'rota' => 'backoffice.warranty.index',
+            'atuais' => $filters + ($verFechados ? ['fechados' => 1] : []),
+            'manter' => \Illuminate\Support\Arr::only($filters, 'vista'),
+            'ativos' => [
+                'cliente' => request('cliente') ? ['label' => $clients[request('cliente')] ?? request('cliente'), 'icon' => 'fa-tag'] : null,
+                'tipo' => request('tipo') ? ['label' => __($types[request('tipo')]['curto'] ?? request('tipo')), 'icon' => 'fa-cogs'] : null,
+                'vez' => request('vez') ? ['label' => __('Vez') . ': ' . __($esperas[request('vez')]['curto'] ?? request('vez')), 'icon' => $esperas[request('vez')]['icon'] ?? null] : null,
+                'q' => filled(request('q')) ? ['label' => '«' . request('q') . '»', 'icon' => 'fa-search'] : null,
+                'fechados' => $verFechados ? ['label' => __('Fechados'), 'icon' => 'fa-check-circle'] : null,
+            ],
+        ])
     </div>
 </div>
 
